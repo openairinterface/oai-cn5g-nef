@@ -26,8 +26,8 @@
  \email: Tien-Thinh.Nguyen@eurecom.fr
  */
 
-#ifndef FILE_NRF_CLIENT_HPP_SEEN
-#define FILE_NRF_CLIENT_HPP_SEEN
+#ifndef FILE_NEF_CLIENT_HPP_SEEN
+#define FILE_NEF_CLIENT_HPP_SEEN
 
 #include <map>
 #include <thread>
@@ -45,19 +45,18 @@ class nef_client {
   std::vector<CURL*> handles;
   struct curl_slist* headers;
 
-//  bs2::connection
-//      task_connection;  // connection for performing curl_multi every 1ms
+  //  bs2::connection
+  //      task_connection;  // connection for performing curl_multi every 1ms
 
  public:
-//  nef_client(nef_event& ev);
-  nef_client() {};
+  //  nef_client(nef_event& ev);
+  nef_client(){};
   virtual ~nef_client();
 
   nef_client(nef_client const&) = delete;
   void operator=(nef_client const&) = delete;
-
 };
 }  // namespace app
 }  // namespace nef
 }  // namespace oai
-#endif /* FILE_NRF_CLIENT_HPP_SEEN */
+#endif /* FILE_NEF_CLIENT_HPP_SEEN */

@@ -27,8 +27,8 @@
  \email: Tien-Thinh.Nguyen@eurecom.fr
  */
 
-#ifndef FILE_NRF_APP_HPP_SEEN
-#define FILE_NRF_APP_HPP_SEEN
+#ifndef FILE_NEF_APP_HPP_SEEN
+#define FILE_NEF_APP_HPP_SEEN
 
 #include <string>
 #include "uint_generator.hpp"
@@ -47,20 +47,17 @@ class nef_app {
   virtual ~nef_app();
 
   /*
-   * Generate a random UUID for NRF instance
+   * Generate a random UUID for NEF instance
    * @param [void]
    * @return void
    */
   void generate_uuid();
 
-
-
  private:
-
 };
 }  // namespace app
 }  // namespace nef
 }  // namespace oai
 #include "nef_config.hpp"
 
-#endif /* FILE_NRF_APP_HPP_SEEN */
+#endif /* FILE_NEF_APP_HPP_SEEN */

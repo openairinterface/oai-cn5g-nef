@@ -72,7 +72,7 @@ nef_client::nef_client(nef_event& ev) : m_event_sub(ev) {
 
 //------------------------------------------------------------------------------
 nef_client::~nef_client() {
-  Logger::nef_app().debug("Delete NRF Client instance...");
+  Logger::nef_app().debug("Delete NEF Client instance...");
   // Remove handle, free memory
   for (auto h : handles) {
     curl_multi_remove_handle(curl_multi, h);
@@ -84,6 +84,5 @@ nef_client::~nef_client() {
   curl_global_cleanup();
   curl_slist_free_all(headers);
 
-  //if (task_connection.connected()) task_connection.disconnect();
+  // if (task_connection.connected()) task_connection.disconnect();
 }
-

@@ -59,11 +59,11 @@ extern nef_config nef_cfg;
 
 //------------------------------------------------------------------------------
 int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
-  if_cfg.lookupValue(NRF_CONFIG_STRING_INTERFACE_NAME, cfg.if_name);
+  if_cfg.lookupValue(NEF_CONFIG_STRING_INTERFACE_NAME, cfg.if_name);
   util::trim(cfg.if_name);
   if (not boost::iequals(cfg.if_name, "none")) {
     std::string address = {};
-    if_cfg.lookupValue(NRF_CONFIG_STRING_IPV4_ADDRESS, address);
+    if_cfg.lookupValue(NEF_CONFIG_STRING_IPV4_ADDRESS, address);
     util::trim(address);
     if (boost::iequals(address, "read")) {
       if (get_inet_addr_infos_from_iface(
@@ -78,7 +78,7 @@ int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
           words, address, boost::is_any_of("/"), boost::token_compress_on);
       if (words.size() != 2) {
         Logger::nef_app().error(
-            "Bad value " NRF_CONFIG_STRING_IPV4_ADDRESS " = %s in config file",
+            "Bad value " NEF_CONFIG_STRING_IPV4_ADDRESS " = %s in config file",
             address.c_str());
         return RETURNerror;
       }
@@ -88,7 +88,7 @@ int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
         memcpy(&cfg.addr4, buf_in_addr, sizeof(struct in_addr));
       } else {
         Logger::nef_app().error(
-            "In conversion: Bad value " NRF_CONFIG_STRING_IPV4_ADDRESS
+            "In conversion: Bad value " NEF_CONFIG_STRING_IPV4_ADDRESS
             " = %s in config file",
             util::trim(words.at(0)).c_str());
         return RETURNerror;
@@ -97,7 +97,7 @@ int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
           ntohs(cfg.addr4.s_addr) &
           0xFFFFFFFF << (32 - std::stoi(util::trim(words.at(1)))));
     }
-    if_cfg.lookupValue(NRF_CONFIG_STRING_PORT, cfg.port);
+    if_cfg.lookupValue(NEF_CONFIG_STRING_PORT, cfg.port);
   }
   return RETURNok;
 }
@@ -125,44 +125,44 @@ int nef_config::load(const string& config_file) {
   const Setting& root = cfg.getRoot();
 
   try {
-    const Setting& nef_cfg = root[NRF_CONFIG_STRING_NRF_CONFIG];
+    const Setting& nef_cfg = root[NEF_CONFIG_STRING_NEF_CONFIG];
   } catch (const SettingNotFoundException& nfex) {
     Logger::nef_app().error("%s : %s", nfex.what(), nfex.getPath());
     return RETURNerror;
   }
 
-  const Setting& nef_cfg = root[NRF_CONFIG_STRING_NRF_CONFIG];
+  const Setting& nef_cfg = root[NEF_CONFIG_STRING_NEF_CONFIG];
 
   try {
-    nef_cfg.lookupValue(NRF_CONFIG_STRING_INSTANCE, instance);
+    nef_cfg.lookupValue(NEF_CONFIG_STRING_INSTANCE, instance);
   } catch (const SettingNotFoundException& nfex) {
     Logger::nef_app().info(
         "%s : %s, using defaults", nfex.what(), nfex.getPath());
   }
 
   try {
-    nef_cfg.lookupValue(NRF_CONFIG_STRING_PID_DIRECTORY, pid_dir);
+    nef_cfg.lookupValue(NEF_CONFIG_STRING_PID_DIRECTORY, pid_dir);
   } catch (const SettingNotFoundException& nfex) {
     Logger::nef_app().info(
         "%s : %s, using defaults", nfex.what(), nfex.getPath());
   }
 
   try {
-    const Setting& sbi_cfg = nef_cfg[NRF_CONFIG_STRING_INTERFACE_SBI];
+    const Setting& sbi_cfg = nef_cfg[NEF_CONFIG_STRING_INTERFACE_SBI];
     load_interface(sbi_cfg, sbi);
 
     // HTTP2 port
     if (!(sbi_cfg.lookupValue(
-            NRF_CONFIG_STRING_SBI_HTTP2_PORT, sbi_http2_port))) {
-      Logger::nef_app().error(NRF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
-      throw(NRF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
+            NEF_CONFIG_STRING_SBI_HTTP2_PORT, sbi_http2_port))) {
+      Logger::nef_app().error(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
+      throw(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
     }
 
     // SBI API VERSION
     if (!(sbi_cfg.lookupValue(
-            NRF_CONFIG_STRING_API_VERSION, sbi_api_version))) {
-      Logger::nef_app().error(NRF_CONFIG_STRING_API_VERSION "failed");
-      throw(NRF_CONFIG_STRING_API_VERSION "failed");
+            NEF_CONFIG_STRING_API_VERSION, sbi_api_version))) {
+      Logger::nef_app().error(NEF_CONFIG_STRING_API_VERSION "failed");
+      throw(NEF_CONFIG_STRING_API_VERSION "failed");
     }
 
   } catch (const SettingNotFoundException& nfex) {
@@ -177,7 +177,7 @@ int nef_config::load(const string& config_file) {
 void nef_config::display() {
   Logger::nef_app().info(
       "==== OAI-CN5G %s v%s ====", PACKAGE_NAME, PACKAGE_VERSION);
-  Logger::nef_app().info("Configuration NRF:");
+  Logger::nef_app().info("Configuration NEF:");
   Logger::nef_app().info("- Instance ..............: %d\n", instance);
   Logger::nef_app().info("- PID dir ...............: %s\n", pid_dir.c_str());
 

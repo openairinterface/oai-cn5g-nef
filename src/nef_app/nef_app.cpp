@@ -48,7 +48,7 @@
 #include "nef_config.hpp"
 
 using namespace oai::nef::app;
-//using namespace oai::nef::model;
+// using namespace oai::nef::model;
 using namespace std::chrono;
 
 extern nef_app* nef_app_inst;
@@ -62,28 +62,27 @@ nef_app::nef_app(const std::string& config_file) {
   try {
     nef_client_inst = new nef_client();
   } catch (std::exception& e) {
-    Logger::nef_app().error("Cannot create NRF_APP: %s", e.what());
+    Logger::nef_app().error("Cannot create NEF_APP: %s", e.what());
     throw;
   }
 
   // subscribe to NF status
- // subscribe_nf_status();
+  // subscribe_nf_status();
 
   Logger::nef_app().startup("Started");
 }
 
 //------------------------------------------------------------------------------
 nef_app::~nef_app() {
-  Logger::nef_app().debug("Delete NRF_APP instance...");
- // for (auto i : connections) {
- //   if (i.connected()) i.disconnect();
- // }
+  Logger::nef_app().debug("Delete NEF_APP instance...");
+  // for (auto i : connections) {
+  //   if (i.connected()) i.disconnect();
+  // }
 
   if (nef_client_inst) delete nef_client_inst;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::generate_uuid() {
-  //nef_instance_id = to_string(boost::uuids::random_generator()());
+  // nef_instance_id = to_string(boost::uuids::random_generator()());
 }
-
