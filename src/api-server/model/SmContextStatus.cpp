@@ -41,7 +41,7 @@ bool SmContextStatus::validate(
 }
 
 bool SmContextStatus::operator==(const SmContextStatus& rhs) const {
-  return
+  return true
 
       ;
 }

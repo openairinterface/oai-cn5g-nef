@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef 5GLanParametersProvision_H_
-#define 5GLanParametersProvision_H_
+#ifndef _5GLanParametersProvision_H_
+#define _5GLanParametersProvision_H_
 
 #include <string>
 #include "5GLanParameters.h"
@@ -28,10 +28,10 @@ namespace oai::nef::model {
 /// <summary>
 ///
 /// </summary>
-class 5GLanParametersProvision {
+class _5GLanParametersProvision {
  public:
-  5GLanParametersProvision();
-  virtual ~5GLanParametersProvision() = default;
+  _5GLanParametersProvision();
+  virtual ~_5GLanParametersProvision() = default;
 
   /// <summary>
   /// Validate the current data in the model. Throws a ValidationException on
@@ -43,10 +43,10 @@ class 5GLanParametersProvision {
   /// Validate the current data in the model. Returns false on error and writes
   /// an error message into the given stringstream.
   /// </summary>
-  bool validate(std::stringstream & msg) const;
+  bool validate(std::stringstream& msg) const;
 
-  bool operator==(const 5GLanParametersProvision & rhs) const;
-  bool operator!=(const 5GLanParametersProvision & rhs) const;
+  bool operator==(const _5GLanParametersProvision& rhs) const;
+  bool operator!=(const _5GLanParametersProvision& rhs) const;
 
   /////////////////////////////////////////////
   /// 5GLanParametersProvision members
@@ -62,27 +62,27 @@ class 5GLanParametersProvision {
   /// <summary>
   ///
   /// </summary>
-  5GLanParameters getR5gLanParams() const;
-  void setR5gLanParams(5GLanParameters const& value);
+  _5GLanParameters getR5gLanParams() const;
+  void setR5gLanParams(_5GLanParameters const& value);
   /// <summary>
   ///
   /// </summary>
   std::string getSuppFeat() const;
   void setSuppFeat(std::string const& value);
 
-  friend void to_json(nlohmann::json & j, const 5GLanParametersProvision & o);
-  friend void from_json(const nlohmann::json& j, 5GLanParametersProvision & o);
+  friend void to_json(nlohmann::json& j, const _5GLanParametersProvision& o);
+  friend void from_json(const nlohmann::json& j, _5GLanParametersProvision& o);
 
  protected:
   std::string m_Self;
   bool m_SelfIsSet;
-  5GLanParameters m_r_5gLanParams;
+  _5GLanParameters m_r_5gLanParams;
 
   std::string m_SuppFeat;
 
   // Helper overload for validate. Used when one model stores another model and
   // calls it's validate.
-  bool validate(std::stringstream & msg, const std::string& pathPrefix) const;
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

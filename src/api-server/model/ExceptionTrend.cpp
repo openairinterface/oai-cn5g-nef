@@ -41,7 +41,7 @@ bool ExceptionTrend::validate(
 }
 
 bool ExceptionTrend::operator==(const ExceptionTrend& rhs) const {
-  return
+  return true
 
       ;
 }

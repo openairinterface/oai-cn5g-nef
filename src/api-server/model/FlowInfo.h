@@ -68,16 +68,15 @@ class FlowInfo {
 
   friend void to_json(nlohmann::json& j, const FlowInfo& o);
   friend void from_json(const nlohmann::json& j, FlowInfo& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   int32_t m_FlowId;
 
   std::vector<std::string> m_FlowDescriptions;
   bool m_FlowDescriptionsIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

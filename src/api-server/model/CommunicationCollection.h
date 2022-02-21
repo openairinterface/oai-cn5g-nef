@@ -74,6 +74,10 @@ class CommunicationCollection {
   friend void to_json(nlohmann::json& j, const CommunicationCollection& o);
   friend void from_json(const nlohmann::json& j, CommunicationCollection& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   std::string m_StartTime;
 
@@ -82,10 +86,6 @@ class CommunicationCollection {
   int64_t m_UlVol;
 
   int64_t m_DlVol;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

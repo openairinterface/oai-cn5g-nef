@@ -65,15 +65,14 @@ class CongestInfo {
 
   friend void to_json(nlohmann::json& j, const CongestInfo& o);
   friend void from_json(const nlohmann::json& j, CongestInfo& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   LocationArea5G m_LocArea;
 
   std::vector<CongestionAnalytics> m_CngAnas;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

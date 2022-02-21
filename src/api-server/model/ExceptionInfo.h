@@ -77,6 +77,9 @@ class ExceptionInfo {
 
   friend void to_json(nlohmann::json& j, const ExceptionInfo& o);
   friend void from_json(const nlohmann::json& j, ExceptionInfo& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   FlowInfo m_IpTrafficFilter;
@@ -85,10 +88,6 @@ class ExceptionInfo {
   bool m_EthTrafficFilterIsSet;
   std::vector<Exception> m_Exceps;
   bool m_ExcepsIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

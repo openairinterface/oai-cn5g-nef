@@ -45,7 +45,7 @@
 
 #include "nef_app.hpp"
 
-//using namespace oai::nef::api;
+// using namespace oai::nef::api;
 using namespace oai::nef::app;
 class NEFApiServer {
  public:
@@ -53,7 +53,6 @@ class NEFApiServer {
       : m_httpEndpoint(std::make_shared<Pistache::Http::Endpoint>(address)) {
     m_router  = std::make_shared<Pistache::Rest::Router>();
     m_address = address.host() + ":" + (address.port()).toString();
-
   }
   void init(size_t thr = 1);
   void start();

@@ -94,6 +94,10 @@ class ServiceExperienceInfoPerFlow {
   friend void from_json(
       const nlohmann::json& j, ServiceExperienceInfoPerFlow& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   SvcExperience m_SvcExprc;
   bool m_SvcExprcIsSet;
@@ -105,10 +109,6 @@ class ServiceExperienceInfoPerFlow {
   bool m_IpTrafficFilterIsSet;
   EthFlowDescription m_EthTrafficFilter;
   bool m_EthTrafficFilterIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

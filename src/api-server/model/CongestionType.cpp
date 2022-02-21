@@ -41,7 +41,7 @@ bool CongestionType::validate(
 }
 
 bool CongestionType::operator==(const CongestionType& rhs) const {
-  return
+  return true
 
       ;
 }

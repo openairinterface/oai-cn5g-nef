@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef 5GLanParameters_H_
-#define 5GLanParameters_H_
+#ifndef _5GLanParameters_H_
+#define _5GLanParameters_H_
 
 #include "AaaUsage.h"
 #include <string>
@@ -34,28 +34,28 @@ namespace oai::nef::model {
 /// <summary>
 ///
 /// </summary>
-class 5GLanParameters {
+class _5GLanParameters {
  public:
-  5GLanParameters();
-  virtual ~5GLanParameters() = default;
+  _5GLanParameters();
+  virtual ~_5GLanParameters() = default;
 
   /// <summary>
   /// Validate the current data in the model. Throws a ValidationException on
   /// failure.
   /// </summary>
-  void validate() const;
+  void validate();
 
   /// <summary>
   /// Validate the current data in the model. Returns false on error and writes
   /// an error message into the given stringstream.
   /// </summary>
-  bool validate(std::stringstream & msg) const;
+  bool validate(std::stringstream& msg);
 
-  bool operator==(const 5GLanParameters & rhs) const;
-  bool operator!=(const 5GLanParameters & rhs) const;
+  bool operator==(const _5GLanParameters& rhs) const;
+  bool operator!=(const _5GLanParameters& rhs) const;
 
   /////////////////////////////////////////////
-  /// 5GLanParameters members
+  /// _5GLanParameters members
 
   /// <summary>
   /// string containing a local identifier followed by \&quot;@\&quot; and a
@@ -120,8 +120,8 @@ class 5GLanParameters {
   std::map<std::string, AppDescriptor> getAppDesps() const;
   void setAppDesps(std::map<std::string, AppDescriptor> const& value);
 
-  friend void to_json(nlohmann::json & j, const 5GLanParameters & o);
-  friend void from_json(const nlohmann::json& j, 5GLanParameters & o);
+  friend void to_json(nlohmann::json& j, const _5GLanParameters& o);
+  friend void from_json(const nlohmann::json& j, _5GLanParameters& o);
 
  protected:
   std::string m_ExterGroupId;
@@ -146,7 +146,7 @@ class 5GLanParameters {
 
   // Helper overload for validate. Used when one model stores another model and
   // calls it's validate.
-  bool validate(std::stringstream & msg, const std::string& pathPrefix) const;
+  bool validate(std::stringstream& msg, const std::string& pathPrefix);
 };
 
 }  // namespace oai::nef::model

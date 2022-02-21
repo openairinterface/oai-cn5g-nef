@@ -40,7 +40,7 @@ bool TimeUnit::validate(
 }
 
 bool TimeUnit::operator==(const TimeUnit& rhs) const {
-  return
+  return true
 
       ;
 }

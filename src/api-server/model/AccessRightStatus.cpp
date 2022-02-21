@@ -41,7 +41,7 @@ bool AccessRightStatus::validate(
 }
 
 bool AccessRightStatus::operator==(const AccessRightStatus& rhs) const {
-  return
+  return true
 
       ;
 }

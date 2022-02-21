@@ -41,7 +41,7 @@ bool SubscribedEvent::validate(
 }
 
 bool SubscribedEvent::operator==(const SubscribedEvent& rhs) const {
-  return
+  return true
 
       ;
 }

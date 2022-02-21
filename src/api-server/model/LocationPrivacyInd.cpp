@@ -42,7 +42,7 @@ bool LocationPrivacyInd::validate(
 }
 
 bool LocationPrivacyInd::operator==(const LocationPrivacyInd& rhs) const {
-  return
+  return true
 
       ;
 }

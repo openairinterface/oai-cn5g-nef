@@ -76,16 +76,16 @@ class ServiceExperienceInfo {
   friend void to_json(nlohmann::json& j, const ServiceExperienceInfo& o);
   friend void from_json(const nlohmann::json& j, ServiceExperienceInfo& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   std::string m_AppId;
   bool m_AppIdIsSet;
   std::vector<std::string> m_Supis;
   bool m_SupisIsSet;
   std::vector<ServiceExperienceInfoPerFlow> m_SvcExpPerFlows;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

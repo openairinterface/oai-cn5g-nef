@@ -41,7 +41,7 @@ bool ExceptionId::validate(
 }
 
 bool ExceptionId::operator==(const ExceptionId& rhs) const {
-  return
+  return true
 
       ;
 }

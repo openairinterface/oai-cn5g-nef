@@ -41,7 +41,7 @@ bool TrafficProfile::validate(
 }
 
 bool TrafficProfile::operator==(const TrafficProfile& rhs) const {
-  return
+  return true
 
       ;
 }

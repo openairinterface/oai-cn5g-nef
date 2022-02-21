@@ -18,22 +18,22 @@
 
 namespace oai::nef::model {
 
-5GLanParametersProvisionPatch ::5GLanParametersProvisionPatch() {
+_5GLanParametersProvisionPatch ::_5GLanParametersProvisionPatch() {
   m_r_5gLanParamsPatchIsSet = false;
 }
 
-void 5GLanParametersProvisionPatch ::validate() const {
+void _5GLanParametersProvisionPatch ::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
     throw org::openapitools::server::helpers::ValidationException(msg.str());
   }
 }
 
-bool 5GLanParametersProvisionPatch ::validate(std::stringstream& msg) const {
+bool _5GLanParametersProvisionPatch ::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool 5GLanParametersProvisionPatch ::validate(
+bool _5GLanParametersProvisionPatch ::validate(
     std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
@@ -42,8 +42,8 @@ bool 5GLanParametersProvisionPatch ::validate(
   return success;
 }
 
-bool 5GLanParametersProvisionPatch ::operator==(
-    const 5GLanParametersProvisionPatch & rhs) const {
+bool _5GLanParametersProvisionPatch ::operator==(
+    const _5GLanParametersProvisionPatch& rhs) const {
   return
 
       ((!r5gLanParamsPatchIsSet() && !rhs.r5gLanParamsPatchIsSet()) ||
@@ -53,37 +53,37 @@ bool 5GLanParametersProvisionPatch ::operator==(
           ;
 }
 
-bool 5GLanParametersProvisionPatch ::operator!=(
-    const 5GLanParametersProvisionPatch & rhs) const {
+bool _5GLanParametersProvisionPatch ::operator!=(
+    const _5GLanParametersProvisionPatch& rhs) const {
   return !(*this == rhs);
 }
 
-void to_json(nlohmann::json& j, const 5GLanParametersProvisionPatch & o) {
+void to_json(nlohmann::json& j, const _5GLanParametersProvisionPatch& o) {
   j = nlohmann::json();
   if (o.r5gLanParamsPatchIsSet())
     j["5gLanParamsPatch"] = o.m_r_5gLanParamsPatch;
 }
 
-void from_json(const nlohmann::json& j, 5GLanParametersProvisionPatch & o) {
+void from_json(const nlohmann::json& j, _5GLanParametersProvisionPatch& o) {
   if (j.find("5gLanParamsPatch") != j.end()) {
     j.at("5gLanParamsPatch").get_to(o.m_r_5gLanParamsPatch);
     o.m_r_5gLanParamsPatchIsSet = true;
   }
 }
 
-5GLanParametersPatch 5GLanParametersProvisionPatch ::getR5gLanParamsPatch()
+_5GLanParametersPatch _5GLanParametersProvisionPatch ::getR5gLanParamsPatch()
     const {
   return m_r_5gLanParamsPatch;
 }
-void 5GLanParametersProvisionPatch ::setR5gLanParamsPatch(
-    5GLanParametersPatch const& value) {
+void _5GLanParametersProvisionPatch ::setR5gLanParamsPatch(
+    _5GLanParametersPatch const& value) {
   m_r_5gLanParamsPatch      = value;
   m_r_5gLanParamsPatchIsSet = true;
 }
-bool 5GLanParametersProvisionPatch ::r5gLanParamsPatchIsSet() const {
+bool _5GLanParametersProvisionPatch ::r5gLanParamsPatchIsSet() const {
   return m_r_5gLanParamsPatchIsSet;
 }
-void 5GLanParametersProvisionPatch ::unsetr_5gLanParamsPatch() {
+void _5GLanParametersProvisionPatch ::unsetr_5gLanParamsPatch() {
   m_r_5gLanParamsPatchIsSet = false;
 }
 

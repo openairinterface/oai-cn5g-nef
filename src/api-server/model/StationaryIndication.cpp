@@ -41,7 +41,7 @@ bool StationaryIndication::validate(
 }
 
 bool StationaryIndication::operator==(const StationaryIndication& rhs) const {
-  return
+  return true
 
       ;
 }

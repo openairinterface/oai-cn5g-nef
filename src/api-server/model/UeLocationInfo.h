@@ -73,6 +73,10 @@ class UeLocationInfo {
   friend void to_json(nlohmann::json& j, const UeLocationInfo& o);
   friend void from_json(const nlohmann::json& j, UeLocationInfo& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   LocationArea5G m_Loc;
 
@@ -80,10 +84,6 @@ class UeLocationInfo {
   bool m_RatioIsSet;
   int32_t m_Confidence;
   bool m_ConfidenceIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

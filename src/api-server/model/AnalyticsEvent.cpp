@@ -41,7 +41,7 @@ bool AnalyticsEvent::validate(
 }
 
 bool AnalyticsEvent::operator==(const AnalyticsEvent& rhs) const {
-  return
+  return true
 
       ;
 }

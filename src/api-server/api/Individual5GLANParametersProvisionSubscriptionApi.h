@@ -113,7 +113,7 @@ class Individual5GLANParametersProvisionSubscriptionApi {
   /// resource</param> <param name="r_5GLanParametersProvisionPatch"></param>
   virtual void af_id_subscriptions_subscription_id_patch(
       const std::string& afId, const std::string& subscriptionId,
-      const oai::nef::model::5GLanParametersProvisionPatch &
+      const oai::nef::model::_5GLanParametersProvisionPatch&
           r_5GLanParametersProvisionPatch,
       Pistache::Http::ResponseWriter& response) = 0;
   /// <summary>
@@ -128,7 +128,7 @@ class Individual5GLANParametersProvisionSubscriptionApi {
   /// update/replace the existing subscription</param>
   virtual void af_id_subscriptions_subscription_id_put(
       const std::string& afId, const std::string& subscriptionId,
-      const oai::nef::model::5GLanParametersProvision &
+      const oai::nef::model::_5GLanParametersProvision&
           r_5GLanParametersProvision,
       Pistache::Http::ResponseWriter& response) = 0;
 };

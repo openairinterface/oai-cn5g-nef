@@ -147,7 +147,7 @@ void Individual5GLANParametersProvisionSubscriptionApi::
 
     // Getting the body param
 
-    5GLanParametersProvisionPatch r_5GLanParametersProvisionPatch;
+    _5GLanParametersProvisionPatch r_5GLanParametersProvisionPatch;
 
     try {
       nlohmann::json::parse(request.body())
@@ -188,7 +188,7 @@ void Individual5GLANParametersProvisionSubscriptionApi::
 
     // Getting the body param
 
-    5GLanParametersProvision r_5GLanParametersProvision;
+    _5GLanParametersProvision r_5GLanParametersProvision;
 
     try {
       nlohmann::json::parse(request.body()).get_to(r_5GLanParametersProvision);

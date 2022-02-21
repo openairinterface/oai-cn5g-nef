@@ -74,6 +74,10 @@ class Exception {
   friend void to_json(nlohmann::json& j, const Exception& o);
   friend void from_json(const nlohmann::json& j, Exception& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   ExceptionId m_ExcepId;
 
@@ -81,10 +85,6 @@ class Exception {
   bool m_ExcepLevelIsSet;
   ExceptionTrend m_ExcepTrend;
   bool m_ExcepTrendIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

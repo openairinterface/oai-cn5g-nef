@@ -43,7 +43,7 @@ bool AccuracyFulfilmentIndicator::validate(
 
 bool AccuracyFulfilmentIndicator::operator==(
     const AccuracyFulfilmentIndicator& rhs) const {
-  return
+  return true
 
       ;
 }

@@ -124,6 +124,9 @@ class GeographicArea {
 
   friend void to_json(nlohmann::json& j, const GeographicArea& o);
   friend void from_json(const nlohmann::json& j, GeographicArea& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   SupportedGADShapes m_Shape;
@@ -149,10 +152,6 @@ class GeographicArea {
   int32_t m_OffsetAngle;
 
   int32_t m_IncludedAngle;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

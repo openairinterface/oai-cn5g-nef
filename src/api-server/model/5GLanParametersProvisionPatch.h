@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef 5GLanParametersProvisionPatch_H_
-#define 5GLanParametersProvisionPatch_H_
+#ifndef _5GLanParametersProvisionPatch_H_
+#define _5GLanParametersProvisionPatch_H_
 
 #include "5GLanParametersPatch.h"
 #include <nlohmann/json.hpp>
@@ -27,10 +27,10 @@ namespace oai::nef::model {
 /// <summary>
 ///
 /// </summary>
-class 5GLanParametersProvisionPatch {
+class _5GLanParametersProvisionPatch {
  public:
-  5GLanParametersProvisionPatch();
-  virtual ~5GLanParametersProvisionPatch() = default;
+  _5GLanParametersProvisionPatch();
+  virtual ~_5GLanParametersProvisionPatch() = default;
 
   /// <summary>
   /// Validate the current data in the model. Throws a ValidationException on
@@ -42,10 +42,10 @@ class 5GLanParametersProvisionPatch {
   /// Validate the current data in the model. Returns false on error and writes
   /// an error message into the given stringstream.
   /// </summary>
-  bool validate(std::stringstream & msg) const;
+  bool validate(std::stringstream& msg) const;
 
-  bool operator==(const 5GLanParametersProvisionPatch & rhs) const;
-  bool operator!=(const 5GLanParametersProvisionPatch & rhs) const;
+  bool operator==(const _5GLanParametersProvisionPatch& rhs) const;
+  bool operator!=(const _5GLanParametersProvisionPatch& rhs) const;
 
   /////////////////////////////////////////////
   /// 5GLanParametersProvisionPatch members
@@ -53,23 +53,23 @@ class 5GLanParametersProvisionPatch {
   /// <summary>
   ///
   /// </summary>
-  5GLanParametersPatch getR5gLanParamsPatch() const;
-  void setR5gLanParamsPatch(5GLanParametersPatch const& value);
+  _5GLanParametersPatch getR5gLanParamsPatch() const;
+  void setR5gLanParamsPatch(_5GLanParametersPatch const& value);
   bool r5gLanParamsPatchIsSet() const;
   void unsetr_5gLanParamsPatch();
 
   friend void to_json(
-      nlohmann::json & j, const 5GLanParametersProvisionPatch & o);
+      nlohmann::json& j, const _5GLanParametersProvisionPatch& o);
   friend void from_json(
-      const nlohmann::json& j, 5GLanParametersProvisionPatch & o);
+      const nlohmann::json& j, _5GLanParametersProvisionPatch& o);
 
  protected:
-  5GLanParametersPatch m_r_5gLanParamsPatch;
+  _5GLanParametersPatch m_r_5gLanParamsPatch;
   bool m_r_5gLanParamsPatchIsSet;
 
   // Helper overload for validate. Used when one model stores another model and
   // calls it's validate.
-  bool validate(std::stringstream & msg, const std::string& pathPrefix) const;
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

@@ -42,7 +42,7 @@ bool PositioningMethod::validate(
 }
 
 bool PositioningMethod::operator==(const PositioningMethod& rhs) const {
-  return
+  return true
 
       ;
 }

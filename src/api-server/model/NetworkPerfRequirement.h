@@ -73,6 +73,10 @@ class NetworkPerfRequirement {
   friend void to_json(nlohmann::json& j, const NetworkPerfRequirement& o);
   friend void from_json(const nlohmann::json& j, NetworkPerfRequirement& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   NetworkPerfType m_NwPerfType;
 
@@ -80,10 +84,6 @@ class NetworkPerfRequirement {
   bool m_RelativeRatioIsSet;
   int32_t m_AbsoluteNum;
   bool m_AbsoluteNumIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

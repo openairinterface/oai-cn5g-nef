@@ -125,6 +125,10 @@ class AnalyticsEventFilter {
   friend void to_json(nlohmann::json& j, const AnalyticsEventFilter& o);
   friend void from_json(const nlohmann::json& j, AnalyticsEventFilter& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   LocationArea5G m_LocArea;
   bool m_LocAreaIsSet;
@@ -144,10 +148,6 @@ class AnalyticsEventFilter {
   bool m_SnssaiIsSet;
   QosRequirement m_QosReq;
   bool m_QosReqIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

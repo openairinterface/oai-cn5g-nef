@@ -31,7 +31,7 @@ void Class5GLANParametersProvisionSubscriptionsApiImpl::af_id_subscriptions_get(
 void Class5GLANParametersProvisionSubscriptionsApiImpl::
     af_id_subscriptions_post(
         const std::string& afId,
-        const 5GLanParametersProvision & r_5GLanParametersProvision,
+        const _5GLanParametersProvision& r_5GLanParametersProvision,
         Pistache::Http::ResponseWriter& response) {
   response.send(Pistache::Http::Code::Ok, "Do some magic\n");
 }

@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef 5GLanParametersPatch_H_
-#define 5GLanParametersPatch_H_
+#ifndef _5GLanParametersPatch_H_
+#define _5GLanParametersPatch_H_
 
 #include <string>
 #include "AppDescriptorRm.h"
@@ -30,10 +30,10 @@ namespace oai::nef::model {
 /// <summary>
 ///
 /// </summary>
-class 5GLanParametersPatch {
+class _5GLanParametersPatch {
  public:
-  5GLanParametersPatch();
-  virtual ~5GLanParametersPatch() = default;
+  _5GLanParametersPatch();
+  virtual ~_5GLanParametersPatch() = default;
 
   /// <summary>
   /// Validate the current data in the model. Throws a ValidationException on
@@ -45,10 +45,10 @@ class 5GLanParametersPatch {
   /// Validate the current data in the model. Returns false on error and writes
   /// an error message into the given stringstream.
   /// </summary>
-  bool validate(std::stringstream & msg) const;
+  bool validate(std::stringstream& msg) const;
 
-  bool operator==(const 5GLanParametersPatch & rhs) const;
-  bool operator!=(const 5GLanParametersPatch & rhs) const;
+  bool operator==(const _5GLanParametersPatch& rhs) const;
+  bool operator!=(const _5GLanParametersPatch& rhs) const;
 
   /////////////////////////////////////////////
   /// 5GLanParametersPatch members
@@ -68,8 +68,8 @@ class 5GLanParametersPatch {
   bool appDespsIsSet() const;
   void unsetAppDesps();
 
-  friend void to_json(nlohmann::json & j, const 5GLanParametersPatch & o);
-  friend void from_json(const nlohmann::json& j, 5GLanParametersPatch & o);
+  friend void to_json(nlohmann::json& j, const _5GLanParametersPatch& o);
+  friend void from_json(const nlohmann::json& j, _5GLanParametersPatch& o);
 
  protected:
   std::map<std::string, std::string> m_Gpsis;
@@ -79,7 +79,7 @@ class 5GLanParametersPatch {
 
   // Helper overload for validate. Used when one model stores another model and
   // calls it's validate.
-  bool validate(std::stringstream & msg, const std::string& pathPrefix) const;
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

@@ -106,7 +106,7 @@ void Class5GLANParametersProvisionSubscriptionsApi::
 
     // Getting the body param
 
-    5GLanParametersProvision r_5GLanParametersProvision;
+    _5GLanParametersProvision r_5GLanParametersProvision;
 
     try {
       nlohmann::json::parse(request.body()).get_to(r_5GLanParametersProvision);

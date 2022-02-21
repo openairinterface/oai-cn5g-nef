@@ -39,14 +39,14 @@ void Individual5GLANParametersProvisionSubscriptionApiImpl::
 void Individual5GLANParametersProvisionSubscriptionApiImpl::
     af_id_subscriptions_subscription_id_patch(
         const std::string& afId, const std::string& subscriptionId,
-        const 5GLanParametersProvisionPatch & r_5GLanParametersProvisionPatch,
+        const _5GLanParametersProvisionPatch& r_5GLanParametersProvisionPatch,
         Pistache::Http::ResponseWriter& response) {
   response.send(Pistache::Http::Code::Ok, "Do some magic\n");
 }
 void Individual5GLANParametersProvisionSubscriptionApiImpl::
     af_id_subscriptions_subscription_id_put(
         const std::string& afId, const std::string& subscriptionId,
-        const 5GLanParametersProvision & r_5GLanParametersProvision,
+        const _5GLanParametersProvision& r_5GLanParametersProvision,
         Pistache::Http::ResponseWriter& response) {
   response.send(Pistache::Http::Code::Ok, "Do some magic\n");
 }

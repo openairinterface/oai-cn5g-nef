@@ -42,7 +42,7 @@ bool SupportedGADShapes::validate(
 }
 
 bool SupportedGADShapes::operator==(const SupportedGADShapes& rhs) const {
-  return
+  return true
 
       ;
 }

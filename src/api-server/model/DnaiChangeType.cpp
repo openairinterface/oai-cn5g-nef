@@ -41,7 +41,7 @@ bool DnaiChangeType::validate(
 }
 
 bool DnaiChangeType::operator==(const DnaiChangeType& rhs) const {
-  return
+  return true
 
       ;
 }

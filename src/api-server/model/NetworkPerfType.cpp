@@ -41,7 +41,7 @@ bool NetworkPerfType::validate(
 }
 
 bool NetworkPerfType::operator==(const NetworkPerfType& rhs) const {
-  return
+  return true
 
       ;
 }

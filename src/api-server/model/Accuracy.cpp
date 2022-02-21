@@ -40,7 +40,7 @@ bool Accuracy::validate(
 }
 
 bool Accuracy::operator==(const Accuracy& rhs) const {
-  return
+  return true
 
       ;
 }

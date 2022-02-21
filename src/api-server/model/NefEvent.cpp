@@ -40,7 +40,7 @@ bool NefEvent::validate(
 }
 
 bool NefEvent::operator==(const NefEvent& rhs) const {
-  return
+  return true
 
       ;
 }

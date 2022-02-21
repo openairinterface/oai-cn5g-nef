@@ -121,6 +121,10 @@ class AnalyticsEventNotif {
   friend void to_json(nlohmann::json& j, const AnalyticsEventNotif& o);
   friend void from_json(const nlohmann::json& j, AnalyticsEventNotif& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   AnalyticsEvent m_AnalyEvent;
 
@@ -140,10 +144,6 @@ class AnalyticsEventNotif {
   bool m_NwPerfInfosIsSet;
   std::vector<QosSustainabilityExposure> m_QosSustainInfos;
   bool m_QosSustainInfosIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

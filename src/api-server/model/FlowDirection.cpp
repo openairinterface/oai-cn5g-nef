@@ -41,7 +41,7 @@ bool FlowDirection::validate(
 }
 
 bool FlowDirection::operator==(const FlowDirection& rhs) const {
-  return
+  return true
 
       ;
 }

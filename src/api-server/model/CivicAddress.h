@@ -292,6 +292,9 @@ class CivicAddress {
 
   friend void to_json(nlohmann::json& j, const CivicAddress& o);
   friend void from_json(const nlohmann::json& j, CivicAddress& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   std::string m_Country;
@@ -362,10 +365,6 @@ class CivicAddress {
   bool m_MethodIsSet;
   std::string m_ProvidedBy;
   bool m_ProvidedByIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

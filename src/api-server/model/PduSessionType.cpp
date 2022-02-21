@@ -41,7 +41,7 @@ bool PduSessionType::validate(
 }
 
 bool PduSessionType::operator==(const PduSessionType& rhs) const {
-  return
+  return true
 
       ;
 }

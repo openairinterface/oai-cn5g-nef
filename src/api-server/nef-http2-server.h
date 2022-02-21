@@ -39,7 +39,7 @@
 
 using namespace nghttp2::asio_http2;
 using namespace nghttp2::asio_http2::server;
-//using namespace oai::nef::model;
+// using namespace oai::nef::model;
 using namespace oai::nef::app;
 
 class nef_http2_server {

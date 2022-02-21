@@ -40,7 +40,7 @@ bool LineType::validate(
 }
 
 bool LineType::operator==(const LineType& rhs) const {
-  return
+  return true
 
       ;
 }

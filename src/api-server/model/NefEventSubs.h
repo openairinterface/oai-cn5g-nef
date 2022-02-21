@@ -66,16 +66,15 @@ class NefEventSubs {
 
   friend void to_json(nlohmann::json& j, const NefEventSubs& o);
   friend void from_json(const nlohmann::json& j, NefEventSubs& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   NefEvent m_Event;
 
   NefEventFilter m_EventFilter;
   bool m_EventFilterIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

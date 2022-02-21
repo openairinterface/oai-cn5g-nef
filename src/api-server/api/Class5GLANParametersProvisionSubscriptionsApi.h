@@ -90,7 +90,7 @@ class Class5GLANParametersProvisionSubscriptionsApi {
   /// <param name="r_5GLanParametersProvision">new subscription creation</param>
   virtual void af_id_subscriptions_post(
       const std::string& afId,
-      const oai::nef::model::5GLanParametersProvision &
+      const oai::nef::model::_5GLanParametersProvision&
           r_5GLanParametersProvision,
       Pistache::Http::ResponseWriter& response) = 0;
 };

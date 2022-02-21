@@ -85,6 +85,9 @@ class NetworkPerfExposure {
 
   friend void to_json(nlohmann::json& j, const NetworkPerfExposure& o);
   friend void from_json(const nlohmann::json& j, NetworkPerfExposure& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   LocationArea5G m_LocArea;
@@ -97,10 +100,6 @@ class NetworkPerfExposure {
   bool m_AbsoluteNumIsSet;
   int32_t m_Confidence;
   bool m_ConfidenceIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

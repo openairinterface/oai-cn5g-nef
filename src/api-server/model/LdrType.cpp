@@ -41,7 +41,7 @@ bool LdrType::validate(
 }
 
 bool LdrType::operator==(const LdrType& rhs) const {
-  return
+  return true
 
       ;
 }

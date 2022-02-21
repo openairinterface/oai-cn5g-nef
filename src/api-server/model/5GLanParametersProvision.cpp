@@ -18,24 +18,24 @@
 
 namespace oai::nef::model {
 
-5GLanParametersProvision ::5GLanParametersProvision() {
+_5GLanParametersProvision ::_5GLanParametersProvision() {
   m_Self      = "";
   m_SelfIsSet = false;
   m_SuppFeat  = "";
 }
 
-void 5GLanParametersProvision ::validate() const {
+void _5GLanParametersProvision ::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
     throw org::openapitools::server::helpers::ValidationException(msg.str());
   }
 }
 
-bool 5GLanParametersProvision ::validate(std::stringstream& msg) const {
+bool _5GLanParametersProvision ::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool 5GLanParametersProvision ::validate(
+bool _5GLanParametersProvision ::validate(
     std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
@@ -49,8 +49,8 @@ bool 5GLanParametersProvision ::validate(
   return success;
 }
 
-bool 5GLanParametersProvision ::operator==(
-    const 5GLanParametersProvision & rhs) const {
+bool _5GLanParametersProvision ::operator==(
+    const _5GLanParametersProvision& rhs) const {
   return
 
       ((!selfIsSet() && !rhs.selfIsSet()) ||
@@ -63,19 +63,19 @@ bool 5GLanParametersProvision ::operator==(
           ;
 }
 
-bool 5GLanParametersProvision ::operator!=(
-    const 5GLanParametersProvision & rhs) const {
+bool _5GLanParametersProvision ::operator!=(
+    const _5GLanParametersProvision& rhs) const {
   return !(*this == rhs);
 }
 
-void to_json(nlohmann::json& j, const 5GLanParametersProvision & o) {
+void to_json(nlohmann::json& j, const _5GLanParametersProvision& o) {
   j = nlohmann::json();
   if (o.selfIsSet()) j["self"] = o.m_Self;
   j["5gLanParams"] = o.m_r_5gLanParams;
   j["suppFeat"]    = o.m_SuppFeat;
 }
 
-void from_json(const nlohmann::json& j, 5GLanParametersProvision & o) {
+void from_json(const nlohmann::json& j, _5GLanParametersProvision& o) {
   if (j.find("self") != j.end()) {
     j.at("self").get_to(o.m_Self);
     o.m_SelfIsSet = true;
@@ -84,29 +84,30 @@ void from_json(const nlohmann::json& j, 5GLanParametersProvision & o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string 5GLanParametersProvision ::getSelf() const {
+std::string _5GLanParametersProvision ::getSelf() const {
   return m_Self;
 }
-void 5GLanParametersProvision ::setSelf(std::string const& value) {
+void _5GLanParametersProvision ::setSelf(std::string const& value) {
   m_Self      = value;
   m_SelfIsSet = true;
 }
-bool 5GLanParametersProvision ::selfIsSet() const {
+bool _5GLanParametersProvision ::selfIsSet() const {
   return m_SelfIsSet;
 }
-void 5GLanParametersProvision ::unsetSelf() {
+void _5GLanParametersProvision ::unsetSelf() {
   m_SelfIsSet = false;
 }
-5GLanParameters 5GLanParametersProvision ::getR5gLanParams() const {
+_5GLanParameters _5GLanParametersProvision ::getR5gLanParams() const {
   return m_r_5gLanParams;
 }
-void 5GLanParametersProvision ::setR5gLanParams(5GLanParameters const& value) {
+void _5GLanParametersProvision ::setR5gLanParams(
+    _5GLanParameters const& value) {
   m_r_5gLanParams = value;
 }
-std::string 5GLanParametersProvision ::getSuppFeat() const {
+std::string _5GLanParametersProvision ::getSuppFeat() const {
   return m_SuppFeat;
 }
-void 5GLanParametersProvision ::setSuppFeat(std::string const& value) {
+void _5GLanParametersProvision ::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }
 

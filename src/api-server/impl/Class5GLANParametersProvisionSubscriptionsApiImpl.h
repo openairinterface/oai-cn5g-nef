@@ -48,7 +48,7 @@ class Class5GLANParametersProvisionSubscriptionsApiImpl
       const std::string& afId, Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_post(
       const std::string& afId,
-      const 5GLanParametersProvision & r_5GLanParametersProvision,
+      const _5GLanParametersProvision& r_5GLanParametersProvision,
       Pistache::Http::ResponseWriter& response);
 };
 

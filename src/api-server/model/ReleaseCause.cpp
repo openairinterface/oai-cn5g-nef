@@ -41,7 +41,7 @@ bool ReleaseCause::validate(
 }
 
 bool ReleaseCause::operator==(const ReleaseCause& rhs) const {
-  return
+  return true
 
       ;
 }

@@ -42,7 +42,7 @@ bool LcsQosClass::validate(
 }
 
 bool LcsQosClass::operator==(const LcsQosClass& rhs) const {
-  return
+  return true
 
       ;
 }

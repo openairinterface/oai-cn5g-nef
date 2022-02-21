@@ -74,6 +74,9 @@ class RetainabilityThreshold {
 
   friend void to_json(nlohmann::json& j, const RetainabilityThreshold& o);
   friend void from_json(const nlohmann::json& j, RetainabilityThreshold& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   int32_t m_RelFlowNum;
@@ -82,10 +85,6 @@ class RetainabilityThreshold {
   bool m_RelTimeUnitIsSet;
   int32_t m_RelFlowRatio;
   bool m_RelFlowRatioIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

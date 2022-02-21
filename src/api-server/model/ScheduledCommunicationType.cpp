@@ -42,7 +42,7 @@ bool ScheduledCommunicationType::validate(
 
 bool ScheduledCommunicationType::operator==(
     const ScheduledCommunicationType& rhs) const {
-  return
+  return true
 
       ;
 }

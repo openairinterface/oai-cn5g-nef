@@ -41,7 +41,7 @@ bool ExpectedAnalyticsType::validate(
 }
 
 bool ExpectedAnalyticsType::operator==(const ExpectedAnalyticsType& rhs) const {
-  return
+  return true
 
       ;
 }

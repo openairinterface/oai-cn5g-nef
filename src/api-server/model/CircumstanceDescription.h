@@ -83,6 +83,10 @@ class CircumstanceDescription {
   friend void to_json(nlohmann::json& j, const CircumstanceDescription& o);
   friend void from_json(const nlohmann::json& j, CircumstanceDescription& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   float m_Freq;
   bool m_FreqIsSet;
@@ -92,10 +96,6 @@ class CircumstanceDescription {
   bool m_LocAreaIsSet;
   int64_t m_Vol;
   bool m_VolIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

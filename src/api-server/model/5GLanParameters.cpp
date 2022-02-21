@@ -18,7 +18,7 @@
 
 namespace oai::nef::model {
 
-5GLanParameters ::5GLanParameters() {
+_5GLanParameters ::_5GLanParameters() {
   m_ExterGroupId       = "";
   m_Dnn                = "";
   m_AaaIpv4Addr        = "";
@@ -29,19 +29,19 @@ namespace oai::nef::model {
   m_MtcProviderIdIsSet = false;
 }
 
-void 5GLanParameters ::validate() const {
+void _5GLanParameters ::validate() {
   std::stringstream msg;
   if (!validate(msg)) {
     throw org::openapitools::server::helpers::ValidationException(msg.str());
   }
 }
 
-bool 5GLanParameters ::validate(std::stringstream& msg) const {
+bool _5GLanParameters ::validate(std::stringstream& msg) {
   return validate(msg, "");
 }
 
-bool 5GLanParameters ::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool _5GLanParameters ::validate(
+    std::stringstream& msg, const std::string& pathPrefix) {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "5GLanParameters" : pathPrefix;
@@ -67,6 +67,7 @@ bool 5GLanParameters ::validate(
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
       int i                          = 0;
+      /*
       for (const AaaUsage& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -75,6 +76,7 @@ bool 5GLanParameters ::validate(
 
         i++;
       }
+      */
     }
   }
 
@@ -86,7 +88,7 @@ bool 5GLanParameters ::validate(
   return success;
 }
 
-bool 5GLanParameters ::operator==(const 5GLanParameters & rhs) const {
+bool _5GLanParameters ::operator==(const _5GLanParameters& rhs) const {
   return
 
       (getExterGroupId() == rhs.getExterGroupId()) &&
@@ -120,11 +122,11 @@ bool 5GLanParameters ::operator==(const 5GLanParameters & rhs) const {
           ;
 }
 
-bool 5GLanParameters ::operator!=(const 5GLanParameters & rhs) const {
+bool _5GLanParameters ::operator!=(const _5GLanParameters& rhs) const {
   return !(*this == rhs);
 }
 
-void to_json(nlohmann::json& j, const 5GLanParameters & o) {
+void to_json(nlohmann::json& j, const _5GLanParameters& o) {
   j                 = nlohmann::json();
   j["exterGroupId"] = o.m_ExterGroupId;
   j["gpsis"]        = o.m_Gpsis;
@@ -138,7 +140,7 @@ void to_json(nlohmann::json& j, const 5GLanParameters & o) {
   j["appDesps"]    = o.m_AppDesps;
 }
 
-void from_json(const nlohmann::json& j, 5GLanParameters & o) {
+void from_json(const nlohmann::json& j, _5GLanParameters& o) {
   j.at("exterGroupId").get_to(o.m_ExterGroupId);
   j.at("gpsis").get_to(o.m_Gpsis);
   j.at("dnn").get_to(o.m_Dnn);
@@ -163,93 +165,93 @@ void from_json(const nlohmann::json& j, 5GLanParameters & o) {
   j.at("appDesps").get_to(o.m_AppDesps);
 }
 
-std::string 5GLanParameters ::getExterGroupId() const {
+std::string _5GLanParameters ::getExterGroupId() const {
   return m_ExterGroupId;
 }
-void 5GLanParameters ::setExterGroupId(std::string const& value) {
+void _5GLanParameters ::setExterGroupId(std::string const& value) {
   m_ExterGroupId = value;
 }
-std::map<std::string, std::string> 5GLanParameters ::getGpsis() const {
+std::map<std::string, std::string> _5GLanParameters ::getGpsis() const {
   return m_Gpsis;
 }
-void 5GLanParameters ::setGpsis(
+void _5GLanParameters ::setGpsis(
     std::map<std::string, std::string> const& value) {
   m_Gpsis = value;
 }
-std::string 5GLanParameters ::getDnn() const {
+std::string _5GLanParameters ::getDnn() const {
   return m_Dnn;
 }
-void 5GLanParameters ::setDnn(std::string const& value) {
+void _5GLanParameters ::setDnn(std::string const& value) {
   m_Dnn = value;
 }
-std::string 5GLanParameters ::getAaaIpv4Addr() const {
+std::string _5GLanParameters ::getAaaIpv4Addr() const {
   return m_AaaIpv4Addr;
 }
-void 5GLanParameters ::setAaaIpv4Addr(std::string const& value) {
+void _5GLanParameters ::setAaaIpv4Addr(std::string const& value) {
   m_AaaIpv4Addr      = value;
   m_AaaIpv4AddrIsSet = true;
 }
-bool 5GLanParameters ::aaaIpv4AddrIsSet() const {
+bool _5GLanParameters ::aaaIpv4AddrIsSet() const {
   return m_AaaIpv4AddrIsSet;
 }
-void 5GLanParameters ::unsetAaaIpv4Addr() {
+void _5GLanParameters ::unsetAaaIpv4Addr() {
   m_AaaIpv4AddrIsSet = false;
 }
-Ipv6Addr 5GLanParameters ::getAaaIpv6Addr() const {
+Ipv6Addr _5GLanParameters ::getAaaIpv6Addr() const {
   return m_AaaIpv6Addr;
 }
-void 5GLanParameters ::setAaaIpv6Addr(Ipv6Addr const& value) {
+void _5GLanParameters ::setAaaIpv6Addr(Ipv6Addr const& value) {
   m_AaaIpv6Addr      = value;
   m_AaaIpv6AddrIsSet = true;
 }
-bool 5GLanParameters ::aaaIpv6AddrIsSet() const {
+bool _5GLanParameters ::aaaIpv6AddrIsSet() const {
   return m_AaaIpv6AddrIsSet;
 }
-void 5GLanParameters ::unsetAaaIpv6Addr() {
+void _5GLanParameters ::unsetAaaIpv6Addr() {
   m_AaaIpv6AddrIsSet = false;
 }
-std::vector<AaaUsage> 5GLanParameters ::getAaaUsgs() const {
+std::vector<AaaUsage> _5GLanParameters ::getAaaUsgs() const {
   return m_AaaUsgs;
 }
-void 5GLanParameters ::setAaaUsgs(std::vector<AaaUsage> const& value) {
+void _5GLanParameters ::setAaaUsgs(std::vector<AaaUsage> const& value) {
   m_AaaUsgs      = value;
   m_AaaUsgsIsSet = true;
 }
-bool 5GLanParameters ::aaaUsgsIsSet() const {
+bool _5GLanParameters ::aaaUsgsIsSet() const {
   return m_AaaUsgsIsSet;
 }
-void 5GLanParameters ::unsetAaaUsgs() {
+void _5GLanParameters ::unsetAaaUsgs() {
   m_AaaUsgsIsSet = false;
 }
-std::string 5GLanParameters ::getMtcProviderId() const {
+std::string _5GLanParameters ::getMtcProviderId() const {
   return m_MtcProviderId;
 }
-void 5GLanParameters ::setMtcProviderId(std::string const& value) {
+void _5GLanParameters ::setMtcProviderId(std::string const& value) {
   m_MtcProviderId      = value;
   m_MtcProviderIdIsSet = true;
 }
-bool 5GLanParameters ::mtcProviderIdIsSet() const {
+bool _5GLanParameters ::mtcProviderIdIsSet() const {
   return m_MtcProviderIdIsSet;
 }
-void 5GLanParameters ::unsetMtcProviderId() {
+void _5GLanParameters ::unsetMtcProviderId() {
   m_MtcProviderIdIsSet = false;
 }
-Snssai 5GLanParameters ::getSnssai() const {
+Snssai _5GLanParameters ::getSnssai() const {
   return m_Snssai;
 }
-void 5GLanParameters ::setSnssai(Snssai const& value) {
+void _5GLanParameters ::setSnssai(Snssai const& value) {
   m_Snssai = value;
 }
-PduSessionType 5GLanParameters ::getSessionType() const {
+PduSessionType _5GLanParameters ::getSessionType() const {
   return m_SessionType;
 }
-void 5GLanParameters ::setSessionType(PduSessionType const& value) {
+void _5GLanParameters ::setSessionType(PduSessionType const& value) {
   m_SessionType = value;
 }
-std::map<std::string, AppDescriptor> 5GLanParameters ::getAppDesps() const {
+std::map<std::string, AppDescriptor> _5GLanParameters ::getAppDesps() const {
   return m_AppDesps;
 }
-void 5GLanParameters ::setAppDesps(
+void _5GLanParameters ::setAppDesps(
     std::map<std::string, AppDescriptor> const& value) {
   m_AppDesps = value;
 }

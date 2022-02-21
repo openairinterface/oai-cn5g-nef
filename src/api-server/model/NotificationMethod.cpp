@@ -41,7 +41,7 @@ bool NotificationMethod::validate(
 }
 
 bool NotificationMethod::operator==(const NotificationMethod& rhs) const {
-  return
+  return true
 
       ;
 }

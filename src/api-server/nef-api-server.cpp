@@ -77,7 +77,6 @@ void NEFApiServer::init(size_t thr) {
   opts.flags(Pistache::Tcp::Options::ReuseAddr);
   opts.maxRequestSize(PISTACHE_SERVER_MAX_PAYLOAD);
   m_httpEndpoint->init(opts);
-
 }
 void NEFApiServer::start() {
   Logger::nef_sbi().info("HTTP1 server started");

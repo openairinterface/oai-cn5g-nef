@@ -75,6 +75,10 @@ class AnalyticsEventSubsc {
   friend void to_json(nlohmann::json& j, const AnalyticsEventSubsc& o);
   friend void from_json(const nlohmann::json& j, AnalyticsEventSubsc& o);
 
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
  protected:
   AnalyticsEvent m_AnalyEvent;
 
@@ -82,10 +86,6 @@ class AnalyticsEventSubsc {
   bool m_AnalyEventFilterIsSet;
   TargetUeId m_TgtUe;
   bool m_TgtUeIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

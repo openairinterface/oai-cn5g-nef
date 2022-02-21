@@ -41,7 +41,7 @@ bool AnalyticsFailureCode::validate(
 }
 
 bool AnalyticsFailureCode::operator==(const AnalyticsFailureCode& rhs) const {
-  return
+  return true
 
       ;
 }

@@ -41,7 +41,7 @@ bool Ipv6Addr_1::validate(
 }
 
 bool Ipv6Addr_1::operator==(const Ipv6Addr_1& rhs) const {
-  return
+  return true
 
       ;
 }

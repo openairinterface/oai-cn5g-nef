@@ -41,7 +41,7 @@ bool Ipv6Prefix::validate(
 }
 
 bool Ipv6Prefix::operator==(const Ipv6Prefix& rhs) const {
-  return
+  return true
 
       ;
 }

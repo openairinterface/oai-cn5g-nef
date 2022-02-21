@@ -42,7 +42,7 @@ bool SmallDataRateControlTimeUnit::validate(
 
 bool SmallDataRateControlTimeUnit::operator==(
     const SmallDataRateControlTimeUnit& rhs) const {
-  return
+  return true
 
       ;
 }

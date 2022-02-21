@@ -20,19 +20,18 @@ namespace oai::nef::model {
 
 AaaUsage::AaaUsage() {}
 
-void AaaUsage::validate() const {
+void AaaUsage::validate() {
   std::stringstream msg;
   if (!validate(msg)) {
     throw org::openapitools::server::helpers::ValidationException(msg.str());
   }
 }
 
-bool AaaUsage::validate(std::stringstream& msg) const {
+bool AaaUsage::validate(std::stringstream& msg) {
   return validate(msg, "");
 }
 
-bool AaaUsage::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AaaUsage::validate(std::stringstream& msg, const std::string& pathPrefix) {
   bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "AaaUsage" : pathPrefix;
 
@@ -40,7 +39,7 @@ bool AaaUsage::validate(
 }
 
 bool AaaUsage::operator==(const AaaUsage& rhs) const {
-  return
+  return true
 
       ;
 }

@@ -81,6 +81,9 @@ class UeCommunicationInfo {
 
   friend void to_json(nlohmann::json& j, const UeCommunicationInfo& o);
   friend void from_json(const nlohmann::json& j, UeCommunicationInfo& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   std::string m_Supi;
@@ -90,10 +93,6 @@ class UeCommunicationInfo {
   std::string m_AppId;
   bool m_AppIdIsSet;
   std::vector<CommunicationCollection> m_Comms;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

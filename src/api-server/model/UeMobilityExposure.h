@@ -87,6 +87,9 @@ class UeMobilityExposure {
 
   friend void to_json(nlohmann::json& j, const UeMobilityExposure& o);
   friend void from_json(const nlohmann::json& j, UeMobilityExposure& o);
+  // Helper overload for validate. Used when one model stores another model and
+  // calls it's validate.
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   std::string m_Ts;
@@ -98,10 +101,6 @@ class UeMobilityExposure {
   float m_DurationVariance;
   bool m_DurationVarianceIsSet;
   std::vector<UeLocationInfo> m_LocInfo;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model
