@@ -35,9 +35,7 @@
 
 #include <curl/curl.h>
 
-namespace oai {
-namespace nef {
-namespace app {
+namespace oai::nef::app {
 
 class nef_client {
  private:
@@ -56,7 +54,5 @@ class nef_client {
   nef_client(nef_client const&) = delete;
   void operator=(nef_client const&) = delete;
 };
-}  // namespace app
-}  // namespace nef
-}  // namespace oai
+}  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

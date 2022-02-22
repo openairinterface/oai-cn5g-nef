@@ -97,7 +97,21 @@ int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
           ntohs(cfg.addr4.s_addr) &
           0xFFFFFFFF << (32 - std::stoi(util::trim(words.at(1)))));
     }
+    // Port
     if_cfg.lookupValue(NEF_CONFIG_STRING_PORT, cfg.port);
+
+    // HTTP2 port
+    if (!(if_cfg.lookupValue(
+            NEF_CONFIG_STRING_SBI_HTTP2_PORT, cfg.http2_port))) {
+      Logger::nef_app().error(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
+      throw(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
+    }
+
+    // API VERSION
+    if (!(if_cfg.lookupValue(NEF_CONFIG_STRING_API_VERSION, cfg.api_version))) {
+      Logger::nef_app().error(NEF_CONFIG_STRING_API_VERSION "failed");
+      throw(NEF_CONFIG_STRING_API_VERSION "failed");
+    }
   }
   return RETURNok;
 }
@@ -150,21 +164,6 @@ int nef_config::load(const string& config_file) {
   try {
     const Setting& sbi_cfg = nef_cfg[NEF_CONFIG_STRING_INTERFACE_SBI];
     load_interface(sbi_cfg, sbi);
-
-    // HTTP2 port
-    if (!(sbi_cfg.lookupValue(
-            NEF_CONFIG_STRING_SBI_HTTP2_PORT, sbi_http2_port))) {
-      Logger::nef_app().error(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
-      throw(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
-    }
-
-    // SBI API VERSION
-    if (!(sbi_cfg.lookupValue(
-            NEF_CONFIG_STRING_API_VERSION, sbi_api_version))) {
-      Logger::nef_app().error(NEF_CONFIG_STRING_API_VERSION "failed");
-      throw(NEF_CONFIG_STRING_API_VERSION "failed");
-    }
-
   } catch (const SettingNotFoundException& nfex) {
     Logger::nef_app().error("%s : %s", nfex.what(), nfex.getPath());
     return RETURNerror;
@@ -185,9 +184,9 @@ void nef_config::display() {
   Logger::nef_app().info("    Interface name ......: %s", sbi.if_name.c_str());
   Logger::nef_app().info("    IPv4 Addr ...........: %s", inet_ntoa(sbi.addr4));
   Logger::nef_app().info("    Port ................: %d", sbi.port);
-  Logger::nef_app().info("    HTTP2 port ..........: %d", sbi_http2_port);
+  Logger::nef_app().info("    HTTP2 port ..........: %d", sbi.http2_port);
   Logger::nef_app().info(
-      "    API version..........: %s", sbi_api_version.c_str());
+      "    API version..........: %s", sbi.api_version.c_str());
 }
 
 //------------------------------------------------------------------------------

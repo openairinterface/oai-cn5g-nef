@@ -48,9 +48,7 @@
 #define NEF_CONFIG_STRING_SBI_HTTP2_PORT "HTTP2_PORT"
 #define NEF_CONFIG_STRING_API_VERSION "API_VERSION"
 
-namespace oai {
-namespace nef {
-namespace app {
+namespace oai::nef::app {
 
 typedef struct interface_cfg_s {
   std::string if_name;
@@ -59,6 +57,9 @@ typedef struct interface_cfg_s {
   struct in6_addr addr6;
   unsigned int mtu;
   unsigned int port;
+  unsigned int http2_port;
+  std::string api_version;
+
 } interface_cfg_t;
 
 class nef_config {
@@ -89,8 +90,5 @@ class nef_config {
   void display();
 };
 
-}  // namespace app
-}  // namespace nef
-}  // namespace oai
-
+}  // namespace oai::nef::app
 #endif /* FILE_NEF_CONFIG_HPP_SEEN */

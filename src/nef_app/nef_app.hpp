@@ -33,9 +33,7 @@
 #include <string>
 #include "uint_generator.hpp"
 
-namespace oai {
-namespace nef {
-namespace app {
+namespace oai::nef::app {
 
 class nef_config;
 class nef_app {
@@ -55,9 +53,7 @@ class nef_app {
 
  private:
 };
-}  // namespace app
-}  // namespace nef
-}  // namespace oai
+}  // namespace oai::nef::app
 #include "nef_config.hpp"
 
 #endif /* FILE_NEF_APP_HPP_SEEN */
