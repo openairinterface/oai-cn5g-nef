@@ -50,19 +50,29 @@ class DnaiChangeType {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const DnaiChangeType& rhs) const;
   bool operator!=(const DnaiChangeType& rhs) const;
 
   /////////////////////////////////////////////
   /// DnaiChangeType members
 
+  DnaiChangeType_anyOf getValue() const;
+  void setValue(DnaiChangeType_anyOf value);
+  DnaiChangeType_anyOf::eDnaiChangeType_anyOf getEnumValue() const;
+  void setEnumValue(DnaiChangeType_anyOf::eDnaiChangeType_anyOf value);
   friend void to_json(nlohmann::json& j, const DnaiChangeType& o);
   friend void from_json(const nlohmann::json& j, DnaiChangeType& o);
+  friend void to_json(nlohmann::json& j, const DnaiChangeType_anyOf& o);
+  friend void from_json(const nlohmann::json& j, DnaiChangeType_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  DnaiChangeType_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

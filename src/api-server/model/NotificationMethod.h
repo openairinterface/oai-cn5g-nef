@@ -44,19 +44,29 @@ class NotificationMethod {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const NotificationMethod& rhs) const;
   bool operator!=(const NotificationMethod& rhs) const;
 
   /////////////////////////////////////////////
   /// NotificationMethod members
 
+  NotificationMethod_anyOf getValue() const;
+  void setValue(NotificationMethod_anyOf value);
+  NotificationMethod_anyOf::eNotificationMethod_anyOf getEnumValue() const;
+  void setEnumValue(NotificationMethod_anyOf::eNotificationMethod_anyOf value);
   friend void to_json(nlohmann::json& j, const NotificationMethod& o);
   friend void from_json(const nlohmann::json& j, NotificationMethod& o);
+  friend void to_json(nlohmann::json& j, const NotificationMethod_anyOf& o);
+  friend void from_json(const nlohmann::json& j, NotificationMethod_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  NotificationMethod_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

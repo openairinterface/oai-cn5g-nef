@@ -25,10 +25,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <LPIParametersProvisioningsApi.h>
-
-#include <pistache/optional.h>
 
 #include "LpiParametersProvision.h"
 #include "ProblemDetails.h"

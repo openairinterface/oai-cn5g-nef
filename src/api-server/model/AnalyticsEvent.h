@@ -60,19 +60,29 @@ class AnalyticsEvent {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AnalyticsEvent& rhs) const;
   bool operator!=(const AnalyticsEvent& rhs) const;
 
   /////////////////////////////////////////////
   /// AnalyticsEvent members
 
+  AnalyticsEvent_anyOf getValue() const;
+  void setValue(AnalyticsEvent_anyOf value);
+  AnalyticsEvent_anyOf::eAnalyticsEvent_anyOf getEnumValue() const;
+  void setEnumValue(AnalyticsEvent_anyOf::eAnalyticsEvent_anyOf value);
   friend void to_json(nlohmann::json& j, const AnalyticsEvent& o);
   friend void from_json(const nlohmann::json& j, AnalyticsEvent& o);
+  friend void to_json(nlohmann::json& j, const AnalyticsEvent_anyOf& o);
+  friend void from_json(const nlohmann::json& j, AnalyticsEvent_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  AnalyticsEvent_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

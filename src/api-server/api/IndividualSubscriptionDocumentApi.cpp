@@ -63,11 +63,14 @@ std::pair<Pistache::Http::Code, std::string>
 IndividualSubscriptionDocumentApi::handleParsingException(
     const std::exception& ex) const noexcept {
   try {
-    throw ex;
+    throw;
   } catch (nlohmann::detail::exception& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (org::openapitools::server::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
+  } catch (std::exception& e) {
+    return std::make_pair(
+        Pistache::Http::Code::Internal_Server_Error, e.what());
   }
 }
 
@@ -109,11 +112,11 @@ void IndividualSubscriptionDocumentApi::get_individual_subcription_handler(
 
     // Getting the query params
     auto suppFeatQuery = request.query().get("supp-feat");
-    Pistache::Optional<std::string> suppFeat;
+    std::optional<std::string> suppFeat;
     if (!suppFeatQuery.isEmpty()) {
       std::string valueQuery_instance;
       if (fromStringValue(suppFeatQuery.get(), valueQuery_instance)) {
-        suppFeat = Pistache::Some(valueQuery_instance);
+        suppFeat = valueQuery_instance;
       }
     }
 

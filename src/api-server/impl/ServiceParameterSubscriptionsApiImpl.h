@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <ServiceParameterSubscriptionsApi.h>
-
-#include <pistache/optional.h>
 
 #include "ProblemDetails.h"
 #include "ServiceParameterData.h"

@@ -49,6 +49,12 @@ class PointAltitudeUncertainty {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const PointAltitudeUncertainty& rhs) const;
   bool operator!=(const PointAltitudeUncertainty& rhs) const;
 
@@ -101,10 +107,6 @@ class PointAltitudeUncertainty {
   float m_UncertaintyAltitude;
 
   int32_t m_Confidence;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

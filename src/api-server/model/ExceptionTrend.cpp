@@ -37,13 +37,16 @@ bool ExceptionTrend::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExceptionTrend" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool ExceptionTrend::operator==(const ExceptionTrend& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool ExceptionTrend::operator!=(const ExceptionTrend& rhs) const {
@@ -52,8 +55,29 @@ bool ExceptionTrend::operator!=(const ExceptionTrend& rhs) const {
 
 void to_json(nlohmann::json& j, const ExceptionTrend& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, ExceptionTrend& o) {}
+void from_json(const nlohmann::json& j, ExceptionTrend& o) {
+  from_json(j, o.m_value);
+}
+
+ExceptionTrend_anyOf ExceptionTrend::getValue() const {
+  return m_value;
+}
+
+void ExceptionTrend::setValue(ExceptionTrend_anyOf value) {
+  m_value = value;
+}
+
+ExceptionTrend_anyOf::eExceptionTrend_anyOf ExceptionTrend::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void ExceptionTrend::setEnumValue(
+    ExceptionTrend_anyOf::eExceptionTrend_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

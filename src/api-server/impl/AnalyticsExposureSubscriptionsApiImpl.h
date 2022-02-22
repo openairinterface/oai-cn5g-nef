@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <AnalyticsExposureSubscriptionsApi.h>
-
-#include <pistache/optional.h>
 
 #include "AnalyticsExposureSubsc.h"
 #include "ProblemDetails.h"
@@ -45,7 +44,7 @@ class AnalyticsExposureSubscriptionsApiImpl
   ~AnalyticsExposureSubscriptionsApiImpl() override = default;
 
   void af_id_subscriptions_get(
-      const std::string& afId, const Pistache::Optional<std::string>& suppFeat,
+      const std::string& afId, const std::optional<std::string>& suppFeat,
       Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_post(
       const std::string& afId,

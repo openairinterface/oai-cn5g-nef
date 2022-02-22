@@ -33,7 +33,7 @@ class LineType_anyOf {
 
   enum class eLineType_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     DSL,
@@ -52,6 +52,12 @@ class LineType_anyOf {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const LineType_anyOf& rhs) const;
   bool operator!=(const LineType_anyOf& rhs) const;
 
@@ -67,10 +73,6 @@ class LineType_anyOf {
  protected:
   LineType_anyOf::eLineType_anyOf m_value =
       LineType_anyOf::eLineType_anyOf::INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

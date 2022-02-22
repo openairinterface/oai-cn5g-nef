@@ -37,13 +37,16 @@ bool AnalyticsFailureCode::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsFailureCode" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool AnalyticsFailureCode::operator==(const AnalyticsFailureCode& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool AnalyticsFailureCode::operator!=(const AnalyticsFailureCode& rhs) const {
@@ -52,8 +55,29 @@ bool AnalyticsFailureCode::operator!=(const AnalyticsFailureCode& rhs) const {
 
 void to_json(nlohmann::json& j, const AnalyticsFailureCode& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, AnalyticsFailureCode& o) {}
+void from_json(const nlohmann::json& j, AnalyticsFailureCode& o) {
+  from_json(j, o.m_value);
+}
+
+AnalyticsFailureCode_anyOf AnalyticsFailureCode::getValue() const {
+  return m_value;
+}
+
+void AnalyticsFailureCode::setValue(AnalyticsFailureCode_anyOf value) {
+  m_value = value;
+}
+
+AnalyticsFailureCode_anyOf::eAnalyticsFailureCode_anyOf
+AnalyticsFailureCode::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void AnalyticsFailureCode::setEnumValue(
+    AnalyticsFailureCode_anyOf::eAnalyticsFailureCode_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

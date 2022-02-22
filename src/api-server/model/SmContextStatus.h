@@ -46,19 +46,29 @@ class SmContextStatus {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const SmContextStatus& rhs) const;
   bool operator!=(const SmContextStatus& rhs) const;
 
   /////////////////////////////////////////////
   /// SmContextStatus members
 
+  SmContextStatus_anyOf getValue() const;
+  void setValue(SmContextStatus_anyOf value);
+  SmContextStatus_anyOf::eSmContextStatus_anyOf getEnumValue() const;
+  void setEnumValue(SmContextStatus_anyOf::eSmContextStatus_anyOf value);
   friend void to_json(nlohmann::json& j, const SmContextStatus& o);
   friend void from_json(const nlohmann::json& j, SmContextStatus& o);
+  friend void to_json(nlohmann::json& j, const SmContextStatus_anyOf& o);
+  friend void from_json(const nlohmann::json& j, SmContextStatus_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  SmContextStatus_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

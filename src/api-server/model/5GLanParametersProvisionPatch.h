@@ -44,11 +44,17 @@ class _5GLanParametersProvisionPatch {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const _5GLanParametersProvisionPatch& rhs) const;
   bool operator!=(const _5GLanParametersProvisionPatch& rhs) const;
 
   /////////////////////////////////////////////
-  /// 5GLanParametersProvisionPatch members
+  /// _5GLanParametersProvisionPatch members
 
   /// <summary>
   ///
@@ -66,12 +72,8 @@ class _5GLanParametersProvisionPatch {
  protected:
   _5GLanParametersPatch m_r_5gLanParamsPatch;
   bool m_r_5gLanParamsPatchIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model
 
-#endif /* 5GLanParametersProvisionPatch_H_ */
+#endif /* _5GLanParametersProvisionPatch_H_ */

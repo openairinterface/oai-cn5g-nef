@@ -45,19 +45,29 @@ class LcsQosClass {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const LcsQosClass& rhs) const;
   bool operator!=(const LcsQosClass& rhs) const;
 
   /////////////////////////////////////////////
   /// LcsQosClass members
 
+  LcsQosClass_anyOf getValue() const;
+  void setValue(LcsQosClass_anyOf value);
+  LcsQosClass_anyOf::eLcsQosClass_anyOf getEnumValue() const;
+  void setEnumValue(LcsQosClass_anyOf::eLcsQosClass_anyOf value);
   friend void to_json(nlohmann::json& j, const LcsQosClass& o);
   friend void from_json(const nlohmann::json& j, LcsQosClass& o);
+  friend void to_json(nlohmann::json& j, const LcsQosClass_anyOf& o);
+  friend void from_json(const nlohmann::json& j, LcsQosClass_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  LcsQosClass_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

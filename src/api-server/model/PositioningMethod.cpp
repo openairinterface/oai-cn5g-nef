@@ -38,13 +38,16 @@ bool PositioningMethod::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PositioningMethod" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool PositioningMethod::operator==(const PositioningMethod& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool PositioningMethod::operator!=(const PositioningMethod& rhs) const {
@@ -53,8 +56,29 @@ bool PositioningMethod::operator!=(const PositioningMethod& rhs) const {
 
 void to_json(nlohmann::json& j, const PositioningMethod& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, PositioningMethod& o) {}
+void from_json(const nlohmann::json& j, PositioningMethod& o) {
+  from_json(j, o.m_value);
+}
+
+PositioningMethod_anyOf PositioningMethod::getValue() const {
+  return m_value;
+}
+
+void PositioningMethod::setValue(PositioningMethod_anyOf value) {
+  m_value = value;
+}
+
+PositioningMethod_anyOf::ePositioningMethod_anyOf
+PositioningMethod::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void PositioningMethod::setEnumValue(
+    PositioningMethod_anyOf::ePositioningMethod_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

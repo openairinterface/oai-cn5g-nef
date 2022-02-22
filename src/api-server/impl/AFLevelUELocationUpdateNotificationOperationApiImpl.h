@@ -25,14 +25,14 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <AFLevelUELocationUpdateNotificationOperationApi.h>
-
-#include <pistache/optional.h>
 
 #include "LocUpdateData.h"
 #include "LocUpdateDataReply.h"
 #include "ProblemDetails.h"
+#include <string>
 
 namespace oai::nef::api {
 

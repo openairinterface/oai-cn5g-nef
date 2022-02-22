@@ -37,13 +37,16 @@ bool AccessRightStatus::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AccessRightStatus" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool AccessRightStatus::operator==(const AccessRightStatus& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool AccessRightStatus::operator!=(const AccessRightStatus& rhs) const {
@@ -52,8 +55,29 @@ bool AccessRightStatus::operator!=(const AccessRightStatus& rhs) const {
 
 void to_json(nlohmann::json& j, const AccessRightStatus& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, AccessRightStatus& o) {}
+void from_json(const nlohmann::json& j, AccessRightStatus& o) {
+  from_json(j, o.m_value);
+}
+
+AccessRightStatus_anyOf AccessRightStatus::getValue() const {
+  return m_value;
+}
+
+void AccessRightStatus::setValue(AccessRightStatus_anyOf value) {
+  m_value = value;
+}
+
+AccessRightStatus_anyOf::eAccessRightStatus_anyOf
+AccessRightStatus::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void AccessRightStatus::setEnumValue(
+    AccessRightStatus_anyOf::eAccessRightStatus_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

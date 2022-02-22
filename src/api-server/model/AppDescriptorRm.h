@@ -46,6 +46,12 @@ class AppDescriptorRm {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AppDescriptorRm& rhs) const;
   bool operator!=(const AppDescriptorRm& rhs) const;
 
@@ -66,10 +72,6 @@ class AppDescriptorRm {
  protected:
   std::map<std::string, std::string> m_AppIds;
   bool m_AppIdsIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

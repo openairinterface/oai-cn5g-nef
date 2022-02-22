@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <IndividualSMContextDocumentApi.h>
-
-#include <pistache/optional.h>
 
 #include "DeliverReqData.h"
 #include "ProblemDetails.h"

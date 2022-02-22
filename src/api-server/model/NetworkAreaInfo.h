@@ -50,6 +50,12 @@ class NetworkAreaInfo {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const NetworkAreaInfo& rhs) const;
   bool operator!=(const NetworkAreaInfo& rhs) const;
 
@@ -97,10 +103,6 @@ class NetworkAreaInfo {
   bool m_GRanNodeIdsIsSet;
   std::vector<Tai> m_Tais;
   bool m_TaisIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

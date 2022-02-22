@@ -47,6 +47,12 @@ class LocationArea5G {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const LocationArea5G& rhs) const;
   bool operator!=(const LocationArea5G& rhs) const;
 
@@ -85,10 +91,6 @@ class LocationArea5G {
   bool m_CivicAddressesIsSet;
   NetworkAreaInfo m_NwAreaInfo;
   bool m_NwAreaInfoIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

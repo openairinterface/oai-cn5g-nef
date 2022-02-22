@@ -11,7 +11,7 @@
  * the class manually.
  */
 /*
- * 5GLanParameters.h
+ * _5GLanParameters.h
  *
  *
  */
@@ -43,13 +43,19 @@ class _5GLanParameters {
   /// Validate the current data in the model. Throws a ValidationException on
   /// failure.
   /// </summary>
-  void validate();
+  void validate() const;
 
   /// <summary>
   /// Validate the current data in the model. Returns false on error and writes
   /// an error message into the given stringstream.
   /// </summary>
-  bool validate(std::stringstream& msg);
+  bool validate(std::stringstream& msg) const;
+
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
   bool operator==(const _5GLanParameters& rhs) const;
   bool operator!=(const _5GLanParameters& rhs) const;
@@ -143,12 +149,8 @@ class _5GLanParameters {
   PduSessionType m_SessionType;
 
   std::map<std::string, AppDescriptor> m_AppDesps;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix);
 };
 
 }  // namespace oai::nef::model
 
-#endif /* 5GLanParameters_H_ */
+#endif /* _5GLanParameters_H_ */

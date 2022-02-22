@@ -33,7 +33,7 @@ class PduSessionType_anyOf {
 
   enum class ePduSessionType_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     IPV4,
@@ -55,6 +55,12 @@ class PduSessionType_anyOf {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const PduSessionType_anyOf& rhs) const;
   bool operator!=(const PduSessionType_anyOf& rhs) const;
 
@@ -70,10 +76,6 @@ class PduSessionType_anyOf {
  protected:
   PduSessionType_anyOf::ePduSessionType_anyOf m_value = PduSessionType_anyOf::
       ePduSessionType_anyOf::INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

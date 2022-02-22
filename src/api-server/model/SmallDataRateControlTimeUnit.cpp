@@ -37,14 +37,17 @@ bool SmallDataRateControlTimeUnit::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmallDataRateControlTimeUnit" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool SmallDataRateControlTimeUnit::operator==(
     const SmallDataRateControlTimeUnit& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool SmallDataRateControlTimeUnit::operator!=(
@@ -54,8 +57,32 @@ bool SmallDataRateControlTimeUnit::operator!=(
 
 void to_json(nlohmann::json& j, const SmallDataRateControlTimeUnit& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, SmallDataRateControlTimeUnit& o) {}
+void from_json(const nlohmann::json& j, SmallDataRateControlTimeUnit& o) {
+  from_json(j, o.m_value);
+}
+
+SmallDataRateControlTimeUnit_anyOf SmallDataRateControlTimeUnit::getValue()
+    const {
+  return m_value;
+}
+
+void SmallDataRateControlTimeUnit::setValue(
+    SmallDataRateControlTimeUnit_anyOf value) {
+  m_value = value;
+}
+
+SmallDataRateControlTimeUnit_anyOf::eSmallDataRateControlTimeUnit_anyOf
+SmallDataRateControlTimeUnit::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void SmallDataRateControlTimeUnit::setEnumValue(
+    SmallDataRateControlTimeUnit_anyOf::eSmallDataRateControlTimeUnit_anyOf
+        value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

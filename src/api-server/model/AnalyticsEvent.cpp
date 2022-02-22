@@ -37,13 +37,16 @@ bool AnalyticsEvent::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsEvent" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool AnalyticsEvent::operator==(const AnalyticsEvent& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool AnalyticsEvent::operator!=(const AnalyticsEvent& rhs) const {
@@ -52,8 +55,29 @@ bool AnalyticsEvent::operator!=(const AnalyticsEvent& rhs) const {
 
 void to_json(nlohmann::json& j, const AnalyticsEvent& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, AnalyticsEvent& o) {}
+void from_json(const nlohmann::json& j, AnalyticsEvent& o) {
+  from_json(j, o.m_value);
+}
+
+AnalyticsEvent_anyOf AnalyticsEvent::getValue() const {
+  return m_value;
+}
+
+void AnalyticsEvent::setValue(AnalyticsEvent_anyOf value) {
+  m_value = value;
+}
+
+AnalyticsEvent_anyOf::eAnalyticsEvent_anyOf AnalyticsEvent::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void AnalyticsEvent::setEnumValue(
+    AnalyticsEvent_anyOf::eAnalyticsEvent_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

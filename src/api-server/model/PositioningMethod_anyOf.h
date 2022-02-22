@@ -34,7 +34,7 @@ class PositioningMethod_anyOf {
 
   enum class ePositioningMethod_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     CELLID,
@@ -66,6 +66,12 @@ class PositioningMethod_anyOf {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const PositioningMethod_anyOf& rhs) const;
   bool operator!=(const PositioningMethod_anyOf& rhs) const;
 
@@ -82,10 +88,6 @@ class PositioningMethod_anyOf {
   PositioningMethod_anyOf::ePositioningMethod_anyOf m_value =
       PositioningMethod_anyOf::ePositioningMethod_anyOf::
           INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

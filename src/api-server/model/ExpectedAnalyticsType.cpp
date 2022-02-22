@@ -37,13 +37,16 @@ bool ExpectedAnalyticsType::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExpectedAnalyticsType" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool ExpectedAnalyticsType::operator==(const ExpectedAnalyticsType& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool ExpectedAnalyticsType::operator!=(const ExpectedAnalyticsType& rhs) const {
@@ -52,8 +55,29 @@ bool ExpectedAnalyticsType::operator!=(const ExpectedAnalyticsType& rhs) const {
 
 void to_json(nlohmann::json& j, const ExpectedAnalyticsType& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, ExpectedAnalyticsType& o) {}
+void from_json(const nlohmann::json& j, ExpectedAnalyticsType& o) {
+  from_json(j, o.m_value);
+}
+
+ExpectedAnalyticsType_anyOf ExpectedAnalyticsType::getValue() const {
+  return m_value;
+}
+
+void ExpectedAnalyticsType::setValue(ExpectedAnalyticsType_anyOf value) {
+  m_value = value;
+}
+
+ExpectedAnalyticsType_anyOf::eExpectedAnalyticsType_anyOf
+ExpectedAnalyticsType::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void ExpectedAnalyticsType::setEnumValue(
+    ExpectedAnalyticsType_anyOf::eExpectedAnalyticsType_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

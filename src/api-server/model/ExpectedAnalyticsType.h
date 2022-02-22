@@ -52,19 +52,32 @@ class ExpectedAnalyticsType {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const ExpectedAnalyticsType& rhs) const;
   bool operator!=(const ExpectedAnalyticsType& rhs) const;
 
   /////////////////////////////////////////////
   /// ExpectedAnalyticsType members
 
+  ExpectedAnalyticsType_anyOf getValue() const;
+  void setValue(ExpectedAnalyticsType_anyOf value);
+  ExpectedAnalyticsType_anyOf::eExpectedAnalyticsType_anyOf getEnumValue()
+      const;
+  void setEnumValue(
+      ExpectedAnalyticsType_anyOf::eExpectedAnalyticsType_anyOf value);
   friend void to_json(nlohmann::json& j, const ExpectedAnalyticsType& o);
   friend void from_json(const nlohmann::json& j, ExpectedAnalyticsType& o);
+  friend void to_json(nlohmann::json& j, const ExpectedAnalyticsType_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, ExpectedAnalyticsType_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  ExpectedAnalyticsType_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

@@ -24,7 +24,7 @@ AnalyticsExposureSubscriptionsApiImpl::AnalyticsExposureSubscriptionsApiImpl(
     : AnalyticsExposureSubscriptionsApi(rtr) {}
 
 void AnalyticsExposureSubscriptionsApiImpl::af_id_subscriptions_get(
-    const std::string& afId, const Pistache::Optional<std::string>& suppFeat,
+    const std::string& afId, const std::optional<std::string>& suppFeat,
     Pistache::Http::ResponseWriter& response) {
   response.send(Pistache::Http::Code::Ok, "Do some magic\n");
 }

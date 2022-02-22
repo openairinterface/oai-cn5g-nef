@@ -37,13 +37,16 @@ bool SmContextStatus::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextStatus" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool SmContextStatus::operator==(const SmContextStatus& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool SmContextStatus::operator!=(const SmContextStatus& rhs) const {
@@ -52,8 +55,29 @@ bool SmContextStatus::operator!=(const SmContextStatus& rhs) const {
 
 void to_json(nlohmann::json& j, const SmContextStatus& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, SmContextStatus& o) {}
+void from_json(const nlohmann::json& j, SmContextStatus& o) {
+  from_json(j, o.m_value);
+}
+
+SmContextStatus_anyOf SmContextStatus::getValue() const {
+  return m_value;
+}
+
+void SmContextStatus::setValue(SmContextStatus_anyOf value) {
+  m_value = value;
+}
+
+SmContextStatus_anyOf::eSmContextStatus_anyOf SmContextStatus::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void SmContextStatus::setEnumValue(
+    SmContextStatus_anyOf::eSmContextStatus_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

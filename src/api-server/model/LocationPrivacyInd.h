@@ -45,19 +45,29 @@ class LocationPrivacyInd {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const LocationPrivacyInd& rhs) const;
   bool operator!=(const LocationPrivacyInd& rhs) const;
 
   /////////////////////////////////////////////
   /// LocationPrivacyInd members
 
+  LocationPrivacyInd_anyOf getValue() const;
+  void setValue(LocationPrivacyInd_anyOf value);
+  LocationPrivacyInd_anyOf::eLocationPrivacyInd_anyOf getEnumValue() const;
+  void setEnumValue(LocationPrivacyInd_anyOf::eLocationPrivacyInd_anyOf value);
   friend void to_json(nlohmann::json& j, const LocationPrivacyInd& o);
   friend void from_json(const nlohmann::json& j, LocationPrivacyInd& o);
+  friend void to_json(nlohmann::json& j, const LocationPrivacyInd_anyOf& o);
+  friend void from_json(const nlohmann::json& j, LocationPrivacyInd_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  LocationPrivacyInd_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

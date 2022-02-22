@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <Class5GLANParametersProvisionSubscriptionsApi.h>
-
-#include <pistache/optional.h>
 
 #include "5GLanParametersProvision.h"
 #include "ProblemDetails.h"

@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <IndividualSubscriptionDocumentApi.h>
-
-#include <pistache/optional.h>
 
 #include "NefEventExposureSubsc.h"
 #include "ProblemDetails.h"
@@ -49,7 +48,7 @@ class IndividualSubscriptionDocumentApiImpl
       Pistache::Http::ResponseWriter& response);
   void get_individual_subcription(
       const std::string& subscriptionId,
-      const Pistache::Optional<std::string>& suppFeat,
+      const std::optional<std::string>& suppFeat,
       Pistache::Http::ResponseWriter& response);
   void replace_individual_subcription(
       const std::string& subscriptionId,

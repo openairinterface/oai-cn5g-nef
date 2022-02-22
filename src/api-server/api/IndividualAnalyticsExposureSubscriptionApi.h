@@ -22,8 +22,8 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <pistache/http_headers.h>
-#include <pistache/optional.h>
 
+#include <optional>
 #include <utility>
 
 #include "AnalyticsExposureSubsc.h"
@@ -61,15 +61,18 @@ class IndividualAnalyticsExposureSubscriptionApi {
 
   /// <summary>
   /// Helper function to handle unexpected Exceptions during Parameter parsing
-  /// and validation. May be overriden to return custom error formats.
+  /// and validation. May be overridden to return custom error formats. This is
+  /// called inside a catch block. Important: When overriding, do not call
+  /// `throw ex;`, but instead use `throw;`.
   /// </summary>
   virtual std::pair<Pistache::Http::Code, std::string> handleParsingException(
       const std::exception& ex) const noexcept;
 
   /// <summary>
   /// Helper function to handle unexpected Exceptions during processing of the
-  /// request in handler functions. May be overriden to return custom error
-  /// formats.
+  /// request in handler functions. May be overridden to return custom error
+  /// formats. This is called inside a catch block. Important: When overriding,
+  /// do not call `throw ex;`, but instead use `throw;`.
   /// </summary>
   virtual std::pair<Pistache::Http::Code, std::string> handleOperationException(
       const std::exception& ex) const noexcept;
@@ -98,7 +101,7 @@ class IndividualAnalyticsExposureSubscriptionApi {
   /// service consumer (optional, default to &quot;&quot;)</param>
   virtual void af_id_subscriptions_subscription_id_get(
       const std::string& afId, const std::string& subscriptionId,
-      const Pistache::Optional<std::string>& suppFeat,
+      const std::optional<std::string>& suppFeat,
       Pistache::Http::ResponseWriter& response) = 0;
   /// <summary>
   /// Updates/replaces an existing subscription resource

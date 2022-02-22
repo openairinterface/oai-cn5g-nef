@@ -45,19 +45,29 @@ class LineType {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const LineType& rhs) const;
   bool operator!=(const LineType& rhs) const;
 
   /////////////////////////////////////////////
   /// LineType members
 
+  LineType_anyOf getValue() const;
+  void setValue(LineType_anyOf value);
+  LineType_anyOf::eLineType_anyOf getEnumValue() const;
+  void setEnumValue(LineType_anyOf::eLineType_anyOf value);
   friend void to_json(nlohmann::json& j, const LineType& o);
   friend void from_json(const nlohmann::json& j, LineType& o);
+  friend void to_json(nlohmann::json& j, const LineType_anyOf& o);
+  friend void from_json(const nlohmann::json& j, LineType_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  LineType_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

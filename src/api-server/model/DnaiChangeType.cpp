@@ -37,13 +37,16 @@ bool DnaiChangeType::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "DnaiChangeType" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool DnaiChangeType::operator==(const DnaiChangeType& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool DnaiChangeType::operator!=(const DnaiChangeType& rhs) const {
@@ -52,8 +55,29 @@ bool DnaiChangeType::operator!=(const DnaiChangeType& rhs) const {
 
 void to_json(nlohmann::json& j, const DnaiChangeType& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, DnaiChangeType& o) {}
+void from_json(const nlohmann::json& j, DnaiChangeType& o) {
+  from_json(j, o.m_value);
+}
+
+DnaiChangeType_anyOf DnaiChangeType::getValue() const {
+  return m_value;
+}
+
+void DnaiChangeType::setValue(DnaiChangeType_anyOf value) {
+  m_value = value;
+}
+
+DnaiChangeType_anyOf::eDnaiChangeType_anyOf DnaiChangeType::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void DnaiChangeType::setEnumValue(
+    DnaiChangeType_anyOf::eDnaiChangeType_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

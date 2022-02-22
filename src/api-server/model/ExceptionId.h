@@ -58,19 +58,29 @@ class ExceptionId {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const ExceptionId& rhs) const;
   bool operator!=(const ExceptionId& rhs) const;
 
   /////////////////////////////////////////////
   /// ExceptionId members
 
+  ExceptionId_anyOf getValue() const;
+  void setValue(ExceptionId_anyOf value);
+  ExceptionId_anyOf::eExceptionId_anyOf getEnumValue() const;
+  void setEnumValue(ExceptionId_anyOf::eExceptionId_anyOf value);
   friend void to_json(nlohmann::json& j, const ExceptionId& o);
   friend void from_json(const nlohmann::json& j, ExceptionId& o);
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  friend void to_json(nlohmann::json& j, const ExceptionId_anyOf& o);
+  friend void from_json(const nlohmann::json& j, ExceptionId_anyOf& o);
 
  protected:
+  ExceptionId_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

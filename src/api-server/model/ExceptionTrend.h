@@ -48,19 +48,29 @@ class ExceptionTrend {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const ExceptionTrend& rhs) const;
   bool operator!=(const ExceptionTrend& rhs) const;
 
   /////////////////////////////////////////////
   /// ExceptionTrend members
 
+  ExceptionTrend_anyOf getValue() const;
+  void setValue(ExceptionTrend_anyOf value);
+  ExceptionTrend_anyOf::eExceptionTrend_anyOf getEnumValue() const;
+  void setEnumValue(ExceptionTrend_anyOf::eExceptionTrend_anyOf value);
   friend void to_json(nlohmann::json& j, const ExceptionTrend& o);
   friend void from_json(const nlohmann::json& j, ExceptionTrend& o);
+  friend void to_json(nlohmann::json& j, const ExceptionTrend_anyOf& o);
+  friend void from_json(const nlohmann::json& j, ExceptionTrend_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  ExceptionTrend_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

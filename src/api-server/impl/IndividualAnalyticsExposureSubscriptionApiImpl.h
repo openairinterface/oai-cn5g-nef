@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <IndividualAnalyticsExposureSubscriptionApi.h>
-
-#include <pistache/optional.h>
 
 #include "AnalyticsExposureSubsc.h"
 #include "ProblemDetails.h"
@@ -49,7 +48,7 @@ class IndividualAnalyticsExposureSubscriptionApiImpl
       Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_subscription_id_get(
       const std::string& afId, const std::string& subscriptionId,
-      const Pistache::Optional<std::string>& suppFeat,
+      const std::optional<std::string>& suppFeat,
       Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_subscription_id_put(
       const std::string& afId, const std::string& subscriptionId,

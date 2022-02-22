@@ -18,22 +18,22 @@
 
 namespace oai::nef::model {
 
-_5GLanParametersProvisionPatch ::_5GLanParametersProvisionPatch() {
+_5GLanParametersProvisionPatch::_5GLanParametersProvisionPatch() {
   m_r_5gLanParamsPatchIsSet = false;
 }
 
-void _5GLanParametersProvisionPatch ::validate() const {
+void _5GLanParametersProvisionPatch::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
     throw org::openapitools::server::helpers::ValidationException(msg.str());
   }
 }
 
-bool _5GLanParametersProvisionPatch ::validate(std::stringstream& msg) const {
+bool _5GLanParametersProvisionPatch::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool _5GLanParametersProvisionPatch ::validate(
+bool _5GLanParametersProvisionPatch::validate(
     std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
@@ -42,7 +42,7 @@ bool _5GLanParametersProvisionPatch ::validate(
   return success;
 }
 
-bool _5GLanParametersProvisionPatch ::operator==(
+bool _5GLanParametersProvisionPatch::operator==(
     const _5GLanParametersProvisionPatch& rhs) const {
   return
 
@@ -53,7 +53,7 @@ bool _5GLanParametersProvisionPatch ::operator==(
           ;
 }
 
-bool _5GLanParametersProvisionPatch ::operator!=(
+bool _5GLanParametersProvisionPatch::operator!=(
     const _5GLanParametersProvisionPatch& rhs) const {
   return !(*this == rhs);
 }
@@ -71,19 +71,19 @@ void from_json(const nlohmann::json& j, _5GLanParametersProvisionPatch& o) {
   }
 }
 
-_5GLanParametersPatch _5GLanParametersProvisionPatch ::getR5gLanParamsPatch()
+_5GLanParametersPatch _5GLanParametersProvisionPatch::getR5gLanParamsPatch()
     const {
   return m_r_5gLanParamsPatch;
 }
-void _5GLanParametersProvisionPatch ::setR5gLanParamsPatch(
+void _5GLanParametersProvisionPatch::setR5gLanParamsPatch(
     _5GLanParametersPatch const& value) {
   m_r_5gLanParamsPatch      = value;
   m_r_5gLanParamsPatchIsSet = true;
 }
-bool _5GLanParametersProvisionPatch ::r5gLanParamsPatchIsSet() const {
+bool _5GLanParametersProvisionPatch::r5gLanParamsPatchIsSet() const {
   return m_r_5gLanParamsPatchIsSet;
 }
-void _5GLanParametersProvisionPatch ::unsetr_5gLanParamsPatch() {
+void _5GLanParametersProvisionPatch::unsetr_5gLanParamsPatch() {
   m_r_5gLanParamsPatchIsSet = false;
 }
 

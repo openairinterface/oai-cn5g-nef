@@ -38,13 +38,16 @@ bool LcsQosClass::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LcsQosClass" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool LcsQosClass::operator==(const LcsQosClass& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool LcsQosClass::operator!=(const LcsQosClass& rhs) const {
@@ -53,8 +56,27 @@ bool LcsQosClass::operator!=(const LcsQosClass& rhs) const {
 
 void to_json(nlohmann::json& j, const LcsQosClass& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, LcsQosClass& o) {}
+void from_json(const nlohmann::json& j, LcsQosClass& o) {
+  from_json(j, o.m_value);
+}
+
+LcsQosClass_anyOf LcsQosClass::getValue() const {
+  return m_value;
+}
+
+void LcsQosClass::setValue(LcsQosClass_anyOf value) {
+  m_value = value;
+}
+
+LcsQosClass_anyOf::eLcsQosClass_anyOf LcsQosClass::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void LcsQosClass::setEnumValue(LcsQosClass_anyOf::eLcsQosClass_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

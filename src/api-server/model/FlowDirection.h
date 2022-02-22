@@ -62,19 +62,29 @@ class FlowDirection {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const FlowDirection& rhs) const;
   bool operator!=(const FlowDirection& rhs) const;
 
   /////////////////////////////////////////////
   /// FlowDirection members
 
+  FlowDirection_anyOf getValue() const;
+  void setValue(FlowDirection_anyOf value);
+  FlowDirection_anyOf::eFlowDirection_anyOf getEnumValue() const;
+  void setEnumValue(FlowDirection_anyOf::eFlowDirection_anyOf value);
   friend void to_json(nlohmann::json& j, const FlowDirection& o);
   friend void from_json(const nlohmann::json& j, FlowDirection& o);
+  friend void to_json(nlohmann::json& j, const FlowDirection_anyOf& o);
+  friend void from_json(const nlohmann::json& j, FlowDirection_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  FlowDirection_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

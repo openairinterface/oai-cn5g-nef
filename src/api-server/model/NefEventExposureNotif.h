@@ -46,6 +46,12 @@ class NefEventExposureNotif {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const NefEventExposureNotif& rhs) const;
   bool operator!=(const NefEventExposureNotif& rhs) const;
 
@@ -70,10 +76,6 @@ class NefEventExposureNotif {
   std::string m_NotifId;
 
   std::vector<NefEventNotification> m_EventNotifs;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

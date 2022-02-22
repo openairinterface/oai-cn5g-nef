@@ -33,7 +33,7 @@ void IndividualAnalyticsExposureSubscriptionApiImpl::
 void IndividualAnalyticsExposureSubscriptionApiImpl::
     af_id_subscriptions_subscription_id_get(
         const std::string& afId, const std::string& subscriptionId,
-        const Pistache::Optional<std::string>& suppFeat,
+        const std::optional<std::string>& suppFeat,
         Pistache::Http::ResponseWriter& response) {
   response.send(Pistache::Http::Code::Ok, "Do some magic\n");
 }

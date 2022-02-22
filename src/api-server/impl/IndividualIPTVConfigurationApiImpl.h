@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <IndividualIPTVConfigurationApi.h>
-
-#include <pistache/optional.h>
 
 #include "IptvConfigData.h"
 #include "IptvConfigDataPatch.h"

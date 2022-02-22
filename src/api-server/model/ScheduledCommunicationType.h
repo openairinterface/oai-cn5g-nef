@@ -44,19 +44,34 @@ class ScheduledCommunicationType {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const ScheduledCommunicationType& rhs) const;
   bool operator!=(const ScheduledCommunicationType& rhs) const;
 
   /////////////////////////////////////////////
   /// ScheduledCommunicationType members
 
+  ScheduledCommunicationType_anyOf getValue() const;
+  void setValue(ScheduledCommunicationType_anyOf value);
+  ScheduledCommunicationType_anyOf::eScheduledCommunicationType_anyOf
+  getEnumValue() const;
+  void setEnumValue(
+      ScheduledCommunicationType_anyOf::eScheduledCommunicationType_anyOf
+          value);
   friend void to_json(nlohmann::json& j, const ScheduledCommunicationType& o);
   friend void from_json(const nlohmann::json& j, ScheduledCommunicationType& o);
+  friend void to_json(
+      nlohmann::json& j, const ScheduledCommunicationType_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, ScheduledCommunicationType_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  ScheduledCommunicationType_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

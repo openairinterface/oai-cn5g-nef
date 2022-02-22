@@ -37,13 +37,16 @@ bool ReleaseCause::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ReleaseCause" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool ReleaseCause::operator==(const ReleaseCause& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool ReleaseCause::operator!=(const ReleaseCause& rhs) const {
@@ -52,8 +55,27 @@ bool ReleaseCause::operator!=(const ReleaseCause& rhs) const {
 
 void to_json(nlohmann::json& j, const ReleaseCause& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, ReleaseCause& o) {}
+void from_json(const nlohmann::json& j, ReleaseCause& o) {
+  from_json(j, o.m_value);
+}
+
+ReleaseCause_anyOf ReleaseCause::getValue() const {
+  return m_value;
+}
+
+void ReleaseCause::setValue(ReleaseCause_anyOf value) {
+  m_value = value;
+}
+
+ReleaseCause_anyOf::eReleaseCause_anyOf ReleaseCause::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void ReleaseCause::setEnumValue(ReleaseCause_anyOf::eReleaseCause_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

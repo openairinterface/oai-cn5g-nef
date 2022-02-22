@@ -45,11 +45,17 @@ class _5GLanParametersProvision {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const _5GLanParametersProvision& rhs) const;
   bool operator!=(const _5GLanParametersProvision& rhs) const;
 
   /////////////////////////////////////////////
-  /// 5GLanParametersProvision members
+  /// _5GLanParametersProvision members
 
   /// <summary>
   /// string formatted according to IETF RFC 3986 identifying a referenced
@@ -79,12 +85,8 @@ class _5GLanParametersProvision {
   _5GLanParameters m_r_5gLanParams;
 
   std::string m_SuppFeat;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model
 
-#endif /* 5GLanParametersProvision_H_ */
+#endif /* _5GLanParametersProvision_H_ */

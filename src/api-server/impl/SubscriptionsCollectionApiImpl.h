@@ -24,13 +24,13 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <SubscriptionsCollectionApi.h>
 
-#include <pistache/optional.h>
-
 #include "NefEventExposureSubsc.h"
 #include "ProblemDetails.h"
+#include <string>
 
 namespace oai::nef::api {
 

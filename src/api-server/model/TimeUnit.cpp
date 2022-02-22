@@ -36,13 +36,16 @@ bool TimeUnit::validate(
   bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "TimeUnit" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool TimeUnit::operator==(const TimeUnit& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool TimeUnit::operator!=(const TimeUnit& rhs) const {
@@ -51,8 +54,27 @@ bool TimeUnit::operator!=(const TimeUnit& rhs) const {
 
 void to_json(nlohmann::json& j, const TimeUnit& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, TimeUnit& o) {}
+void from_json(const nlohmann::json& j, TimeUnit& o) {
+  from_json(j, o.m_value);
+}
+
+TimeUnit_anyOf TimeUnit::getValue() const {
+  return m_value;
+}
+
+void TimeUnit::setValue(TimeUnit_anyOf value) {
+  m_value = value;
+}
+
+TimeUnit_anyOf::eTimeUnit_anyOf TimeUnit::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void TimeUnit::setEnumValue(TimeUnit_anyOf::eTimeUnit_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

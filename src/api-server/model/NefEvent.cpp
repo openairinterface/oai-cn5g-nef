@@ -36,13 +36,16 @@ bool NefEvent::validate(
   bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "NefEvent" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool NefEvent::operator==(const NefEvent& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool NefEvent::operator!=(const NefEvent& rhs) const {
@@ -51,8 +54,27 @@ bool NefEvent::operator!=(const NefEvent& rhs) const {
 
 void to_json(nlohmann::json& j, const NefEvent& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, NefEvent& o) {}
+void from_json(const nlohmann::json& j, NefEvent& o) {
+  from_json(j, o.m_value);
+}
+
+NefEvent_anyOf NefEvent::getValue() const {
+  return m_value;
+}
+
+void NefEvent::setValue(NefEvent_anyOf value) {
+  m_value = value;
+}
+
+NefEvent_anyOf::eNefEvent_anyOf NefEvent::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void NefEvent::setEnumValue(NefEvent_anyOf::eNefEvent_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

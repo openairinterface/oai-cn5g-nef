@@ -30,7 +30,7 @@ void IndividualSubscriptionDocumentApiImpl::delete_individual_subcription(
 }
 void IndividualSubscriptionDocumentApiImpl::get_individual_subcription(
     const std::string& subscriptionId,
-    const Pistache::Optional<std::string>& suppFeat,
+    const std::optional<std::string>& suppFeat,
     Pistache::Http::ResponseWriter& response) {
   response.send(Pistache::Http::Code::Ok, "Do some magic\n");
 }

@@ -44,19 +44,29 @@ class QosResourceType {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const QosResourceType& rhs) const;
   bool operator!=(const QosResourceType& rhs) const;
 
   /////////////////////////////////////////////
   /// QosResourceType members
 
+  QosResourceType_anyOf getValue() const;
+  void setValue(QosResourceType_anyOf value);
+  QosResourceType_anyOf::eQosResourceType_anyOf getEnumValue() const;
+  void setEnumValue(QosResourceType_anyOf::eQosResourceType_anyOf value);
   friend void to_json(nlohmann::json& j, const QosResourceType& o);
   friend void from_json(const nlohmann::json& j, QosResourceType& o);
+  friend void to_json(nlohmann::json& j, const QosResourceType_anyOf& o);
+  friend void from_json(const nlohmann::json& j, QosResourceType_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  QosResourceType_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

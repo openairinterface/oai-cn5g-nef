@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <AnalyticsExposureAPIFetchAnalyticsInformationApi.h>
-
-#include <pistache/optional.h>
 
 #include "AnalyticsData.h"
 #include "AnalyticsRequest.h"

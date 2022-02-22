@@ -36,13 +36,16 @@ bool Accuracy::validate(
   bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Accuracy" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool Accuracy::operator==(const Accuracy& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool Accuracy::operator!=(const Accuracy& rhs) const {
@@ -51,8 +54,27 @@ bool Accuracy::operator!=(const Accuracy& rhs) const {
 
 void to_json(nlohmann::json& j, const Accuracy& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, Accuracy& o) {}
+void from_json(const nlohmann::json& j, Accuracy& o) {
+  from_json(j, o.m_value);
+}
+
+Accuracy_anyOf Accuracy::getValue() const {
+  return m_value;
+}
+
+void Accuracy::setValue(Accuracy_anyOf value) {
+  m_value = value;
+}
+
+Accuracy_anyOf::eAccuracy_anyOf Accuracy::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void Accuracy::setEnumValue(Accuracy_anyOf::eAccuracy_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

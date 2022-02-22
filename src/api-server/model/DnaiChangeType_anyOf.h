@@ -33,7 +33,7 @@ class DnaiChangeType_anyOf {
 
   enum class eDnaiChangeType_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     EARLY,
@@ -53,6 +53,12 @@ class DnaiChangeType_anyOf {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const DnaiChangeType_anyOf& rhs) const;
   bool operator!=(const DnaiChangeType_anyOf& rhs) const;
 
@@ -68,10 +74,6 @@ class DnaiChangeType_anyOf {
  protected:
   DnaiChangeType_anyOf::eDnaiChangeType_anyOf m_value = DnaiChangeType_anyOf::
       eDnaiChangeType_anyOf::INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

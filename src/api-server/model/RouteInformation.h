@@ -45,6 +45,12 @@ class RouteInformation {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const RouteInformation& rhs) const;
   bool operator!=(const RouteInformation& rhs) const;
 
@@ -80,10 +86,6 @@ class RouteInformation {
   Ipv6Addr_1 m_Ipv6Addr;
   bool m_Ipv6AddrIsSet;
   int32_t m_PortNumber;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

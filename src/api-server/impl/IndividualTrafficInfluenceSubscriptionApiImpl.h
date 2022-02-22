@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <IndividualTrafficInfluenceSubscriptionApi.h>
-
-#include <pistache/optional.h>
 
 #include "ProblemDetails.h"
 #include "TrafficInfluSub.h"

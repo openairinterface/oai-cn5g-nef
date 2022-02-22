@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <IndividualAppliedBDTPolicySubscriptionApi.h>
-
-#include <pistache/optional.h>
 
 #include "AppliedBdtPolicy.h"
 #include "AppliedBdtPolicyPatch.h"

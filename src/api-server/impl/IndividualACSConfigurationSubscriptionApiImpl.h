@@ -24,10 +24,9 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <IndividualACSConfigurationSubscriptionApi.h>
-
-#include <pistache/optional.h>
 
 #include "AcsConfigurationData.h"
 #include "ProblemDetails.h"

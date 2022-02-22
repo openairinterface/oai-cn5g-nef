@@ -37,13 +37,16 @@ bool ExceptionId::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExceptionId" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool ExceptionId::operator==(const ExceptionId& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool ExceptionId::operator!=(const ExceptionId& rhs) const {
@@ -52,8 +55,27 @@ bool ExceptionId::operator!=(const ExceptionId& rhs) const {
 
 void to_json(nlohmann::json& j, const ExceptionId& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, ExceptionId& o) {}
+void from_json(const nlohmann::json& j, ExceptionId& o) {
+  from_json(j, o.m_value);
+}
+
+ExceptionId_anyOf ExceptionId::getValue() const {
+  return m_value;
+}
+
+void ExceptionId::setValue(ExceptionId_anyOf value) {
+  m_value = value;
+}
+
+ExceptionId_anyOf::eExceptionId_anyOf ExceptionId::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void ExceptionId::setEnumValue(ExceptionId_anyOf::eExceptionId_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

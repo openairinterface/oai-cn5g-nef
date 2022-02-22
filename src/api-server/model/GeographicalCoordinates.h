@@ -44,6 +44,12 @@ class GeographicalCoordinates {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const GeographicalCoordinates& rhs) const;
   bool operator!=(const GeographicalCoordinates& rhs) const;
 
@@ -63,9 +69,6 @@ class GeographicalCoordinates {
 
   friend void to_json(nlohmann::json& j, const GeographicalCoordinates& o);
   friend void from_json(const nlohmann::json& j, GeographicalCoordinates& o);
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   double m_Lon;

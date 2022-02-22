@@ -33,7 +33,7 @@ class SmallDataRateControlTimeUnit_anyOf {
 
   enum class eSmallDataRateControlTimeUnit_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     MINUTE,
@@ -54,6 +54,12 @@ class SmallDataRateControlTimeUnit_anyOf {
   /// an error message into the given stringstream.
   /// </summary>
   bool validate(std::stringstream& msg) const;
+
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
   bool operator==(const SmallDataRateControlTimeUnit_anyOf& rhs) const;
   bool operator!=(const SmallDataRateControlTimeUnit_anyOf& rhs) const;
@@ -76,10 +82,6 @@ class SmallDataRateControlTimeUnit_anyOf {
   SmallDataRateControlTimeUnit_anyOf::eSmallDataRateControlTimeUnit_anyOf
       m_value = SmallDataRateControlTimeUnit_anyOf::
           eSmallDataRateControlTimeUnit_anyOf::INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

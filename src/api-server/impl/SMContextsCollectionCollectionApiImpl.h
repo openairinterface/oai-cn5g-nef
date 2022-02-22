@@ -24,14 +24,14 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <SMContextsCollectionCollectionApi.h>
-
-#include <pistache/optional.h>
 
 #include "ProblemDetails.h"
 #include "SmContextCreateData.h"
 #include "SmContextCreatedData.h"
+#include <string>
 
 namespace oai::nef::api {
 

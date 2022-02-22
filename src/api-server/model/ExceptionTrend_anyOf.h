@@ -33,7 +33,7 @@ class ExceptionTrend_anyOf {
 
   enum class eExceptionTrend_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     UP,
@@ -54,6 +54,12 @@ class ExceptionTrend_anyOf {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const ExceptionTrend_anyOf& rhs) const;
   bool operator!=(const ExceptionTrend_anyOf& rhs) const;
 
@@ -69,10 +75,6 @@ class ExceptionTrend_anyOf {
  protected:
   ExceptionTrend_anyOf::eExceptionTrend_anyOf m_value = ExceptionTrend_anyOf::
       eExceptionTrend_anyOf::INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

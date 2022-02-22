@@ -24,14 +24,14 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <memory>
+#include <optional>
 
 #include <DefaultApi.h>
-
-#include <pistache/optional.h>
 
 #include "NiddConfigurationTrigger.h"
 #include "NiddConfigurationTriggerReply.h"
 #include "ProblemDetails.h"
+#include <string>
 
 namespace oai::nef::api {
 

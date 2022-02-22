@@ -44,6 +44,12 @@ class AppliedBdtPolicyPatch {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AppliedBdtPolicyPatch& rhs) const;
   bool operator!=(const AppliedBdtPolicyPatch& rhs) const;
 
@@ -62,10 +68,6 @@ class AppliedBdtPolicyPatch {
 
  protected:
   std::string m_BdtRefId;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

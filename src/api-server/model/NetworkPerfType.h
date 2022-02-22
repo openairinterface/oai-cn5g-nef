@@ -60,19 +60,29 @@ class NetworkPerfType {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const NetworkPerfType& rhs) const;
   bool operator!=(const NetworkPerfType& rhs) const;
 
   /////////////////////////////////////////////
   /// NetworkPerfType members
 
+  NetworkPerfType_anyOf getValue() const;
+  void setValue(NetworkPerfType_anyOf value);
+  NetworkPerfType_anyOf::eNetworkPerfType_anyOf getEnumValue() const;
+  void setEnumValue(NetworkPerfType_anyOf::eNetworkPerfType_anyOf value);
   friend void to_json(nlohmann::json& j, const NetworkPerfType& o);
   friend void from_json(const nlohmann::json& j, NetworkPerfType& o);
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  friend void to_json(nlohmann::json& j, const NetworkPerfType_anyOf& o);
+  friend void from_json(const nlohmann::json& j, NetworkPerfType_anyOf& o);
 
  protected:
+  NetworkPerfType_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

@@ -33,7 +33,7 @@ class QosResourceType_anyOf {
 
   enum class eQosResourceType_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     NON_GBR,
@@ -53,6 +53,12 @@ class QosResourceType_anyOf {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const QosResourceType_anyOf& rhs) const;
   bool operator!=(const QosResourceType_anyOf& rhs) const;
 
@@ -69,10 +75,6 @@ class QosResourceType_anyOf {
   QosResourceType_anyOf::eQosResourceType_anyOf m_value =
       QosResourceType_anyOf::eQosResourceType_anyOf::
           INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

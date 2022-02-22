@@ -33,7 +33,7 @@ class FlowDirection_anyOf {
 
   enum class eFlowDirection_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     DOWNLINK,
@@ -54,6 +54,12 @@ class FlowDirection_anyOf {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const FlowDirection_anyOf& rhs) const;
   bool operator!=(const FlowDirection_anyOf& rhs) const;
 
@@ -69,10 +75,6 @@ class FlowDirection_anyOf {
  protected:
   FlowDirection_anyOf::eFlowDirection_anyOf m_value = FlowDirection_anyOf::
       eFlowDirection_anyOf::INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

@@ -23,19 +23,19 @@ AddressList::AddressList() {
   m_Ipv6AddrsIsSet = false;
 }
 
-void AddressList::validate() {
+void AddressList::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
     throw org::openapitools::server::helpers::ValidationException(msg.str());
   }
 }
 
-bool AddressList::validate(std::stringstream& msg) {
+bool AddressList::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
 bool AddressList::validate(
-    std::stringstream& msg, const std::string& pathPrefix) {
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AddressList" : pathPrefix;

@@ -38,13 +38,16 @@ bool LocationPrivacyInd::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocationPrivacyInd" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool LocationPrivacyInd::operator==(const LocationPrivacyInd& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool LocationPrivacyInd::operator!=(const LocationPrivacyInd& rhs) const {
@@ -53,8 +56,29 @@ bool LocationPrivacyInd::operator!=(const LocationPrivacyInd& rhs) const {
 
 void to_json(nlohmann::json& j, const LocationPrivacyInd& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, LocationPrivacyInd& o) {}
+void from_json(const nlohmann::json& j, LocationPrivacyInd& o) {
+  from_json(j, o.m_value);
+}
+
+LocationPrivacyInd_anyOf LocationPrivacyInd::getValue() const {
+  return m_value;
+}
+
+void LocationPrivacyInd::setValue(LocationPrivacyInd_anyOf value) {
+  m_value = value;
+}
+
+LocationPrivacyInd_anyOf::eLocationPrivacyInd_anyOf
+LocationPrivacyInd::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void LocationPrivacyInd::setEnumValue(
+    LocationPrivacyInd_anyOf::eLocationPrivacyInd_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

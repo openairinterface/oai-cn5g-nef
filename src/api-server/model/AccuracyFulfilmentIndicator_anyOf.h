@@ -34,7 +34,7 @@ class AccuracyFulfilmentIndicator_anyOf {
 
   enum class eAccuracyFulfilmentIndicator_anyOf {
     // To have a valid default value.
-    // Avoiding nameclashes with user defined
+    // Avoiding name clashes with user defined
     // enum values
     INVALID_VALUE_OPENAPI_GENERATED = 0,
     FULFILLED,
@@ -52,6 +52,12 @@ class AccuracyFulfilmentIndicator_anyOf {
   /// an error message into the given stringstream.
   /// </summary>
   bool validate(std::stringstream& msg) const;
+
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
   bool operator==(const AccuracyFulfilmentIndicator_anyOf& rhs) const;
   bool operator!=(const AccuracyFulfilmentIndicator_anyOf& rhs) const;
@@ -74,10 +80,6 @@ class AccuracyFulfilmentIndicator_anyOf {
   AccuracyFulfilmentIndicator_anyOf::eAccuracyFulfilmentIndicator_anyOf
       m_value = AccuracyFulfilmentIndicator_anyOf::
           eAccuracyFulfilmentIndicator_anyOf::INVALID_VALUE_OPENAPI_GENERATED;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

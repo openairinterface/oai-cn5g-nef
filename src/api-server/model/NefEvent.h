@@ -44,19 +44,29 @@ class NefEvent {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const NefEvent& rhs) const;
   bool operator!=(const NefEvent& rhs) const;
 
   /////////////////////////////////////////////
   /// NefEvent members
 
+  NefEvent_anyOf getValue() const;
+  void setValue(NefEvent_anyOf value);
+  NefEvent_anyOf::eNefEvent_anyOf getEnumValue() const;
+  void setEnumValue(NefEvent_anyOf::eNefEvent_anyOf value);
   friend void to_json(nlohmann::json& j, const NefEvent& o);
   friend void from_json(const nlohmann::json& j, NefEvent& o);
+  friend void to_json(nlohmann::json& j, const NefEvent_anyOf& o);
+  friend void from_json(const nlohmann::json& j, NefEvent_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  NefEvent_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

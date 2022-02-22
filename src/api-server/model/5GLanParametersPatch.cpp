@@ -18,23 +18,23 @@
 
 namespace oai::nef::model {
 
-_5GLanParametersPatch ::_5GLanParametersPatch() {
+_5GLanParametersPatch::_5GLanParametersPatch() {
   m_GpsisIsSet    = false;
   m_AppDespsIsSet = false;
 }
 
-void _5GLanParametersPatch ::validate() const {
+void _5GLanParametersPatch::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
     throw org::openapitools::server::helpers::ValidationException(msg.str());
   }
 }
 
-bool _5GLanParametersPatch ::validate(std::stringstream& msg) const {
+bool _5GLanParametersPatch::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool _5GLanParametersPatch ::validate(
+bool _5GLanParametersPatch::validate(
     std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
@@ -53,8 +53,7 @@ bool _5GLanParametersPatch ::validate(
   return success;
 }
 
-bool _5GLanParametersPatch ::operator==(
-    const _5GLanParametersPatch& rhs) const {
+bool _5GLanParametersPatch::operator==(const _5GLanParametersPatch& rhs) const {
   return
 
       ((!gpsisIsSet() && !rhs.gpsisIsSet()) ||
@@ -67,8 +66,7 @@ bool _5GLanParametersPatch ::operator==(
           ;
 }
 
-bool _5GLanParametersPatch ::operator!=(
-    const _5GLanParametersPatch& rhs) const {
+bool _5GLanParametersPatch::operator!=(const _5GLanParametersPatch& rhs) const {
   return !(*this == rhs);
 }
 
@@ -89,33 +87,33 @@ void from_json(const nlohmann::json& j, _5GLanParametersPatch& o) {
   }
 }
 
-std::map<std::string, std::string> _5GLanParametersPatch ::getGpsis() const {
+std::map<std::string, std::string> _5GLanParametersPatch::getGpsis() const {
   return m_Gpsis;
 }
-void _5GLanParametersPatch ::setGpsis(
+void _5GLanParametersPatch::setGpsis(
     std::map<std::string, std::string> const& value) {
   m_Gpsis      = value;
   m_GpsisIsSet = true;
 }
-bool _5GLanParametersPatch ::gpsisIsSet() const {
+bool _5GLanParametersPatch::gpsisIsSet() const {
   return m_GpsisIsSet;
 }
-void _5GLanParametersPatch ::unsetGpsis() {
+void _5GLanParametersPatch::unsetGpsis() {
   m_GpsisIsSet = false;
 }
-std::map<std::string, AppDescriptorRm> _5GLanParametersPatch ::getAppDesps()
+std::map<std::string, AppDescriptorRm> _5GLanParametersPatch::getAppDesps()
     const {
   return m_AppDesps;
 }
-void _5GLanParametersPatch ::setAppDesps(
+void _5GLanParametersPatch::setAppDesps(
     std::map<std::string, AppDescriptorRm> const& value) {
   m_AppDesps      = value;
   m_AppDespsIsSet = true;
 }
-bool _5GLanParametersPatch ::appDespsIsSet() const {
+bool _5GLanParametersPatch::appDespsIsSet() const {
   return m_AppDespsIsSet;
 }
-void _5GLanParametersPatch ::unsetAppDesps() {
+void _5GLanParametersPatch::unsetAppDesps() {
   m_AppDespsIsSet = false;
 }
 

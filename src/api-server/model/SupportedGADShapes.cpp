@@ -38,13 +38,16 @@ bool SupportedGADShapes::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SupportedGADShapes" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool SupportedGADShapes::operator==(const SupportedGADShapes& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool SupportedGADShapes::operator!=(const SupportedGADShapes& rhs) const {
@@ -53,8 +56,29 @@ bool SupportedGADShapes::operator!=(const SupportedGADShapes& rhs) const {
 
 void to_json(nlohmann::json& j, const SupportedGADShapes& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, SupportedGADShapes& o) {}
+void from_json(const nlohmann::json& j, SupportedGADShapes& o) {
+  from_json(j, o.m_value);
+}
+
+SupportedGADShapes_anyOf SupportedGADShapes::getValue() const {
+  return m_value;
+}
+
+void SupportedGADShapes::setValue(SupportedGADShapes_anyOf value) {
+  m_value = value;
+}
+
+SupportedGADShapes_anyOf::eSupportedGADShapes_anyOf
+SupportedGADShapes::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void SupportedGADShapes::setEnumValue(
+    SupportedGADShapes_anyOf::eSupportedGADShapes_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

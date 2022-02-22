@@ -51,6 +51,12 @@ class AnalyticsData {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AnalyticsData& rhs) const;
   bool operator!=(const AnalyticsData& rhs) const;
 
@@ -114,9 +120,6 @@ class AnalyticsData {
 
   friend void to_json(nlohmann::json& j, const AnalyticsData& o);
   friend void from_json(const nlohmann::json& j, AnalyticsData& o);
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   std::string m_Expiry;

@@ -37,13 +37,16 @@ bool CongestionType::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CongestionType" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool CongestionType::operator==(const CongestionType& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool CongestionType::operator!=(const CongestionType& rhs) const {
@@ -52,8 +55,29 @@ bool CongestionType::operator!=(const CongestionType& rhs) const {
 
 void to_json(nlohmann::json& j, const CongestionType& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, CongestionType& o) {}
+void from_json(const nlohmann::json& j, CongestionType& o) {
+  from_json(j, o.m_value);
+}
+
+CongestionType_anyOf CongestionType::getValue() const {
+  return m_value;
+}
+
+void CongestionType::setValue(CongestionType_anyOf value) {
+  m_value = value;
+}
+
+CongestionType_anyOf::eCongestionType_anyOf CongestionType::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void CongestionType::setEnumValue(
+    CongestionType_anyOf::eCongestionType_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

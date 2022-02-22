@@ -37,13 +37,16 @@ bool PduSessionType::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PduSessionType" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool PduSessionType::operator==(const PduSessionType& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool PduSessionType::operator!=(const PduSessionType& rhs) const {
@@ -52,8 +55,29 @@ bool PduSessionType::operator!=(const PduSessionType& rhs) const {
 
 void to_json(nlohmann::json& j, const PduSessionType& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, PduSessionType& o) {}
+void from_json(const nlohmann::json& j, PduSessionType& o) {
+  from_json(j, o.m_value);
+}
+
+PduSessionType_anyOf PduSessionType::getValue() const {
+  return m_value;
+}
+
+void PduSessionType::setValue(PduSessionType_anyOf value) {
+  m_value = value;
+}
+
+PduSessionType_anyOf::ePduSessionType_anyOf PduSessionType::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void PduSessionType::setEnumValue(
+    PduSessionType_anyOf::ePduSessionType_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

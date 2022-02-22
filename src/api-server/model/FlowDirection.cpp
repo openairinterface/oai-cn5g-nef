@@ -37,13 +37,16 @@ bool FlowDirection::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "FlowDirection" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool FlowDirection::operator==(const FlowDirection& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool FlowDirection::operator!=(const FlowDirection& rhs) const {
@@ -52,8 +55,28 @@ bool FlowDirection::operator!=(const FlowDirection& rhs) const {
 
 void to_json(nlohmann::json& j, const FlowDirection& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, FlowDirection& o) {}
+void from_json(const nlohmann::json& j, FlowDirection& o) {
+  from_json(j, o.m_value);
+}
+
+FlowDirection_anyOf FlowDirection::getValue() const {
+  return m_value;
+}
+
+void FlowDirection::setValue(FlowDirection_anyOf value) {
+  m_value = value;
+}
+
+FlowDirection_anyOf::eFlowDirection_anyOf FlowDirection::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void FlowDirection::setEnumValue(
+    FlowDirection_anyOf::eFlowDirection_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

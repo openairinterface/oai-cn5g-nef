@@ -49,6 +49,12 @@ class TrafficInfluSubPatch {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const TrafficInfluSubPatch& rhs) const;
   bool operator!=(const TrafficInfluSubPatch& rhs) const;
 
@@ -143,10 +149,6 @@ class TrafficInfluSubPatch {
   bool m_AfAckIndIsSet;
   bool m_AddrPreserInd;
   bool m_AddrPreserIndIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model

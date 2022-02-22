@@ -45,20 +45,35 @@ class AccuracyFulfilmentIndicator {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AccuracyFulfilmentIndicator& rhs) const;
   bool operator!=(const AccuracyFulfilmentIndicator& rhs) const;
 
   /////////////////////////////////////////////
   /// AccuracyFulfilmentIndicator members
 
+  AccuracyFulfilmentIndicator_anyOf getValue() const;
+  void setValue(AccuracyFulfilmentIndicator_anyOf value);
+  AccuracyFulfilmentIndicator_anyOf::eAccuracyFulfilmentIndicator_anyOf
+  getEnumValue() const;
+  void setEnumValue(
+      AccuracyFulfilmentIndicator_anyOf::eAccuracyFulfilmentIndicator_anyOf
+          value);
   friend void to_json(nlohmann::json& j, const AccuracyFulfilmentIndicator& o);
   friend void from_json(
       const nlohmann::json& j, AccuracyFulfilmentIndicator& o);
+  friend void to_json(
+      nlohmann::json& j, const AccuracyFulfilmentIndicator_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, AccuracyFulfilmentIndicator_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  AccuracyFulfilmentIndicator_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

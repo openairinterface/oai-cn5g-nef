@@ -54,19 +54,30 @@ class AnalyticsFailureCode {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AnalyticsFailureCode& rhs) const;
   bool operator!=(const AnalyticsFailureCode& rhs) const;
 
   /////////////////////////////////////////////
   /// AnalyticsFailureCode members
 
+  AnalyticsFailureCode_anyOf getValue() const;
+  void setValue(AnalyticsFailureCode_anyOf value);
+  AnalyticsFailureCode_anyOf::eAnalyticsFailureCode_anyOf getEnumValue() const;
+  void setEnumValue(
+      AnalyticsFailureCode_anyOf::eAnalyticsFailureCode_anyOf value);
   friend void to_json(nlohmann::json& j, const AnalyticsFailureCode& o);
   friend void from_json(const nlohmann::json& j, AnalyticsFailureCode& o);
+  friend void to_json(nlohmann::json& j, const AnalyticsFailureCode_anyOf& o);
+  friend void from_json(const nlohmann::json& j, AnalyticsFailureCode_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  AnalyticsFailureCode_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

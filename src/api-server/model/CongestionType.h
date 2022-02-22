@@ -50,19 +50,29 @@ class CongestionType {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const CongestionType& rhs) const;
   bool operator!=(const CongestionType& rhs) const;
 
   /////////////////////////////////////////////
   /// CongestionType members
 
+  CongestionType_anyOf getValue() const;
+  void setValue(CongestionType_anyOf value);
+  CongestionType_anyOf::eCongestionType_anyOf getEnumValue() const;
+  void setEnumValue(CongestionType_anyOf::eCongestionType_anyOf value);
   friend void to_json(nlohmann::json& j, const CongestionType& o);
   friend void from_json(const nlohmann::json& j, CongestionType& o);
+  friend void to_json(nlohmann::json& j, const CongestionType_anyOf& o);
+  friend void from_json(const nlohmann::json& j, CongestionType_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  CongestionType_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

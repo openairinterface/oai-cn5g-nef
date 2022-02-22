@@ -37,13 +37,16 @@ bool NetworkPerfType::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NetworkPerfType" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool NetworkPerfType::operator==(const NetworkPerfType& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool NetworkPerfType::operator!=(const NetworkPerfType& rhs) const {
@@ -52,8 +55,29 @@ bool NetworkPerfType::operator!=(const NetworkPerfType& rhs) const {
 
 void to_json(nlohmann::json& j, const NetworkPerfType& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, NetworkPerfType& o) {}
+void from_json(const nlohmann::json& j, NetworkPerfType& o) {
+  from_json(j, o.m_value);
+}
+
+NetworkPerfType_anyOf NetworkPerfType::getValue() const {
+  return m_value;
+}
+
+void NetworkPerfType::setValue(NetworkPerfType_anyOf value) {
+  m_value = value;
+}
+
+NetworkPerfType_anyOf::eNetworkPerfType_anyOf NetworkPerfType::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void NetworkPerfType::setEnumValue(
+    NetworkPerfType_anyOf::eNetworkPerfType_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

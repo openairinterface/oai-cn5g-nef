@@ -11,7 +11,7 @@
  * the class manually.
  */
 /*
- * 5GLanParametersPatch.h
+ * _5GLanParametersPatch.h
  *
  *
  */
@@ -47,11 +47,17 @@ class _5GLanParametersPatch {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const _5GLanParametersPatch& rhs) const;
   bool operator!=(const _5GLanParametersPatch& rhs) const;
 
   /////////////////////////////////////////////
-  /// 5GLanParametersPatch members
+  /// _5GLanParametersPatch members
 
   /// <summary>
   ///
@@ -76,12 +82,8 @@ class _5GLanParametersPatch {
   bool m_GpsisIsSet;
   std::map<std::string, AppDescriptorRm> m_AppDesps;
   bool m_AppDespsIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model
 
-#endif /* 5GLanParametersPatch_H_ */
+#endif /* _5GLanParametersPatch_H_ */

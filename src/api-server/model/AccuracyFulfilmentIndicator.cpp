@@ -38,14 +38,17 @@ bool AccuracyFulfilmentIndicator::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AccuracyFulfilmentIndicator" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool AccuracyFulfilmentIndicator::operator==(
     const AccuracyFulfilmentIndicator& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool AccuracyFulfilmentIndicator::operator!=(
@@ -55,8 +58,32 @@ bool AccuracyFulfilmentIndicator::operator!=(
 
 void to_json(nlohmann::json& j, const AccuracyFulfilmentIndicator& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, AccuracyFulfilmentIndicator& o) {}
+void from_json(const nlohmann::json& j, AccuracyFulfilmentIndicator& o) {
+  from_json(j, o.m_value);
+}
+
+AccuracyFulfilmentIndicator_anyOf AccuracyFulfilmentIndicator::getValue()
+    const {
+  return m_value;
+}
+
+void AccuracyFulfilmentIndicator::setValue(
+    AccuracyFulfilmentIndicator_anyOf value) {
+  m_value = value;
+}
+
+AccuracyFulfilmentIndicator_anyOf::eAccuracyFulfilmentIndicator_anyOf
+AccuracyFulfilmentIndicator::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void AccuracyFulfilmentIndicator::setEnumValue(
+    AccuracyFulfilmentIndicator_anyOf::eAccuracyFulfilmentIndicator_anyOf
+        value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

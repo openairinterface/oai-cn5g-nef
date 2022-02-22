@@ -37,13 +37,16 @@ bool NotificationMethod::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NotificationMethod" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool NotificationMethod::operator==(const NotificationMethod& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool NotificationMethod::operator!=(const NotificationMethod& rhs) const {
@@ -52,8 +55,29 @@ bool NotificationMethod::operator!=(const NotificationMethod& rhs) const {
 
 void to_json(nlohmann::json& j, const NotificationMethod& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, NotificationMethod& o) {}
+void from_json(const nlohmann::json& j, NotificationMethod& o) {
+  from_json(j, o.m_value);
+}
+
+NotificationMethod_anyOf NotificationMethod::getValue() const {
+  return m_value;
+}
+
+void NotificationMethod::setValue(NotificationMethod_anyOf value) {
+  m_value = value;
+}
+
+NotificationMethod_anyOf::eNotificationMethod_anyOf
+NotificationMethod::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void NotificationMethod::setEnumValue(
+    NotificationMethod_anyOf::eNotificationMethod_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

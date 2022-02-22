@@ -37,14 +37,17 @@ bool ScheduledCommunicationType::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ScheduledCommunicationType" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool ScheduledCommunicationType::operator==(
     const ScheduledCommunicationType& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool ScheduledCommunicationType::operator!=(
@@ -54,8 +57,30 @@ bool ScheduledCommunicationType::operator!=(
 
 void to_json(nlohmann::json& j, const ScheduledCommunicationType& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, ScheduledCommunicationType& o) {}
+void from_json(const nlohmann::json& j, ScheduledCommunicationType& o) {
+  from_json(j, o.m_value);
+}
+
+ScheduledCommunicationType_anyOf ScheduledCommunicationType::getValue() const {
+  return m_value;
+}
+
+void ScheduledCommunicationType::setValue(
+    ScheduledCommunicationType_anyOf value) {
+  m_value = value;
+}
+
+ScheduledCommunicationType_anyOf::eScheduledCommunicationType_anyOf
+ScheduledCommunicationType::getEnumValue() const {
+  return m_value.getValue();
+}
+
+void ScheduledCommunicationType::setEnumValue(
+    ScheduledCommunicationType_anyOf::eScheduledCommunicationType_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

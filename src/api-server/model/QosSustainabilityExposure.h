@@ -46,6 +46,12 @@ class QosSustainabilityExposure {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const QosSustainabilityExposure& rhs) const;
   bool operator!=(const QosSustainabilityExposure& rhs) const;
 
@@ -91,9 +97,6 @@ class QosSustainabilityExposure {
 
   friend void to_json(nlohmann::json& j, const QosSustainabilityExposure& o);
   friend void from_json(const nlohmann::json& j, QosSustainabilityExposure& o);
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
  protected:
   LocationArea5G m_LocArea;

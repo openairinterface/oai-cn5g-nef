@@ -52,19 +52,29 @@ class AfResultStatus {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AfResultStatus& rhs) const;
   bool operator!=(const AfResultStatus& rhs) const;
 
   /////////////////////////////////////////////
   /// AfResultStatus members
 
+  AfResultStatus_anyOf getValue() const;
+  void setValue(AfResultStatus_anyOf value);
+  AfResultStatus_anyOf::eAfResultStatus_anyOf getEnumValue() const;
+  void setEnumValue(AfResultStatus_anyOf::eAfResultStatus_anyOf value);
   friend void to_json(nlohmann::json& j, const AfResultStatus& o);
   friend void from_json(const nlohmann::json& j, AfResultStatus& o);
+  friend void to_json(nlohmann::json& j, const AfResultStatus_anyOf& o);
+  friend void from_json(const nlohmann::json& j, AfResultStatus_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  AfResultStatus_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

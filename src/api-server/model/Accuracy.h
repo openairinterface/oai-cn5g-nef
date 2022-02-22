@@ -44,19 +44,29 @@ class Accuracy {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const Accuracy& rhs) const;
   bool operator!=(const Accuracy& rhs) const;
 
   /////////////////////////////////////////////
   /// Accuracy members
 
+  Accuracy_anyOf getValue() const;
+  void setValue(Accuracy_anyOf value);
+  Accuracy_anyOf::eAccuracy_anyOf getEnumValue() const;
+  void setEnumValue(Accuracy_anyOf::eAccuracy_anyOf value);
   friend void to_json(nlohmann::json& j, const Accuracy& o);
   friend void from_json(const nlohmann::json& j, Accuracy& o);
+  friend void to_json(nlohmann::json& j, const Accuracy_anyOf& o);
+  friend void from_json(const nlohmann::json& j, Accuracy_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  Accuracy_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

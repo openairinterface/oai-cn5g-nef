@@ -52,20 +52,35 @@ class SmallDataRateControlTimeUnit {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const SmallDataRateControlTimeUnit& rhs) const;
   bool operator!=(const SmallDataRateControlTimeUnit& rhs) const;
 
   /////////////////////////////////////////////
   /// SmallDataRateControlTimeUnit members
 
+  SmallDataRateControlTimeUnit_anyOf getValue() const;
+  void setValue(SmallDataRateControlTimeUnit_anyOf value);
+  SmallDataRateControlTimeUnit_anyOf::eSmallDataRateControlTimeUnit_anyOf
+  getEnumValue() const;
+  void setEnumValue(
+      SmallDataRateControlTimeUnit_anyOf::eSmallDataRateControlTimeUnit_anyOf
+          value);
   friend void to_json(nlohmann::json& j, const SmallDataRateControlTimeUnit& o);
   friend void from_json(
       const nlohmann::json& j, SmallDataRateControlTimeUnit& o);
+  friend void to_json(
+      nlohmann::json& j, const SmallDataRateControlTimeUnit_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, SmallDataRateControlTimeUnit_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  SmallDataRateControlTimeUnit_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

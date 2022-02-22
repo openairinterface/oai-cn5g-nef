@@ -46,19 +46,29 @@ class TimeUnit {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const TimeUnit& rhs) const;
   bool operator!=(const TimeUnit& rhs) const;
 
   /////////////////////////////////////////////
   /// TimeUnit members
 
+  TimeUnit_anyOf getValue() const;
+  void setValue(TimeUnit_anyOf value);
+  TimeUnit_anyOf::eTimeUnit_anyOf getEnumValue() const;
+  void setEnumValue(TimeUnit_anyOf::eTimeUnit_anyOf value);
   friend void to_json(nlohmann::json& j, const TimeUnit& o);
   friend void from_json(const nlohmann::json& j, TimeUnit& o);
+  friend void to_json(nlohmann::json& j, const TimeUnit_anyOf& o);
+  friend void from_json(const nlohmann::json& j, TimeUnit_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  TimeUnit_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

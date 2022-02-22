@@ -38,13 +38,19 @@ class AddressList {
   /// Validate the current data in the model. Throws a ValidationException on
   /// failure.
   /// </summary>
-  void validate();
+  void validate() const;
 
   /// <summary>
   /// Validate the current data in the model. Returns false on error and writes
   /// an error message into the given stringstream.
   /// </summary>
-  bool validate(std::stringstream& msg);
+  bool validate(std::stringstream& msg) const;
+
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 
   bool operator==(const AddressList& rhs) const;
   bool operator!=(const AddressList& rhs) const;
@@ -75,10 +81,6 @@ class AddressList {
   bool m_Ipv4AddrsIsSet;
   std::vector<Ipv6Addr> m_Ipv6Addrs;
   bool m_Ipv6AddrsIsSet;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix);
 };
 
 }  // namespace oai::nef::model

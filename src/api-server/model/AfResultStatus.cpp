@@ -37,13 +37,16 @@ bool AfResultStatus::validate(
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AfResultStatus" : pathPrefix;
 
+  if (!m_value.validate(msg)) {
+    success = false;
+  }
   return success;
 }
 
 bool AfResultStatus::operator==(const AfResultStatus& rhs) const {
-  return true
+  return
 
-      ;
+      getValue() == rhs.getValue();
 }
 
 bool AfResultStatus::operator!=(const AfResultStatus& rhs) const {
@@ -52,8 +55,29 @@ bool AfResultStatus::operator!=(const AfResultStatus& rhs) const {
 
 void to_json(nlohmann::json& j, const AfResultStatus& o) {
   j = nlohmann::json();
+  to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, AfResultStatus& o) {}
+void from_json(const nlohmann::json& j, AfResultStatus& o) {
+  from_json(j, o.m_value);
+}
+
+AfResultStatus_anyOf AfResultStatus::getValue() const {
+  return m_value;
+}
+
+void AfResultStatus::setValue(AfResultStatus_anyOf value) {
+  m_value = value;
+}
+
+AfResultStatus_anyOf::eAfResultStatus_anyOf AfResultStatus::getEnumValue()
+    const {
+  return m_value.getValue();
+}
+
+void AfResultStatus::setEnumValue(
+    AfResultStatus_anyOf::eAfResultStatus_anyOf value) {
+  m_value.setValue(value);
+}
 
 }  // namespace oai::nef::model

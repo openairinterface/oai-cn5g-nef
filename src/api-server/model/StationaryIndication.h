@@ -46,19 +46,30 @@ class StationaryIndication {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const StationaryIndication& rhs) const;
   bool operator!=(const StationaryIndication& rhs) const;
 
   /////////////////////////////////////////////
   /// StationaryIndication members
 
+  StationaryIndication_anyOf getValue() const;
+  void setValue(StationaryIndication_anyOf value);
+  StationaryIndication_anyOf::eStationaryIndication_anyOf getEnumValue() const;
+  void setEnumValue(
+      StationaryIndication_anyOf::eStationaryIndication_anyOf value);
   friend void to_json(nlohmann::json& j, const StationaryIndication& o);
   friend void from_json(const nlohmann::json& j, StationaryIndication& o);
+  friend void to_json(nlohmann::json& j, const StationaryIndication_anyOf& o);
+  friend void from_json(const nlohmann::json& j, StationaryIndication_anyOf& o);
 
  protected:
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+  StationaryIndication_anyOf m_value;
 };
 
 }  // namespace oai::nef::model

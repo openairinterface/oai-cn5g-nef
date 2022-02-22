@@ -44,6 +44,12 @@ class AkmaAfKeyData {
   /// </summary>
   bool validate(std::stringstream& msg) const;
 
+  /// <summary>
+  /// Helper overload for validate. Used when one model stores another model and
+  /// calls it's validate. Not meant to be called outside that case.
+  /// </summary>
+  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
+
   bool operator==(const AkmaAfKeyData& rhs) const;
   bool operator!=(const AkmaAfKeyData& rhs) const;
 
@@ -77,10 +83,6 @@ class AkmaAfKeyData {
   std::string m_Expiry;
 
   std::string m_Kaf;
-
-  // Helper overload for validate. Used when one model stores another model and
-  // calls it's validate.
-  bool validate(std::stringstream& msg, const std::string& pathPrefix) const;
 };
 
 }  // namespace oai::nef::model
