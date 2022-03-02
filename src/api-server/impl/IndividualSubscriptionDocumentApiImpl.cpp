@@ -12,6 +12,12 @@
  */
 
 #include "IndividualSubscriptionDocumentApiImpl.h"
+#include "logger.hpp"
+#include "nef_app.hpp"
+#include "nef_config.hpp"
+#include "3gpp_29.500.h"
+
+extern oai::nef::app::nef_config nef_cfg;
 
 namespace oai {
 namespace nef {
@@ -20,25 +26,113 @@ namespace api {
 using namespace oai::nef::model;
 
 IndividualSubscriptionDocumentApiImpl::IndividualSubscriptionDocumentApiImpl(
-    const std::shared_ptr<Pistache::Rest::Router>& rtr)
-    : IndividualSubscriptionDocumentApi(rtr) {}
+    const std::shared_ptr<Pistache::Rest::Router>& rtr,
+    oai::nef::app::nef_app* nef_app_inst, std::string address)
+    : IndividualSubscriptionDocumentApi(rtr),
+      m_nef_app(nef_app_inst),
+      m_address(address) {}
 
 void IndividualSubscriptionDocumentApiImpl::delete_individual_subcription(
     const std::string& subscriptionId,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  Logger::nef_sbi().info(
+      "Got a request to remove an existing subscription, subscription ID %s",
+      subscriptionId.c_str());
+
+  int http_code                  = 0;
+  ProblemDetails problem_details = {};
+  // TODO:   m_nef_app->handle_remove_subscription(
+  //		  subscriptionId, http_code, 1, problem_details);
+
+  nlohmann::json json_data = {};
+  std::string content_type = "application/json";
+
+  if (http_code != HTTP_STATUS_CODE_204_NO_CONTENT) {
+    to_json(json_data, problem_details);
+    content_type = "application/problem+json";
+    // content type
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        Pistache::Http::Mime::MediaType(content_type));
+    response.send(Pistache::Http::Code(http_code), json_data.dump().c_str());
+  } else {
+    // content type
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        Pistache::Http::Mime::MediaType(content_type));
+    response.send(Pistache::Http::Code(http_code));
+  }
 }
 void IndividualSubscriptionDocumentApiImpl::get_individual_subcription(
     const std::string& subscriptionId,
     const std::optional<std::string>& suppFeat,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  Logger::nef_sbi().info("");
+  Logger::nef_sbi().info(
+      "Got a request to Get a subscription information, Sub Id: %s",
+      subscriptionId.c_str());
+
+  int http_code                  = 0;
+  ProblemDetails problem_details = {};
+  NefEventExposureSubsc ev_sub   = {};
+
+  // m_nef_app->handle_get_subscription(
+  //    subscriptionId, ev_sub, http_code, 1, problem_details);
+
+  nlohmann::json json_data = {};
+  std::string content_type = "application/json";
+
+  if (http_code != HTTP_STATUS_CODE_200_OK) {
+    to_json(json_data, problem_details);
+    content_type = "application/problem+json";
+  } else {
+    to_json(json_data, ev_sub);
+  }
+
+  Logger::nef_sbi().debug("Json data: %s", json_data.dump().c_str());
+
+  // content type
+  response.headers().add<Pistache::Http::Header::ContentType>(
+      Pistache::Http::Mime::MediaType(content_type));
+
+  response.send(Pistache::Http::Code(http_code), json_data.dump().c_str());
 }
 void IndividualSubscriptionDocumentApiImpl::replace_individual_subcription(
     const std::string& subscriptionId,
     const NefEventExposureSubsc& nefEventExposureSubsc,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  Logger::nef_sbi().info("");
+  Logger::nef_sbi().info(
+      "Got a request to update a subscription, Sub Id: %s",
+      subscriptionId.c_str());
+
+  int http_code                        = 0;
+  ProblemDetails problem_details       = {};
+  NefEventExposureSubsc updated_ev_sub = {};
+
+  // m_nef_app->handle_update_subscription(
+  //    subscriptionId, nefEventExposureSubsc, updated_ev_sub, http_code, 1,
+  //    problem_details);
+
+  nlohmann::json json_data = {};
+  std::string content_type = "application/json";
+
+  if ((http_code != HTTP_STATUS_CODE_200_OK) and
+      (http_code != HTTP_STATUS_CODE_204_NO_CONTENT)) {
+    to_json(json_data, problem_details);
+    content_type = "application/problem+json";
+  } else if (http_code == HTTP_STATUS_CODE_200_OK) {
+    // TODO:
+  }
+
+  Logger::nef_sbi().debug("Json data: %s", json_data.dump().c_str());
+
+  // content type
+  response.headers().add<Pistache::Http::Header::ContentType>(
+      Pistache::Http::Mime::MediaType(content_type));
+
+  if (http_code != HTTP_STATUS_CODE_204_NO_CONTENT)
+    response.send(Pistache::Http::Code(http_code), json_data.dump().c_str());
+  else
+    response.send(Pistache::Http::Code(http_code));
 }
 
 }  // namespace api

@@ -32,6 +32,10 @@
 
 #include <string>
 #include "uint_generator.hpp"
+#include "NefEventExposureSubsc.h"
+#include "ProblemDetails.h"
+
+using namespace oai::nef::model;
 
 namespace oai::nef::app {
 
@@ -50,6 +54,19 @@ class nef_app {
    * @return void
    */
   void generate_uuid();
+
+  /*
+   * Subscribe to events from other 5GC NFs (AMF/SMF/UDM,etc)
+   * @param [void]
+   * @return void
+   */
+  void subscribe_nfs_events();
+
+  void handle_create_individual_subscription(
+      const NefEventExposureSubsc& ev_sub,
+      NefEventExposureSubsc& created_ev_sub, std::string& sub_id,
+      const uint8_t http_version, int& http_code,
+      ProblemDetails& problem_details);
 
  private:
 };

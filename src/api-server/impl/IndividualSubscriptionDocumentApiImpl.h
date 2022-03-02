@@ -30,6 +30,7 @@
 
 #include "NefEventExposureSubsc.h"
 #include "ProblemDetails.h"
+#include "nef_app.hpp"
 #include <string>
 
 namespace oai::nef::api {
@@ -40,7 +41,8 @@ class IndividualSubscriptionDocumentApiImpl
     : public oai::nef::api::IndividualSubscriptionDocumentApi {
  public:
   explicit IndividualSubscriptionDocumentApiImpl(
-      const std::shared_ptr<Pistache::Rest::Router>& rtr);
+      const std::shared_ptr<Pistache::Rest::Router>& rtr,
+      oai::nef::app::nef_app* nef_app_inst, std::string address);
   ~IndividualSubscriptionDocumentApiImpl() override = default;
 
   void delete_individual_subcription(
@@ -54,6 +56,10 @@ class IndividualSubscriptionDocumentApiImpl
       const std::string& subscriptionId,
       const NefEventExposureSubsc& nefEventExposureSubsc,
       Pistache::Http::ResponseWriter& response);
+
+ private:
+  oai::nef::app::nef_app* m_nef_app;
+  std::string m_address;
 };
 
 }  // namespace oai::nef::api

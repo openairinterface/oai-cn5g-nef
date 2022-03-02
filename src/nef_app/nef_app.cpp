@@ -48,7 +48,6 @@
 #include "nef_config.hpp"
 
 using namespace oai::nef::app;
-// using namespace oai::nef::model;
 using namespace std::chrono;
 
 extern nef_app* nef_app_inst;
@@ -66,8 +65,8 @@ nef_app::nef_app(const std::string& config_file) {
     throw;
   }
 
-  // subscribe to NF status
-  // subscribe_nf_status();
+  // subscribe to NFs' events
+  // subscribe_nfs_events();
 
   Logger::nef_app().startup("Started");
 }
@@ -86,3 +85,13 @@ nef_app::~nef_app() {
 void nef_app::generate_uuid() {
   // nef_instance_id = to_string(boost::uuids::random_generator()());
 }
+
+//------------------------------------------------------------------------------
+void nef_app::subscribe_nfs_events() {
+  // TODO:
+}
+//------------------------------------------------------------------------------
+void nef_app::handle_create_individual_subscription(
+    const NefEventExposureSubsc& ev_sub, NefEventExposureSubsc& created_ev_sub,
+    std::string& sub_id, const uint8_t http_version, int& http_code,
+    ProblemDetails& problem_details) {}
