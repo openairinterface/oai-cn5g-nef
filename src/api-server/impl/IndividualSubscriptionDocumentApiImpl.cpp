@@ -119,8 +119,6 @@ void IndividualSubscriptionDocumentApiImpl::replace_individual_subcription(
   if ((http_code != HTTP_STATUS_CODE_200_OK) and
       (http_code != HTTP_STATUS_CODE_204_NO_CONTENT)) {
     content_type = "application/problem+json";
-  } else if (http_code == HTTP_STATUS_CODE_200_OK) {
-    // TODO:
   }
 
   Logger::nef_sbi().debug("Json data: %s", json_data.dump().c_str());

@@ -182,7 +182,43 @@ void nef_app::handle_get_individual_subscription(
 void nef_app::handle_update_individual_subscription(
     const std::string& sub_id, const NefEventExposureSubsc& ev_sub,
     nlohmann::json& updated_ev_sub, const uint8_t http_version,
-    int& http_code) {}
+    int& http_code) {
+  nlohmann::json json_tmp = {};
+  // First remove the old subscription
+  if (remove_ee_subscription(sub_id)) {
+    Logger::nef_app().debug(
+        "Successfully removed subscription with Subscription ID %s", sub_id);
+  } else {
+    Logger::nef_app().debug("Error when deleting a new subscription!");
+    // TODO: Set corresponding Code
+    http_code = HTTP_STATUS_CODE_500_INTERNAL_SERVER_ERROR;
+    return;
+  }
+  // Then create a new one
+  NefEventExposureSubsc created_ev_sub = ev_sub;
+  // TODO: update created subscription with corresponding info
+
+  std::shared_ptr<NefEventExposureSubsc> ces =
+      std::make_shared<NefEventExposureSubsc>(created_ev_sub);
+
+  if (add_ee_subscription(sub_id, ces)) {
+    Logger::nef_app().debug(
+        "Updated a new subscription with Subscription ID %s", sub_id);
+
+    to_json(json_tmp, created_ev_sub);
+    Logger::nef_app().debug(
+        "Updated subscription info: %s", json_tmp.dump().c_str());
+  } else {
+    Logger::nef_app().debug("Error when updating a new subscription!");
+    // TODO: Set corresponding Code
+    http_code = HTTP_STATUS_CODE_500_INTERNAL_SERVER_ERROR;
+    return;
+  }
+
+  http_code = HTTP_STATUS_CODE_200_OK;
+
+  return;
+}
 
 //------------------------------------------------------------------------------
 bool nef_app::add_ee_subscription(
@@ -190,10 +226,11 @@ bool nef_app::add_ee_subscription(
   std::unique_lock lock(m_subscription_id2nef_subscription);
   subscrition_id2nef_subscription[sub_id] = ces;
 
+  // store subscription per event
   std::vector<NefEventSubs> event_subs = ces->getEventsSubs();
   for (auto e : event_subs) {
     NefEvent_anyOf::eNefEvent_anyOf value = e.getEvent().getEnumValue();
-    event_sub2subscriptions[value].push_back(sub_id);
+    event_sub2subscriptions[value].insert(sub_id);
   }
   return true;
 }
@@ -202,6 +239,15 @@ bool nef_app::add_ee_subscription(
 bool nef_app::remove_ee_subscription(const std::string& sub_id) {
   std::unique_lock lock(m_subscription_id2nef_subscription);
   if (subscrition_id2nef_subscription.count(sub_id) > 0) {
+    // remove the list of subscriptions per event first
+    std::shared_ptr<NefEventExposureSubsc> ces = {};
+    ces = subscrition_id2nef_subscription.at(sub_id);
+    std::vector<NefEventSubs> event_subs = ces->getEventsSubs();
+    for (auto e : event_subs) {
+      NefEvent_anyOf::eNefEvent_anyOf value = e.getEvent().getEnumValue();
+      event_sub2subscriptions[value].erase(sub_id);
+    }
+    // then remove the subscription info
     subscrition_id2nef_subscription.erase(sub_id);
     return true;
   }

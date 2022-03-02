@@ -156,6 +156,13 @@ class nef_app {
    */
   bool remove_ee_subscription(const std::string& sub_id);
 
+  /*
+   * Get info of an existing subscription (Event Exposure) from the DB
+   * @param [std::string &] sub_id: ID of the subscription
+   * @param [nlohmann::json &] ev_sub: Store subscription info in JSON format
+   * @return true if the subscription is existed, otherwise return
+   * false
+   */
   bool get_ee_subscription(const std::string& sub_id, nlohmann::json& ev_sub);
 
  private:
@@ -172,7 +179,7 @@ class nef_app {
   mutable std::shared_mutex m_subscription_id2nef_subscription;
 
   // Event Sub<->list of Subscriptions
-  std::map<NefEvent_anyOf::eNefEvent_anyOf, std::vector<std::string>>
+  std::map<NefEvent_anyOf::eNefEvent_anyOf, std::set<std::string>>
       event_sub2subscriptions;
   mutable std::shared_mutex m_event_sub2subscriptions;
 };
