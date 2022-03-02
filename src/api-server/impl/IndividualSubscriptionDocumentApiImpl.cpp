@@ -41,8 +41,10 @@ void IndividualSubscriptionDocumentApiImpl::delete_individual_subcription(
 
   int http_code                  = 0;
   ProblemDetails problem_details = {};
-  // TODO:   m_nef_app->handle_remove_subscription(
-  //		  subscriptionId, http_code, 1, problem_details);
+  uint8_t http_version           = 1;
+
+  // TODO:   m_nef_app->handle_remove_individual_subscription(
+  //		  subscriptionId, http_version, http_code, problem_details);
 
   nlohmann::json json_data = {};
   std::string content_type = "application/json";
@@ -72,10 +74,11 @@ void IndividualSubscriptionDocumentApiImpl::get_individual_subcription(
 
   int http_code                  = 0;
   ProblemDetails problem_details = {};
+  uint8_t http_version           = 1;
   NefEventExposureSubsc ev_sub   = {};
 
-  // m_nef_app->handle_get_subscription(
-  //    subscriptionId, ev_sub, http_code, 1, problem_details);
+  // m_nef_app->handle_get_individual_subscription(
+  //    subscriptionId, ev_sub, http_version, http_code, problem_details);
 
   nlohmann::json json_data = {};
   std::string content_type = "application/json";
@@ -106,11 +109,12 @@ void IndividualSubscriptionDocumentApiImpl::replace_individual_subcription(
 
   int http_code                        = 0;
   ProblemDetails problem_details       = {};
+  uint8_t http_version                 = 1;
   NefEventExposureSubsc updated_ev_sub = {};
 
-  // m_nef_app->handle_update_subscription(
-  //    subscriptionId, nefEventExposureSubsc, updated_ev_sub, http_code, 1,
-  //    problem_details);
+  // m_nef_app->handle_update_individual_subscription(
+  //    subscriptionId, nefEventExposureSubsc, updated_ev_sub, http_version,
+  //    http_code, problem_details);
 
   nlohmann::json json_data = {};
   std::string content_type = "application/json";

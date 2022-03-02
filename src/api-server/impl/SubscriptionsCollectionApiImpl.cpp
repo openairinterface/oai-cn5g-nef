@@ -45,7 +45,7 @@ void SubscriptionsCollectionApiImpl::create_individual_subcription(
 
   NefEventExposureSubsc created_ev_sub = {};
   m_nef_app->handle_create_individual_subscription(
-      nefEventExposureSubsc, created_ev_sub, sub_id, http_version, http_code,
+      sub_id, nefEventExposureSubsc, created_ev_sub, http_version, http_code,
       problem_details);
 
   nlohmann::json json_data = {};

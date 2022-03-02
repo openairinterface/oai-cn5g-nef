@@ -90,8 +90,26 @@ void nef_app::generate_uuid() {
 void nef_app::subscribe_nfs_events() {
   // TODO:
 }
+
 //------------------------------------------------------------------------------
 void nef_app::handle_create_individual_subscription(
-    const NefEventExposureSubsc& ev_sub, NefEventExposureSubsc& created_ev_sub,
-    std::string& sub_id, const uint8_t http_version, int& http_code,
+    std::string& sub_id, const NefEventExposureSubsc& ev_sub,
+    NefEventExposureSubsc& created_ev_sub, const uint8_t http_version,
+    int& http_code, ProblemDetails& problem_details) {}
+
+//------------------------------------------------------------------------------
+void nef_app::handle_remove_individual_subscription(
+    const std::string& sub_id, const uint8_t http_version, int& http_code,
     ProblemDetails& problem_details) {}
+
+//------------------------------------------------------------------------------
+void nef_app::handle_get_individual_subscription(
+    std::string& sub_id, NefEventExposureSubsc& ev_sub,
+    const uint8_t http_version, int& http_code,
+    ProblemDetails& problem_details) {}
+
+//------------------------------------------------------------------------------
+void nef_app::handle_update_individual_subscription(
+    std::string& sub_id, const NefEventExposureSubsc& ev_sub,
+    NefEventExposureSubsc& updated_ev_sub, const uint8_t http_version,
+    int& http_code, ProblemDetails& problem_details) {}

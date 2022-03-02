@@ -62,11 +62,65 @@ class nef_app {
    */
   void subscribe_nfs_events();
 
+  /*
+   * Handle a request to create a subscription (Event Exposure)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [const NefEventExposureSubsc &] ev_sub: Requested subscription's
+   * information
+   * @param [NefEventExposureSubsc &] created_ev_sub: Created subscription's
+   * information
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @param [ProblemDetails &] problem_details: Store details of the error
+   * @return void
+   */
   void handle_create_individual_subscription(
-      const NefEventExposureSubsc& ev_sub,
-      NefEventExposureSubsc& created_ev_sub, std::string& sub_id,
+      std::string& sub_id, const NefEventExposureSubsc& ev_sub,
+      NefEventExposureSubsc& created_ev_sub, const uint8_t http_version,
+      int& http_code, ProblemDetails& problem_details);
+
+  /*
+   * Handle a request to delete a subscription (Event Exposure)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @param [ProblemDetails &] problem_details: Store details of the error
+   * @return void
+   */
+  void handle_remove_individual_subscription(
+      const std::string& sub_id, const uint8_t http_version, int& http_code,
+      ProblemDetails& problem_details);
+
+  /*
+   * Handle a request to get a subscription information (Event Exposure)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [NefEventExposureSubsc &] ev_sub: Subscription's information
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @param [ProblemDetails &] problem_details: Store details of the error
+   * @return void
+   */
+  void handle_get_individual_subscription(
+      std::string& sub_id, NefEventExposureSubsc& ev_sub,
       const uint8_t http_version, int& http_code,
       ProblemDetails& problem_details);
+
+  /*
+   * Handle a request to update a subscription information (Event Exposure)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [const NefEventExposureSubsc &] ev_sub: Requested subscription's
+   * information
+   * @param [NefEventExposureSubsc &] updated_ev_sub: Updated subscription's
+   * information
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @param [ProblemDetails &] problem_details: Store details of the error
+   * @return void
+   */
+  void handle_update_individual_subscription(
+      std::string& sub_id, const NefEventExposureSubsc& ev_sub,
+      NefEventExposureSubsc& updated_ev_sub, const uint8_t http_version,
+      int& http_code, ProblemDetails& problem_details);
 
  private:
 };
