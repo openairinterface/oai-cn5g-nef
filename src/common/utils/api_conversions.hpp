@@ -23,7 +23,7 @@
  \brief
  \author  Tien-Thinh NGUYEN
  \company Eurecom
- \date 2020
+ \date 2022
  \email: tien-thinh.nguyen@eurecom.fr
  */
 
@@ -32,14 +32,12 @@
 
 #include "nef.h"
 
-//using namespace oai::nef::model;
-//using namespace oai::nef::app;
+// using namespace oai::nef::model;
+// using namespace oai::nef::app;
 
 namespace oai {
 namespace nef {
 namespace api_conv {
-
-
 
 bool validate_uuid(const std::string& str);
 

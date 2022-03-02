@@ -22,7 +22,7 @@
 /*! \file nef_client.hpp
  \author  Tien-Thinh NGUYEN
  \company Eurecom
- \date 2020
+ \date 2022
  \email: Tien-Thinh.Nguyen@eurecom.fr
  */
 

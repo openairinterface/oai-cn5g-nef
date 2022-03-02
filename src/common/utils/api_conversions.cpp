@@ -23,7 +23,7 @@
  \brief
  \author  Tien-Thinh NGUYEN
  \company Eurecom
- \date 2020
+ \date 2022
  \email: tien-thinh.nguyen@eurecom.fr
  */
 
@@ -47,8 +47,6 @@
 #include "string.hpp"
 #include "common_defs.h"
 
-//using namespace oai::nef::model;
-//using namespace oai::nef::app;
-//using namespace oai::nef;
-
-
+// using namespace oai::nef::model;
+// using namespace oai::nef::app;
+// using namespace oai::nef;

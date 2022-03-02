@@ -23,7 +23,7 @@
  \brief
  \author  Tien-Thinh NGUYEN
  \company Eurecom
- \date 2020
+ \date 2022
  \email: Tien-Thinh.Nguyen@eurecom.fr
  */
 
@@ -34,6 +34,8 @@
 #include "uint_generator.hpp"
 #include "NefEventExposureSubsc.h"
 #include "ProblemDetails.h"
+#include "nef.h"
+#include <shared_mutex>
 
 using namespace oai::nef::model;
 
@@ -54,6 +56,20 @@ class nef_app {
    * @return void
    */
   void generate_uuid();
+
+  /*
+   * Generate an unique ID for the new subscription
+   * @param [const std::string &] sub_id: the generated ID
+   * @return void
+   */
+  void generate_ev_subscription_id(std::string& sub_id);
+
+  /*
+   * Generate an unique ID for the new subscription
+   * @param void
+   * @return the generated ID
+   */
+  evsub_id_t generate_ev_subscription_id();
 
   /*
    * Subscribe to events from other 5GC NFs (AMF/SMF/UDM,etc)
@@ -122,7 +138,42 @@ class nef_app {
       NefEventExposureSubsc& updated_ev_sub, const uint8_t http_version,
       int& http_code, ProblemDetails& problem_details);
 
+  /*
+   * Add a new individual subscription (Event Exposure) to the DB
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [std::shared_ptr<NefEventExposureSubsc> &] ces: Pointer to the
+   * created subscription
+   * @return true if the subscription is created successfully, otherwise return
+   * false
+   */
+  bool add_ee_subscription(
+      const std::string& sub_id, std::shared_ptr<NefEventExposureSubsc> ces);
+
+  /*
+   * Remove an existing subscription (Event Exposure) from the DB
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @return true if the subscription is removed successfully, otherwise return
+   * false
+   */
+  bool remove_ee_subscription(const std::string& sub_id);
+
  private:
+  util::uint_generator<uint32_t> evsub_id_generator;
+  std::string nef_instance_id;  // NEF instance ID
+
+  // NF's instance id <-> list of subscription IDs
+  std::map<std::string, std::vector<std::string>> nef_subscriptions;
+  mutable std::shared_mutex m_instance_id2nrf_profile;
+
+  // Sub_id <->Subscription
+  std::map<std::string, std::shared_ptr<NefEventExposureSubsc>>
+      subscrition_id2nef_subscription;
+  mutable std::shared_mutex m_subscription_id2nef_subscription;
+
+  // Event Sub<->list of Subscriptions
+  std::map<NefEvent_anyOf::eNefEvent_anyOf, std::vector<std::string>>
+      event_sub2subscriptions;
+  mutable std::shared_mutex m_event_sub2subscriptions;
 };
 }  // namespace oai::nef::app
 #include "nef_config.hpp"

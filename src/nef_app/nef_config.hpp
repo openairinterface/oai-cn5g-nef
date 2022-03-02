@@ -23,7 +23,7 @@
  * \brief
  \author  Lionel GAUTHIER, Tien-Thinh NGUYEN
  \company Eurecom
- \date 2020
+ \date 2022
  \email: lionel.gauthier@eurecom.fr, tien-thinh.nguyen@eurecom.fr
  */
 

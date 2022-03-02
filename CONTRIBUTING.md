@@ -19,7 +19,7 @@ Please refer to the steps described on our website: [How to contribute to OAI](h
 
 We are using `clang-format` as formatting tool on the C/C++ code.
 
-At the time of writing (March 30th, 2020), we are using `clang-format` version 8.0.0 or above. By default, on a Ubuntu bionic Desktop edition, you would install version 6.0.0.
+At the time of writing (March 1st, 2022), we are using `clang-format` version 8.0.0 or above. By default, on a Ubuntu bionic Desktop edition, you would install version 6.0.0.
 
 So it is very likely you will have to install it manually. Again, at the time of writing, the working version we found was 9.0.0.
 

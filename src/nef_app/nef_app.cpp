@@ -23,7 +23,7 @@
  \brief
  \author  Tien-Thinh NGUYEN
  \company Eurecom
- \date 2020
+ \date 2022
  \email: Tien-Thinh.Nguyen@eurecom.fr
  */
 
@@ -87,6 +87,17 @@ void nef_app::generate_uuid() {
 }
 
 //------------------------------------------------------------------------------
+void nef_app::generate_ev_subscription_id(std::string& sub_id) {
+  sub_id = std::to_string(evsub_id_generator.get_uid());
+  Logger::nef_app().debug("Generated Subscription ID %s", sub_id.c_str());
+}
+
+//------------------------------------------------------------------------------
+evsub_id_t nef_app::generate_ev_subscription_id() {
+  return evsub_id_generator.get_uid();
+}
+
+//------------------------------------------------------------------------------
 void nef_app::subscribe_nfs_events() {
   // TODO:
 }
@@ -95,12 +106,58 @@ void nef_app::subscribe_nfs_events() {
 void nef_app::handle_create_individual_subscription(
     std::string& sub_id, const NefEventExposureSubsc& ev_sub,
     NefEventExposureSubsc& created_ev_sub, const uint8_t http_version,
-    int& http_code, ProblemDetails& problem_details) {}
+    int& http_code, ProblemDetails& problem_details) {
+  Logger::nef_app().info(
+      "Handle a request to Create an Individual Subscription (Event Exposure)");
+  nlohmann::json json_tmp = {};
+  to_json(json_tmp, ev_sub);
+  Logger::nef_app().debug("Subscription info: %s", json_tmp.dump().c_str());
+
+  // Generate a subscription ID Id and store the corresponding information in a
+  // map (subscription id, info)
+  generate_ev_subscription_id(sub_id);
+
+  created_ev_sub = ev_sub;
+  // TODO: update created subscription with corresponding info
+
+  std::shared_ptr<NefEventExposureSubsc> ces =
+      std::make_shared<NefEventExposureSubsc>(created_ev_sub);
+
+  if (add_ee_subscription(sub_id, ces)) {
+    Logger::nef_app().debug(
+        "Created a new subscription with Subscription ID %s", sub_id);
+
+    to_json(json_tmp, created_ev_sub);
+    Logger::nef_app().debug(
+        "Created subscription info: %s", json_tmp.dump().c_str());
+    http_code = HTTP_STATUS_CODE_201_CREATED;
+
+  } else {
+    Logger::nef_app().debug("Error when creating a new subscription!");
+    // TODO: Set corresponding Code
+    http_code = HTTP_STATUS_CODE_500_INTERNAL_SERVER_ERROR;
+    // ProblemDetails
+  }
+  return;
+}
 
 //------------------------------------------------------------------------------
 void nef_app::handle_remove_individual_subscription(
     const std::string& sub_id, const uint8_t http_version, int& http_code,
-    ProblemDetails& problem_details) {}
+    ProblemDetails& problem_details) {
+  if (remove_ee_subscription(sub_id)) {
+    Logger::nef_app().debug(
+        "Successfully removed subscription with Subscription ID %s", sub_id);
+    http_code = HTTP_STATUS_CODE_204_NO_CONTENT;
+
+  } else {
+    Logger::nef_app().debug("Error when deleting a new subscription!");
+    // TODO: Set corresponding Code
+    http_code = HTTP_STATUS_CODE_500_INTERNAL_SERVER_ERROR;
+    // ProblemDetails
+  }
+  return;
+}
 
 //------------------------------------------------------------------------------
 void nef_app::handle_get_individual_subscription(
@@ -113,3 +170,27 @@ void nef_app::handle_update_individual_subscription(
     std::string& sub_id, const NefEventExposureSubsc& ev_sub,
     NefEventExposureSubsc& updated_ev_sub, const uint8_t http_version,
     int& http_code, ProblemDetails& problem_details) {}
+
+//------------------------------------------------------------------------------
+bool nef_app::add_ee_subscription(
+    const std::string& sub_id, std::shared_ptr<NefEventExposureSubsc> ces) {
+  std::unique_lock lock(m_subscription_id2nef_subscription);
+  subscrition_id2nef_subscription[sub_id] = ces;
+
+  std::vector<NefEventSubs> event_subs = ces->getEventsSubs();
+  for (auto e : event_subs) {
+    NefEvent_anyOf::eNefEvent_anyOf value = e.getEvent().getEnumValue();
+    event_sub2subscriptions[value].push_back(sub_id);
+  }
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::remove_ee_subscription(const std::string& sub_id) {
+  std::unique_lock lock(m_subscription_id2nef_subscription);
+  if (subscrition_id2nef_subscription.count(sub_id) > 0) {
+    subscrition_id2nef_subscription.erase(sub_id);
+    return true;
+  }
+  return false;
+}
