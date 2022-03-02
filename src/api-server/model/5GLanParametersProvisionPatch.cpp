@@ -25,7 +25,7 @@ _5GLanParametersProvisionPatch::_5GLanParametersProvisionPatch() {
 void _5GLanParametersProvisionPatch::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
-    throw org::openapitools::server::helpers::ValidationException(msg.str());
+    throw oai::nef::helpers::ValidationException(msg.str());
   }
 }
 

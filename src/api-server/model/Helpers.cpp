@@ -13,7 +13,7 @@
 #include "Helpers.h"
 #include <regex>
 
-namespace org::openapitools::server::helpers {
+namespace oai::nef::helpers {
 
 const std::regex regexRfc3339_date(R"(^(\d{4})\-(\d{2})\-(\d{2})$)");
 const std::regex regexRfc3339_date_time(
@@ -136,4 +136,4 @@ bool fromStringValue(const std::string& inStr, double& value) {
   return true;
 }
 
-}  // namespace org::openapitools::server::helpers
+}  // namespace oai::nef::helpers

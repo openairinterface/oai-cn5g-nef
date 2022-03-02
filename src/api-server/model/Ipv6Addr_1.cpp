@@ -23,7 +23,7 @@ Ipv6Addr_1::Ipv6Addr_1() {}
 void Ipv6Addr_1::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
-    throw org::openapitools::server::helpers::ValidationException(msg.str());
+    throw oai::nef::helpers::ValidationException(msg.str());
   }
 }
 

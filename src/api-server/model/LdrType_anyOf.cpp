@@ -24,7 +24,7 @@ LdrType_anyOf::LdrType_anyOf() {}
 void LdrType_anyOf::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
-    throw org::openapitools::server::helpers::ValidationException(msg.str());
+    throw oai::nef::helpers::ValidationException(msg.str());
   }
 }
 

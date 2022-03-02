@@ -25,7 +25,7 @@
 #include <vector>
 #include <map>
 
-namespace org::openapitools::server::helpers {
+namespace oai::nef::helpers {
 
 class ValidationException : public std::runtime_error {
  public:
@@ -127,6 +127,6 @@ bool fromStringValue(
   return fromStringValue(inStrings, value);
 }
 
-}  // namespace org::openapitools::server::helpers
+}  // namespace oai::nef::helpers
 
 #endif  // Helpers_H_

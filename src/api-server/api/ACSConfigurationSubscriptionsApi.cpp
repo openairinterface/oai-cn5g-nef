@@ -16,7 +16,7 @@
 
 namespace oai::nef::api {
 
-using namespace org::openapitools::server::helpers;
+using namespace oai::nef::helpers;
 using namespace oai::nef::model;
 
 const std::string ACSConfigurationSubscriptionsApi::base = "/3gpp-acs-pp/v1";
@@ -57,7 +57,7 @@ ACSConfigurationSubscriptionsApi::handleParsingException(
     throw;
   } catch (nlohmann::detail::exception& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
-  } catch (org::openapitools::server::helpers::ValidationException& e) {
+  } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
     return std::make_pair(

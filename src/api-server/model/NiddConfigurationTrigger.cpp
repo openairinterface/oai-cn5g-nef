@@ -28,7 +28,7 @@ NiddConfigurationTrigger::NiddConfigurationTrigger() {
 void NiddConfigurationTrigger::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
-    throw org::openapitools::server::helpers::ValidationException(msg.str());
+    throw oai::nef::helpers::ValidationException(msg.str());
   }
 }
 

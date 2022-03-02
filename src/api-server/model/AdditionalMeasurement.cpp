@@ -30,7 +30,7 @@ AdditionalMeasurement::AdditionalMeasurement() {
 void AdditionalMeasurement::validate() const {
   std::stringstream msg;
   if (!validate(msg)) {
-    throw org::openapitools::server::helpers::ValidationException(msg.str());
+    throw oai::nef::helpers::ValidationException(msg.str());
   }
 }
 
@@ -82,8 +82,7 @@ bool AdditionalMeasurement::validate(
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
 
-        if (!org::openapitools::server::helpers::validateRfc3339_date_time(
-                value)) {
+        if (!oai::nef::helpers::validateRfc3339_date_time(value)) {
           success = false;
           msg << currentValuePath
               << ": must be a valid RFC 3339 date-time string;";
