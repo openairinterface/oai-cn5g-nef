@@ -161,15 +161,28 @@ void nef_app::handle_remove_individual_subscription(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_get_individual_subscription(
-    std::string& sub_id, NefEventExposureSubsc& ev_sub,
+    const std::string& sub_id, nlohmann::json& ev_sub,
     const uint8_t http_version, int& http_code,
-    ProblemDetails& problem_details) {}
+    ProblemDetails& problem_details) {
+  if (get_ee_subscription(sub_id, ev_sub)) {
+    Logger::nef_app().debug(
+        "Found subscription with Subscription ID %s ", sub_id.c_str());
+    Logger::nef_app().debug("Subscription info: %s ", ev_sub.dump().c_str());
+    http_code = HTTP_STATUS_CODE_200_OK;
+  } else {
+    Logger::nef_app().debug(
+        "Subscription not found with Subscription ID %s", sub_id.c_str());
+    http_code = HTTP_STATUS_CODE_404_NOT_FOUND;
+    // TODO: ProblemDetails
+  }
+  return;
+}
 
 //------------------------------------------------------------------------------
 void nef_app::handle_update_individual_subscription(
-    std::string& sub_id, const NefEventExposureSubsc& ev_sub,
-    NefEventExposureSubsc& updated_ev_sub, const uint8_t http_version,
-    int& http_code, ProblemDetails& problem_details) {}
+    const std::string& sub_id, const NefEventExposureSubsc& ev_sub,
+    nlohmann::json& updated_ev_sub, const uint8_t http_version,
+    int& http_code) {}
 
 //------------------------------------------------------------------------------
 bool nef_app::add_ee_subscription(
@@ -190,6 +203,17 @@ bool nef_app::remove_ee_subscription(const std::string& sub_id) {
   std::unique_lock lock(m_subscription_id2nef_subscription);
   if (subscrition_id2nef_subscription.count(sub_id) > 0) {
     subscrition_id2nef_subscription.erase(sub_id);
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::get_ee_subscription(
+    const std::string& sub_id, nlohmann::json& ev_sub) {
+  std::shared_lock lock(m_subscription_id2nef_subscription);
+  if (subscrition_id2nef_subscription.count(sub_id) > 0) {
+    to_json(ev_sub, *subscrition_id2nef_subscription[sub_id]);
     return true;
   }
   return false;

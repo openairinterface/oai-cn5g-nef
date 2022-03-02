@@ -43,8 +43,8 @@ void IndividualSubscriptionDocumentApiImpl::delete_individual_subcription(
   ProblemDetails problem_details = {};
   uint8_t http_version           = 1;
 
-  // TODO:   m_nef_app->handle_remove_individual_subscription(
-  //		  subscriptionId, http_version, http_code, problem_details);
+  m_nef_app->handle_remove_individual_subscription(
+      subscriptionId, http_version, http_code, problem_details);
 
   nlohmann::json json_data = {};
   std::string content_type = "application/json";
@@ -75,19 +75,15 @@ void IndividualSubscriptionDocumentApiImpl::get_individual_subcription(
   int http_code                  = 0;
   ProblemDetails problem_details = {};
   uint8_t http_version           = 1;
-  NefEventExposureSubsc ev_sub   = {};
+  nlohmann::json json_data       = {};
 
-  // m_nef_app->handle_get_individual_subscription(
-  //    subscriptionId, ev_sub, http_version, http_code, problem_details);
+  m_nef_app->handle_get_individual_subscription(
+      subscriptionId, json_data, http_version, http_code, problem_details);
 
-  nlohmann::json json_data = {};
   std::string content_type = "application/json";
 
   if (http_code != HTTP_STATUS_CODE_200_OK) {
-    to_json(json_data, problem_details);
     content_type = "application/problem+json";
-  } else {
-    to_json(json_data, ev_sub);
   }
 
   Logger::nef_sbi().debug("Json data: %s", json_data.dump().c_str());
@@ -98,6 +94,7 @@ void IndividualSubscriptionDocumentApiImpl::get_individual_subcription(
 
   response.send(Pistache::Http::Code(http_code), json_data.dump().c_str());
 }
+
 void IndividualSubscriptionDocumentApiImpl::replace_individual_subcription(
     const std::string& subscriptionId,
     const NefEventExposureSubsc& nefEventExposureSubsc,
@@ -111,17 +108,16 @@ void IndividualSubscriptionDocumentApiImpl::replace_individual_subcription(
   ProblemDetails problem_details       = {};
   uint8_t http_version                 = 1;
   NefEventExposureSubsc updated_ev_sub = {};
+  nlohmann::json json_data             = {};
 
-  // m_nef_app->handle_update_individual_subscription(
-  //    subscriptionId, nefEventExposureSubsc, updated_ev_sub, http_version,
-  //    http_code, problem_details);
+  m_nef_app->handle_update_individual_subscription(
+      subscriptionId, nefEventExposureSubsc, json_data, http_version,
+      http_code);
 
-  nlohmann::json json_data = {};
   std::string content_type = "application/json";
 
   if ((http_code != HTTP_STATUS_CODE_200_OK) and
       (http_code != HTTP_STATUS_CODE_204_NO_CONTENT)) {
-    to_json(json_data, problem_details);
     content_type = "application/problem+json";
   } else if (http_code == HTTP_STATUS_CODE_200_OK) {
     // TODO:

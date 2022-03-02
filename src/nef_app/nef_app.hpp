@@ -110,14 +110,14 @@ class nef_app {
   /*
    * Handle a request to get a subscription information (Event Exposure)
    * @param [std::string &] sub_id: ID of the created subscription
-   * @param [NefEventExposureSubsc &] ev_sub: Subscription's information
+   * @param [nlohmann::json &] ev_sub: Subscription's information
    * @param [const uint8_t] http_version: HTTP version
    * @param [int &] http_code: HTTP code used to return to the service consumer
    * @param [ProblemDetails &] problem_details: Store details of the error
    * @return void
    */
   void handle_get_individual_subscription(
-      std::string& sub_id, NefEventExposureSubsc& ev_sub,
+      const std::string& sub_id, nlohmann::json& ev_sub,
       const uint8_t http_version, int& http_code,
       ProblemDetails& problem_details);
 
@@ -126,17 +126,16 @@ class nef_app {
    * @param [std::string &] sub_id: ID of the created subscription
    * @param [const NefEventExposureSubsc &] ev_sub: Requested subscription's
    * information
-   * @param [NefEventExposureSubsc &] updated_ev_sub: Updated subscription's
-   * information
+   * @param [nlohmann::json &] updated_ev_sub: Updated subscription's
+   * information or problem details (Store details of the error)
    * @param [const uint8_t] http_version: HTTP version
    * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [ProblemDetails &] problem_details: Store details of the error
    * @return void
    */
   void handle_update_individual_subscription(
-      std::string& sub_id, const NefEventExposureSubsc& ev_sub,
-      NefEventExposureSubsc& updated_ev_sub, const uint8_t http_version,
-      int& http_code, ProblemDetails& problem_details);
+      const std::string& sub_id, const NefEventExposureSubsc& ev_sub,
+      nlohmann::json& updated_ev_sub, const uint8_t http_version,
+      int& http_code);
 
   /*
    * Add a new individual subscription (Event Exposure) to the DB
@@ -156,6 +155,8 @@ class nef_app {
    * false
    */
   bool remove_ee_subscription(const std::string& sub_id);
+
+  bool get_ee_subscription(const std::string& sub_id, nlohmann::json& ev_sub);
 
  private:
   util::uint_generator<uint32_t> evsub_id_generator;
