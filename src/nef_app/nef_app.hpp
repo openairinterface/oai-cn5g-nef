@@ -33,6 +33,10 @@
 #include <string>
 #include "uint_generator.hpp"
 #include "NefEventExposureSubsc.h"
+#include "NefEventExposureNotif.h"
+#include "AmfEventNotification.h"
+#include "NsmfEventExposureNotification.h"
+#include "MonitoringReport.h"
 #include "ProblemDetails.h"
 #include "nef.h"
 #include <shared_mutex>
@@ -135,6 +139,60 @@ class nef_app {
   void handle_update_individual_subscription(
       const std::string& sub_id, const NefEventExposureSubsc& ev_sub,
       nlohmann::json& updated_ev_sub, const uint8_t http_version,
+      int& http_code);
+
+  /*
+   * Handle a NF event notification (from AMF/SMF/UDM, etc)
+   * @param [const NefEventExposureNotif &] eventNotif: Notification data
+   * @param [nlohmann::json &] response_data: response data
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @return void
+   */
+  void handle_nf_event_notification(
+      const NefEventExposureNotif& eventNotif, nlohmann::json& response_data,
+      const uint8_t http_version, int& http_code);
+
+  /*
+   * Handle an event notification from AMF
+   * @param [const AmfEventNotification &] amfEventNotification: Notification
+   * data
+   * @param [nlohmann::json &] response_data: response data
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @return void
+   */
+  void handle_amf_event_notification(
+      const AmfEventNotification& amfEventNotification,
+      nlohmann::json& response_data, const uint8_t http_version,
+      int& http_code);
+
+  /*
+   * Handle an event notification from SMF
+   * @param [const NsmfEventExposureNotification &]
+   * smfEventExposureNotification: Notification data
+   * @param [nlohmann::json &] response_data: response data
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @return void
+   */
+  void handle_smf_event_notification(
+      const NsmfEventExposureNotification& smfEventExposureNotification,
+      nlohmann::json& response_data, const uint8_t http_version,
+      int& http_code);
+
+  /*
+   * Handle an event notification from SMF
+   * @param [const std::vector<MonitoringReport>&]
+   * eventExposureNotif: Notification data
+   * @param [nlohmann::json &] response_data: response data
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @return void
+   */
+  void handle_udm_event_notification(
+      const std::vector<MonitoringReport>& eventExposureNotif,
+      nlohmann::json& response_data, const uint8_t http_version,
       int& http_code);
 
   /*

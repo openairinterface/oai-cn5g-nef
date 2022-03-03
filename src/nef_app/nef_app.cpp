@@ -221,6 +221,42 @@ void nef_app::handle_update_individual_subscription(
 }
 
 //------------------------------------------------------------------------------
+void nef_app::handle_nf_event_notification(
+    const NefEventExposureNotif& eventNotif, nlohmann::json& response_data,
+    const uint8_t http_version, int& http_code) {
+  // Process the Notification data
+
+  // Send Notification to the subscribed NFs
+}
+
+//------------------------------------------------------------------------------
+void nef_app::handle_amf_event_notification(
+    const AmfEventNotification& amfEventNotification,
+    nlohmann::json& response_data, const uint8_t http_version, int& http_code) {
+  // Process the Notification data
+
+  // Send Notification to the subscribed NFs
+}
+
+//------------------------------------------------------------------------------
+void nef_app::handle_smf_event_notification(
+    const NsmfEventExposureNotification& smfEventExposureNotification,
+    nlohmann::json& response_data, const uint8_t http_version, int& http_code) {
+  // Process the Notification data
+
+  // Send Notification to the subscribed NFs
+}
+
+//------------------------------------------------------------------------------
+void nef_app::handle_udm_event_notification(
+    const std::vector<MonitoringReport>& eventExposureNotif,
+    nlohmann::json& response_data, const uint8_t http_version, int& http_code) {
+  // Process the Notification data
+
+  // Send Notification to the subscribed NFs
+}
+
+//------------------------------------------------------------------------------
 bool nef_app::add_ee_subscription(
     const std::string& sub_id, std::shared_ptr<NefEventExposureSubsc> ces) {
   std::unique_lock lock(m_subscription_id2nef_subscription);

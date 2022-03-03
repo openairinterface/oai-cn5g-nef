@@ -21,6 +21,7 @@
 
 #include "NFEventNotifyApi.h"
 #include "Helpers.h"
+#include "logger.hpp"
 
 namespace oai::nef::api {
 
@@ -41,23 +42,78 @@ void NFEventNotifyApi::setupRoutes() {
   using namespace Pistache::Rest;
 
   Routes::Post(
-      *router, base + "/subscriptions",
-      Routes::bind(&NFEventNotifyApi::notify_nf_event_handler, this));
+      *router, base + "/udm",
+      Routes::bind(&NFEventNotifyApi::notify_udm_event_handler, this));
+
+  Routes::Post(
+      *router, base + "/amf",
+      Routes::bind(&NFEventNotifyApi::notify_amf_event_handler, this));
+
+  Routes::Post(
+      *router, base + "/smf",
+      Routes::bind(&NFEventNotifyApi::notify_smf_event_handler, this));
 
   // Default handler, called when a route is not found
   router->addCustomHandler(
       Routes::bind(&NFEventNotifyApi::notify_nf_event_default_handler, this));
 }
 
-void NFEventNotifyApi::notify_nf_event_handler(
+void NFEventNotifyApi::notify_udm_event_handler(
     const Pistache::Rest::Request& request,
     Pistache::Http::ResponseWriter response) {
   // Getting the body param
-  NefEventExposureNotif eventExposureNotif;
+
+  std::vector<MonitoringReport> monitoring_reports;
+  try {
+    nlohmann::json::parse(request.body()).get_to(monitoring_reports);
+    this->receive_udm_event_notification(monitoring_reports, response);
+  } catch (nlohmann::detail::exception& e) {
+    // send a 400 error
+    response.send(Pistache::Http::Code::Bad_Request, e.what());
+    return;
+  } catch (Pistache::Http::HttpError& e) {
+    response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
+    return;
+  } catch (std::exception& e) {
+    // send a 500 error
+    response.send(Pistache::Http::Code::Internal_Server_Error, e.what());
+    return;
+  }
+}
+
+void NFEventNotifyApi::notify_amf_event_handler(
+    const Pistache::Rest::Request& request,
+    Pistache::Http::ResponseWriter response) {
+  // Getting the body param
+  AmfEventNotification amfEventNotification;
 
   try {
-    nlohmann::json::parse(request.body()).get_to(eventExposureNotif);
-    this->receive_nf_event_notification(eventExposureNotif, response);
+    nlohmann::json::parse(request.body()).get_to(amfEventNotification);
+    this->receive_amf_event_notification(amfEventNotification, response);
+  } catch (nlohmann::detail::exception& e) {
+    // send a 400 error
+    response.send(Pistache::Http::Code::Bad_Request, e.what());
+    return;
+  } catch (Pistache::Http::HttpError& e) {
+    response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
+    return;
+  } catch (std::exception& e) {
+    // send a 500 error
+    response.send(Pistache::Http::Code::Internal_Server_Error, e.what());
+    return;
+  }
+}
+
+void NFEventNotifyApi::notify_smf_event_handler(
+    const Pistache::Rest::Request& request,
+    Pistache::Http::ResponseWriter response) {
+  // Getting the body param
+  NsmfEventExposureNotification smfEventExposureNotification;
+
+  try {
+    nlohmann::json::parse(request.body()).get_to(smfEventExposureNotification);
+    this->receive_smf_event_notification(
+        smfEventExposureNotification, response);
   } catch (nlohmann::detail::exception& e) {
     // send a 400 error
     response.send(Pistache::Http::Code::Bad_Request, e.what());

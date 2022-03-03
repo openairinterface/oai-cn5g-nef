@@ -44,8 +44,11 @@
 #endif
 
 #include "nef_app.hpp"
+#include "IndividualSubscriptionDocumentApiImpl.h"
+#include "NFEventNotifyApiImpl.h"
+#include "SubscriptionsCollectionApiImpl.h"
 
-// using namespace oai::nef::api;
+using namespace oai::nef::api;
 using namespace oai::nef::app;
 class NEFApiServer {
  public:
@@ -53,6 +56,16 @@ class NEFApiServer {
       : m_httpEndpoint(std::make_shared<Pistache::Http::Endpoint>(address)) {
     m_router  = std::make_shared<Pistache::Rest::Router>();
     m_address = address.host() + ":" + (address.port()).toString();
+
+    m_individualSubscriptionDocumentApiImpl =
+        std::make_shared<IndividualSubscriptionDocumentApiImpl>(
+            m_router, nef_app_inst, m_address);
+
+    m_nfEventNotifyApiImpl = std::make_shared<NFEventNotifyApiImpl>(
+        m_router, nef_app_inst, m_address);
+    m_subscriptionsCollectionApiImpl =
+        std::make_shared<SubscriptionsCollectionApiImpl>(
+            m_router, nef_app_inst, m_address);
   }
   void init(size_t thr = 1);
   void start();
@@ -62,6 +75,11 @@ class NEFApiServer {
   std::shared_ptr<Pistache::Http::Endpoint> m_httpEndpoint;
   std::shared_ptr<Pistache::Rest::Router> m_router;
   std::string m_address;
+  std::shared_ptr<IndividualSubscriptionDocumentApiImpl>
+      m_individualSubscriptionDocumentApiImpl;
+  std::shared_ptr<NFEventNotifyApiImpl> m_nfEventNotifyApiImpl;
+  std::shared_ptr<SubscriptionsCollectionApiImpl>
+      m_subscriptionsCollectionApiImpl;
 };
 
 #endif

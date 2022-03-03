@@ -55,6 +55,18 @@ class NFEventNotifyApiImpl : public oai::nef::api::NFEventNotifyApi {
       const NefEventExposureNotif& eventExposureNotif,
       Pistache::Http::ResponseWriter& response);
 
+  void receive_amf_event_notification(
+      const AmfEventNotification& amfEventNotification,
+      Pistache::Http::ResponseWriter& response);
+
+  void receive_smf_event_notification(
+      const NsmfEventExposureNotification& smfEventExposureNotification,
+      Pistache::Http::ResponseWriter& response);
+
+  void receive_udm_event_notification(
+      const std::vector<MonitoringReport>& eventExposureNotif,
+      Pistache::Http::ResponseWriter& response);
+
  private:
   oai::nef::app::nef_app* m_nef_app;
   std::string m_address;

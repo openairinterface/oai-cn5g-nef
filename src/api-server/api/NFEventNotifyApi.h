@@ -35,6 +35,9 @@
 
 #include "NefEventExposureNotif.h"
 #include "ProblemDetails.h"
+#include "AmfEventNotification.h"
+#include "MonitoringReport.h"
+#include "NsmfEventExposureNotification.h"
 
 namespace oai::nef::api {
 
@@ -50,9 +53,16 @@ class NFEventNotifyApi {
  private:
   void setupRoutes();
 
-  void notify_nf_event_handler(
+  void notify_udm_event_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);
+  void notify_amf_event_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
+  void notify_smf_event_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
+
   void notify_nf_event_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);
@@ -68,6 +78,18 @@ class NFEventNotifyApi {
   /// <param name="NefEventExposureNotif"></param>
   virtual void receive_nf_event_notification(
       const NefEventExposureNotif& eventExposureNotif,
+      Pistache::Http::ResponseWriter& response) = 0;
+
+  virtual void receive_amf_event_notification(
+      const AmfEventNotification& amfEventNotification,
+      Pistache::Http::ResponseWriter& response) = 0;
+
+  virtual void receive_smf_event_notification(
+      const NsmfEventExposureNotification& smfEventExposureNotification,
+      Pistache::Http::ResponseWriter& response) = 0;
+
+  virtual void receive_udm_event_notification(
+      const std::vector<MonitoringReport>& eventExposureNotif,
       Pistache::Http::ResponseWriter& response) = 0;
 };
 
