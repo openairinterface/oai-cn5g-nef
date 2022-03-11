@@ -24,6 +24,8 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include "Ipv6Addr.h"
+#include "IpAddr.h"
 
 namespace oai::nef::helpers {
 
@@ -100,6 +102,10 @@ bool fromStringValue(const std::string& inStr, int64_t& value);
 bool fromStringValue(const std::string& inStr, bool& value);
 bool fromStringValue(const std::string& inStr, float& value);
 bool fromStringValue(const std::string& inStr, double& value);
+bool fromStringValue(
+    const std::string& inStr, oai::nef::model::Ipv6Addr& value);
+bool fromStringValue(const std::string& inStr, oai::nef::model::IpAddr& value);
+
 template<typename T>
 bool fromStringValue(
     const std::vector<std::string>& inStr, std::vector<T>& value) {

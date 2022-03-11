@@ -136,4 +136,14 @@ bool fromStringValue(const std::string& inStr, double& value) {
   return true;
 }
 
+bool fromStringValue(
+    const std::string& inStr, oai::nef::model::Ipv6Addr& value) {
+  // TODO
+  return true;
+}
+
+bool fromStringValue(const std::string& inStr, oai::nef::model::IpAddr& value) {
+  // TODO
+  return true;
+}
 }  // namespace oai::nef::helpers
