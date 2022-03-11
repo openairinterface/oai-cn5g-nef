@@ -19,9 +19,10 @@
 #ifndef CmInfo_H_
 #define CmInfo_H_
 
-#include "CmState.h"
-#include "AccessType.h"
 #include <nlohmann/json.hpp>
+
+#include "AccessType.h"
+#include "CmState.h"
 
 namespace oai::nef::model {
 

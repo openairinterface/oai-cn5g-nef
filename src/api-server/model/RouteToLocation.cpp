@@ -12,16 +12,17 @@
  */
 
 #include "RouteToLocation.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 RouteToLocation::RouteToLocation() {
-  m_Dnai             = "";
-  m_RouteInfoIsSet   = false;
-  m_RouteProfId      = "";
+  m_Dnai = "";
+  m_RouteInfoIsSet = false;
+  m_RouteProfId = "";
   m_RouteProfIdIsSet = false;
 }
 
@@ -36,8 +37,8 @@ bool RouteToLocation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool RouteToLocation::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool RouteToLocation::validate(std::stringstream& msg,
+                               const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "RouteToLocation" : pathPrefix;
@@ -66,7 +67,7 @@ bool RouteToLocation::operator!=(const RouteToLocation& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const RouteToLocation& o) {
-  j         = nlohmann::json();
+  j = nlohmann::json();
   j["dnai"] = o.m_Dnai;
   if (o.routeInfoIsSet()) j["routeInfo"] = o.m_RouteInfo;
   if (o.routeProfIdIsSet()) j["routeProfId"] = o.m_RouteProfId;
@@ -84,37 +85,21 @@ void from_json(const nlohmann::json& j, RouteToLocation& o) {
   }
 }
 
-std::string RouteToLocation::getDnai() const {
-  return m_Dnai;
-}
-void RouteToLocation::setDnai(std::string const& value) {
-  m_Dnai = value;
-}
-RouteInformation RouteToLocation::getRouteInfo() const {
-  return m_RouteInfo;
-}
+std::string RouteToLocation::getDnai() const { return m_Dnai; }
+void RouteToLocation::setDnai(std::string const& value) { m_Dnai = value; }
+RouteInformation RouteToLocation::getRouteInfo() const { return m_RouteInfo; }
 void RouteToLocation::setRouteInfo(RouteInformation const& value) {
-  m_RouteInfo      = value;
+  m_RouteInfo = value;
   m_RouteInfoIsSet = true;
 }
-bool RouteToLocation::routeInfoIsSet() const {
-  return m_RouteInfoIsSet;
-}
-void RouteToLocation::unsetRouteInfo() {
-  m_RouteInfoIsSet = false;
-}
-std::string RouteToLocation::getRouteProfId() const {
-  return m_RouteProfId;
-}
+bool RouteToLocation::routeInfoIsSet() const { return m_RouteInfoIsSet; }
+void RouteToLocation::unsetRouteInfo() { m_RouteInfoIsSet = false; }
+std::string RouteToLocation::getRouteProfId() const { return m_RouteProfId; }
 void RouteToLocation::setRouteProfId(std::string const& value) {
-  m_RouteProfId      = value;
+  m_RouteProfId = value;
   m_RouteProfIdIsSet = true;
 }
-bool RouteToLocation::routeProfIdIsSet() const {
-  return m_RouteProfIdIsSet;
-}
-void RouteToLocation::unsetRouteProfId() {
-  m_RouteProfIdIsSet = false;
-}
+bool RouteToLocation::routeProfIdIsSet() const { return m_RouteProfIdIsSet; }
+void RouteToLocation::unsetRouteProfId() { m_RouteProfIdIsSet = false; }
 
 }  // namespace oai::nef::model

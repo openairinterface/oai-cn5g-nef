@@ -20,6 +20,7 @@
 #define PatchItem_H_
 
 #include <string>
+
 #include "PatchOperation.h"
 //#include "AnyType.h"
 #include <nlohmann/json.hpp>

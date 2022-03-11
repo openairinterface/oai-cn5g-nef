@@ -12,17 +12,18 @@
  */
 
 #include "AnalyticsRequest.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 AnalyticsRequest::AnalyticsRequest() {
   m_AnalyEventFilterIsSet = false;
-  m_AnalyRepIsSet         = false;
-  m_TgtUeIsSet            = false;
-  m_SuppFeat              = "";
+  m_AnalyRepIsSet = false;
+  m_TgtUeIsSet = false;
+  m_SuppFeat = "";
 }
 
 void AnalyticsRequest::validate() const {
@@ -36,14 +37,14 @@ bool AnalyticsRequest::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsRequest::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AnalyticsRequest::validate(std::stringstream& msg,
+                                const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsRequest" : pathPrefix;
 
   /* SuppFeat */ {
-    const std::string& value           = m_SuppFeat;
+    const std::string& value = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -76,7 +77,7 @@ bool AnalyticsRequest::operator!=(const AnalyticsRequest& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AnalyticsRequest& o) {
-  j               = nlohmann::json();
+  j = nlohmann::json();
   j["analyEvent"] = o.m_AnalyEvent;
   if (o.analyEventFilterIsSet()) j["analyEventFilter"] = o.m_AnalyEventFilter;
   if (o.analyRepIsSet()) j["analyRep"] = o.m_AnalyRep;
@@ -101,9 +102,7 @@ void from_json(const nlohmann::json& j, AnalyticsRequest& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-AnalyticsEvent AnalyticsRequest::getAnalyEvent() const {
-  return m_AnalyEvent;
-}
+AnalyticsEvent AnalyticsRequest::getAnalyEvent() const { return m_AnalyEvent; }
 void AnalyticsRequest::setAnalyEvent(AnalyticsEvent const& value) {
   m_AnalyEvent = value;
 }
@@ -111,7 +110,7 @@ AnalyticsEventFilter AnalyticsRequest::getAnalyEventFilter() const {
   return m_AnalyEventFilter;
 }
 void AnalyticsRequest::setAnalyEventFilter(AnalyticsEventFilter const& value) {
-  m_AnalyEventFilter      = value;
+  m_AnalyEventFilter = value;
   m_AnalyEventFilterIsSet = true;
 }
 bool AnalyticsRequest::analyEventFilterIsSet() const {
@@ -124,31 +123,19 @@ EventReportingRequirement AnalyticsRequest::getAnalyRep() const {
   return m_AnalyRep;
 }
 void AnalyticsRequest::setAnalyRep(EventReportingRequirement const& value) {
-  m_AnalyRep      = value;
+  m_AnalyRep = value;
   m_AnalyRepIsSet = true;
 }
-bool AnalyticsRequest::analyRepIsSet() const {
-  return m_AnalyRepIsSet;
-}
-void AnalyticsRequest::unsetAnalyRep() {
-  m_AnalyRepIsSet = false;
-}
-TargetUeId AnalyticsRequest::getTgtUe() const {
-  return m_TgtUe;
-}
+bool AnalyticsRequest::analyRepIsSet() const { return m_AnalyRepIsSet; }
+void AnalyticsRequest::unsetAnalyRep() { m_AnalyRepIsSet = false; }
+TargetUeId AnalyticsRequest::getTgtUe() const { return m_TgtUe; }
 void AnalyticsRequest::setTgtUe(TargetUeId const& value) {
-  m_TgtUe      = value;
+  m_TgtUe = value;
   m_TgtUeIsSet = true;
 }
-bool AnalyticsRequest::tgtUeIsSet() const {
-  return m_TgtUeIsSet;
-}
-void AnalyticsRequest::unsetTgtUe() {
-  m_TgtUeIsSet = false;
-}
-std::string AnalyticsRequest::getSuppFeat() const {
-  return m_SuppFeat;
-}
+bool AnalyticsRequest::tgtUeIsSet() const { return m_TgtUeIsSet; }
+void AnalyticsRequest::unsetTgtUe() { m_TgtUeIsSet = false; }
+std::string AnalyticsRequest::getSuppFeat() const { return m_SuppFeat; }
 void AnalyticsRequest::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }

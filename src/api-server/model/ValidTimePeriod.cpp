@@ -13,17 +13,18 @@
  */
 
 #include "ValidTimePeriod.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 ValidTimePeriod::ValidTimePeriod() {
-  m_StartTime      = "";
+  m_StartTime = "";
   m_StartTimeIsSet = false;
-  m_EndTime        = "";
-  m_EndTimeIsSet   = false;
+  m_EndTime = "";
+  m_EndTimeIsSet = false;
 }
 
 void ValidTimePeriod::validate() const {
@@ -37,8 +38,8 @@ bool ValidTimePeriod::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ValidTimePeriod::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool ValidTimePeriod::validate(std::stringstream& msg,
+                               const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ValidTimePeriod" : pathPrefix;
@@ -81,31 +82,19 @@ void from_json(const nlohmann::json& j, ValidTimePeriod& o) {
   }
 }
 
-std::string ValidTimePeriod::getStartTime() const {
-  return m_StartTime;
-}
+std::string ValidTimePeriod::getStartTime() const { return m_StartTime; }
 void ValidTimePeriod::setStartTime(std::string const& value) {
-  m_StartTime      = value;
+  m_StartTime = value;
   m_StartTimeIsSet = true;
 }
-bool ValidTimePeriod::startTimeIsSet() const {
-  return m_StartTimeIsSet;
-}
-void ValidTimePeriod::unsetStartTime() {
-  m_StartTimeIsSet = false;
-}
-std::string ValidTimePeriod::getEndTime() const {
-  return m_EndTime;
-}
+bool ValidTimePeriod::startTimeIsSet() const { return m_StartTimeIsSet; }
+void ValidTimePeriod::unsetStartTime() { m_StartTimeIsSet = false; }
+std::string ValidTimePeriod::getEndTime() const { return m_EndTime; }
 void ValidTimePeriod::setEndTime(std::string const& value) {
-  m_EndTime      = value;
+  m_EndTime = value;
   m_EndTimeIsSet = true;
 }
-bool ValidTimePeriod::endTimeIsSet() const {
-  return m_EndTimeIsSet;
-}
-void ValidTimePeriod::unsetEndTime() {
-  m_EndTimeIsSet = false;
-}
+bool ValidTimePeriod::endTimeIsSet() const { return m_EndTimeIsSet; }
+void ValidTimePeriod::unsetEndTime() { m_EndTimeIsSet = false; }
 
 }  // namespace oai::nef::model

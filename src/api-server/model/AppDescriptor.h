@@ -19,10 +19,10 @@
 #ifndef AppDescriptor_H_
 #define AppDescriptor_H_
 
-#include <string>
 #include <map>
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
 
 namespace oai::nef::model {
 

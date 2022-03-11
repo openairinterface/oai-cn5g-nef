@@ -19,9 +19,10 @@
 #ifndef ReachabilityForSmsReport_H_
 #define ReachabilityForSmsReport_H_
 
-#include <string>
-#include "AccessType.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "AccessType.h"
 
 namespace oai::nef::model {
 

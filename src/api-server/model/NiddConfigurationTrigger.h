@@ -19,8 +19,8 @@
 #ifndef NiddConfigurationTrigger_H_
 #define NiddConfigurationTrigger_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

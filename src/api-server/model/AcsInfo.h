@@ -19,9 +19,10 @@
 #ifndef AcsInfo_H_
 #define AcsInfo_H_
 
-#include <string>
-#include "Ipv6Addr.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "Ipv6Addr.h"
 
 namespace oai::nef::model {
 

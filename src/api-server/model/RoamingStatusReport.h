@@ -19,8 +19,9 @@
 #ifndef RoamingStatusReport_H_
 #define RoamingStatusReport_H_
 
-#include "PlmnId.h"
 #include <nlohmann/json.hpp>
+
+#include "PlmnId.h"
 
 namespace oai::nef::model {
 

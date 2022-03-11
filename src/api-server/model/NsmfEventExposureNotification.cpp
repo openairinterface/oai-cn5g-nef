@@ -12,9 +12,10 @@
  */
 
 #include "NsmfEventExposureNotification.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -41,7 +42,7 @@ bool NsmfEventExposureNotification::validate(
 
   /* EventNotifs */ {
     const std::vector<EventNotification>& value = m_EventNotifs;
-    const std::string currentValuePath          = _pathPrefix + ".eventNotifs";
+    const std::string currentValuePath = _pathPrefix + ".eventNotifs";
 
     if (value.size() < 1) {
       success = false;
@@ -49,7 +50,7 @@ bool NsmfEventExposureNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const EventNotification& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -82,8 +83,8 @@ bool NsmfEventExposureNotification::operator!=(
 }
 
 void to_json(nlohmann::json& j, const NsmfEventExposureNotification& o) {
-  j                = nlohmann::json();
-  j["notifId"]     = o.m_NotifId;
+  j = nlohmann::json();
+  j["notifId"] = o.m_NotifId;
   j["eventNotifs"] = o.m_EventNotifs;
 }
 

@@ -19,17 +19,18 @@
 #ifndef TrafficInfluSub_H_
 #define TrafficInfluSub_H_
 
-#include "DnaiChangeType.h"
-#include "FlowInfo.h"
-#include "WebsockNotifConfig.h"
-#include "EthFlowDescription.h"
-#include "SubscribedEvent.h"
+#include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
+
+#include "DnaiChangeType.h"
+#include "EthFlowDescription.h"
+#include "FlowInfo.h"
 #include "RouteToLocation.h"
 #include "Snssai.h"
+#include "SubscribedEvent.h"
 #include "TemporalValidity.h"
-#include <vector>
-#include <nlohmann/json.hpp>
+#include "WebsockNotifConfig.h"
 
 namespace oai::nef::model {
 

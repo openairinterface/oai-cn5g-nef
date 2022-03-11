@@ -12,9 +12,10 @@
  */
 
 #include "NetworkPerfType.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool NetworkPerfType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NetworkPerfType::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool NetworkPerfType::validate(std::stringstream& msg,
+                               const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NetworkPerfType" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, NetworkPerfType& o) {
   from_json(j, o.m_value);
 }
 
-NetworkPerfType_anyOf NetworkPerfType::getValue() const {
-  return m_value;
-}
+NetworkPerfType_anyOf NetworkPerfType::getValue() const { return m_value; }
 
-void NetworkPerfType::setValue(NetworkPerfType_anyOf value) {
-  m_value = value;
-}
+void NetworkPerfType::setValue(NetworkPerfType_anyOf value) { m_value = value; }
 
 NetworkPerfType_anyOf::eNetworkPerfType_anyOf NetworkPerfType::getEnumValue()
     const {

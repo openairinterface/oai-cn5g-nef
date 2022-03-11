@@ -20,11 +20,12 @@
 #ifndef PointUncertaintyCircle_H_
 #define PointUncertaintyCircle_H_
 
+#include <nlohmann/json.hpp>
+
+#include "GADShape.h"
 #include "GeographicalCoordinates.h"
 #include "PointUncertaintyCircle_allOf.h"
-#include "GADShape.h"
 #include "SupportedGADShapes.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

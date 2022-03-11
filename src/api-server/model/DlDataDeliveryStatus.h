@@ -27,8 +27,9 @@
 #ifndef DlDataDeliveryStatus_H_
 #define DlDataDeliveryStatus_H_
 
-#include "DlDataDeliveryStatus_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "DlDataDeliveryStatus_anyOf.h"
 
 namespace oai::nef::model {
 

@@ -21,8 +21,9 @@
 #ifndef PdnType_H_
 #define PdnType_H_
 
-#include "PdnType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "PdnType_anyOf.h"
 
 namespace oai::nef::model {
 

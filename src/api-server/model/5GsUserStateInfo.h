@@ -19,9 +19,10 @@
 #ifndef _5GsUserStateInfo_H_
 #define _5GsUserStateInfo_H_
 
+#include <nlohmann/json.hpp>
+
 #include "5GsUserState.h"
 #include "AccessType.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

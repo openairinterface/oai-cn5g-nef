@@ -12,9 +12,10 @@
  */
 
 #include "SubscribedEvent.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool SubscribedEvent::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SubscribedEvent::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool SubscribedEvent::validate(std::stringstream& msg,
+                               const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SubscribedEvent" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, SubscribedEvent& o) {
   from_json(j, o.m_value);
 }
 
-SubscribedEvent_anyOf SubscribedEvent::getValue() const {
-  return m_value;
-}
+SubscribedEvent_anyOf SubscribedEvent::getValue() const { return m_value; }
 
-void SubscribedEvent::setValue(SubscribedEvent_anyOf value) {
-  m_value = value;
-}
+void SubscribedEvent::setValue(SubscribedEvent_anyOf value) { m_value = value; }
 
 SubscribedEvent_anyOf::eSubscribedEvent_anyOf SubscribedEvent::getEnumValue()
     const {

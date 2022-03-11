@@ -12,25 +12,26 @@
  */
 
 #include "SmContextCreatedData.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 SmContextCreatedData::SmContextCreatedData() {
-  m_Supi                   = "";
-  m_PduSessionId           = 0;
-  m_Dnn                    = "";
-  m_NefId                  = "";
-  m_RdsSupport             = false;
-  m_RdsSupportIsSet        = false;
-  m_ExtBufSupport          = false;
-  m_ExtBufSupportIsSet     = false;
-  m_SupportedFeatures      = "";
+  m_Supi = "";
+  m_PduSessionId = 0;
+  m_Dnn = "";
+  m_NefId = "";
+  m_RdsSupport = false;
+  m_RdsSupportIsSet = false;
+  m_ExtBufSupport = false;
+  m_ExtBufSupportIsSet = false;
+  m_SupportedFeatures = "";
   m_SupportedFeaturesIsSet = false;
-  m_MaxPacketSize          = 0;
-  m_MaxPacketSizeIsSet     = false;
+  m_MaxPacketSize = 0;
+  m_MaxPacketSizeIsSet = false;
 }
 
 void SmContextCreatedData::validate() const {
@@ -44,19 +45,19 @@ bool SmContextCreatedData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmContextCreatedData::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool SmContextCreatedData::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextCreatedData" : pathPrefix;
 
   /* Supi */ {
-    const std::string& value           = m_Supi;
+    const std::string& value = m_Supi;
     const std::string currentValuePath = _pathPrefix + ".supi";
   }
 
   /* PduSessionId */ {
-    const int32_t& value               = m_PduSessionId;
+    const int32_t& value = m_PduSessionId;
     const std::string currentValuePath = _pathPrefix + ".pduSessionId";
 
     if (value < 0) {
@@ -70,7 +71,7 @@ bool SmContextCreatedData::validate(
   }
 
   if (supportedFeaturesIsSet()) {
-    const std::string& value           = m_SupportedFeatures;
+    const std::string& value = m_SupportedFeatures;
     const std::string currentValuePath = _pathPrefix + ".supportedFeatures";
   }
 
@@ -114,12 +115,12 @@ bool SmContextCreatedData::operator!=(const SmContextCreatedData& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const SmContextCreatedData& o) {
-  j                 = nlohmann::json();
-  j["supi"]         = o.m_Supi;
+  j = nlohmann::json();
+  j["supi"] = o.m_Supi;
   j["pduSessionId"] = o.m_PduSessionId;
-  j["dnn"]          = o.m_Dnn;
-  j["snssai"]       = o.m_Snssai;
-  j["nefId"]        = o.m_NefId;
+  j["dnn"] = o.m_Dnn;
+  j["snssai"] = o.m_Snssai;
+  j["nefId"] = o.m_NefId;
   if (o.rdsSupportIsSet()) j["rdsSupport"] = o.m_RdsSupport;
   if (o.extBufSupportIsSet()) j["extBufSupport"] = o.m_ExtBufSupport;
   if (o.supportedFeaturesIsSet())
@@ -151,54 +152,30 @@ void from_json(const nlohmann::json& j, SmContextCreatedData& o) {
   }
 }
 
-std::string SmContextCreatedData::getSupi() const {
-  return m_Supi;
-}
-void SmContextCreatedData::setSupi(std::string const& value) {
-  m_Supi = value;
-}
-int32_t SmContextCreatedData::getPduSessionId() const {
-  return m_PduSessionId;
-}
+std::string SmContextCreatedData::getSupi() const { return m_Supi; }
+void SmContextCreatedData::setSupi(std::string const& value) { m_Supi = value; }
+int32_t SmContextCreatedData::getPduSessionId() const { return m_PduSessionId; }
 void SmContextCreatedData::setPduSessionId(int32_t const value) {
   m_PduSessionId = value;
 }
-std::string SmContextCreatedData::getDnn() const {
-  return m_Dnn;
-}
-void SmContextCreatedData::setDnn(std::string const& value) {
-  m_Dnn = value;
-}
-Snssai SmContextCreatedData::getSnssai() const {
-  return m_Snssai;
-}
-void SmContextCreatedData::setSnssai(Snssai const& value) {
-  m_Snssai = value;
-}
-std::string SmContextCreatedData::getNefId() const {
-  return m_NefId;
-}
+std::string SmContextCreatedData::getDnn() const { return m_Dnn; }
+void SmContextCreatedData::setDnn(std::string const& value) { m_Dnn = value; }
+Snssai SmContextCreatedData::getSnssai() const { return m_Snssai; }
+void SmContextCreatedData::setSnssai(Snssai const& value) { m_Snssai = value; }
+std::string SmContextCreatedData::getNefId() const { return m_NefId; }
 void SmContextCreatedData::setNefId(std::string const& value) {
   m_NefId = value;
 }
-bool SmContextCreatedData::isRdsSupport() const {
-  return m_RdsSupport;
-}
+bool SmContextCreatedData::isRdsSupport() const { return m_RdsSupport; }
 void SmContextCreatedData::setRdsSupport(bool const value) {
-  m_RdsSupport      = value;
+  m_RdsSupport = value;
   m_RdsSupportIsSet = true;
 }
-bool SmContextCreatedData::rdsSupportIsSet() const {
-  return m_RdsSupportIsSet;
-}
-void SmContextCreatedData::unsetRdsSupport() {
-  m_RdsSupportIsSet = false;
-}
-bool SmContextCreatedData::isExtBufSupport() const {
-  return m_ExtBufSupport;
-}
+bool SmContextCreatedData::rdsSupportIsSet() const { return m_RdsSupportIsSet; }
+void SmContextCreatedData::unsetRdsSupport() { m_RdsSupportIsSet = false; }
+bool SmContextCreatedData::isExtBufSupport() const { return m_ExtBufSupport; }
 void SmContextCreatedData::setExtBufSupport(bool const value) {
-  m_ExtBufSupport      = value;
+  m_ExtBufSupport = value;
   m_ExtBufSupportIsSet = true;
 }
 bool SmContextCreatedData::extBufSupportIsSet() const {
@@ -211,7 +188,7 @@ std::string SmContextCreatedData::getSupportedFeatures() const {
   return m_SupportedFeatures;
 }
 void SmContextCreatedData::setSupportedFeatures(std::string const& value) {
-  m_SupportedFeatures      = value;
+  m_SupportedFeatures = value;
   m_SupportedFeaturesIsSet = true;
 }
 bool SmContextCreatedData::supportedFeaturesIsSet() const {
@@ -224,7 +201,7 @@ int32_t SmContextCreatedData::getMaxPacketSize() const {
   return m_MaxPacketSize;
 }
 void SmContextCreatedData::setMaxPacketSize(int32_t const value) {
-  m_MaxPacketSize      = value;
+  m_MaxPacketSize = value;
   m_MaxPacketSizeIsSet = true;
 }
 bool SmContextCreatedData::maxPacketSizeIsSet() const {

@@ -13,9 +13,10 @@
  */
 
 #include "LcsQosClass.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -32,8 +33,8 @@ bool LcsQosClass::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LcsQosClass::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool LcsQosClass::validate(std::stringstream& msg,
+                           const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LcsQosClass" : pathPrefix;
@@ -63,13 +64,9 @@ void from_json(const nlohmann::json& j, LcsQosClass& o) {
   from_json(j, o.m_value);
 }
 
-LcsQosClass_anyOf LcsQosClass::getValue() const {
-  return m_value;
-}
+LcsQosClass_anyOf LcsQosClass::getValue() const { return m_value; }
 
-void LcsQosClass::setValue(LcsQosClass_anyOf value) {
-  m_value = value;
-}
+void LcsQosClass::setValue(LcsQosClass_anyOf value) { m_value = value; }
 
 LcsQosClass_anyOf::eLcsQosClass_anyOf LcsQosClass::getEnumValue() const {
   return m_value.getValue();

@@ -19,9 +19,10 @@
 #ifndef NetworkPerfExposure_H_
 #define NetworkPerfExposure_H_
 
-#include "NetworkPerfType.h"
-#include "LocationArea5G.h"
 #include <nlohmann/json.hpp>
+
+#include "LocationArea5G.h"
+#include "NetworkPerfType.h"
 
 namespace oai::nef::model {
 

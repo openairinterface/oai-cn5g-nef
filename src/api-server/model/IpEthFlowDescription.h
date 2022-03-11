@@ -19,9 +19,10 @@
 #ifndef IpEthFlowDescription_H_
 #define IpEthFlowDescription_H_
 
-#include "EthFlowDescription.h"
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "EthFlowDescription.h"
 
 namespace oai::nef::model {
 

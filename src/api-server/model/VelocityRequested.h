@@ -19,8 +19,9 @@
 #ifndef VelocityRequested_H_
 #define VelocityRequested_H_
 
-#include "VelocityRequested_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "VelocityRequested_anyOf.h"
 
 namespace oai::nef::model {
 

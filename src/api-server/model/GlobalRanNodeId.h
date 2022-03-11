@@ -19,10 +19,11 @@
 #ifndef GlobalRanNodeId_H_
 #define GlobalRanNodeId_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
+
 #include "GNbId.h"
 #include "PlmnId.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

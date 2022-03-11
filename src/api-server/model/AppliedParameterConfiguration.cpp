@@ -12,20 +12,21 @@
  */
 
 #include "AppliedParameterConfiguration.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 AppliedParameterConfiguration::AppliedParameterConfiguration() {
-  m_ExternalIdsIsSet          = false;
-  m_MsisdnsIsSet              = false;
-  m_MaximumLatency            = 0;
-  m_MaximumLatencyIsSet       = false;
-  m_MaximumResponseTime       = 0;
-  m_MaximumResponseTimeIsSet  = false;
-  m_MaximumDetectionTime      = 0;
+  m_ExternalIdsIsSet = false;
+  m_MsisdnsIsSet = false;
+  m_MaximumLatency = 0;
+  m_MaximumLatencyIsSet = false;
+  m_MaximumResponseTime = 0;
+  m_MaximumResponseTimeIsSet = false;
+  m_MaximumDetectionTime = 0;
   m_MaximumDetectionTimeIsSet = false;
 }
 
@@ -48,7 +49,7 @@ bool AppliedParameterConfiguration::validate(
 
   if (externalIdsIsSet()) {
     const std::vector<std::string>& value = m_ExternalIds;
-    const std::string currentValuePath    = _pathPrefix + ".externalIds";
+    const std::string currentValuePath = _pathPrefix + ".externalIds";
 
     if (value.size() < 1) {
       success = false;
@@ -56,7 +57,7 @@ bool AppliedParameterConfiguration::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -68,7 +69,7 @@ bool AppliedParameterConfiguration::validate(
 
   if (msisdnsIsSet()) {
     const std::vector<std::string>& value = m_Msisdns;
-    const std::string currentValuePath    = _pathPrefix + ".msisdns";
+    const std::string currentValuePath = _pathPrefix + ".msisdns";
 
     if (value.size() < 1) {
       success = false;
@@ -76,7 +77,7 @@ bool AppliedParameterConfiguration::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -87,7 +88,7 @@ bool AppliedParameterConfiguration::validate(
   }
 
   if (maximumLatencyIsSet()) {
-    const int32_t& value               = m_MaximumLatency;
+    const int32_t& value = m_MaximumLatency;
     const std::string currentValuePath = _pathPrefix + ".maximumLatency";
 
     if (value < 0) {
@@ -97,7 +98,7 @@ bool AppliedParameterConfiguration::validate(
   }
 
   if (maximumResponseTimeIsSet()) {
-    const int32_t& value               = m_MaximumResponseTime;
+    const int32_t& value = m_MaximumResponseTime;
     const std::string currentValuePath = _pathPrefix + ".maximumResponseTime";
 
     if (value < 0) {
@@ -107,7 +108,7 @@ bool AppliedParameterConfiguration::validate(
   }
 
   if (maximumDetectionTimeIsSet()) {
-    const int32_t& value               = m_MaximumDetectionTime;
+    const int32_t& value = m_MaximumDetectionTime;
     const std::string currentValuePath = _pathPrefix + ".maximumDetectionTime";
 
     if (value < 0) {
@@ -191,7 +192,7 @@ std::vector<std::string> AppliedParameterConfiguration::getExternalIds() const {
 }
 void AppliedParameterConfiguration::setExternalIds(
     std::vector<std::string> const& value) {
-  m_ExternalIds      = value;
+  m_ExternalIds = value;
   m_ExternalIdsIsSet = true;
 }
 bool AppliedParameterConfiguration::externalIdsIsSet() const {
@@ -205,20 +206,18 @@ std::vector<std::string> AppliedParameterConfiguration::getMsisdns() const {
 }
 void AppliedParameterConfiguration::setMsisdns(
     std::vector<std::string> const& value) {
-  m_Msisdns      = value;
+  m_Msisdns = value;
   m_MsisdnsIsSet = true;
 }
 bool AppliedParameterConfiguration::msisdnsIsSet() const {
   return m_MsisdnsIsSet;
 }
-void AppliedParameterConfiguration::unsetMsisdns() {
-  m_MsisdnsIsSet = false;
-}
+void AppliedParameterConfiguration::unsetMsisdns() { m_MsisdnsIsSet = false; }
 int32_t AppliedParameterConfiguration::getMaximumLatency() const {
   return m_MaximumLatency;
 }
 void AppliedParameterConfiguration::setMaximumLatency(int32_t const value) {
-  m_MaximumLatency      = value;
+  m_MaximumLatency = value;
   m_MaximumLatencyIsSet = true;
 }
 bool AppliedParameterConfiguration::maximumLatencyIsSet() const {
@@ -232,7 +231,7 @@ int32_t AppliedParameterConfiguration::getMaximumResponseTime() const {
 }
 void AppliedParameterConfiguration::setMaximumResponseTime(
     int32_t const value) {
-  m_MaximumResponseTime      = value;
+  m_MaximumResponseTime = value;
   m_MaximumResponseTimeIsSet = true;
 }
 bool AppliedParameterConfiguration::maximumResponseTimeIsSet() const {
@@ -246,7 +245,7 @@ int32_t AppliedParameterConfiguration::getMaximumDetectionTime() const {
 }
 void AppliedParameterConfiguration::setMaximumDetectionTime(
     int32_t const value) {
-  m_MaximumDetectionTime      = value;
+  m_MaximumDetectionTime = value;
   m_MaximumDetectionTimeIsSet = true;
 }
 bool AppliedParameterConfiguration::maximumDetectionTimeIsSet() const {

@@ -19,8 +19,8 @@
 #ifndef TargetUeId_H_
 #define TargetUeId_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

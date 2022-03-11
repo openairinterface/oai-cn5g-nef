@@ -20,8 +20,8 @@
 #ifndef CivicAddress_H_
 #define CivicAddress_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

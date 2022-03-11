@@ -19,14 +19,15 @@
 #ifndef N3gaLocation_H_
 #define N3gaLocation_H_
 
-#include "Tai.h"
-#include <string>
-#include "TnapId.h"
-#include "Ipv6Addr.h"
-#include "TwapId.h"
-#include "LineType.h"
-#include "HfcNodeId.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "HfcNodeId.h"
+#include "Ipv6Addr.h"
+#include "LineType.h"
+#include "Tai.h"
+#include "TnapId.h"
+#include "TwapId.h"
 
 namespace oai::nef::model {
 

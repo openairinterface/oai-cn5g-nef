@@ -12,9 +12,11 @@
  */
 
 #include "CnType_anyOf.h"
-#include "Helpers.h"
-#include <stdexcept>
+
 #include <sstream>
+#include <stdexcept>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +33,8 @@ bool CnType_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CnType_anyOf::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool CnType_anyOf::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CnType_anyOf" : pathPrefix;
@@ -91,9 +93,7 @@ void from_json(const nlohmann::json& j, CnType_anyOf& o) {
   }
 }
 
-CnType_anyOf::eCnType_anyOf CnType_anyOf::getValue() const {
-  return m_value;
-}
+CnType_anyOf::eCnType_anyOf CnType_anyOf::getValue() const { return m_value; }
 void CnType_anyOf::setValue(CnType_anyOf::eCnType_anyOf value) {
   m_value = value;
 }

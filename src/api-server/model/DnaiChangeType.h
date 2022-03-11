@@ -22,8 +22,9 @@
 #ifndef DnaiChangeType_H_
 #define DnaiChangeType_H_
 
-#include "DnaiChangeType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "DnaiChangeType_anyOf.h"
 
 namespace oai::nef::model {
 

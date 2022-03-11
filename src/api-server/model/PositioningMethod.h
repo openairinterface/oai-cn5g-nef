@@ -20,8 +20,9 @@
 #ifndef PositioningMethod_H_
 #define PositioningMethod_H_
 
-#include "PositioningMethod_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "PositioningMethod_anyOf.h"
 
 namespace oai::nef::model {
 

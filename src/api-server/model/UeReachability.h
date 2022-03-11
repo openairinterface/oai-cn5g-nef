@@ -19,8 +19,9 @@
 #ifndef UeReachability_H_
 #define UeReachability_H_
 
-#include "UeReachability_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "UeReachability_anyOf.h"
 
 namespace oai::nef::model {
 

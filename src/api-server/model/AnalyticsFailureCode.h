@@ -24,8 +24,9 @@
 #ifndef AnalyticsFailureCode_H_
 #define AnalyticsFailureCode_H_
 
-#include "AnalyticsFailureCode_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "AnalyticsFailureCode_anyOf.h"
 
 namespace oai::nef::model {
 

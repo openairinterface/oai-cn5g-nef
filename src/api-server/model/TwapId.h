@@ -19,8 +19,8 @@
 #ifndef TwapId_H_
 #define TwapId_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

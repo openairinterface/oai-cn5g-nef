@@ -19,9 +19,10 @@
 #ifndef RmInfo_H_
 #define RmInfo_H_
 
-#include "RmState.h"
-#include "AccessType.h"
 #include <nlohmann/json.hpp>
+
+#include "AccessType.h"
+#include "RmState.h"
 
 namespace oai::nef::model {
 

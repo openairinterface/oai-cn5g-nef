@@ -13,22 +13,23 @@
  */
 
 #include "LpiParametersProvision.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 LpiParametersProvision::LpiParametersProvision() {
-  m_Self               = "";
-  m_SelfIsSet          = false;
-  m_ExterGroupId       = "";
-  m_ExterGroupIdIsSet  = false;
-  m_Gpsi               = "";
-  m_GpsiIsSet          = false;
-  m_MtcProviderId      = "";
+  m_Self = "";
+  m_SelfIsSet = false;
+  m_ExterGroupId = "";
+  m_ExterGroupIdIsSet = false;
+  m_Gpsi = "";
+  m_GpsiIsSet = false;
+  m_MtcProviderId = "";
   m_MtcProviderIdIsSet = false;
-  m_SuppFeat           = "";
+  m_SuppFeat = "";
 }
 
 void LpiParametersProvision::validate() const {
@@ -42,19 +43,19 @@ bool LpiParametersProvision::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LpiParametersProvision::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool LpiParametersProvision::validate(std::stringstream& msg,
+                                      const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LpiParametersProvision" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value           = m_Gpsi;
+    const std::string& value = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
   /* SuppFeat */ {
-    const std::string& value           = m_SuppFeat;
+    const std::string& value = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -122,24 +123,18 @@ void from_json(const nlohmann::json& j, LpiParametersProvision& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string LpiParametersProvision::getSelf() const {
-  return m_Self;
-}
+std::string LpiParametersProvision::getSelf() const { return m_Self; }
 void LpiParametersProvision::setSelf(std::string const& value) {
-  m_Self      = value;
+  m_Self = value;
   m_SelfIsSet = true;
 }
-bool LpiParametersProvision::selfIsSet() const {
-  return m_SelfIsSet;
-}
-void LpiParametersProvision::unsetSelf() {
-  m_SelfIsSet = false;
-}
+bool LpiParametersProvision::selfIsSet() const { return m_SelfIsSet; }
+void LpiParametersProvision::unsetSelf() { m_SelfIsSet = false; }
 std::string LpiParametersProvision::getExterGroupId() const {
   return m_ExterGroupId;
 }
 void LpiParametersProvision::setExterGroupId(std::string const& value) {
-  m_ExterGroupId      = value;
+  m_ExterGroupId = value;
   m_ExterGroupIdIsSet = true;
 }
 bool LpiParametersProvision::exterGroupIdIsSet() const {
@@ -148,30 +143,20 @@ bool LpiParametersProvision::exterGroupIdIsSet() const {
 void LpiParametersProvision::unsetExterGroupId() {
   m_ExterGroupIdIsSet = false;
 }
-std::string LpiParametersProvision::getGpsi() const {
-  return m_Gpsi;
-}
+std::string LpiParametersProvision::getGpsi() const { return m_Gpsi; }
 void LpiParametersProvision::setGpsi(std::string const& value) {
-  m_Gpsi      = value;
+  m_Gpsi = value;
   m_GpsiIsSet = true;
 }
-bool LpiParametersProvision::gpsiIsSet() const {
-  return m_GpsiIsSet;
-}
-void LpiParametersProvision::unsetGpsi() {
-  m_GpsiIsSet = false;
-}
-Lpi LpiParametersProvision::getLpi() const {
-  return m_Lpi;
-}
-void LpiParametersProvision::setLpi(Lpi const& value) {
-  m_Lpi = value;
-}
+bool LpiParametersProvision::gpsiIsSet() const { return m_GpsiIsSet; }
+void LpiParametersProvision::unsetGpsi() { m_GpsiIsSet = false; }
+Lpi LpiParametersProvision::getLpi() const { return m_Lpi; }
+void LpiParametersProvision::setLpi(Lpi const& value) { m_Lpi = value; }
 std::string LpiParametersProvision::getMtcProviderId() const {
   return m_MtcProviderId;
 }
 void LpiParametersProvision::setMtcProviderId(std::string const& value) {
-  m_MtcProviderId      = value;
+  m_MtcProviderId = value;
   m_MtcProviderIdIsSet = true;
 }
 bool LpiParametersProvision::mtcProviderIdIsSet() const {
@@ -180,9 +165,7 @@ bool LpiParametersProvision::mtcProviderIdIsSet() const {
 void LpiParametersProvision::unsetMtcProviderId() {
   m_MtcProviderIdIsSet = false;
 }
-std::string LpiParametersProvision::getSuppFeat() const {
-  return m_SuppFeat;
-}
+std::string LpiParametersProvision::getSuppFeat() const { return m_SuppFeat; }
 void LpiParametersProvision::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }

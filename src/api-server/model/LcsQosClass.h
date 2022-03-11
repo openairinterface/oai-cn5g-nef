@@ -20,8 +20,9 @@
 #ifndef LcsQosClass_H_
 #define LcsQosClass_H_
 
-#include "LcsQosClass_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "LcsQosClass_anyOf.h"
 
 namespace oai::nef::model {
 

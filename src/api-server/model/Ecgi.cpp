@@ -12,16 +12,17 @@
  */
 
 #include "Ecgi.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 Ecgi::Ecgi() {
   m_EutraCellId = "";
-  m_Nid         = "";
-  m_NidIsSet    = false;
+  m_Nid = "";
+  m_NidIsSet = false;
 }
 
 void Ecgi::validate() const {
@@ -31,22 +32,20 @@ void Ecgi::validate() const {
   }
 }
 
-bool Ecgi::validate(std::stringstream& msg) const {
-  return validate(msg, "");
-}
+bool Ecgi::validate(std::stringstream& msg) const { return validate(msg, ""); }
 
-bool Ecgi::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool Ecgi::validate(std::stringstream& msg,
+                    const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Ecgi" : pathPrefix;
 
   /* EutraCellId */ {
-    const std::string& value           = m_EutraCellId;
+    const std::string& value = m_EutraCellId;
     const std::string currentValuePath = _pathPrefix + ".eutraCellId";
   }
 
   if (nidIsSet()) {
-    const std::string& value           = m_Nid;
+    const std::string& value = m_Nid;
     const std::string currentValuePath = _pathPrefix + ".nid";
   }
 
@@ -66,13 +65,11 @@ bool Ecgi::operator==(const Ecgi& rhs) const {
           ;
 }
 
-bool Ecgi::operator!=(const Ecgi& rhs) const {
-  return !(*this == rhs);
-}
+bool Ecgi::operator!=(const Ecgi& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const Ecgi& o) {
-  j                = nlohmann::json();
-  j["plmnId"]      = o.m_PlmnId;
+  j = nlohmann::json();
+  j["plmnId"] = o.m_PlmnId;
   j["eutraCellId"] = o.m_EutraCellId;
   if (o.nidIsSet()) j["nid"] = o.m_Nid;
 }
@@ -86,30 +83,16 @@ void from_json(const nlohmann::json& j, Ecgi& o) {
   }
 }
 
-PlmnId Ecgi::getPlmnId() const {
-  return m_PlmnId;
-}
-void Ecgi::setPlmnId(PlmnId const& value) {
-  m_PlmnId = value;
-}
-std::string Ecgi::getEutraCellId() const {
-  return m_EutraCellId;
-}
-void Ecgi::setEutraCellId(std::string const& value) {
-  m_EutraCellId = value;
-}
-std::string Ecgi::getNid() const {
-  return m_Nid;
-}
+PlmnId Ecgi::getPlmnId() const { return m_PlmnId; }
+void Ecgi::setPlmnId(PlmnId const& value) { m_PlmnId = value; }
+std::string Ecgi::getEutraCellId() const { return m_EutraCellId; }
+void Ecgi::setEutraCellId(std::string const& value) { m_EutraCellId = value; }
+std::string Ecgi::getNid() const { return m_Nid; }
 void Ecgi::setNid(std::string const& value) {
-  m_Nid      = value;
+  m_Nid = value;
   m_NidIsSet = true;
 }
-bool Ecgi::nidIsSet() const {
-  return m_NidIsSet;
-}
-void Ecgi::unsetNid() {
-  m_NidIsSet = false;
-}
+bool Ecgi::nidIsSet() const { return m_NidIsSet; }
+void Ecgi::unsetNid() { m_NidIsSet = false; }
 
 }  // namespace oai::nef::model

@@ -12,16 +12,17 @@
  */
 
 #include "5GLanParametersProvision.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 _5GLanParametersProvision::_5GLanParametersProvision() {
-  m_Self      = "";
+  m_Self = "";
   m_SelfIsSet = false;
-  m_SuppFeat  = "";
+  m_SuppFeat = "";
 }
 
 void _5GLanParametersProvision::validate() const {
@@ -35,14 +36,14 @@ bool _5GLanParametersProvision::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool _5GLanParametersProvision::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool _5GLanParametersProvision::validate(std::stringstream& msg,
+                                         const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "5GLanParametersProvision" : pathPrefix;
 
   /* SuppFeat */ {
-    const std::string& value           = m_SuppFeat;
+    const std::string& value = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -72,7 +73,7 @@ void to_json(nlohmann::json& j, const _5GLanParametersProvision& o) {
   j = nlohmann::json();
   if (o.selfIsSet()) j["self"] = o.m_Self;
   j["5gLanParams"] = o.m_r_5gLanParams;
-  j["suppFeat"]    = o.m_SuppFeat;
+  j["suppFeat"] = o.m_SuppFeat;
 }
 
 void from_json(const nlohmann::json& j, _5GLanParametersProvision& o) {
@@ -84,19 +85,13 @@ void from_json(const nlohmann::json& j, _5GLanParametersProvision& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string _5GLanParametersProvision::getSelf() const {
-  return m_Self;
-}
+std::string _5GLanParametersProvision::getSelf() const { return m_Self; }
 void _5GLanParametersProvision::setSelf(std::string const& value) {
-  m_Self      = value;
+  m_Self = value;
   m_SelfIsSet = true;
 }
-bool _5GLanParametersProvision::selfIsSet() const {
-  return m_SelfIsSet;
-}
-void _5GLanParametersProvision::unsetSelf() {
-  m_SelfIsSet = false;
-}
+bool _5GLanParametersProvision::selfIsSet() const { return m_SelfIsSet; }
+void _5GLanParametersProvision::unsetSelf() { m_SelfIsSet = false; }
 _5GLanParameters _5GLanParametersProvision::getR5gLanParams() const {
   return m_r_5gLanParams;
 }

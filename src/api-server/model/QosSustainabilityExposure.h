@@ -19,10 +19,11 @@
 #ifndef QosSustainabilityExposure_H_
 #define QosSustainabilityExposure_H_
 
-#include "RetainabilityThreshold.h"
-#include <string>
-#include "LocationArea5G.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "LocationArea5G.h"
+#include "RetainabilityThreshold.h"
 
 namespace oai::nef::model {
 

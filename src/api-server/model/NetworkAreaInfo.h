@@ -20,12 +20,13 @@
 #ifndef NetworkAreaInfo_H_
 #define NetworkAreaInfo_H_
 
+#include <nlohmann/json.hpp>
+#include <vector>
+
 #include "Ecgi.h"
+#include "GlobalRanNodeId.h"
 #include "Ncgi.h"
 #include "Tai.h"
-#include "GlobalRanNodeId.h"
-#include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

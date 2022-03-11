@@ -12,24 +12,25 @@
  */
 
 #include "AnalyticsEventFilterSubsc.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 AnalyticsEventFilterSubsc::AnalyticsEventFilterSubsc() {
-  m_NwPerfReqsIsSet     = false;
-  m_LocAreaIsSet        = false;
-  m_AppIdsIsSet         = false;
-  m_Dnn                 = "";
-  m_DnnIsSet            = false;
-  m_ExcepRequsIsSet     = false;
-  m_ExptAnaTypeIsSet    = false;
-  m_ExptUeBehavIsSet    = false;
-  m_ReptThldsIsSet      = false;
-  m_SnssaiIsSet         = false;
-  m_QosReqIsSet         = false;
+  m_NwPerfReqsIsSet = false;
+  m_LocAreaIsSet = false;
+  m_AppIdsIsSet = false;
+  m_Dnn = "";
+  m_DnnIsSet = false;
+  m_ExcepRequsIsSet = false;
+  m_ExptAnaTypeIsSet = false;
+  m_ExptUeBehavIsSet = false;
+  m_ReptThldsIsSet = false;
+  m_SnssaiIsSet = false;
+  m_QosReqIsSet = false;
   m_QosFlowRetThdsIsSet = false;
   m_RanUeThrouThdsIsSet = false;
   m_ExtraReportReqIsSet = false;
@@ -46,8 +47,8 @@ bool AnalyticsEventFilterSubsc::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsEventFilterSubsc::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AnalyticsEventFilterSubsc::validate(std::stringstream& msg,
+                                         const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsEventFilterSubsc" : pathPrefix;
@@ -62,7 +63,7 @@ bool AnalyticsEventFilterSubsc::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const NetworkPerfRequirement& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -77,7 +78,7 @@ bool AnalyticsEventFilterSubsc::validate(
 
   if (appIdsIsSet()) {
     const std::vector<std::string>& value = m_AppIds;
-    const std::string currentValuePath    = _pathPrefix + ".appIds";
+    const std::string currentValuePath = _pathPrefix + ".appIds";
 
     if (value.size() < 1) {
       success = false;
@@ -85,7 +86,7 @@ bool AnalyticsEventFilterSubsc::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -97,7 +98,7 @@ bool AnalyticsEventFilterSubsc::validate(
 
   if (excepRequsIsSet()) {
     const std::vector<Exception>& value = m_ExcepRequs;
-    const std::string currentValuePath  = _pathPrefix + ".excepRequs";
+    const std::string currentValuePath = _pathPrefix + ".excepRequs";
 
     if (value.size() < 1) {
       success = false;
@@ -105,7 +106,7 @@ bool AnalyticsEventFilterSubsc::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const Exception& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -120,7 +121,7 @@ bool AnalyticsEventFilterSubsc::validate(
 
   if (reptThldsIsSet()) {
     const std::vector<ThresholdLevel>& value = m_ReptThlds;
-    const std::string currentValuePath       = _pathPrefix + ".reptThlds";
+    const std::string currentValuePath = _pathPrefix + ".reptThlds";
 
     if (value.size() < 1) {
       success = false;
@@ -128,7 +129,7 @@ bool AnalyticsEventFilterSubsc::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const ThresholdLevel& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -151,7 +152,7 @@ bool AnalyticsEventFilterSubsc::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const RetainabilityThreshold& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -166,7 +167,7 @@ bool AnalyticsEventFilterSubsc::validate(
 
   if (ranUeThrouThdsIsSet()) {
     const std::vector<std::string>& value = m_RanUeThrouThds;
-    const std::string currentValuePath    = _pathPrefix + ".ranUeThrouThds";
+    const std::string currentValuePath = _pathPrefix + ".ranUeThrouThds";
 
     if (value.size() < 1) {
       success = false;
@@ -174,7 +175,7 @@ bool AnalyticsEventFilterSubsc::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -333,75 +334,57 @@ std::vector<NetworkPerfRequirement> AnalyticsEventFilterSubsc::getNwPerfReqs()
 }
 void AnalyticsEventFilterSubsc::setNwPerfReqs(
     std::vector<NetworkPerfRequirement> const& value) {
-  m_NwPerfReqs      = value;
+  m_NwPerfReqs = value;
   m_NwPerfReqsIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::nwPerfReqsIsSet() const {
   return m_NwPerfReqsIsSet;
 }
-void AnalyticsEventFilterSubsc::unsetNwPerfReqs() {
-  m_NwPerfReqsIsSet = false;
-}
+void AnalyticsEventFilterSubsc::unsetNwPerfReqs() { m_NwPerfReqsIsSet = false; }
 LocationArea5G AnalyticsEventFilterSubsc::getLocArea() const {
   return m_LocArea;
 }
 void AnalyticsEventFilterSubsc::setLocArea(LocationArea5G const& value) {
-  m_LocArea      = value;
+  m_LocArea = value;
   m_LocAreaIsSet = true;
 }
-bool AnalyticsEventFilterSubsc::locAreaIsSet() const {
-  return m_LocAreaIsSet;
-}
-void AnalyticsEventFilterSubsc::unsetLocArea() {
-  m_LocAreaIsSet = false;
-}
+bool AnalyticsEventFilterSubsc::locAreaIsSet() const { return m_LocAreaIsSet; }
+void AnalyticsEventFilterSubsc::unsetLocArea() { m_LocAreaIsSet = false; }
 std::vector<std::string> AnalyticsEventFilterSubsc::getAppIds() const {
   return m_AppIds;
 }
 void AnalyticsEventFilterSubsc::setAppIds(
     std::vector<std::string> const& value) {
-  m_AppIds      = value;
+  m_AppIds = value;
   m_AppIdsIsSet = true;
 }
-bool AnalyticsEventFilterSubsc::appIdsIsSet() const {
-  return m_AppIdsIsSet;
-}
-void AnalyticsEventFilterSubsc::unsetAppIds() {
-  m_AppIdsIsSet = false;
-}
-std::string AnalyticsEventFilterSubsc::getDnn() const {
-  return m_Dnn;
-}
+bool AnalyticsEventFilterSubsc::appIdsIsSet() const { return m_AppIdsIsSet; }
+void AnalyticsEventFilterSubsc::unsetAppIds() { m_AppIdsIsSet = false; }
+std::string AnalyticsEventFilterSubsc::getDnn() const { return m_Dnn; }
 void AnalyticsEventFilterSubsc::setDnn(std::string const& value) {
-  m_Dnn      = value;
+  m_Dnn = value;
   m_DnnIsSet = true;
 }
-bool AnalyticsEventFilterSubsc::dnnIsSet() const {
-  return m_DnnIsSet;
-}
-void AnalyticsEventFilterSubsc::unsetDnn() {
-  m_DnnIsSet = false;
-}
+bool AnalyticsEventFilterSubsc::dnnIsSet() const { return m_DnnIsSet; }
+void AnalyticsEventFilterSubsc::unsetDnn() { m_DnnIsSet = false; }
 std::vector<Exception> AnalyticsEventFilterSubsc::getExcepRequs() const {
   return m_ExcepRequs;
 }
 void AnalyticsEventFilterSubsc::setExcepRequs(
     std::vector<Exception> const& value) {
-  m_ExcepRequs      = value;
+  m_ExcepRequs = value;
   m_ExcepRequsIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::excepRequsIsSet() const {
   return m_ExcepRequsIsSet;
 }
-void AnalyticsEventFilterSubsc::unsetExcepRequs() {
-  m_ExcepRequsIsSet = false;
-}
+void AnalyticsEventFilterSubsc::unsetExcepRequs() { m_ExcepRequsIsSet = false; }
 ExpectedAnalyticsType AnalyticsEventFilterSubsc::getExptAnaType() const {
   return m_ExptAnaType;
 }
 void AnalyticsEventFilterSubsc::setExptAnaType(
     ExpectedAnalyticsType const& value) {
-  m_ExptAnaType      = value;
+  m_ExptAnaType = value;
   m_ExptAnaTypeIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::exptAnaTypeIsSet() const {
@@ -415,7 +398,7 @@ ExpectedUeBehaviourData AnalyticsEventFilterSubsc::getExptUeBehav() const {
 }
 void AnalyticsEventFilterSubsc::setExptUeBehav(
     ExpectedUeBehaviourData const& value) {
-  m_ExptUeBehav      = value;
+  m_ExptUeBehav = value;
   m_ExptUeBehavIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::exptUeBehavIsSet() const {
@@ -429,48 +412,34 @@ std::vector<ThresholdLevel> AnalyticsEventFilterSubsc::getReptThlds() const {
 }
 void AnalyticsEventFilterSubsc::setReptThlds(
     std::vector<ThresholdLevel> const& value) {
-  m_ReptThlds      = value;
+  m_ReptThlds = value;
   m_ReptThldsIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::reptThldsIsSet() const {
   return m_ReptThldsIsSet;
 }
-void AnalyticsEventFilterSubsc::unsetReptThlds() {
-  m_ReptThldsIsSet = false;
-}
-Snssai AnalyticsEventFilterSubsc::getSnssai() const {
-  return m_Snssai;
-}
+void AnalyticsEventFilterSubsc::unsetReptThlds() { m_ReptThldsIsSet = false; }
+Snssai AnalyticsEventFilterSubsc::getSnssai() const { return m_Snssai; }
 void AnalyticsEventFilterSubsc::setSnssai(Snssai const& value) {
-  m_Snssai      = value;
+  m_Snssai = value;
   m_SnssaiIsSet = true;
 }
-bool AnalyticsEventFilterSubsc::snssaiIsSet() const {
-  return m_SnssaiIsSet;
-}
-void AnalyticsEventFilterSubsc::unsetSnssai() {
-  m_SnssaiIsSet = false;
-}
-QosRequirement AnalyticsEventFilterSubsc::getQosReq() const {
-  return m_QosReq;
-}
+bool AnalyticsEventFilterSubsc::snssaiIsSet() const { return m_SnssaiIsSet; }
+void AnalyticsEventFilterSubsc::unsetSnssai() { m_SnssaiIsSet = false; }
+QosRequirement AnalyticsEventFilterSubsc::getQosReq() const { return m_QosReq; }
 void AnalyticsEventFilterSubsc::setQosReq(QosRequirement const& value) {
-  m_QosReq      = value;
+  m_QosReq = value;
   m_QosReqIsSet = true;
 }
-bool AnalyticsEventFilterSubsc::qosReqIsSet() const {
-  return m_QosReqIsSet;
-}
-void AnalyticsEventFilterSubsc::unsetQosReq() {
-  m_QosReqIsSet = false;
-}
+bool AnalyticsEventFilterSubsc::qosReqIsSet() const { return m_QosReqIsSet; }
+void AnalyticsEventFilterSubsc::unsetQosReq() { m_QosReqIsSet = false; }
 std::vector<RetainabilityThreshold>
 AnalyticsEventFilterSubsc::getQosFlowRetThds() const {
   return m_QosFlowRetThds;
 }
 void AnalyticsEventFilterSubsc::setQosFlowRetThds(
     std::vector<RetainabilityThreshold> const& value) {
-  m_QosFlowRetThds      = value;
+  m_QosFlowRetThds = value;
   m_QosFlowRetThdsIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::qosFlowRetThdsIsSet() const {
@@ -484,7 +453,7 @@ std::vector<std::string> AnalyticsEventFilterSubsc::getRanUeThrouThds() const {
 }
 void AnalyticsEventFilterSubsc::setRanUeThrouThds(
     std::vector<std::string> const& value) {
-  m_RanUeThrouThds      = value;
+  m_RanUeThrouThds = value;
   m_RanUeThrouThdsIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::ranUeThrouThdsIsSet() const {
@@ -498,7 +467,7 @@ EventReportingRequirement AnalyticsEventFilterSubsc::getExtraReportReq() const {
 }
 void AnalyticsEventFilterSubsc::setExtraReportReq(
     EventReportingRequirement const& value) {
-  m_ExtraReportReq      = value;
+  m_ExtraReportReq = value;
   m_ExtraReportReqIsSet = true;
 }
 bool AnalyticsEventFilterSubsc::extraReportReqIsSet() const {

@@ -19,11 +19,12 @@
 #ifndef AbnormalExposure_H_
 #define AbnormalExposure_H_
 
-#include "AdditionalMeasurement.h"
-#include <string>
-#include "Exception.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "AdditionalMeasurement.h"
+#include "Exception.h"
 
 namespace oai::nef::model {
 

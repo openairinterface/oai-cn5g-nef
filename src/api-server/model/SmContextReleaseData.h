@@ -19,8 +19,9 @@
 #ifndef SmContextReleaseData_H_
 #define SmContextReleaseData_H_
 
-#include "ReleaseCause.h"
 #include <nlohmann/json.hpp>
+
+#include "ReleaseCause.h"
 
 namespace oai::nef::model {
 

@@ -21,8 +21,9 @@
 #ifndef DddStatus_H_
 #define DddStatus_H_
 
-#include "DddStatus_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "DddStatus_anyOf.h"
 
 namespace oai::nef::model {
 

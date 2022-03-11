@@ -13,16 +13,17 @@
  */
 
 #include "PointAltitudeUncertainty_allOf.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 PointAltitudeUncertainty_allOf::PointAltitudeUncertainty_allOf() {
-  m_Altitude            = 0.0;
+  m_Altitude = 0.0;
   m_UncertaintyAltitude = 0.0f;
-  m_Confidence          = 0;
+  m_Confidence = 0;
 }
 
 void PointAltitudeUncertainty_allOf::validate() const {
@@ -43,7 +44,7 @@ bool PointAltitudeUncertainty_allOf::validate(
       pathPrefix.empty() ? "PointAltitudeUncertainty_allOf" : pathPrefix;
 
   /* Altitude */ {
-    const double& value                = m_Altitude;
+    const double& value = m_Altitude;
     const std::string currentValuePath = _pathPrefix + ".altitude";
 
     if (value < -32767) {
@@ -57,7 +58,7 @@ bool PointAltitudeUncertainty_allOf::validate(
   }
 
   /* UncertaintyAltitude */ {
-    const float& value                 = m_UncertaintyAltitude;
+    const float& value = m_UncertaintyAltitude;
     const std::string currentValuePath = _pathPrefix + ".uncertaintyAltitude";
 
     if (value < static_cast<float>(0)) {
@@ -67,7 +68,7 @@ bool PointAltitudeUncertainty_allOf::validate(
   }
 
   /* Confidence */ {
-    const int32_t& value               = m_Confidence;
+    const int32_t& value = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -106,12 +107,12 @@ bool PointAltitudeUncertainty_allOf::operator!=(
 }
 
 void to_json(nlohmann::json& j, const PointAltitudeUncertainty_allOf& o) {
-  j                        = nlohmann::json();
-  j["point"]               = o.m_Point;
-  j["altitude"]            = o.m_Altitude;
-  j["uncertaintyEllipse"]  = o.m_UncertaintyEllipse;
+  j = nlohmann::json();
+  j["point"] = o.m_Point;
+  j["altitude"] = o.m_Altitude;
+  j["uncertaintyEllipse"] = o.m_UncertaintyEllipse;
   j["uncertaintyAltitude"] = o.m_UncertaintyAltitude;
-  j["confidence"]          = o.m_Confidence;
+  j["confidence"] = o.m_Confidence;
 }
 
 void from_json(const nlohmann::json& j, PointAltitudeUncertainty_allOf& o) {

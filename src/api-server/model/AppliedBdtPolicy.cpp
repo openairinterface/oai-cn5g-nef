@@ -12,21 +12,22 @@
  */
 
 #include "AppliedBdtPolicy.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 AppliedBdtPolicy::AppliedBdtPolicy() {
-  m_ExternalGroupId      = "";
+  m_ExternalGroupId = "";
   m_ExternalGroupIdIsSet = false;
-  m_Gpsi                 = "";
-  m_GpsiIsSet            = false;
-  m_BdtRefId             = "";
-  m_SuppFeat             = "";
-  m_Self                 = "";
-  m_SelfIsSet            = false;
+  m_Gpsi = "";
+  m_GpsiIsSet = false;
+  m_BdtRefId = "";
+  m_SuppFeat = "";
+  m_Self = "";
+  m_SelfIsSet = false;
 }
 
 void AppliedBdtPolicy::validate() const {
@@ -40,19 +41,19 @@ bool AppliedBdtPolicy::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AppliedBdtPolicy::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AppliedBdtPolicy::validate(std::stringstream& msg,
+                                const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AppliedBdtPolicy" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value           = m_Gpsi;
+    const std::string& value = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
   /* SuppFeat */ {
-    const std::string& value           = m_SuppFeat;
+    const std::string& value = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -113,7 +114,7 @@ std::string AppliedBdtPolicy::getExternalGroupId() const {
   return m_ExternalGroupId;
 }
 void AppliedBdtPolicy::setExternalGroupId(std::string const& value) {
-  m_ExternalGroupId      = value;
+  m_ExternalGroupId = value;
   m_ExternalGroupIdIsSet = true;
 }
 bool AppliedBdtPolicy::externalGroupIdIsSet() const {
@@ -122,43 +123,27 @@ bool AppliedBdtPolicy::externalGroupIdIsSet() const {
 void AppliedBdtPolicy::unsetExternalGroupId() {
   m_ExternalGroupIdIsSet = false;
 }
-std::string AppliedBdtPolicy::getGpsi() const {
-  return m_Gpsi;
-}
+std::string AppliedBdtPolicy::getGpsi() const { return m_Gpsi; }
 void AppliedBdtPolicy::setGpsi(std::string const& value) {
-  m_Gpsi      = value;
+  m_Gpsi = value;
   m_GpsiIsSet = true;
 }
-bool AppliedBdtPolicy::gpsiIsSet() const {
-  return m_GpsiIsSet;
-}
-void AppliedBdtPolicy::unsetGpsi() {
-  m_GpsiIsSet = false;
-}
-std::string AppliedBdtPolicy::getBdtRefId() const {
-  return m_BdtRefId;
-}
+bool AppliedBdtPolicy::gpsiIsSet() const { return m_GpsiIsSet; }
+void AppliedBdtPolicy::unsetGpsi() { m_GpsiIsSet = false; }
+std::string AppliedBdtPolicy::getBdtRefId() const { return m_BdtRefId; }
 void AppliedBdtPolicy::setBdtRefId(std::string const& value) {
   m_BdtRefId = value;
 }
-std::string AppliedBdtPolicy::getSuppFeat() const {
-  return m_SuppFeat;
-}
+std::string AppliedBdtPolicy::getSuppFeat() const { return m_SuppFeat; }
 void AppliedBdtPolicy::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }
-std::string AppliedBdtPolicy::getSelf() const {
-  return m_Self;
-}
+std::string AppliedBdtPolicy::getSelf() const { return m_Self; }
 void AppliedBdtPolicy::setSelf(std::string const& value) {
-  m_Self      = value;
+  m_Self = value;
   m_SelfIsSet = true;
 }
-bool AppliedBdtPolicy::selfIsSet() const {
-  return m_SelfIsSet;
-}
-void AppliedBdtPolicy::unsetSelf() {
-  m_SelfIsSet = false;
-}
+bool AppliedBdtPolicy::selfIsSet() const { return m_SelfIsSet; }
+void AppliedBdtPolicy::unsetSelf() { m_SelfIsSet = false; }
 
 }  // namespace oai::nef::model

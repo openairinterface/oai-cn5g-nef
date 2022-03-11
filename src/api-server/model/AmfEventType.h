@@ -19,8 +19,9 @@
 #ifndef AmfEventType_H_
 #define AmfEventType_H_
 
-#include "AmfEventType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "AmfEventType_anyOf.h"
 
 namespace oai::nef::model {
 

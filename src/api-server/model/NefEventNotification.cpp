@@ -12,18 +12,19 @@
  */
 
 #include "NefEventNotification.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 NefEventNotification::NefEventNotification() {
-  m_TimeStamp            = "";
-  m_SvcExprcInfosIsSet   = false;
+  m_TimeStamp = "";
+  m_SvcExprcInfosIsSet = false;
   m_UeMobilityInfosIsSet = false;
-  m_UeCommInfosIsSet     = false;
-  m_ExcepInfosIsSet      = false;
+  m_UeCommInfosIsSet = false;
+  m_ExcepInfosIsSet = false;
 }
 
 void NefEventNotification::validate() const {
@@ -37,8 +38,8 @@ bool NefEventNotification::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NefEventNotification::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool NefEventNotification::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NefEventNotification" : pathPrefix;
@@ -53,7 +54,7 @@ bool NefEventNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const ServiceExperienceInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -68,7 +69,7 @@ bool NefEventNotification::validate(
 
   if (ueMobilityInfosIsSet()) {
     const std::vector<UeMobilityInfo>& value = m_UeMobilityInfos;
-    const std::string currentValuePath       = _pathPrefix + ".ueMobilityInfos";
+    const std::string currentValuePath = _pathPrefix + ".ueMobilityInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -76,7 +77,7 @@ bool NefEventNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const UeMobilityInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -99,7 +100,7 @@ bool NefEventNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const UeCommunicationInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -114,7 +115,7 @@ bool NefEventNotification::validate(
 
   if (excepInfosIsSet()) {
     const std::vector<ExceptionInfo>& value = m_ExcepInfos;
-    const std::string currentValuePath      = _pathPrefix + ".excepInfos";
+    const std::string currentValuePath = _pathPrefix + ".excepInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -122,7 +123,7 @@ bool NefEventNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const ExceptionInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -169,8 +170,8 @@ bool NefEventNotification::operator!=(const NefEventNotification& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const NefEventNotification& o) {
-  j              = nlohmann::json();
-  j["event"]     = o.m_Event;
+  j = nlohmann::json();
+  j["event"] = o.m_Event;
   j["timeStamp"] = o.m_TimeStamp;
   if (o.svcExprcInfosIsSet() || !o.m_SvcExprcInfos.empty())
     j["svcExprcInfos"] = o.m_SvcExprcInfos;
@@ -203,15 +204,9 @@ void from_json(const nlohmann::json& j, NefEventNotification& o) {
   }
 }
 
-NefEvent NefEventNotification::getEvent() const {
-  return m_Event;
-}
-void NefEventNotification::setEvent(NefEvent const& value) {
-  m_Event = value;
-}
-std::string NefEventNotification::getTimeStamp() const {
-  return m_TimeStamp;
-}
+NefEvent NefEventNotification::getEvent() const { return m_Event; }
+void NefEventNotification::setEvent(NefEvent const& value) { m_Event = value; }
+std::string NefEventNotification::getTimeStamp() const { return m_TimeStamp; }
 void NefEventNotification::setTimeStamp(std::string const& value) {
   m_TimeStamp = value;
 }
@@ -221,7 +216,7 @@ std::vector<ServiceExperienceInfo> NefEventNotification::getSvcExprcInfos()
 }
 void NefEventNotification::setSvcExprcInfos(
     std::vector<ServiceExperienceInfo> const& value) {
-  m_SvcExprcInfos      = value;
+  m_SvcExprcInfos = value;
   m_SvcExprcInfosIsSet = true;
 }
 bool NefEventNotification::svcExprcInfosIsSet() const {
@@ -235,7 +230,7 @@ std::vector<UeMobilityInfo> NefEventNotification::getUeMobilityInfos() const {
 }
 void NefEventNotification::setUeMobilityInfos(
     std::vector<UeMobilityInfo> const& value) {
-  m_UeMobilityInfos      = value;
+  m_UeMobilityInfos = value;
   m_UeMobilityInfosIsSet = true;
 }
 bool NefEventNotification::ueMobilityInfosIsSet() const {
@@ -249,28 +244,22 @@ std::vector<UeCommunicationInfo> NefEventNotification::getUeCommInfos() const {
 }
 void NefEventNotification::setUeCommInfos(
     std::vector<UeCommunicationInfo> const& value) {
-  m_UeCommInfos      = value;
+  m_UeCommInfos = value;
   m_UeCommInfosIsSet = true;
 }
 bool NefEventNotification::ueCommInfosIsSet() const {
   return m_UeCommInfosIsSet;
 }
-void NefEventNotification::unsetUeCommInfos() {
-  m_UeCommInfosIsSet = false;
-}
+void NefEventNotification::unsetUeCommInfos() { m_UeCommInfosIsSet = false; }
 std::vector<ExceptionInfo> NefEventNotification::getExcepInfos() const {
   return m_ExcepInfos;
 }
 void NefEventNotification::setExcepInfos(
     std::vector<ExceptionInfo> const& value) {
-  m_ExcepInfos      = value;
+  m_ExcepInfos = value;
   m_ExcepInfosIsSet = true;
 }
-bool NefEventNotification::excepInfosIsSet() const {
-  return m_ExcepInfosIsSet;
-}
-void NefEventNotification::unsetExcepInfos() {
-  m_ExcepInfosIsSet = false;
-}
+bool NefEventNotification::excepInfosIsSet() const { return m_ExcepInfosIsSet; }
+void NefEventNotification::unsetExcepInfos() { m_ExcepInfosIsSet = false; }
 
 }  // namespace oai::nef::model

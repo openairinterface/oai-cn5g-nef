@@ -12,28 +12,29 @@
  */
 
 #include "N3gaLocation.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 N3gaLocation::N3gaLocation() {
-  m_N3gppTaiIsSet       = false;
-  m_N3IwfId             = "";
-  m_N3IwfIdIsSet        = false;
-  m_UeIpv4Addr          = "";
-  m_UeIpv4AddrIsSet     = false;
-  m_UeIpv6AddrIsSet     = false;
-  m_PortNumber          = 0;
-  m_PortNumberIsSet     = false;
-  m_TnapIdIsSet         = false;
-  m_TwapIdIsSet         = false;
-  m_HfcNodeIdIsSet      = false;
-  m_GliIsSet            = false;
+  m_N3gppTaiIsSet = false;
+  m_N3IwfId = "";
+  m_N3IwfIdIsSet = false;
+  m_UeIpv4Addr = "";
+  m_UeIpv4AddrIsSet = false;
+  m_UeIpv6AddrIsSet = false;
+  m_PortNumber = 0;
+  m_PortNumberIsSet = false;
+  m_TnapIdIsSet = false;
+  m_TwapIdIsSet = false;
+  m_HfcNodeIdIsSet = false;
+  m_GliIsSet = false;
   m_W5gbanLineTypeIsSet = false;
-  m_Gci                 = "";
-  m_GciIsSet            = false;
+  m_Gci = "";
+  m_GciIsSet = false;
 }
 
 void N3gaLocation::validate() const {
@@ -47,24 +48,24 @@ bool N3gaLocation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool N3gaLocation::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool N3gaLocation::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "N3gaLocation" : pathPrefix;
 
   if (n3IwfIdIsSet()) {
-    const std::string& value           = m_N3IwfId;
+    const std::string& value = m_N3IwfId;
     const std::string currentValuePath = _pathPrefix + ".n3IwfId";
   }
 
   if (ueIpv4AddrIsSet()) {
-    const std::string& value           = m_UeIpv4Addr;
+    const std::string& value = m_UeIpv4Addr;
     const std::string currentValuePath = _pathPrefix + ".ueIpv4Addr";
   }
 
   if (portNumberIsSet()) {
-    const int32_t& value               = m_PortNumber;
+    const int32_t& value = m_PortNumber;
     const std::string currentValuePath = _pathPrefix + ".portNumber";
 
     if (value < 0) {
@@ -190,148 +191,82 @@ void from_json(const nlohmann::json& j, N3gaLocation& o) {
   }
 }
 
-Tai N3gaLocation::getN3gppTai() const {
-  return m_N3gppTai;
-}
+Tai N3gaLocation::getN3gppTai() const { return m_N3gppTai; }
 void N3gaLocation::setN3gppTai(Tai const& value) {
-  m_N3gppTai      = value;
+  m_N3gppTai = value;
   m_N3gppTaiIsSet = true;
 }
-bool N3gaLocation::n3gppTaiIsSet() const {
-  return m_N3gppTaiIsSet;
-}
-void N3gaLocation::unsetN3gppTai() {
-  m_N3gppTaiIsSet = false;
-}
-std::string N3gaLocation::getN3IwfId() const {
-  return m_N3IwfId;
-}
+bool N3gaLocation::n3gppTaiIsSet() const { return m_N3gppTaiIsSet; }
+void N3gaLocation::unsetN3gppTai() { m_N3gppTaiIsSet = false; }
+std::string N3gaLocation::getN3IwfId() const { return m_N3IwfId; }
 void N3gaLocation::setN3IwfId(std::string const& value) {
-  m_N3IwfId      = value;
+  m_N3IwfId = value;
   m_N3IwfIdIsSet = true;
 }
-bool N3gaLocation::n3IwfIdIsSet() const {
-  return m_N3IwfIdIsSet;
-}
-void N3gaLocation::unsetN3IwfId() {
-  m_N3IwfIdIsSet = false;
-}
-std::string N3gaLocation::getUeIpv4Addr() const {
-  return m_UeIpv4Addr;
-}
+bool N3gaLocation::n3IwfIdIsSet() const { return m_N3IwfIdIsSet; }
+void N3gaLocation::unsetN3IwfId() { m_N3IwfIdIsSet = false; }
+std::string N3gaLocation::getUeIpv4Addr() const { return m_UeIpv4Addr; }
 void N3gaLocation::setUeIpv4Addr(std::string const& value) {
-  m_UeIpv4Addr      = value;
+  m_UeIpv4Addr = value;
   m_UeIpv4AddrIsSet = true;
 }
-bool N3gaLocation::ueIpv4AddrIsSet() const {
-  return m_UeIpv4AddrIsSet;
-}
-void N3gaLocation::unsetUeIpv4Addr() {
-  m_UeIpv4AddrIsSet = false;
-}
-Ipv6Addr N3gaLocation::getUeIpv6Addr() const {
-  return m_UeIpv6Addr;
-}
+bool N3gaLocation::ueIpv4AddrIsSet() const { return m_UeIpv4AddrIsSet; }
+void N3gaLocation::unsetUeIpv4Addr() { m_UeIpv4AddrIsSet = false; }
+Ipv6Addr N3gaLocation::getUeIpv6Addr() const { return m_UeIpv6Addr; }
 void N3gaLocation::setUeIpv6Addr(Ipv6Addr const& value) {
-  m_UeIpv6Addr      = value;
+  m_UeIpv6Addr = value;
   m_UeIpv6AddrIsSet = true;
 }
-bool N3gaLocation::ueIpv6AddrIsSet() const {
-  return m_UeIpv6AddrIsSet;
-}
-void N3gaLocation::unsetUeIpv6Addr() {
-  m_UeIpv6AddrIsSet = false;
-}
-int32_t N3gaLocation::getPortNumber() const {
-  return m_PortNumber;
-}
+bool N3gaLocation::ueIpv6AddrIsSet() const { return m_UeIpv6AddrIsSet; }
+void N3gaLocation::unsetUeIpv6Addr() { m_UeIpv6AddrIsSet = false; }
+int32_t N3gaLocation::getPortNumber() const { return m_PortNumber; }
 void N3gaLocation::setPortNumber(int32_t const value) {
-  m_PortNumber      = value;
+  m_PortNumber = value;
   m_PortNumberIsSet = true;
 }
-bool N3gaLocation::portNumberIsSet() const {
-  return m_PortNumberIsSet;
-}
-void N3gaLocation::unsetPortNumber() {
-  m_PortNumberIsSet = false;
-}
-TnapId N3gaLocation::getTnapId() const {
-  return m_TnapId;
-}
+bool N3gaLocation::portNumberIsSet() const { return m_PortNumberIsSet; }
+void N3gaLocation::unsetPortNumber() { m_PortNumberIsSet = false; }
+TnapId N3gaLocation::getTnapId() const { return m_TnapId; }
 void N3gaLocation::setTnapId(TnapId const& value) {
-  m_TnapId      = value;
+  m_TnapId = value;
   m_TnapIdIsSet = true;
 }
-bool N3gaLocation::tnapIdIsSet() const {
-  return m_TnapIdIsSet;
-}
-void N3gaLocation::unsetTnapId() {
-  m_TnapIdIsSet = false;
-}
-TwapId N3gaLocation::getTwapId() const {
-  return m_TwapId;
-}
+bool N3gaLocation::tnapIdIsSet() const { return m_TnapIdIsSet; }
+void N3gaLocation::unsetTnapId() { m_TnapIdIsSet = false; }
+TwapId N3gaLocation::getTwapId() const { return m_TwapId; }
 void N3gaLocation::setTwapId(TwapId const& value) {
-  m_TwapId      = value;
+  m_TwapId = value;
   m_TwapIdIsSet = true;
 }
-bool N3gaLocation::twapIdIsSet() const {
-  return m_TwapIdIsSet;
-}
-void N3gaLocation::unsetTwapId() {
-  m_TwapIdIsSet = false;
-}
-HfcNodeId N3gaLocation::getHfcNodeId() const {
-  return m_HfcNodeId;
-}
+bool N3gaLocation::twapIdIsSet() const { return m_TwapIdIsSet; }
+void N3gaLocation::unsetTwapId() { m_TwapIdIsSet = false; }
+HfcNodeId N3gaLocation::getHfcNodeId() const { return m_HfcNodeId; }
 void N3gaLocation::setHfcNodeId(HfcNodeId const& value) {
-  m_HfcNodeId      = value;
+  m_HfcNodeId = value;
   m_HfcNodeIdIsSet = true;
 }
-bool N3gaLocation::hfcNodeIdIsSet() const {
-  return m_HfcNodeIdIsSet;
-}
-void N3gaLocation::unsetHfcNodeId() {
-  m_HfcNodeIdIsSet = false;
-}
-std::string N3gaLocation::getGli() const {
-  return m_Gli;
-}
+bool N3gaLocation::hfcNodeIdIsSet() const { return m_HfcNodeIdIsSet; }
+void N3gaLocation::unsetHfcNodeId() { m_HfcNodeIdIsSet = false; }
+std::string N3gaLocation::getGli() const { return m_Gli; }
 void N3gaLocation::setGli(std::string const& value) {
-  m_Gli      = value;
+  m_Gli = value;
   m_GliIsSet = true;
 }
-bool N3gaLocation::gliIsSet() const {
-  return m_GliIsSet;
-}
-void N3gaLocation::unsetGli() {
-  m_GliIsSet = false;
-}
-LineType N3gaLocation::getW5gbanLineType() const {
-  return m_W5gbanLineType;
-}
+bool N3gaLocation::gliIsSet() const { return m_GliIsSet; }
+void N3gaLocation::unsetGli() { m_GliIsSet = false; }
+LineType N3gaLocation::getW5gbanLineType() const { return m_W5gbanLineType; }
 void N3gaLocation::setW5gbanLineType(LineType const& value) {
-  m_W5gbanLineType      = value;
+  m_W5gbanLineType = value;
   m_W5gbanLineTypeIsSet = true;
 }
-bool N3gaLocation::w5gbanLineTypeIsSet() const {
-  return m_W5gbanLineTypeIsSet;
-}
-void N3gaLocation::unsetW5gbanLineType() {
-  m_W5gbanLineTypeIsSet = false;
-}
-std::string N3gaLocation::getGci() const {
-  return m_Gci;
-}
+bool N3gaLocation::w5gbanLineTypeIsSet() const { return m_W5gbanLineTypeIsSet; }
+void N3gaLocation::unsetW5gbanLineType() { m_W5gbanLineTypeIsSet = false; }
+std::string N3gaLocation::getGci() const { return m_Gci; }
 void N3gaLocation::setGci(std::string const& value) {
-  m_Gci      = value;
+  m_Gci = value;
   m_GciIsSet = true;
 }
-bool N3gaLocation::gciIsSet() const {
-  return m_GciIsSet;
-}
-void N3gaLocation::unsetGci() {
-  m_GciIsSet = false;
-}
+bool N3gaLocation::gciIsSet() const { return m_GciIsSet; }
+void N3gaLocation::unsetGci() { m_GciIsSet = false; }
 
 }  // namespace oai::nef::model

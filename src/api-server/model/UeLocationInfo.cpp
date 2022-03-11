@@ -12,16 +12,17 @@
  */
 
 #include "UeLocationInfo.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 UeLocationInfo::UeLocationInfo() {
-  m_Ratio           = 0;
-  m_RatioIsSet      = false;
-  m_Confidence      = 0;
+  m_Ratio = 0;
+  m_RatioIsSet = false;
+  m_Confidence = 0;
   m_ConfidenceIsSet = false;
 }
 
@@ -36,14 +37,14 @@ bool UeLocationInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UeLocationInfo::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool UeLocationInfo::validate(std::stringstream& msg,
+                              const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UeLocationInfo" : pathPrefix;
 
   if (ratioIsSet()) {
-    const int32_t& value               = m_Ratio;
+    const int32_t& value = m_Ratio;
     const std::string currentValuePath = _pathPrefix + ".ratio";
 
     if (value < 1) {
@@ -57,7 +58,7 @@ bool UeLocationInfo::validate(
   }
 
   if (confidenceIsSet()) {
-    const int32_t& value               = m_Confidence;
+    const int32_t& value = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -89,7 +90,7 @@ bool UeLocationInfo::operator!=(const UeLocationInfo& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const UeLocationInfo& o) {
-  j        = nlohmann::json();
+  j = nlohmann::json();
   j["loc"] = o.m_Loc;
   if (o.ratioIsSet()) j["ratio"] = o.m_Ratio;
   if (o.confidenceIsSet()) j["confidence"] = o.m_Confidence;
@@ -107,37 +108,21 @@ void from_json(const nlohmann::json& j, UeLocationInfo& o) {
   }
 }
 
-LocationArea5G UeLocationInfo::getLoc() const {
-  return m_Loc;
-}
-void UeLocationInfo::setLoc(LocationArea5G const& value) {
-  m_Loc = value;
-}
-int32_t UeLocationInfo::getRatio() const {
-  return m_Ratio;
-}
+LocationArea5G UeLocationInfo::getLoc() const { return m_Loc; }
+void UeLocationInfo::setLoc(LocationArea5G const& value) { m_Loc = value; }
+int32_t UeLocationInfo::getRatio() const { return m_Ratio; }
 void UeLocationInfo::setRatio(int32_t const value) {
-  m_Ratio      = value;
+  m_Ratio = value;
   m_RatioIsSet = true;
 }
-bool UeLocationInfo::ratioIsSet() const {
-  return m_RatioIsSet;
-}
-void UeLocationInfo::unsetRatio() {
-  m_RatioIsSet = false;
-}
-int32_t UeLocationInfo::getConfidence() const {
-  return m_Confidence;
-}
+bool UeLocationInfo::ratioIsSet() const { return m_RatioIsSet; }
+void UeLocationInfo::unsetRatio() { m_RatioIsSet = false; }
+int32_t UeLocationInfo::getConfidence() const { return m_Confidence; }
 void UeLocationInfo::setConfidence(int32_t const value) {
-  m_Confidence      = value;
+  m_Confidence = value;
   m_ConfidenceIsSet = true;
 }
-bool UeLocationInfo::confidenceIsSet() const {
-  return m_ConfidenceIsSet;
-}
-void UeLocationInfo::unsetConfidence() {
-  m_ConfidenceIsSet = false;
-}
+bool UeLocationInfo::confidenceIsSet() const { return m_ConfidenceIsSet; }
+void UeLocationInfo::unsetConfidence() { m_ConfidenceIsSet = false; }
 
 }  // namespace oai::nef::model

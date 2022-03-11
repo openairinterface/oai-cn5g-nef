@@ -12,9 +12,10 @@
  */
 
 #include "PresenceState.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool PresenceState::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PresenceState::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool PresenceState::validate(std::stringstream& msg,
+                             const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PresenceState" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, PresenceState& o) {
   from_json(j, o.m_value);
 }
 
-PresenceState_anyOf PresenceState::getValue() const {
-  return m_value;
-}
+PresenceState_anyOf PresenceState::getValue() const { return m_value; }
 
-void PresenceState::setValue(PresenceState_anyOf value) {
-  m_value = value;
-}
+void PresenceState::setValue(PresenceState_anyOf value) { m_value = value; }
 
 PresenceState_anyOf::ePresenceState_anyOf PresenceState::getEnumValue() const {
   return m_value.getValue();

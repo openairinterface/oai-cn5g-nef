@@ -19,8 +19,8 @@
 #ifndef TemporalValidity_H_
 #define TemporalValidity_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

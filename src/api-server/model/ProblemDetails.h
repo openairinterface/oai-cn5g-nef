@@ -19,10 +19,11 @@
 #ifndef ProblemDetails_H_
 #define ProblemDetails_H_
 
-#include <string>
-#include "InvalidParam.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "InvalidParam.h"
 
 namespace oai::nef::model {
 

@@ -12,19 +12,20 @@
  */
 
 #include "AdditionalMeasurement.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 AdditionalMeasurement::AdditionalMeasurement() {
-  m_UnexpLocIsSet      = false;
+  m_UnexpLocIsSet = false;
   m_UnexpFlowTepsIsSet = false;
-  m_UnexpWakesIsSet    = false;
-  m_DdosAttackIsSet    = false;
-  m_WrgDestIsSet       = false;
-  m_CircumsIsSet       = false;
+  m_UnexpWakesIsSet = false;
+  m_DdosAttackIsSet = false;
+  m_WrgDestIsSet = false;
+  m_CircumsIsSet = false;
 }
 
 void AdditionalMeasurement::validate() const {
@@ -38,8 +39,8 @@ bool AdditionalMeasurement::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AdditionalMeasurement::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AdditionalMeasurement::validate(std::stringstream& msg,
+                                     const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AdditionalMeasurement" : pathPrefix;
@@ -54,7 +55,7 @@ bool AdditionalMeasurement::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const IpEthFlowDescription& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -69,7 +70,7 @@ bool AdditionalMeasurement::validate(
 
   if (unexpWakesIsSet()) {
     const std::vector<std::string>& value = m_UnexpWakes;
-    const std::string currentValuePath    = _pathPrefix + ".unexpWakes";
+    const std::string currentValuePath = _pathPrefix + ".unexpWakes";
 
     if (value.size() < 1) {
       success = false;
@@ -77,7 +78,7 @@ bool AdditionalMeasurement::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -103,7 +104,7 @@ bool AdditionalMeasurement::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const CircumstanceDescription& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -195,22 +196,18 @@ NetworkAreaInfo AdditionalMeasurement::getUnexpLoc() const {
   return m_UnexpLoc;
 }
 void AdditionalMeasurement::setUnexpLoc(NetworkAreaInfo const& value) {
-  m_UnexpLoc      = value;
+  m_UnexpLoc = value;
   m_UnexpLocIsSet = true;
 }
-bool AdditionalMeasurement::unexpLocIsSet() const {
-  return m_UnexpLocIsSet;
-}
-void AdditionalMeasurement::unsetUnexpLoc() {
-  m_UnexpLocIsSet = false;
-}
+bool AdditionalMeasurement::unexpLocIsSet() const { return m_UnexpLocIsSet; }
+void AdditionalMeasurement::unsetUnexpLoc() { m_UnexpLocIsSet = false; }
 std::vector<IpEthFlowDescription> AdditionalMeasurement::getUnexpFlowTeps()
     const {
   return m_UnexpFlowTeps;
 }
 void AdditionalMeasurement::setUnexpFlowTeps(
     std::vector<IpEthFlowDescription> const& value) {
-  m_UnexpFlowTeps      = value;
+  m_UnexpFlowTeps = value;
   m_UnexpFlowTepsIsSet = true;
 }
 bool AdditionalMeasurement::unexpFlowTepsIsSet() const {
@@ -224,54 +221,40 @@ std::vector<std::string> AdditionalMeasurement::getUnexpWakes() const {
 }
 void AdditionalMeasurement::setUnexpWakes(
     std::vector<std::string> const& value) {
-  m_UnexpWakes      = value;
+  m_UnexpWakes = value;
   m_UnexpWakesIsSet = true;
 }
 bool AdditionalMeasurement::unexpWakesIsSet() const {
   return m_UnexpWakesIsSet;
 }
-void AdditionalMeasurement::unsetUnexpWakes() {
-  m_UnexpWakesIsSet = false;
-}
+void AdditionalMeasurement::unsetUnexpWakes() { m_UnexpWakesIsSet = false; }
 AddressList AdditionalMeasurement::getDdosAttack() const {
   return m_DdosAttack;
 }
 void AdditionalMeasurement::setDdosAttack(AddressList const& value) {
-  m_DdosAttack      = value;
+  m_DdosAttack = value;
   m_DdosAttackIsSet = true;
 }
 bool AdditionalMeasurement::ddosAttackIsSet() const {
   return m_DdosAttackIsSet;
 }
-void AdditionalMeasurement::unsetDdosAttack() {
-  m_DdosAttackIsSet = false;
-}
-AddressList AdditionalMeasurement::getWrgDest() const {
-  return m_WrgDest;
-}
+void AdditionalMeasurement::unsetDdosAttack() { m_DdosAttackIsSet = false; }
+AddressList AdditionalMeasurement::getWrgDest() const { return m_WrgDest; }
 void AdditionalMeasurement::setWrgDest(AddressList const& value) {
-  m_WrgDest      = value;
+  m_WrgDest = value;
   m_WrgDestIsSet = true;
 }
-bool AdditionalMeasurement::wrgDestIsSet() const {
-  return m_WrgDestIsSet;
-}
-void AdditionalMeasurement::unsetWrgDest() {
-  m_WrgDestIsSet = false;
-}
+bool AdditionalMeasurement::wrgDestIsSet() const { return m_WrgDestIsSet; }
+void AdditionalMeasurement::unsetWrgDest() { m_WrgDestIsSet = false; }
 std::vector<CircumstanceDescription> AdditionalMeasurement::getCircums() const {
   return m_Circums;
 }
 void AdditionalMeasurement::setCircums(
     std::vector<CircumstanceDescription> const& value) {
-  m_Circums      = value;
+  m_Circums = value;
   m_CircumsIsSet = true;
 }
-bool AdditionalMeasurement::circumsIsSet() const {
-  return m_CircumsIsSet;
-}
-void AdditionalMeasurement::unsetCircums() {
-  m_CircumsIsSet = false;
-}
+bool AdditionalMeasurement::circumsIsSet() const { return m_CircumsIsSet; }
+void AdditionalMeasurement::unsetCircums() { m_CircumsIsSet = false; }
 
 }  // namespace oai::nef::model

@@ -20,9 +20,10 @@
 #ifndef LpiParametersProvision_H_
 #define LpiParametersProvision_H_
 
-#include <string>
-#include "Lpi.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "Lpi.h"
 
 namespace oai::nef::model {
 

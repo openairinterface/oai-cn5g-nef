@@ -12,21 +12,22 @@
  */
 
 #include "SACInfo.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 SACInfo::SACInfo() {
-  m_NumericValNumUes          = 0;
-  m_NumericValNumUesIsSet     = false;
-  m_NumericValNumPduSess      = 0;
+  m_NumericValNumUes = 0;
+  m_NumericValNumUesIsSet = false;
+  m_NumericValNumPduSess = 0;
   m_NumericValNumPduSessIsSet = false;
-  m_PercValueNumUes           = 0;
-  m_PercValueNumUesIsSet      = false;
-  m_PercValueNumPduSess       = 0;
-  m_PercValueNumPduSessIsSet  = false;
+  m_PercValueNumUes = 0;
+  m_PercValueNumUesIsSet = false;
+  m_PercValueNumPduSess = 0;
+  m_PercValueNumPduSessIsSet = false;
 }
 
 void SACInfo::validate() const {
@@ -40,13 +41,13 @@ bool SACInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SACInfo::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool SACInfo::validate(std::stringstream& msg,
+                       const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "SACInfo" : pathPrefix;
 
   if (percValueNumUesIsSet()) {
-    const int32_t& value               = m_PercValueNumUes;
+    const int32_t& value = m_PercValueNumUes;
     const std::string currentValuePath = _pathPrefix + ".percValueNumUes";
 
     if (value < 0) {
@@ -60,7 +61,7 @@ bool SACInfo::validate(
   }
 
   if (percValueNumPduSessIsSet()) {
-    const int32_t& value               = m_PercValueNumPduSess;
+    const int32_t& value = m_PercValueNumPduSess;
     const std::string currentValuePath = _pathPrefix + ".percValueNumPduSess";
 
     if (value < 0) {
@@ -98,9 +99,7 @@ bool SACInfo::operator==(const SACInfo& rhs) const {
           ;
 }
 
-bool SACInfo::operator!=(const SACInfo& rhs) const {
-  return !(*this == rhs);
-}
+bool SACInfo::operator!=(const SACInfo& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const SACInfo& o) {
   j = nlohmann::json();
@@ -131,24 +130,18 @@ void from_json(const nlohmann::json& j, SACInfo& o) {
   }
 }
 
-int32_t SACInfo::getNumericValNumUes() const {
-  return m_NumericValNumUes;
-}
+int32_t SACInfo::getNumericValNumUes() const { return m_NumericValNumUes; }
 void SACInfo::setNumericValNumUes(int32_t const value) {
-  m_NumericValNumUes      = value;
+  m_NumericValNumUes = value;
   m_NumericValNumUesIsSet = true;
 }
-bool SACInfo::numericValNumUesIsSet() const {
-  return m_NumericValNumUesIsSet;
-}
-void SACInfo::unsetNumericValNumUes() {
-  m_NumericValNumUesIsSet = false;
-}
+bool SACInfo::numericValNumUesIsSet() const { return m_NumericValNumUesIsSet; }
+void SACInfo::unsetNumericValNumUes() { m_NumericValNumUesIsSet = false; }
 int32_t SACInfo::getNumericValNumPduSess() const {
   return m_NumericValNumPduSess;
 }
 void SACInfo::setNumericValNumPduSess(int32_t const value) {
-  m_NumericValNumPduSess      = value;
+  m_NumericValNumPduSess = value;
   m_NumericValNumPduSessIsSet = true;
 }
 bool SACInfo::numericValNumPduSessIsSet() const {
@@ -157,31 +150,23 @@ bool SACInfo::numericValNumPduSessIsSet() const {
 void SACInfo::unsetNumericValNumPduSess() {
   m_NumericValNumPduSessIsSet = false;
 }
-int32_t SACInfo::getPercValueNumUes() const {
-  return m_PercValueNumUes;
-}
+int32_t SACInfo::getPercValueNumUes() const { return m_PercValueNumUes; }
 void SACInfo::setPercValueNumUes(int32_t const value) {
-  m_PercValueNumUes      = value;
+  m_PercValueNumUes = value;
   m_PercValueNumUesIsSet = true;
 }
-bool SACInfo::percValueNumUesIsSet() const {
-  return m_PercValueNumUesIsSet;
-}
-void SACInfo::unsetPercValueNumUes() {
-  m_PercValueNumUesIsSet = false;
-}
+bool SACInfo::percValueNumUesIsSet() const { return m_PercValueNumUesIsSet; }
+void SACInfo::unsetPercValueNumUes() { m_PercValueNumUesIsSet = false; }
 int32_t SACInfo::getPercValueNumPduSess() const {
   return m_PercValueNumPduSess;
 }
 void SACInfo::setPercValueNumPduSess(int32_t const value) {
-  m_PercValueNumPduSess      = value;
+  m_PercValueNumPduSess = value;
   m_PercValueNumPduSessIsSet = true;
 }
 bool SACInfo::percValueNumPduSessIsSet() const {
   return m_PercValueNumPduSessIsSet;
 }
-void SACInfo::unsetPercValueNumPduSess() {
-  m_PercValueNumPduSessIsSet = false;
-}
+void SACInfo::unsetPercValueNumPduSess() { m_PercValueNumPduSessIsSet = false; }
 
 }  // namespace oai::nef::model

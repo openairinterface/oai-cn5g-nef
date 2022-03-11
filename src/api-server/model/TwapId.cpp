@@ -12,16 +12,17 @@
  */
 
 #include "TwapId.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 TwapId::TwapId() {
-  m_SsId              = "";
-  m_BssId             = "";
-  m_BssIdIsSet        = false;
+  m_SsId = "";
+  m_BssId = "";
+  m_BssIdIsSet = false;
   m_CivicAddressIsSet = false;
 }
 
@@ -36,9 +37,9 @@ bool TwapId::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TwapId::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool TwapId::validate(std::stringstream& msg,
+                      const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "TwapId" : pathPrefix;
 
   return success;
@@ -59,12 +60,10 @@ bool TwapId::operator==(const TwapId& rhs) const {
           ;
 }
 
-bool TwapId::operator!=(const TwapId& rhs) const {
-  return !(*this == rhs);
-}
+bool TwapId::operator!=(const TwapId& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const TwapId& o) {
-  j         = nlohmann::json();
+  j = nlohmann::json();
   j["ssId"] = o.m_SsId;
   if (o.bssIdIsSet()) j["bssId"] = o.m_BssId;
   if (o.civicAddressIsSet()) j["civicAddress"] = o.m_CivicAddress;
@@ -82,37 +81,21 @@ void from_json(const nlohmann::json& j, TwapId& o) {
   }
 }
 
-std::string TwapId::getSsId() const {
-  return m_SsId;
-}
-void TwapId::setSsId(std::string const& value) {
-  m_SsId = value;
-}
-std::string TwapId::getBssId() const {
-  return m_BssId;
-}
+std::string TwapId::getSsId() const { return m_SsId; }
+void TwapId::setSsId(std::string const& value) { m_SsId = value; }
+std::string TwapId::getBssId() const { return m_BssId; }
 void TwapId::setBssId(std::string const& value) {
-  m_BssId      = value;
+  m_BssId = value;
   m_BssIdIsSet = true;
 }
-bool TwapId::bssIdIsSet() const {
-  return m_BssIdIsSet;
-}
-void TwapId::unsetBssId() {
-  m_BssIdIsSet = false;
-}
-std::string TwapId::getCivicAddress() const {
-  return m_CivicAddress;
-}
+bool TwapId::bssIdIsSet() const { return m_BssIdIsSet; }
+void TwapId::unsetBssId() { m_BssIdIsSet = false; }
+std::string TwapId::getCivicAddress() const { return m_CivicAddress; }
 void TwapId::setCivicAddress(std::string const& value) {
-  m_CivicAddress      = value;
+  m_CivicAddress = value;
   m_CivicAddressIsSet = true;
 }
-bool TwapId::civicAddressIsSet() const {
-  return m_CivicAddressIsSet;
-}
-void TwapId::unsetCivicAddress() {
-  m_CivicAddressIsSet = false;
-}
+bool TwapId::civicAddressIsSet() const { return m_CivicAddressIsSet; }
+void TwapId::unsetCivicAddress() { m_CivicAddressIsSet = false; }
 
 }  // namespace oai::nef::model

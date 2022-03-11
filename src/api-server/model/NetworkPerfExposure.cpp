@@ -12,19 +12,20 @@
  */
 
 #include "NetworkPerfExposure.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 NetworkPerfExposure::NetworkPerfExposure() {
-  m_RelativeRatio      = 0;
+  m_RelativeRatio = 0;
   m_RelativeRatioIsSet = false;
-  m_AbsoluteNum        = 0;
-  m_AbsoluteNumIsSet   = false;
-  m_Confidence         = 0;
-  m_ConfidenceIsSet    = false;
+  m_AbsoluteNum = 0;
+  m_AbsoluteNumIsSet = false;
+  m_Confidence = 0;
+  m_ConfidenceIsSet = false;
 }
 
 void NetworkPerfExposure::validate() const {
@@ -38,14 +39,14 @@ bool NetworkPerfExposure::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NetworkPerfExposure::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool NetworkPerfExposure::validate(std::stringstream& msg,
+                                   const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NetworkPerfExposure" : pathPrefix;
 
   if (relativeRatioIsSet()) {
-    const int32_t& value               = m_RelativeRatio;
+    const int32_t& value = m_RelativeRatio;
     const std::string currentValuePath = _pathPrefix + ".relativeRatio";
 
     if (value < 1) {
@@ -59,7 +60,7 @@ bool NetworkPerfExposure::validate(
   }
 
   if (absoluteNumIsSet()) {
-    const int32_t& value               = m_AbsoluteNum;
+    const int32_t& value = m_AbsoluteNum;
     const std::string currentValuePath = _pathPrefix + ".absoluteNum";
 
     if (value < 0) {
@@ -69,7 +70,7 @@ bool NetworkPerfExposure::validate(
   }
 
   if (confidenceIsSet()) {
-    const int32_t& value               = m_Confidence;
+    const int32_t& value = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -108,8 +109,8 @@ bool NetworkPerfExposure::operator!=(const NetworkPerfExposure& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const NetworkPerfExposure& o) {
-  j               = nlohmann::json();
-  j["locArea"]    = o.m_LocArea;
+  j = nlohmann::json();
+  j["locArea"] = o.m_LocArea;
   j["nwPerfType"] = o.m_NwPerfType;
   if (o.relativeRatioIsSet()) j["relativeRatio"] = o.m_RelativeRatio;
   if (o.absoluteNumIsSet()) j["absoluteNum"] = o.m_AbsoluteNum;
@@ -133,9 +134,7 @@ void from_json(const nlohmann::json& j, NetworkPerfExposure& o) {
   }
 }
 
-LocationArea5G NetworkPerfExposure::getLocArea() const {
-  return m_LocArea;
-}
+LocationArea5G NetworkPerfExposure::getLocArea() const { return m_LocArea; }
 void NetworkPerfExposure::setLocArea(LocationArea5G const& value) {
   m_LocArea = value;
 }
@@ -149,40 +148,28 @@ int32_t NetworkPerfExposure::getRelativeRatio() const {
   return m_RelativeRatio;
 }
 void NetworkPerfExposure::setRelativeRatio(int32_t const value) {
-  m_RelativeRatio      = value;
+  m_RelativeRatio = value;
   m_RelativeRatioIsSet = true;
 }
 bool NetworkPerfExposure::relativeRatioIsSet() const {
   return m_RelativeRatioIsSet;
 }
-void NetworkPerfExposure::unsetRelativeRatio() {
-  m_RelativeRatioIsSet = false;
-}
-int32_t NetworkPerfExposure::getAbsoluteNum() const {
-  return m_AbsoluteNum;
-}
+void NetworkPerfExposure::unsetRelativeRatio() { m_RelativeRatioIsSet = false; }
+int32_t NetworkPerfExposure::getAbsoluteNum() const { return m_AbsoluteNum; }
 void NetworkPerfExposure::setAbsoluteNum(int32_t const value) {
-  m_AbsoluteNum      = value;
+  m_AbsoluteNum = value;
   m_AbsoluteNumIsSet = true;
 }
 bool NetworkPerfExposure::absoluteNumIsSet() const {
   return m_AbsoluteNumIsSet;
 }
-void NetworkPerfExposure::unsetAbsoluteNum() {
-  m_AbsoluteNumIsSet = false;
-}
-int32_t NetworkPerfExposure::getConfidence() const {
-  return m_Confidence;
-}
+void NetworkPerfExposure::unsetAbsoluteNum() { m_AbsoluteNumIsSet = false; }
+int32_t NetworkPerfExposure::getConfidence() const { return m_Confidence; }
 void NetworkPerfExposure::setConfidence(int32_t const value) {
-  m_Confidence      = value;
+  m_Confidence = value;
   m_ConfidenceIsSet = true;
 }
-bool NetworkPerfExposure::confidenceIsSet() const {
-  return m_ConfidenceIsSet;
-}
-void NetworkPerfExposure::unsetConfidence() {
-  m_ConfidenceIsSet = false;
-}
+bool NetworkPerfExposure::confidenceIsSet() const { return m_ConfidenceIsSet; }
+void NetworkPerfExposure::unsetConfidence() { m_ConfidenceIsSet = false; }
 
 }  // namespace oai::nef::model

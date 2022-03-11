@@ -19,8 +19,9 @@
 #ifndef CnType_H_
 #define CnType_H_
 
-#include "CnType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "CnType_anyOf.h"
 
 namespace oai::nef::model {
 

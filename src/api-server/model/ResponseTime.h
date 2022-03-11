@@ -19,8 +19,9 @@
 #ifndef ResponseTime_H_
 #define ResponseTime_H_
 
-#include "ResponseTime_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "ResponseTime_anyOf.h"
 
 namespace oai::nef::model {
 

@@ -19,10 +19,11 @@
 #ifndef EthFlowDescription_H_
 #define EthFlowDescription_H_
 
-#include "FlowDirection.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "FlowDirection.h"
 
 namespace oai::nef::model {
 

@@ -21,8 +21,9 @@
 #ifndef ExceptionTrend_H_
 #define ExceptionTrend_H_
 
-#include "ExceptionTrend_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "ExceptionTrend_anyOf.h"
 
 namespace oai::nef::model {
 

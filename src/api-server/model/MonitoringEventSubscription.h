@@ -19,29 +19,30 @@
 #ifndef MonitoringEventSubscription_H_
 #define MonitoringEventSubscription_H_
 
-#include "DlDataDeliveryStatus.h"
-#include "LocationType.h"
+#include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
+
+#include "Accuracy.h"
+#include "AssociationType.h"
+#include "DddTrafficDescriptor.h"
+#include "DlDataDeliveryStatus.h"
+#include "LdrType.h"
+#include "LocationArea.h"
+#include "LocationArea5G.h"
+#include "LocationQoS.h"
+#include "LocationType.h"
+#include "MonitoringEventReport.h"
 #include "MonitoringType.h"
+#include "ReachabilityType.h"
 #include "SACInfo.h"
 #include "Snssai.h"
-#include <vector>
 #include "SubType.h"
-#include "LdrType.h"
-#include "ReachabilityType.h"
-#include "WebsockNotifConfig.h"
-#include "LocationArea.h"
-#include "Accuracy.h"
-#include "DddTrafficDescriptor.h"
-#include "LocationQoS.h"
-#include "VelocityRequested.h"
-#include "TimeWindow.h"
-#include "LocationArea5G.h"
-#include "MonitoringEventReport.h"
-#include "UavPolicy.h"
-#include "AssociationType.h"
 #include "SupportedGADShapes.h"
-#include <nlohmann/json.hpp>
+#include "TimeWindow.h"
+#include "UavPolicy.h"
+#include "VelocityRequested.h"
+#include "WebsockNotifConfig.h"
 
 namespace oai::nef::model {
 
@@ -521,8 +522,8 @@ class MonitoringEventSubscription {
   void unsetAddnMonEventReports();
 
   friend void to_json(nlohmann::json& j, const MonitoringEventSubscription& o);
-  friend void from_json(
-      const nlohmann::json& j, MonitoringEventSubscription& o);
+  friend void from_json(const nlohmann::json& j,
+                        MonitoringEventSubscription& o);
 
  protected:
   std::string m_Self;

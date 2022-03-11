@@ -21,8 +21,9 @@
 #ifndef ReachabilityType_H_
 #define ReachabilityType_H_
 
-#include "ReachabilityType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "ReachabilityType_anyOf.h"
 
 namespace oai::nef::model {
 

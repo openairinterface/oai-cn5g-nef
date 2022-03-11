@@ -19,8 +19,9 @@
 #ifndef Accuracy_H_
 #define Accuracy_H_
 
-#include "Accuracy_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "Accuracy_anyOf.h"
 
 namespace oai::nef::model {
 

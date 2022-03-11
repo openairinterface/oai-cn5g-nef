@@ -19,8 +19,8 @@
 #ifndef ServiceParameterDataPatch_H_
 #define ServiceParameterDataPatch_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

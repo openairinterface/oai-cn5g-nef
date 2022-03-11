@@ -19,10 +19,11 @@
 #ifndef NsmfEventExposureNotification_H_
 #define NsmfEventExposureNotification_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
+
 #include "EventNotification.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 
@@ -69,10 +70,10 @@ class NsmfEventExposureNotification {
   std::vector<EventNotification> getEventNotifs() const;
   void setEventNotifs(std::vector<EventNotification> const& value);
 
-  friend void to_json(
-      nlohmann::json& j, const NsmfEventExposureNotification& o);
-  friend void from_json(
-      const nlohmann::json& j, NsmfEventExposureNotification& o);
+  friend void to_json(nlohmann::json& j,
+                      const NsmfEventExposureNotification& o);
+  friend void from_json(const nlohmann::json& j,
+                        NsmfEventExposureNotification& o);
 
  protected:
   std::string m_NotifId;

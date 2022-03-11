@@ -20,11 +20,12 @@
 #ifndef EllipsoidArc_H_
 #define EllipsoidArc_H_
 
-#include "GeographicalCoordinates.h"
+#include <nlohmann/json.hpp>
+
 #include "EllipsoidArc_allOf.h"
 #include "GADShape.h"
+#include "GeographicalCoordinates.h"
 #include "SupportedGADShapes.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

@@ -19,10 +19,11 @@
 #ifndef AnalyticsEventSubsc_H_
 #define AnalyticsEventSubsc_H_
 
+#include <nlohmann/json.hpp>
+
+#include "AnalyticsEvent.h"
 #include "AnalyticsEventFilterSubsc.h"
 #include "TargetUeId.h"
-#include "AnalyticsEvent.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

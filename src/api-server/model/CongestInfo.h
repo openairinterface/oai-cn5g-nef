@@ -19,10 +19,11 @@
 #ifndef CongestInfo_H_
 #define CongestInfo_H_
 
-#include "LocationArea5G.h"
-#include <vector>
-#include "CongestionAnalytics.h"
 #include <nlohmann/json.hpp>
+#include <vector>
+
+#include "CongestionAnalytics.h"
+#include "LocationArea5G.h"
 
 namespace oai::nef::model {
 

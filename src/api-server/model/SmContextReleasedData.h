@@ -19,9 +19,10 @@
 #ifndef SmContextReleasedData_H_
 #define SmContextReleasedData_H_
 
-#include "SmallDataRateStatus.h"
-#include "ApnRateStatus.h"
 #include <nlohmann/json.hpp>
+
+#include "ApnRateStatus.h"
+#include "SmallDataRateStatus.h"
 
 namespace oai::nef::model {
 

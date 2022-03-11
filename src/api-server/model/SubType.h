@@ -19,8 +19,9 @@
 #ifndef SubType_H_
 #define SubType_H_
 
-#include "SubType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "SubType_anyOf.h"
 
 namespace oai::nef::model {
 

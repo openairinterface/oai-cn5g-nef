@@ -12,9 +12,10 @@
  */
 
 #include "DlDataDeliveryStatus.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool DlDataDeliveryStatus::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool DlDataDeliveryStatus::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool DlDataDeliveryStatus::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "DlDataDeliveryStatus" : pathPrefix;

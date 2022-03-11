@@ -12,9 +12,10 @@
  */
 
 #include "PlmnId_1.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -34,18 +35,18 @@ bool PlmnId_1::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PlmnId_1::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool PlmnId_1::validate(std::stringstream& msg,
+                        const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "PlmnId_1" : pathPrefix;
 
   /* Mcc */ {
-    const std::string& value           = m_Mcc;
+    const std::string& value = m_Mcc;
     const std::string currentValuePath = _pathPrefix + ".mcc";
   }
 
   /* Mnc */ {
-    const std::string& value           = m_Mnc;
+    const std::string& value = m_Mnc;
     const std::string currentValuePath = _pathPrefix + ".mnc";
   }
 
@@ -62,12 +63,10 @@ bool PlmnId_1::operator==(const PlmnId_1& rhs) const {
           ;
 }
 
-bool PlmnId_1::operator!=(const PlmnId_1& rhs) const {
-  return !(*this == rhs);
-}
+bool PlmnId_1::operator!=(const PlmnId_1& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const PlmnId_1& o) {
-  j        = nlohmann::json();
+  j = nlohmann::json();
   j["mcc"] = o.m_Mcc;
   j["mnc"] = o.m_Mnc;
 }
@@ -77,17 +76,9 @@ void from_json(const nlohmann::json& j, PlmnId_1& o) {
   j.at("mnc").get_to(o.m_Mnc);
 }
 
-std::string PlmnId_1::getMcc() const {
-  return m_Mcc;
-}
-void PlmnId_1::setMcc(std::string const& value) {
-  m_Mcc = value;
-}
-std::string PlmnId_1::getMnc() const {
-  return m_Mnc;
-}
-void PlmnId_1::setMnc(std::string const& value) {
-  m_Mnc = value;
-}
+std::string PlmnId_1::getMcc() const { return m_Mcc; }
+void PlmnId_1::setMcc(std::string const& value) { m_Mcc = value; }
+std::string PlmnId_1::getMnc() const { return m_Mnc; }
+void PlmnId_1::setMnc(std::string const& value) { m_Mnc = value; }
 
 }  // namespace oai::nef::model

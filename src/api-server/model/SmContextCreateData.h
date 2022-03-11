@@ -19,11 +19,12 @@
 #ifndef SmContextCreateData_H_
 #define SmContextCreateData_H_
 
-#include "NiddInformation.h"
+#include <nlohmann/json.hpp>
 #include <string>
+
+#include "NiddInformation.h"
 #include "SmContextConfiguration.h"
 #include "Snssai.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

@@ -19,11 +19,12 @@
 #ifndef NefEventFilter_H_
 #define NefEventFilter_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
+
 #include "NetworkAreaInfo.h"
 #include "TargetUeIdentification.h"
-#include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

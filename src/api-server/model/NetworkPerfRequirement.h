@@ -19,8 +19,9 @@
 #ifndef NetworkPerfRequirement_H_
 #define NetworkPerfRequirement_H_
 
-#include "NetworkPerfType.h"
 #include <nlohmann/json.hpp>
+
+#include "NetworkPerfType.h"
 
 namespace oai::nef::model {
 

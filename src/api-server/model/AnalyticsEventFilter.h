@@ -19,16 +19,17 @@
 #ifndef AnalyticsEventFilter_H_
 #define AnalyticsEventFilter_H_
 
-#include "QosRequirement.h"
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "ExceptionId.h"
 #include "ExpectedAnalyticsType.h"
 #include "ExpectedUeBehaviourData.h"
-#include "NetworkPerfType.h"
-#include <string>
-#include "ExceptionId.h"
 #include "LocationArea5G.h"
+#include "NetworkPerfType.h"
+#include "QosRequirement.h"
 #include "Snssai.h"
-#include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

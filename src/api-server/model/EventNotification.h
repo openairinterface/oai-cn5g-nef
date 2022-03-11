@@ -19,12 +19,13 @@
 #ifndef EventNotification_H_
 #define EventNotification_H_
 
-#include "DnaiChangeType.h"
-#include "SubscribedEvent.h"
+#include <nlohmann/json.hpp>
 #include <string>
+
+#include "DnaiChangeType.h"
 #include "Ipv6Prefix.h"
 #include "RouteToLocation.h"
-#include <nlohmann/json.hpp>
+#include "SubscribedEvent.h"
 
 namespace oai::nef::model {
 

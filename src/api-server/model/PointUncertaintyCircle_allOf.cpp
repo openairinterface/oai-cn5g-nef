@@ -13,9 +13,10 @@
  */
 
 #include "PointUncertaintyCircle_allOf.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -41,7 +42,7 @@ bool PointUncertaintyCircle_allOf::validate(
       pathPrefix.empty() ? "PointUncertaintyCircle_allOf" : pathPrefix;
 
   /* Uncertainty */ {
-    const float& value                 = m_Uncertainty;
+    const float& value = m_Uncertainty;
     const std::string currentValuePath = _pathPrefix + ".uncertainty";
 
     if (value < static_cast<float>(0)) {
@@ -70,8 +71,8 @@ bool PointUncertaintyCircle_allOf::operator!=(
 }
 
 void to_json(nlohmann::json& j, const PointUncertaintyCircle_allOf& o) {
-  j                = nlohmann::json();
-  j["point"]       = o.m_Point;
+  j = nlohmann::json();
+  j["point"] = o.m_Point;
   j["uncertainty"] = o.m_Uncertainty;
 }
 

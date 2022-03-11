@@ -19,9 +19,10 @@
 #ifndef RouteToLocation_H_
 #define RouteToLocation_H_
 
-#include <string>
-#include "RouteInformation.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "RouteInformation.h"
 
 namespace oai::nef::model {
 

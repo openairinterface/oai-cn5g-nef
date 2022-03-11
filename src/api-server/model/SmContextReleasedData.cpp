@@ -12,15 +12,16 @@
  */
 
 #include "SmContextReleasedData.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 SmContextReleasedData::SmContextReleasedData() {
   m_SmallDataRateStatusIsSet = false;
-  m_ApnRateStatusIsSet       = false;
+  m_ApnRateStatusIsSet = false;
 }
 
 void SmContextReleasedData::validate() const {
@@ -34,8 +35,8 @@ bool SmContextReleasedData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmContextReleasedData::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool SmContextReleasedData::validate(std::stringstream& msg,
+                                     const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextReleasedData" : pathPrefix;
@@ -84,7 +85,7 @@ SmallDataRateStatus SmContextReleasedData::getSmallDataRateStatus() const {
 }
 void SmContextReleasedData::setSmallDataRateStatus(
     SmallDataRateStatus const& value) {
-  m_SmallDataRateStatus      = value;
+  m_SmallDataRateStatus = value;
   m_SmallDataRateStatusIsSet = true;
 }
 bool SmContextReleasedData::smallDataRateStatusIsSet() const {
@@ -97,7 +98,7 @@ ApnRateStatus SmContextReleasedData::getApnRateStatus() const {
   return m_ApnRateStatus;
 }
 void SmContextReleasedData::setApnRateStatus(ApnRateStatus const& value) {
-  m_ApnRateStatus      = value;
+  m_ApnRateStatus = value;
   m_ApnRateStatusIsSet = true;
 }
 bool SmContextReleasedData::apnRateStatusIsSet() const {

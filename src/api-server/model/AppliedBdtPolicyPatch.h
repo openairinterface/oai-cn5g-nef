@@ -19,8 +19,8 @@
 #ifndef AppliedBdtPolicyPatch_H_
 #define AppliedBdtPolicyPatch_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

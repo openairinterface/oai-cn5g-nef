@@ -19,9 +19,10 @@
 #ifndef EventReportingRequirement_H_
 #define EventReportingRequirement_H_
 
-#include "Accuracy.h"
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "Accuracy.h"
 
 namespace oai::nef::model {
 

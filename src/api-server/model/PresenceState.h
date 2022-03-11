@@ -19,8 +19,9 @@
 #ifndef PresenceState_H_
 #define PresenceState_H_
 
-#include "PresenceState_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "PresenceState_anyOf.h"
 
 namespace oai::nef::model {
 

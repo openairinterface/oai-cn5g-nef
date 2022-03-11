@@ -12,19 +12,20 @@
  */
 
 #include "NiddInformation.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 NiddInformation::NiddInformation() {
-  m_ExtGroupId      = "";
+  m_ExtGroupId = "";
   m_ExtGroupIdIsSet = false;
-  m_Gpsi            = "";
-  m_GpsiIsSet       = false;
-  m_AfId            = "";
-  m_AfIdIsSet       = false;
+  m_Gpsi = "";
+  m_GpsiIsSet = false;
+  m_AfId = "";
+  m_AfIdIsSet = false;
 }
 
 void NiddInformation::validate() const {
@@ -38,19 +39,19 @@ bool NiddInformation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NiddInformation::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool NiddInformation::validate(std::stringstream& msg,
+                               const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NiddInformation" : pathPrefix;
 
   if (extGroupIdIsSet()) {
-    const std::string& value           = m_ExtGroupId;
+    const std::string& value = m_ExtGroupId;
     const std::string currentValuePath = _pathPrefix + ".extGroupId";
   }
 
   if (gpsiIsSet()) {
-    const std::string& value           = m_Gpsi;
+    const std::string& value = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
@@ -99,44 +100,26 @@ void from_json(const nlohmann::json& j, NiddInformation& o) {
   }
 }
 
-std::string NiddInformation::getExtGroupId() const {
-  return m_ExtGroupId;
-}
+std::string NiddInformation::getExtGroupId() const { return m_ExtGroupId; }
 void NiddInformation::setExtGroupId(std::string const& value) {
-  m_ExtGroupId      = value;
+  m_ExtGroupId = value;
   m_ExtGroupIdIsSet = true;
 }
-bool NiddInformation::extGroupIdIsSet() const {
-  return m_ExtGroupIdIsSet;
-}
-void NiddInformation::unsetExtGroupId() {
-  m_ExtGroupIdIsSet = false;
-}
-std::string NiddInformation::getGpsi() const {
-  return m_Gpsi;
-}
+bool NiddInformation::extGroupIdIsSet() const { return m_ExtGroupIdIsSet; }
+void NiddInformation::unsetExtGroupId() { m_ExtGroupIdIsSet = false; }
+std::string NiddInformation::getGpsi() const { return m_Gpsi; }
 void NiddInformation::setGpsi(std::string const& value) {
-  m_Gpsi      = value;
+  m_Gpsi = value;
   m_GpsiIsSet = true;
 }
-bool NiddInformation::gpsiIsSet() const {
-  return m_GpsiIsSet;
-}
-void NiddInformation::unsetGpsi() {
-  m_GpsiIsSet = false;
-}
-std::string NiddInformation::getAfId() const {
-  return m_AfId;
-}
+bool NiddInformation::gpsiIsSet() const { return m_GpsiIsSet; }
+void NiddInformation::unsetGpsi() { m_GpsiIsSet = false; }
+std::string NiddInformation::getAfId() const { return m_AfId; }
 void NiddInformation::setAfId(std::string const& value) {
-  m_AfId      = value;
+  m_AfId = value;
   m_AfIdIsSet = true;
 }
-bool NiddInformation::afIdIsSet() const {
-  return m_AfIdIsSet;
-}
-void NiddInformation::unsetAfId() {
-  m_AfIdIsSet = false;
-}
+bool NiddInformation::afIdIsSet() const { return m_AfIdIsSet; }
+void NiddInformation::unsetAfId() { m_AfIdIsSet = false; }
 
 }  // namespace oai::nef::model

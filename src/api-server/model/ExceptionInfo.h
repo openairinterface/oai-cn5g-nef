@@ -19,11 +19,12 @@
 #ifndef ExceptionInfo_H_
 #define ExceptionInfo_H_
 
-#include "FlowInfo.h"
+#include <nlohmann/json.hpp>
+#include <vector>
+
 #include "EthFlowDescription.h"
 #include "Exception.h"
-#include <vector>
-#include <nlohmann/json.hpp>
+#include "FlowInfo.h"
 
 namespace oai::nef::model {
 

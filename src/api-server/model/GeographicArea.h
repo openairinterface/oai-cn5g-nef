@@ -20,18 +20,19 @@
 #ifndef GeographicArea_H_
 #define GeographicArea_H_
 
-#include "PointUncertaintyCircle.h"
-#include "Point.h"
-#include "PointUncertaintyEllipse.h"
-#include "GeographicalCoordinates.h"
-#include "PointAltitude.h"
-#include "UncertaintyEllipse.h"
-#include "EllipsoidArc.h"
-#include "PointAltitudeUncertainty.h"
-#include "Polygon.h"
-#include <vector>
-#include "SupportedGADShapes.h"
 #include <nlohmann/json.hpp>
+#include <vector>
+
+#include "EllipsoidArc.h"
+#include "GeographicalCoordinates.h"
+#include "Point.h"
+#include "PointAltitude.h"
+#include "PointAltitudeUncertainty.h"
+#include "PointUncertaintyCircle.h"
+#include "PointUncertaintyEllipse.h"
+#include "Polygon.h"
+#include "SupportedGADShapes.h"
+#include "UncertaintyEllipse.h"
 
 namespace oai::nef::model {
 

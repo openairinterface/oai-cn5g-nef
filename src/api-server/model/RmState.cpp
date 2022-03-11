@@ -12,9 +12,10 @@
  */
 
 #include "RmState.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,9 +32,9 @@ bool RmState::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool RmState::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool RmState::validate(std::stringstream& msg,
+                       const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "RmState" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -48,26 +49,18 @@ bool RmState::operator==(const RmState& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool RmState::operator!=(const RmState& rhs) const {
-  return !(*this == rhs);
-}
+bool RmState::operator!=(const RmState& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const RmState& o) {
   j = nlohmann::json();
   to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, RmState& o) {
-  from_json(j, o.m_value);
-}
+void from_json(const nlohmann::json& j, RmState& o) { from_json(j, o.m_value); }
 
-RmState_anyOf RmState::getValue() const {
-  return m_value;
-}
+RmState_anyOf RmState::getValue() const { return m_value; }
 
-void RmState::setValue(RmState_anyOf value) {
-  m_value = value;
-}
+void RmState::setValue(RmState_anyOf value) { m_value = value; }
 
 RmState_anyOf::eRmState_anyOf RmState::getEnumValue() const {
   return m_value.getValue();

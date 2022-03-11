@@ -12,9 +12,11 @@
  */
 
 #include "CongestionType_anyOf.h"
-#include "Helpers.h"
-#include <stdexcept>
+
 #include <sstream>
+#include <stdexcept>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +33,8 @@ bool CongestionType_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CongestionType_anyOf::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool CongestionType_anyOf::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CongestionType_anyOf" : pathPrefix;

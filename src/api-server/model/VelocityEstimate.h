@@ -20,12 +20,13 @@
 #ifndef VelocityEstimate_H_
 #define VelocityEstimate_H_
 
-#include "HorizontalVelocityWithUncertainty.h"
-#include "HorizontalWithVerticalVelocityAndUncertainty.h"
-#include "HorizontalWithVerticalVelocity.h"
-#include "VerticalDirection.h"
-#include "HorizontalVelocity.h"
 #include <nlohmann/json.hpp>
+
+#include "HorizontalVelocity.h"
+#include "HorizontalVelocityWithUncertainty.h"
+#include "HorizontalWithVerticalVelocity.h"
+#include "HorizontalWithVerticalVelocityAndUncertainty.h"
+#include "VerticalDirection.h"
 
 namespace oai::nef::model {
 

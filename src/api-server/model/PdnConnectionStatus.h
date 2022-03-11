@@ -20,8 +20,9 @@
 #ifndef PdnConnectionStatus_H_
 #define PdnConnectionStatus_H_
 
-#include "PdnConnectionStatus_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "PdnConnectionStatus_anyOf.h"
 
 namespace oai::nef::model {
 

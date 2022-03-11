@@ -12,9 +12,10 @@
  */
 
 #include "AnalyticsEvent.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool AnalyticsEvent::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsEvent::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AnalyticsEvent::validate(std::stringstream& msg,
+                              const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsEvent" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, AnalyticsEvent& o) {
   from_json(j, o.m_value);
 }
 
-AnalyticsEvent_anyOf AnalyticsEvent::getValue() const {
-  return m_value;
-}
+AnalyticsEvent_anyOf AnalyticsEvent::getValue() const { return m_value; }
 
-void AnalyticsEvent::setValue(AnalyticsEvent_anyOf value) {
-  m_value = value;
-}
+void AnalyticsEvent::setValue(AnalyticsEvent_anyOf value) { m_value = value; }
 
 AnalyticsEvent_anyOf::eAnalyticsEvent_anyOf AnalyticsEvent::getEnumValue()
     const {

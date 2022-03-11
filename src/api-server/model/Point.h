@@ -20,11 +20,12 @@
 #ifndef Point_H_
 #define Point_H_
 
+#include <nlohmann/json.hpp>
+
+#include "GADShape.h"
 #include "GeographicalCoordinates.h"
 #include "Point_allOf.h"
-#include "GADShape.h"
 #include "SupportedGADShapes.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

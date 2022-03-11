@@ -12,17 +12,18 @@
  */
 
 #include "CommunicationCollection.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 CommunicationCollection::CommunicationCollection() {
   m_StartTime = "";
-  m_EndTime   = "";
-  m_UlVol     = 0L;
-  m_DlVol     = 0L;
+  m_EndTime = "";
+  m_UlVol = 0L;
+  m_DlVol = 0L;
 }
 
 void CommunicationCollection::validate() const {
@@ -36,14 +37,14 @@ bool CommunicationCollection::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CommunicationCollection::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool CommunicationCollection::validate(std::stringstream& msg,
+                                       const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CommunicationCollection" : pathPrefix;
 
   /* UlVol */ {
-    const int64_t& value               = m_UlVol;
+    const int64_t& value = m_UlVol;
     const std::string currentValuePath = _pathPrefix + ".ulVol";
 
     if (value < 0ll) {
@@ -53,7 +54,7 @@ bool CommunicationCollection::validate(
   }
 
   /* DlVol */ {
-    const int64_t& value               = m_DlVol;
+    const int64_t& value = m_DlVol;
     const std::string currentValuePath = _pathPrefix + ".dlVol";
 
     if (value < 0ll) {
@@ -86,11 +87,11 @@ bool CommunicationCollection::operator!=(
 }
 
 void to_json(nlohmann::json& j, const CommunicationCollection& o) {
-  j              = nlohmann::json();
+  j = nlohmann::json();
   j["startTime"] = o.m_StartTime;
-  j["endTime"]   = o.m_EndTime;
-  j["ulVol"]     = o.m_UlVol;
-  j["dlVol"]     = o.m_DlVol;
+  j["endTime"] = o.m_EndTime;
+  j["ulVol"] = o.m_UlVol;
+  j["dlVol"] = o.m_DlVol;
 }
 
 void from_json(const nlohmann::json& j, CommunicationCollection& o) {
@@ -106,23 +107,13 @@ std::string CommunicationCollection::getStartTime() const {
 void CommunicationCollection::setStartTime(std::string const& value) {
   m_StartTime = value;
 }
-std::string CommunicationCollection::getEndTime() const {
-  return m_EndTime;
-}
+std::string CommunicationCollection::getEndTime() const { return m_EndTime; }
 void CommunicationCollection::setEndTime(std::string const& value) {
   m_EndTime = value;
 }
-int64_t CommunicationCollection::getUlVol() const {
-  return m_UlVol;
-}
-void CommunicationCollection::setUlVol(int64_t const value) {
-  m_UlVol = value;
-}
-int64_t CommunicationCollection::getDlVol() const {
-  return m_DlVol;
-}
-void CommunicationCollection::setDlVol(int64_t const value) {
-  m_DlVol = value;
-}
+int64_t CommunicationCollection::getUlVol() const { return m_UlVol; }
+void CommunicationCollection::setUlVol(int64_t const value) { m_UlVol = value; }
+int64_t CommunicationCollection::getDlVol() const { return m_DlVol; }
+void CommunicationCollection::setDlVol(int64_t const value) { m_DlVol = value; }
 
 }  // namespace oai::nef::model

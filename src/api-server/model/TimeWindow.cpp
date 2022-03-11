@@ -12,15 +12,16 @@
  */
 
 #include "TimeWindow.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 TimeWindow::TimeWindow() {
   m_StartTime = "";
-  m_StopTime  = "";
+  m_StopTime = "";
 }
 
 void TimeWindow::validate() const {
@@ -34,8 +35,8 @@ bool TimeWindow::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TimeWindow::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool TimeWindow::validate(std::stringstream& msg,
+                          const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TimeWindow" : pathPrefix;
@@ -58,9 +59,9 @@ bool TimeWindow::operator!=(const TimeWindow& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const TimeWindow& o) {
-  j              = nlohmann::json();
+  j = nlohmann::json();
   j["startTime"] = o.m_StartTime;
-  j["stopTime"]  = o.m_StopTime;
+  j["stopTime"] = o.m_StopTime;
 }
 
 void from_json(const nlohmann::json& j, TimeWindow& o) {
@@ -68,17 +69,9 @@ void from_json(const nlohmann::json& j, TimeWindow& o) {
   j.at("stopTime").get_to(o.m_StopTime);
 }
 
-std::string TimeWindow::getStartTime() const {
-  return m_StartTime;
-}
-void TimeWindow::setStartTime(std::string const& value) {
-  m_StartTime = value;
-}
-std::string TimeWindow::getStopTime() const {
-  return m_StopTime;
-}
-void TimeWindow::setStopTime(std::string const& value) {
-  m_StopTime = value;
-}
+std::string TimeWindow::getStartTime() const { return m_StartTime; }
+void TimeWindow::setStartTime(std::string const& value) { m_StartTime = value; }
+std::string TimeWindow::getStopTime() const { return m_StopTime; }
+void TimeWindow::setStopTime(std::string const& value) { m_StopTime = value; }
 
 }  // namespace oai::nef::model

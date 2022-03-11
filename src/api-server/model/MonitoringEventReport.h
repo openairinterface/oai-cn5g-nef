@@ -19,23 +19,24 @@
 #ifndef MonitoringEventReport_H_
 #define MonitoringEventReport_H_
 
-#include "FailureCause.h"
-#include "LocationFailureCause.h"
-#include "LocationInfo.h"
-#include "DlDataDeliveryStatus.h"
-#include "SACEventStatus.h"
+#include <nlohmann/json.hpp>
 #include <string>
-#include "IdleStatusInfo.h"
-#include "MonitoringType.h"
-#include "PlmnId.h"
 #include <vector>
-#include "PdnConnectionInformation.h"
-#include "UePerLocationReport.h"
-#include "ReachabilityType.h"
-#include "DddTrafficDescriptor.h"
+
 #include "ApiCapabilityInfo.h"
 #include "AssociationType.h"
-#include <nlohmann/json.hpp>
+#include "DddTrafficDescriptor.h"
+#include "DlDataDeliveryStatus.h"
+#include "FailureCause.h"
+#include "IdleStatusInfo.h"
+#include "LocationFailureCause.h"
+#include "LocationInfo.h"
+#include "MonitoringType.h"
+#include "PdnConnectionInformation.h"
+#include "PlmnId.h"
+#include "ReachabilityType.h"
+#include "SACEventStatus.h"
+#include "UePerLocationReport.h"
 
 namespace oai::nef::model {
 

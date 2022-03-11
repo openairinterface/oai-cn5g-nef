@@ -12,9 +12,10 @@
  */
 
 #include "AccessRightStatus.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool AccessRightStatus::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AccessRightStatus::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AccessRightStatus::validate(std::stringstream& msg,
+                                 const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AccessRightStatus" : pathPrefix;
@@ -62,9 +63,7 @@ void from_json(const nlohmann::json& j, AccessRightStatus& o) {
   from_json(j, o.m_value);
 }
 
-AccessRightStatus_anyOf AccessRightStatus::getValue() const {
-  return m_value;
-}
+AccessRightStatus_anyOf AccessRightStatus::getValue() const { return m_value; }
 
 void AccessRightStatus::setValue(AccessRightStatus_anyOf value) {
   m_value = value;

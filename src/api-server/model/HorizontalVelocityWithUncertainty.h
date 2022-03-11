@@ -72,10 +72,10 @@ class HorizontalVelocityWithUncertainty {
   float getHUncertainty() const;
   void setHUncertainty(float const value);
 
-  friend void to_json(
-      nlohmann::json& j, const HorizontalVelocityWithUncertainty& o);
-  friend void from_json(
-      const nlohmann::json& j, HorizontalVelocityWithUncertainty& o);
+  friend void to_json(nlohmann::json& j,
+                      const HorizontalVelocityWithUncertainty& o);
+  friend void from_json(const nlohmann::json& j,
+                        HorizontalVelocityWithUncertainty& o);
 
  protected:
   float m_HSpeed;

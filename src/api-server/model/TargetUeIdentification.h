@@ -19,9 +19,9 @@
 #ifndef TargetUeIdentification_H_
 #define TargetUeIdentification_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

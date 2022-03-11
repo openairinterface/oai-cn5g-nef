@@ -19,10 +19,11 @@
 #ifndef UserLocation_H_
 #define UserLocation_H_
 
-#include "EutraLocation.h"
-#include "NrLocation.h"
-#include "N3gaLocation.h"
 #include <nlohmann/json.hpp>
+
+#include "EutraLocation.h"
+#include "N3gaLocation.h"
+#include "NrLocation.h"
 
 namespace oai::nef::model {
 

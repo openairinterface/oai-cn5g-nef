@@ -12,15 +12,14 @@
  */
 
 #include "IptvConfigDataPatch.h"
-#include "Helpers.h"
 
 #include <sstream>
 
+#include "Helpers.h"
+
 namespace oai::nef::model {
 
-IptvConfigDataPatch::IptvConfigDataPatch() {
-  m_MultiAccCtrlsIsSet = false;
-}
+IptvConfigDataPatch::IptvConfigDataPatch() { m_MultiAccCtrlsIsSet = false; }
 
 void IptvConfigDataPatch::validate() const {
   std::stringstream msg;
@@ -33,8 +32,8 @@ bool IptvConfigDataPatch::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool IptvConfigDataPatch::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool IptvConfigDataPatch::validate(std::stringstream& msg,
+                                   const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "IptvConfigDataPatch" : pathPrefix;
@@ -81,14 +80,12 @@ IptvConfigDataPatch::getMultiAccCtrls() const {
 }
 void IptvConfigDataPatch::setMultiAccCtrls(
     std::map<std::string, MulticastAccessControl> const& value) {
-  m_MultiAccCtrls      = value;
+  m_MultiAccCtrls = value;
   m_MultiAccCtrlsIsSet = true;
 }
 bool IptvConfigDataPatch::multiAccCtrlsIsSet() const {
   return m_MultiAccCtrlsIsSet;
 }
-void IptvConfigDataPatch::unsetMultiAccCtrls() {
-  m_MultiAccCtrlsIsSet = false;
-}
+void IptvConfigDataPatch::unsetMultiAccCtrls() { m_MultiAccCtrlsIsSet = false; }
 
 }  // namespace oai::nef::model

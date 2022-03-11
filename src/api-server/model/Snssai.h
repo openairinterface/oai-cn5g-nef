@@ -19,8 +19,8 @@
 #ifndef Snssai_H_
 #define Snssai_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

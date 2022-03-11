@@ -19,9 +19,10 @@
 #ifndef Exception_H_
 #define Exception_H_
 
-#include "ExceptionTrend.h"
-#include "ExceptionId.h"
 #include <nlohmann/json.hpp>
+
+#include "ExceptionId.h"
+#include "ExceptionTrend.h"
 
 namespace oai::nef::model {
 

@@ -19,13 +19,14 @@
 #ifndef AdditionalMeasurement_H_
 #define AdditionalMeasurement_H_
 
-#include "CircumstanceDescription.h"
-#include "AddressList.h"
-#include "IpEthFlowDescription.h"
-#include <string>
-#include "NetworkAreaInfo.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "AddressList.h"
+#include "CircumstanceDescription.h"
+#include "IpEthFlowDescription.h"
+#include "NetworkAreaInfo.h"
 
 namespace oai::nef::model {
 

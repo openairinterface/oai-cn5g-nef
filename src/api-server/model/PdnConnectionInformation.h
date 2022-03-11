@@ -19,12 +19,13 @@
 #ifndef PdnConnectionInformation_H_
 #define PdnConnectionInformation_H_
 
-#include "PdnType.h"
-#include "InterfaceIndication.h"
-#include <string>
-#include "PdnConnectionStatus.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "InterfaceIndication.h"
+#include "PdnConnectionStatus.h"
+#include "PdnType.h"
 
 namespace oai::nef::model {
 

@@ -12,26 +12,27 @@
  */
 
 #include "GlobalRanNodeId.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 GlobalRanNodeId::GlobalRanNodeId() {
-  m_N3IwfId      = "";
+  m_N3IwfId = "";
   m_N3IwfIdIsSet = false;
-  m_GNbIdIsSet   = false;
-  m_NgeNbId      = "";
+  m_GNbIdIsSet = false;
+  m_NgeNbId = "";
   m_NgeNbIdIsSet = false;
-  m_WagfId       = "";
-  m_WagfIdIsSet  = false;
-  m_TngfId       = "";
-  m_TngfIdIsSet  = false;
-  m_Nid          = "";
-  m_NidIsSet     = false;
-  m_ENbId        = "";
-  m_ENbIdIsSet   = false;
+  m_WagfId = "";
+  m_WagfIdIsSet = false;
+  m_TngfId = "";
+  m_TngfIdIsSet = false;
+  m_Nid = "";
+  m_NidIsSet = false;
+  m_ENbId = "";
+  m_ENbIdIsSet = false;
 }
 
 void GlobalRanNodeId::validate() const {
@@ -45,39 +46,39 @@ bool GlobalRanNodeId::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool GlobalRanNodeId::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool GlobalRanNodeId::validate(std::stringstream& msg,
+                               const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "GlobalRanNodeId" : pathPrefix;
 
   if (n3IwfIdIsSet()) {
-    const std::string& value           = m_N3IwfId;
+    const std::string& value = m_N3IwfId;
     const std::string currentValuePath = _pathPrefix + ".n3IwfId";
   }
 
   if (ngeNbIdIsSet()) {
-    const std::string& value           = m_NgeNbId;
+    const std::string& value = m_NgeNbId;
     const std::string currentValuePath = _pathPrefix + ".ngeNbId";
   }
 
   if (wagfIdIsSet()) {
-    const std::string& value           = m_WagfId;
+    const std::string& value = m_WagfId;
     const std::string currentValuePath = _pathPrefix + ".wagfId";
   }
 
   if (tngfIdIsSet()) {
-    const std::string& value           = m_TngfId;
+    const std::string& value = m_TngfId;
     const std::string currentValuePath = _pathPrefix + ".tngfId";
   }
 
   if (nidIsSet()) {
-    const std::string& value           = m_Nid;
+    const std::string& value = m_Nid;
     const std::string currentValuePath = _pathPrefix + ".nid";
   }
 
   if (eNbIdIsSet()) {
-    const std::string& value           = m_ENbId;
+    const std::string& value = m_ENbId;
     const std::string currentValuePath = _pathPrefix + ".eNbId";
   }
 
@@ -122,7 +123,7 @@ bool GlobalRanNodeId::operator!=(const GlobalRanNodeId& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const GlobalRanNodeId& o) {
-  j           = nlohmann::json();
+  j = nlohmann::json();
   j["plmnId"] = o.m_PlmnId;
   if (o.n3IwfIdIsSet()) j["n3IwfId"] = o.m_N3IwfId;
   if (o.gNbIdIsSet()) j["gNbId"] = o.m_GNbId;
@@ -165,102 +166,56 @@ void from_json(const nlohmann::json& j, GlobalRanNodeId& o) {
   }
 }
 
-PlmnId GlobalRanNodeId::getPlmnId() const {
-  return m_PlmnId;
-}
-void GlobalRanNodeId::setPlmnId(PlmnId const& value) {
-  m_PlmnId = value;
-}
-std::string GlobalRanNodeId::getN3IwfId() const {
-  return m_N3IwfId;
-}
+PlmnId GlobalRanNodeId::getPlmnId() const { return m_PlmnId; }
+void GlobalRanNodeId::setPlmnId(PlmnId const& value) { m_PlmnId = value; }
+std::string GlobalRanNodeId::getN3IwfId() const { return m_N3IwfId; }
 void GlobalRanNodeId::setN3IwfId(std::string const& value) {
-  m_N3IwfId      = value;
+  m_N3IwfId = value;
   m_N3IwfIdIsSet = true;
 }
-bool GlobalRanNodeId::n3IwfIdIsSet() const {
-  return m_N3IwfIdIsSet;
-}
-void GlobalRanNodeId::unsetN3IwfId() {
-  m_N3IwfIdIsSet = false;
-}
-GNbId GlobalRanNodeId::getGNbId() const {
-  return m_GNbId;
-}
+bool GlobalRanNodeId::n3IwfIdIsSet() const { return m_N3IwfIdIsSet; }
+void GlobalRanNodeId::unsetN3IwfId() { m_N3IwfIdIsSet = false; }
+GNbId GlobalRanNodeId::getGNbId() const { return m_GNbId; }
 void GlobalRanNodeId::setGNbId(GNbId const& value) {
-  m_GNbId      = value;
+  m_GNbId = value;
   m_GNbIdIsSet = true;
 }
-bool GlobalRanNodeId::gNbIdIsSet() const {
-  return m_GNbIdIsSet;
-}
-void GlobalRanNodeId::unsetGNbId() {
-  m_GNbIdIsSet = false;
-}
-std::string GlobalRanNodeId::getNgeNbId() const {
-  return m_NgeNbId;
-}
+bool GlobalRanNodeId::gNbIdIsSet() const { return m_GNbIdIsSet; }
+void GlobalRanNodeId::unsetGNbId() { m_GNbIdIsSet = false; }
+std::string GlobalRanNodeId::getNgeNbId() const { return m_NgeNbId; }
 void GlobalRanNodeId::setNgeNbId(std::string const& value) {
-  m_NgeNbId      = value;
+  m_NgeNbId = value;
   m_NgeNbIdIsSet = true;
 }
-bool GlobalRanNodeId::ngeNbIdIsSet() const {
-  return m_NgeNbIdIsSet;
-}
-void GlobalRanNodeId::unsetNgeNbId() {
-  m_NgeNbIdIsSet = false;
-}
-std::string GlobalRanNodeId::getWagfId() const {
-  return m_WagfId;
-}
+bool GlobalRanNodeId::ngeNbIdIsSet() const { return m_NgeNbIdIsSet; }
+void GlobalRanNodeId::unsetNgeNbId() { m_NgeNbIdIsSet = false; }
+std::string GlobalRanNodeId::getWagfId() const { return m_WagfId; }
 void GlobalRanNodeId::setWagfId(std::string const& value) {
-  m_WagfId      = value;
+  m_WagfId = value;
   m_WagfIdIsSet = true;
 }
-bool GlobalRanNodeId::wagfIdIsSet() const {
-  return m_WagfIdIsSet;
-}
-void GlobalRanNodeId::unsetWagfId() {
-  m_WagfIdIsSet = false;
-}
-std::string GlobalRanNodeId::getTngfId() const {
-  return m_TngfId;
-}
+bool GlobalRanNodeId::wagfIdIsSet() const { return m_WagfIdIsSet; }
+void GlobalRanNodeId::unsetWagfId() { m_WagfIdIsSet = false; }
+std::string GlobalRanNodeId::getTngfId() const { return m_TngfId; }
 void GlobalRanNodeId::setTngfId(std::string const& value) {
-  m_TngfId      = value;
+  m_TngfId = value;
   m_TngfIdIsSet = true;
 }
-bool GlobalRanNodeId::tngfIdIsSet() const {
-  return m_TngfIdIsSet;
-}
-void GlobalRanNodeId::unsetTngfId() {
-  m_TngfIdIsSet = false;
-}
-std::string GlobalRanNodeId::getNid() const {
-  return m_Nid;
-}
+bool GlobalRanNodeId::tngfIdIsSet() const { return m_TngfIdIsSet; }
+void GlobalRanNodeId::unsetTngfId() { m_TngfIdIsSet = false; }
+std::string GlobalRanNodeId::getNid() const { return m_Nid; }
 void GlobalRanNodeId::setNid(std::string const& value) {
-  m_Nid      = value;
+  m_Nid = value;
   m_NidIsSet = true;
 }
-bool GlobalRanNodeId::nidIsSet() const {
-  return m_NidIsSet;
-}
-void GlobalRanNodeId::unsetNid() {
-  m_NidIsSet = false;
-}
-std::string GlobalRanNodeId::getENbId() const {
-  return m_ENbId;
-}
+bool GlobalRanNodeId::nidIsSet() const { return m_NidIsSet; }
+void GlobalRanNodeId::unsetNid() { m_NidIsSet = false; }
+std::string GlobalRanNodeId::getENbId() const { return m_ENbId; }
 void GlobalRanNodeId::setENbId(std::string const& value) {
-  m_ENbId      = value;
+  m_ENbId = value;
   m_ENbIdIsSet = true;
 }
-bool GlobalRanNodeId::eNbIdIsSet() const {
-  return m_ENbIdIsSet;
-}
-void GlobalRanNodeId::unsetENbId() {
-  m_ENbIdIsSet = false;
-}
+bool GlobalRanNodeId::eNbIdIsSet() const { return m_ENbIdIsSet; }
+void GlobalRanNodeId::unsetENbId() { m_ENbIdIsSet = false; }
 
 }  // namespace oai::nef::model

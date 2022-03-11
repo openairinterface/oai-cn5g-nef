@@ -12,9 +12,10 @@
  */
 
 #include "RmInfo.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,9 +32,9 @@ bool RmInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool RmInfo::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool RmInfo::validate(std::stringstream& msg,
+                      const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "RmInfo" : pathPrefix;
 
   return success;
@@ -49,13 +50,11 @@ bool RmInfo::operator==(const RmInfo& rhs) const {
           ;
 }
 
-bool RmInfo::operator!=(const RmInfo& rhs) const {
-  return !(*this == rhs);
-}
+bool RmInfo::operator!=(const RmInfo& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const RmInfo& o) {
-  j               = nlohmann::json();
-  j["rmState"]    = o.m_RmState;
+  j = nlohmann::json();
+  j["rmState"] = o.m_RmState;
   j["accessType"] = o.m_AccessType;
 }
 
@@ -64,17 +63,9 @@ void from_json(const nlohmann::json& j, RmInfo& o) {
   j.at("accessType").get_to(o.m_AccessType);
 }
 
-RmState RmInfo::getRmState() const {
-  return m_RmState;
-}
-void RmInfo::setRmState(RmState const& value) {
-  m_RmState = value;
-}
-AccessType RmInfo::getAccessType() const {
-  return m_AccessType;
-}
-void RmInfo::setAccessType(AccessType const& value) {
-  m_AccessType = value;
-}
+RmState RmInfo::getRmState() const { return m_RmState; }
+void RmInfo::setRmState(RmState const& value) { m_RmState = value; }
+AccessType RmInfo::getAccessType() const { return m_AccessType; }
+void RmInfo::setAccessType(AccessType const& value) { m_AccessType = value; }
 
 }  // namespace oai::nef::model

@@ -13,15 +13,14 @@
  */
 
 #include "Lpi.h"
-#include "Helpers.h"
 
 #include <sstream>
 
+#include "Helpers.h"
+
 namespace oai::nef::model {
 
-Lpi::Lpi() {
-  m_ValidTimePeriodIsSet = false;
-}
+Lpi::Lpi() { m_ValidTimePeriodIsSet = false; }
 
 void Lpi::validate() const {
   std::stringstream msg;
@@ -30,13 +29,11 @@ void Lpi::validate() const {
   }
 }
 
-bool Lpi::validate(std::stringstream& msg) const {
-  return validate(msg, "");
-}
+bool Lpi::validate(std::stringstream& msg) const { return validate(msg, ""); }
 
-bool Lpi::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool Lpi::validate(std::stringstream& msg,
+                   const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Lpi" : pathPrefix;
 
   return success;
@@ -54,12 +51,10 @@ bool Lpi::operator==(const Lpi& rhs) const {
           ;
 }
 
-bool Lpi::operator!=(const Lpi& rhs) const {
-  return !(*this == rhs);
-}
+bool Lpi::operator!=(const Lpi& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const Lpi& o) {
-  j                       = nlohmann::json();
+  j = nlohmann::json();
   j["locationPrivacyInd"] = o.m_LocationPrivacyInd;
   if (o.validTimePeriodIsSet()) j["validTimePeriod"] = o.m_ValidTimePeriod;
 }
@@ -78,18 +73,12 @@ LocationPrivacyInd Lpi::getLocationPrivacyInd() const {
 void Lpi::setLocationPrivacyInd(LocationPrivacyInd const& value) {
   m_LocationPrivacyInd = value;
 }
-ValidTimePeriod Lpi::getValidTimePeriod() const {
-  return m_ValidTimePeriod;
-}
+ValidTimePeriod Lpi::getValidTimePeriod() const { return m_ValidTimePeriod; }
 void Lpi::setValidTimePeriod(ValidTimePeriod const& value) {
-  m_ValidTimePeriod      = value;
+  m_ValidTimePeriod = value;
   m_ValidTimePeriodIsSet = true;
 }
-bool Lpi::validTimePeriodIsSet() const {
-  return m_ValidTimePeriodIsSet;
-}
-void Lpi::unsetValidTimePeriod() {
-  m_ValidTimePeriodIsSet = false;
-}
+bool Lpi::validTimePeriodIsSet() const { return m_ValidTimePeriodIsSet; }
+void Lpi::unsetValidTimePeriod() { m_ValidTimePeriodIsSet = false; }
 
 }  // namespace oai::nef::model

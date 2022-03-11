@@ -19,11 +19,12 @@
 #ifndef LocationArea5G_H_
 #define LocationArea5G_H_
 
+#include <nlohmann/json.hpp>
+#include <vector>
+
 #include "CivicAddress.h"
 #include "GeographicArea.h"
 #include "NetworkAreaInfo.h"
-#include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

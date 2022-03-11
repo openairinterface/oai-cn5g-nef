@@ -19,9 +19,10 @@
 #ifndef Ncgi_H_
 #define Ncgi_H_
 
-#include <string>
-#include "PlmnId.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "PlmnId.h"
 
 namespace oai::nef::model {
 

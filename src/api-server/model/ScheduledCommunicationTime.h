@@ -19,9 +19,9 @@
 #ifndef ScheduledCommunicationTime_H_
 #define ScheduledCommunicationTime_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

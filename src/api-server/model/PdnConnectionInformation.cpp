@@ -12,20 +12,21 @@
  */
 
 #include "PdnConnectionInformation.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 PdnConnectionInformation::PdnConnectionInformation() {
-  m_Apn               = "";
-  m_ApnIsSet          = false;
+  m_Apn = "";
+  m_ApnIsSet = false;
   m_InterfaceIndIsSet = false;
-  m_Ipv4Addr          = "";
-  m_Ipv4AddrIsSet     = false;
-  m_Ipv6AddrsIsSet    = false;
-  m_MacAddrsIsSet     = false;
+  m_Ipv4Addr = "";
+  m_Ipv4AddrIsSet = false;
+  m_Ipv6AddrsIsSet = false;
+  m_MacAddrsIsSet = false;
 }
 
 void PdnConnectionInformation::validate() const {
@@ -39,15 +40,15 @@ bool PdnConnectionInformation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PdnConnectionInformation::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool PdnConnectionInformation::validate(std::stringstream& msg,
+                                        const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PdnConnectionInformation" : pathPrefix;
 
   if (ipv6AddrsIsSet()) {
     const std::vector<std::string>& value = m_Ipv6Addrs;
-    const std::string currentValuePath    = _pathPrefix + ".ipv6Addrs";
+    const std::string currentValuePath = _pathPrefix + ".ipv6Addrs";
 
     if (value.size() < 1) {
       success = false;
@@ -55,7 +56,7 @@ bool PdnConnectionInformation::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -67,7 +68,7 @@ bool PdnConnectionInformation::validate(
 
   if (macAddrsIsSet()) {
     const std::vector<std::string>& value = m_MacAddrs;
-    const std::string currentValuePath    = _pathPrefix + ".macAddrs";
+    const std::string currentValuePath = _pathPrefix + ".macAddrs";
 
     if (value.size() < 1) {
       success = false;
@@ -75,7 +76,7 @@ bool PdnConnectionInformation::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -124,7 +125,7 @@ bool PdnConnectionInformation::operator!=(
 }
 
 void to_json(nlohmann::json& j, const PdnConnectionInformation& o) {
-  j           = nlohmann::json();
+  j = nlohmann::json();
   j["status"] = o.m_Status;
   if (o.apnIsSet()) j["apn"] = o.m_Apn;
   j["pdnType"] = o.m_PdnType;
@@ -166,22 +167,14 @@ PdnConnectionStatus PdnConnectionInformation::getStatus() const {
 void PdnConnectionInformation::setStatus(PdnConnectionStatus const& value) {
   m_Status = value;
 }
-std::string PdnConnectionInformation::getApn() const {
-  return m_Apn;
-}
+std::string PdnConnectionInformation::getApn() const { return m_Apn; }
 void PdnConnectionInformation::setApn(std::string const& value) {
-  m_Apn      = value;
+  m_Apn = value;
   m_ApnIsSet = true;
 }
-bool PdnConnectionInformation::apnIsSet() const {
-  return m_ApnIsSet;
-}
-void PdnConnectionInformation::unsetApn() {
-  m_ApnIsSet = false;
-}
-PdnType PdnConnectionInformation::getPdnType() const {
-  return m_PdnType;
-}
+bool PdnConnectionInformation::apnIsSet() const { return m_ApnIsSet; }
+void PdnConnectionInformation::unsetApn() { m_ApnIsSet = false; }
+PdnType PdnConnectionInformation::getPdnType() const { return m_PdnType; }
 void PdnConnectionInformation::setPdnType(PdnType const& value) {
   m_PdnType = value;
 }
@@ -190,7 +183,7 @@ InterfaceIndication PdnConnectionInformation::getInterfaceInd() const {
 }
 void PdnConnectionInformation::setInterfaceInd(
     InterfaceIndication const& value) {
-  m_InterfaceInd      = value;
+  m_InterfaceInd = value;
   m_InterfaceIndIsSet = true;
 }
 bool PdnConnectionInformation::interfaceIndIsSet() const {
@@ -199,46 +192,34 @@ bool PdnConnectionInformation::interfaceIndIsSet() const {
 void PdnConnectionInformation::unsetInterfaceInd() {
   m_InterfaceIndIsSet = false;
 }
-std::string PdnConnectionInformation::getIpv4Addr() const {
-  return m_Ipv4Addr;
-}
+std::string PdnConnectionInformation::getIpv4Addr() const { return m_Ipv4Addr; }
 void PdnConnectionInformation::setIpv4Addr(std::string const& value) {
-  m_Ipv4Addr      = value;
+  m_Ipv4Addr = value;
   m_Ipv4AddrIsSet = true;
 }
-bool PdnConnectionInformation::ipv4AddrIsSet() const {
-  return m_Ipv4AddrIsSet;
-}
-void PdnConnectionInformation::unsetIpv4Addr() {
-  m_Ipv4AddrIsSet = false;
-}
+bool PdnConnectionInformation::ipv4AddrIsSet() const { return m_Ipv4AddrIsSet; }
+void PdnConnectionInformation::unsetIpv4Addr() { m_Ipv4AddrIsSet = false; }
 std::vector<std::string> PdnConnectionInformation::getIpv6Addrs() const {
   return m_Ipv6Addrs;
 }
 void PdnConnectionInformation::setIpv6Addrs(
     std::vector<std::string> const& value) {
-  m_Ipv6Addrs      = value;
+  m_Ipv6Addrs = value;
   m_Ipv6AddrsIsSet = true;
 }
 bool PdnConnectionInformation::ipv6AddrsIsSet() const {
   return m_Ipv6AddrsIsSet;
 }
-void PdnConnectionInformation::unsetIpv6Addrs() {
-  m_Ipv6AddrsIsSet = false;
-}
+void PdnConnectionInformation::unsetIpv6Addrs() { m_Ipv6AddrsIsSet = false; }
 std::vector<std::string> PdnConnectionInformation::getMacAddrs() const {
   return m_MacAddrs;
 }
 void PdnConnectionInformation::setMacAddrs(
     std::vector<std::string> const& value) {
-  m_MacAddrs      = value;
+  m_MacAddrs = value;
   m_MacAddrsIsSet = true;
 }
-bool PdnConnectionInformation::macAddrsIsSet() const {
-  return m_MacAddrsIsSet;
-}
-void PdnConnectionInformation::unsetMacAddrs() {
-  m_MacAddrsIsSet = false;
-}
+bool PdnConnectionInformation::macAddrsIsSet() const { return m_MacAddrsIsSet; }
+void PdnConnectionInformation::unsetMacAddrs() { m_MacAddrsIsSet = false; }
 
 }  // namespace oai::nef::model

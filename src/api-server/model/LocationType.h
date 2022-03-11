@@ -23,8 +23,9 @@
 #ifndef LocationType_H_
 #define LocationType_H_
 
-#include "LocationType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "LocationType_anyOf.h"
 
 namespace oai::nef::model {
 

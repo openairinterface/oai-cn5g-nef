@@ -19,8 +19,8 @@
 #ifndef CommunicationCollection_H_
 #define CommunicationCollection_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

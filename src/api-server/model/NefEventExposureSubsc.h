@@ -19,12 +19,13 @@
 #ifndef NefEventExposureSubsc_H_
 #define NefEventExposureSubsc_H_
 
-#include "NefEventSubs.h"
-#include "ReportingInformation.h"
-#include "NefEventNotification.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "NefEventNotification.h"
+#include "NefEventSubs.h"
+#include "ReportingInformation.h"
 
 namespace oai::nef::model {
 

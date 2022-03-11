@@ -19,10 +19,11 @@
 #ifndef UeMobilityInfo_H_
 #define UeMobilityInfo_H_
 
-#include "UeTrajectoryInfo.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "UeTrajectoryInfo.h"
 
 namespace oai::nef::model {
 

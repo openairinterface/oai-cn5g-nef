@@ -19,9 +19,9 @@
 #ifndef ScheduledCommunicationTime_1_H_
 #define ScheduledCommunicationTime_1_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 
@@ -85,8 +85,8 @@ class ScheduledCommunicationTime_1 {
   void unsetTimeOfDayEnd();
 
   friend void to_json(nlohmann::json& j, const ScheduledCommunicationTime_1& o);
-  friend void from_json(
-      const nlohmann::json& j, ScheduledCommunicationTime_1& o);
+  friend void from_json(const nlohmann::json& j,
+                        ScheduledCommunicationTime_1& o);
 
  protected:
   std::vector<int32_t> m_DaysOfWeek;

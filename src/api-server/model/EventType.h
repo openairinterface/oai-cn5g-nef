@@ -19,8 +19,9 @@
 #ifndef EventType_H_
 #define EventType_H_
 
-#include "EventType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "EventType_anyOf.h"
 
 namespace oai::nef::model {
 

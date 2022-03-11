@@ -19,8 +19,9 @@
 #ifndef SmallDataRateControl_H_
 #define SmallDataRateControl_H_
 
-#include "SmallDataRateControlTimeUnit.h"
 #include <nlohmann/json.hpp>
+
+#include "SmallDataRateControlTimeUnit.h"
 
 namespace oai::nef::model {
 

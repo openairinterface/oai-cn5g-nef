@@ -12,9 +12,10 @@
  */
 
 #include "SmallDataRateControlTimeUnit.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 

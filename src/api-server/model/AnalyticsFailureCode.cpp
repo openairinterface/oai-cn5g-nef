@@ -12,9 +12,10 @@
  */
 
 #include "AnalyticsFailureCode.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool AnalyticsFailureCode::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsFailureCode::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AnalyticsFailureCode::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsFailureCode" : pathPrefix;

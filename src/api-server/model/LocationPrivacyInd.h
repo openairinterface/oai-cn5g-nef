@@ -20,8 +20,9 @@
 #ifndef LocationPrivacyInd_H_
 #define LocationPrivacyInd_H_
 
-#include "LocationPrivacyInd_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "LocationPrivacyInd_anyOf.h"
 
 namespace oai::nef::model {
 

@@ -12,17 +12,18 @@
  */
 
 #include "SmContextStatusNotification.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 SmContextStatusNotification::SmContextStatusNotification() {
-  m_SmContextId              = "";
-  m_CauseIsSet               = false;
+  m_SmContextId = "";
+  m_CauseIsSet = false;
   m_SmallDataRateStatusIsSet = false;
-  m_ApnRateStatusIsSet       = false;
+  m_ApnRateStatusIsSet = false;
 }
 
 void SmContextStatusNotification::validate() const {
@@ -73,8 +74,8 @@ bool SmContextStatusNotification::operator!=(
 }
 
 void to_json(nlohmann::json& j, const SmContextStatusNotification& o) {
-  j                = nlohmann::json();
-  j["status"]      = o.m_Status;
+  j = nlohmann::json();
+  j["status"] = o.m_Status;
   j["smContextId"] = o.m_SmContextId;
   if (o.causeIsSet()) j["cause"] = o.m_Cause;
   if (o.smallDataRateStatusIsSet())
@@ -111,26 +112,20 @@ std::string SmContextStatusNotification::getSmContextId() const {
 void SmContextStatusNotification::setSmContextId(std::string const& value) {
   m_SmContextId = value;
 }
-ReleaseCause SmContextStatusNotification::getCause() const {
-  return m_Cause;
-}
+ReleaseCause SmContextStatusNotification::getCause() const { return m_Cause; }
 void SmContextStatusNotification::setCause(ReleaseCause const& value) {
-  m_Cause      = value;
+  m_Cause = value;
   m_CauseIsSet = true;
 }
-bool SmContextStatusNotification::causeIsSet() const {
-  return m_CauseIsSet;
-}
-void SmContextStatusNotification::unsetCause() {
-  m_CauseIsSet = false;
-}
+bool SmContextStatusNotification::causeIsSet() const { return m_CauseIsSet; }
+void SmContextStatusNotification::unsetCause() { m_CauseIsSet = false; }
 SmallDataRateStatus SmContextStatusNotification::getSmallDataRateStatus()
     const {
   return m_SmallDataRateStatus;
 }
 void SmContextStatusNotification::setSmallDataRateStatus(
     SmallDataRateStatus const& value) {
-  m_SmallDataRateStatus      = value;
+  m_SmallDataRateStatus = value;
   m_SmallDataRateStatusIsSet = true;
 }
 bool SmContextStatusNotification::smallDataRateStatusIsSet() const {
@@ -143,7 +138,7 @@ ApnRateStatus SmContextStatusNotification::getApnRateStatus() const {
   return m_ApnRateStatus;
 }
 void SmContextStatusNotification::setApnRateStatus(ApnRateStatus const& value) {
-  m_ApnRateStatus      = value;
+  m_ApnRateStatus = value;
   m_ApnRateStatusIsSet = true;
 }
 bool SmContextStatusNotification::apnRateStatusIsSet() const {

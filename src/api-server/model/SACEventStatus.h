@@ -21,8 +21,9 @@
 #ifndef SACEventStatus_H_
 #define SACEventStatus_H_
 
-#include "SACInfo.h"
 #include <nlohmann/json.hpp>
+
+#include "SACInfo.h"
 
 namespace oai::nef::model {
 

@@ -19,9 +19,10 @@
 #ifndef RouteInformation_H_
 #define RouteInformation_H_
 
-#include "Ipv6Addr_1.h"
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "Ipv6Addr_1.h"
 
 namespace oai::nef::model {
 

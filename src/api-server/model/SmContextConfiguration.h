@@ -19,9 +19,10 @@
 #ifndef SmContextConfiguration_H_
 #define SmContextConfiguration_H_
 
-#include "SmallDataRateStatus.h"
-#include "SmallDataRateControl.h"
 #include <nlohmann/json.hpp>
+
+#include "SmallDataRateControl.h"
+#include "SmallDataRateStatus.h"
 
 namespace oai::nef::model {
 

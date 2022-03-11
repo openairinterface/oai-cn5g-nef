@@ -12,18 +12,19 @@
  */
 
 #include "UeMobilityExposure.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 UeMobilityExposure::UeMobilityExposure() {
-  m_Ts                    = "";
-  m_TsIsSet               = false;
-  m_RecurringTimeIsSet    = false;
-  m_Duration              = 0;
-  m_DurationVariance      = 0.0f;
+  m_Ts = "";
+  m_TsIsSet = false;
+  m_RecurringTimeIsSet = false;
+  m_Duration = 0;
+  m_DurationVariance = 0.0f;
   m_DurationVarianceIsSet = false;
 }
 
@@ -38,14 +39,14 @@ bool UeMobilityExposure::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UeMobilityExposure::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool UeMobilityExposure::validate(std::stringstream& msg,
+                                  const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UeMobilityExposure" : pathPrefix;
 
   /* Duration */ {
-    const int32_t& value               = m_Duration;
+    const int32_t& value = m_Duration;
     const std::string currentValuePath = _pathPrefix + ".duration";
 
     if (value < 0) {
@@ -56,7 +57,7 @@ bool UeMobilityExposure::validate(
 
   /* LocInfo */ {
     const std::vector<UeLocationInfo>& value = m_LocInfo;
-    const std::string currentValuePath       = _pathPrefix + ".locInfo";
+    const std::string currentValuePath = _pathPrefix + ".locInfo";
 
     if (value.size() < 1) {
       success = false;
@@ -64,7 +65,7 @@ bool UeMobilityExposure::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const UeLocationInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -130,36 +131,26 @@ void from_json(const nlohmann::json& j, UeMobilityExposure& o) {
   j.at("locInfo").get_to(o.m_LocInfo);
 }
 
-std::string UeMobilityExposure::getTs() const {
-  return m_Ts;
-}
+std::string UeMobilityExposure::getTs() const { return m_Ts; }
 void UeMobilityExposure::setTs(std::string const& value) {
-  m_Ts      = value;
+  m_Ts = value;
   m_TsIsSet = true;
 }
-bool UeMobilityExposure::tsIsSet() const {
-  return m_TsIsSet;
-}
-void UeMobilityExposure::unsetTs() {
-  m_TsIsSet = false;
-}
+bool UeMobilityExposure::tsIsSet() const { return m_TsIsSet; }
+void UeMobilityExposure::unsetTs() { m_TsIsSet = false; }
 ScheduledCommunicationTime UeMobilityExposure::getRecurringTime() const {
   return m_RecurringTime;
 }
 void UeMobilityExposure::setRecurringTime(
     ScheduledCommunicationTime const& value) {
-  m_RecurringTime      = value;
+  m_RecurringTime = value;
   m_RecurringTimeIsSet = true;
 }
 bool UeMobilityExposure::recurringTimeIsSet() const {
   return m_RecurringTimeIsSet;
 }
-void UeMobilityExposure::unsetRecurringTime() {
-  m_RecurringTimeIsSet = false;
-}
-int32_t UeMobilityExposure::getDuration() const {
-  return m_Duration;
-}
+void UeMobilityExposure::unsetRecurringTime() { m_RecurringTimeIsSet = false; }
+int32_t UeMobilityExposure::getDuration() const { return m_Duration; }
 void UeMobilityExposure::setDuration(int32_t const value) {
   m_Duration = value;
 }
@@ -167,7 +158,7 @@ float UeMobilityExposure::getDurationVariance() const {
   return m_DurationVariance;
 }
 void UeMobilityExposure::setDurationVariance(float const value) {
-  m_DurationVariance      = value;
+  m_DurationVariance = value;
   m_DurationVarianceIsSet = true;
 }
 bool UeMobilityExposure::durationVarianceIsSet() const {

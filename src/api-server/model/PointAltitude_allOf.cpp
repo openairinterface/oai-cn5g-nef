@@ -13,15 +13,14 @@
  */
 
 #include "PointAltitude_allOf.h"
-#include "Helpers.h"
 
 #include <sstream>
 
+#include "Helpers.h"
+
 namespace oai::nef::model {
 
-PointAltitude_allOf::PointAltitude_allOf() {
-  m_Altitude = 0.0;
-}
+PointAltitude_allOf::PointAltitude_allOf() { m_Altitude = 0.0; }
 
 void PointAltitude_allOf::validate() const {
   std::stringstream msg;
@@ -34,14 +33,14 @@ bool PointAltitude_allOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PointAltitude_allOf::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool PointAltitude_allOf::validate(std::stringstream& msg,
+                                   const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PointAltitude_allOf" : pathPrefix;
 
   /* Altitude */ {
-    const double& value                = m_Altitude;
+    const double& value = m_Altitude;
     const std::string currentValuePath = _pathPrefix + ".altitude";
 
     if (value < -32767) {
@@ -72,8 +71,8 @@ bool PointAltitude_allOf::operator!=(const PointAltitude_allOf& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const PointAltitude_allOf& o) {
-  j             = nlohmann::json();
-  j["point"]    = o.m_Point;
+  j = nlohmann::json();
+  j["point"] = o.m_Point;
   j["altitude"] = o.m_Altitude;
 }
 
@@ -88,9 +87,7 @@ GeographicalCoordinates PointAltitude_allOf::getPoint() const {
 void PointAltitude_allOf::setPoint(GeographicalCoordinates const& value) {
   m_Point = value;
 }
-double PointAltitude_allOf::getAltitude() const {
-  return m_Altitude;
-}
+double PointAltitude_allOf::getAltitude() const { return m_Altitude; }
 void PointAltitude_allOf::setAltitude(double const value) {
   m_Altitude = value;
 }

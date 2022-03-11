@@ -19,8 +19,9 @@
 #ifndef _5GsUserState_H_
 #define _5GsUserState_H_
 
-#include "_5GsUserState_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "_5GsUserState_anyOf.h"
 
 namespace oai::nef::model {
 

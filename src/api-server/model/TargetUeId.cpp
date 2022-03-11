@@ -12,18 +12,19 @@
  */
 
 #include "TargetUeId.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 TargetUeId::TargetUeId() {
-  m_AnyUeInd          = false;
-  m_AnyUeIndIsSet     = false;
-  m_Gpsi              = "";
-  m_GpsiIsSet         = false;
-  m_ExterGroupId      = "";
+  m_AnyUeInd = false;
+  m_AnyUeIndIsSet = false;
+  m_Gpsi = "";
+  m_GpsiIsSet = false;
+  m_ExterGroupId = "";
   m_ExterGroupIdIsSet = false;
 }
 
@@ -38,14 +39,14 @@ bool TargetUeId::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TargetUeId::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool TargetUeId::validate(std::stringstream& msg,
+                          const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TargetUeId" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value           = m_Gpsi;
+    const std::string& value = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
@@ -95,44 +96,26 @@ void from_json(const nlohmann::json& j, TargetUeId& o) {
   }
 }
 
-bool TargetUeId::isAnyUeInd() const {
-  return m_AnyUeInd;
-}
+bool TargetUeId::isAnyUeInd() const { return m_AnyUeInd; }
 void TargetUeId::setAnyUeInd(bool const value) {
-  m_AnyUeInd      = value;
+  m_AnyUeInd = value;
   m_AnyUeIndIsSet = true;
 }
-bool TargetUeId::anyUeIndIsSet() const {
-  return m_AnyUeIndIsSet;
-}
-void TargetUeId::unsetAnyUeInd() {
-  m_AnyUeIndIsSet = false;
-}
-std::string TargetUeId::getGpsi() const {
-  return m_Gpsi;
-}
+bool TargetUeId::anyUeIndIsSet() const { return m_AnyUeIndIsSet; }
+void TargetUeId::unsetAnyUeInd() { m_AnyUeIndIsSet = false; }
+std::string TargetUeId::getGpsi() const { return m_Gpsi; }
 void TargetUeId::setGpsi(std::string const& value) {
-  m_Gpsi      = value;
+  m_Gpsi = value;
   m_GpsiIsSet = true;
 }
-bool TargetUeId::gpsiIsSet() const {
-  return m_GpsiIsSet;
-}
-void TargetUeId::unsetGpsi() {
-  m_GpsiIsSet = false;
-}
-std::string TargetUeId::getExterGroupId() const {
-  return m_ExterGroupId;
-}
+bool TargetUeId::gpsiIsSet() const { return m_GpsiIsSet; }
+void TargetUeId::unsetGpsi() { m_GpsiIsSet = false; }
+std::string TargetUeId::getExterGroupId() const { return m_ExterGroupId; }
 void TargetUeId::setExterGroupId(std::string const& value) {
-  m_ExterGroupId      = value;
+  m_ExterGroupId = value;
   m_ExterGroupIdIsSet = true;
 }
-bool TargetUeId::exterGroupIdIsSet() const {
-  return m_ExterGroupIdIsSet;
-}
-void TargetUeId::unsetExterGroupId() {
-  m_ExterGroupIdIsSet = false;
-}
+bool TargetUeId::exterGroupIdIsSet() const { return m_ExterGroupIdIsSet; }
+void TargetUeId::unsetExterGroupId() { m_ExterGroupIdIsSet = false; }
 
 }  // namespace oai::nef::model

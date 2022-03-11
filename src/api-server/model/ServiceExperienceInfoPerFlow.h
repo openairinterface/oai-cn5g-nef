@@ -19,12 +19,13 @@
 #ifndef ServiceExperienceInfoPerFlow_H_
 #define ServiceExperienceInfoPerFlow_H_
 
+#include <nlohmann/json.hpp>
+#include <string>
+
+#include "EthFlowDescription.h"
 #include "FlowInfo.h"
 #include "SvcExperience.h"
-#include "EthFlowDescription.h"
-#include <string>
 #include "TimeWindow.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 
@@ -97,8 +98,8 @@ class ServiceExperienceInfoPerFlow {
   void unsetEthTrafficFilter();
 
   friend void to_json(nlohmann::json& j, const ServiceExperienceInfoPerFlow& o);
-  friend void from_json(
-      const nlohmann::json& j, ServiceExperienceInfoPerFlow& o);
+  friend void from_json(const nlohmann::json& j,
+                        ServiceExperienceInfoPerFlow& o);
 
  protected:
   SvcExperience m_SvcExprc;

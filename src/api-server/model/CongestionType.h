@@ -22,8 +22,9 @@
 #ifndef CongestionType_H_
 #define CongestionType_H_
 
-#include "CongestionType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "CongestionType_anyOf.h"
 
 namespace oai::nef::model {
 

@@ -19,9 +19,10 @@
 #ifndef ReportingInformation_H_
 #define ReportingInformation_H_
 
-#include "NotificationMethod.h"
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "NotificationMethod.h"
 
 namespace oai::nef::model {
 

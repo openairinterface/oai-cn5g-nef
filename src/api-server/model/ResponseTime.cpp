@@ -12,9 +12,10 @@
  */
 
 #include "ResponseTime.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool ResponseTime::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ResponseTime::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool ResponseTime::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ResponseTime" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, ResponseTime& o) {
   from_json(j, o.m_value);
 }
 
-ResponseTime_anyOf ResponseTime::getValue() const {
-  return m_value;
-}
+ResponseTime_anyOf ResponseTime::getValue() const { return m_value; }
 
-void ResponseTime::setValue(ResponseTime_anyOf value) {
-  m_value = value;
-}
+void ResponseTime::setValue(ResponseTime_anyOf value) { m_value = value; }
 
 ResponseTime_anyOf::eResponseTime_anyOf ResponseTime::getEnumValue() const {
   return m_value.getValue();

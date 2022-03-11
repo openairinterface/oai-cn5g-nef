@@ -12,16 +12,17 @@
  */
 
 #include "WebsockNotifConfig.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 WebsockNotifConfig::WebsockNotifConfig() {
-  m_WebsocketUri             = "";
-  m_WebsocketUriIsSet        = false;
-  m_RequestWebsocketUri      = false;
+  m_WebsocketUri = "";
+  m_WebsocketUriIsSet = false;
+  m_RequestWebsocketUri = false;
   m_RequestWebsocketUriIsSet = false;
 }
 
@@ -36,8 +37,8 @@ bool WebsockNotifConfig::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool WebsockNotifConfig::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool WebsockNotifConfig::validate(std::stringstream& msg,
+                                  const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "WebsockNotifConfig" : pathPrefix;
@@ -85,20 +86,18 @@ std::string WebsockNotifConfig::getWebsocketUri() const {
   return m_WebsocketUri;
 }
 void WebsockNotifConfig::setWebsocketUri(std::string const& value) {
-  m_WebsocketUri      = value;
+  m_WebsocketUri = value;
   m_WebsocketUriIsSet = true;
 }
 bool WebsockNotifConfig::websocketUriIsSet() const {
   return m_WebsocketUriIsSet;
 }
-void WebsockNotifConfig::unsetWebsocketUri() {
-  m_WebsocketUriIsSet = false;
-}
+void WebsockNotifConfig::unsetWebsocketUri() { m_WebsocketUriIsSet = false; }
 bool WebsockNotifConfig::isRequestWebsocketUri() const {
   return m_RequestWebsocketUri;
 }
 void WebsockNotifConfig::setRequestWebsocketUri(bool const value) {
-  m_RequestWebsocketUri      = value;
+  m_RequestWebsocketUri = value;
   m_RequestWebsocketUriIsSet = true;
 }
 bool WebsockNotifConfig::requestWebsocketUriIsSet() const {

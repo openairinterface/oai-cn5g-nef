@@ -19,8 +19,9 @@
 #ifndef UeLocationInfo_H_
 #define UeLocationInfo_H_
 
-#include "LocationArea5G.h"
 #include <nlohmann/json.hpp>
+
+#include "LocationArea5G.h"
 
 namespace oai::nef::model {
 

@@ -19,10 +19,11 @@
 #ifndef UeCommunication_H_
 #define UeCommunication_H_
 
-#include "TrafficCharacterization.h"
-#include <string>
-#include "ScheduledCommunicationTime.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "ScheduledCommunicationTime.h"
+#include "TrafficCharacterization.h"
 
 namespace oai::nef::model {
 

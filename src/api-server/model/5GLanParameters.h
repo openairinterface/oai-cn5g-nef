@@ -19,15 +19,16 @@
 #ifndef _5GLanParameters_H_
 #define _5GLanParameters_H_
 
-#include "AaaUsage.h"
+#include <map>
+#include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
+
+#include "AaaUsage.h"
 #include "AppDescriptor.h"
 #include "Ipv6Addr.h"
 #include "PduSessionType.h"
-#include <map>
 #include "Snssai.h"
-#include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

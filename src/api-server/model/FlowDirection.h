@@ -28,8 +28,9 @@
 #ifndef FlowDirection_H_
 #define FlowDirection_H_
 
-#include "FlowDirection_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "FlowDirection_anyOf.h"
 
 namespace oai::nef::model {
 

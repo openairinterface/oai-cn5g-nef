@@ -13,9 +13,10 @@
  */
 
 #include "PositioningMethod.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -32,8 +33,8 @@ bool PositioningMethod::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PositioningMethod::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool PositioningMethod::validate(std::stringstream& msg,
+                                 const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PositioningMethod" : pathPrefix;
@@ -63,9 +64,7 @@ void from_json(const nlohmann::json& j, PositioningMethod& o) {
   from_json(j, o.m_value);
 }
 
-PositioningMethod_anyOf PositioningMethod::getValue() const {
-  return m_value;
-}
+PositioningMethod_anyOf PositioningMethod::getValue() const { return m_value; }
 
 void PositioningMethod::setValue(PositioningMethod_anyOf value) {
   m_value = value;

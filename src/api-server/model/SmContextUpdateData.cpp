@@ -12,16 +12,17 @@
  */
 
 #include "SmContextUpdateData.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 SmContextUpdateData::SmContextUpdateData() {
-  m_DlNiddEndPoint       = "";
-  m_DlNiddEndPointIsSet  = false;
-  m_NotificationUri      = "";
+  m_DlNiddEndPoint = "";
+  m_DlNiddEndPointIsSet = false;
+  m_NotificationUri = "";
   m_NotificationUriIsSet = false;
   m_SmContextConfigIsSet = false;
 }
@@ -37,8 +38,8 @@ bool SmContextUpdateData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmContextUpdateData::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool SmContextUpdateData::validate(std::stringstream& msg,
+                                   const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextUpdateData" : pathPrefix;
@@ -94,7 +95,7 @@ std::string SmContextUpdateData::getDlNiddEndPoint() const {
   return m_DlNiddEndPoint;
 }
 void SmContextUpdateData::setDlNiddEndPoint(std::string const& value) {
-  m_DlNiddEndPoint      = value;
+  m_DlNiddEndPoint = value;
   m_DlNiddEndPointIsSet = true;
 }
 bool SmContextUpdateData::dlNiddEndPointIsSet() const {
@@ -107,7 +108,7 @@ std::string SmContextUpdateData::getNotificationUri() const {
   return m_NotificationUri;
 }
 void SmContextUpdateData::setNotificationUri(std::string const& value) {
-  m_NotificationUri      = value;
+  m_NotificationUri = value;
   m_NotificationUriIsSet = true;
 }
 bool SmContextUpdateData::notificationUriIsSet() const {
@@ -121,7 +122,7 @@ SmContextConfiguration SmContextUpdateData::getSmContextConfig() const {
 }
 void SmContextUpdateData::setSmContextConfig(
     SmContextConfiguration const& value) {
-  m_SmContextConfig      = value;
+  m_SmContextConfig = value;
   m_SmContextConfigIsSet = true;
 }
 bool SmContextUpdateData::smContextConfigIsSet() const {

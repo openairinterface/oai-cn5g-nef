@@ -12,9 +12,10 @@
  */
 
 #include "AnalyticsFailureEventInfo.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool AnalyticsFailureEventInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsFailureEventInfo::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AnalyticsFailureEventInfo::validate(std::stringstream& msg,
+                                         const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsFailureEventInfo" : pathPrefix;
@@ -57,8 +58,8 @@ bool AnalyticsFailureEventInfo::operator!=(
 }
 
 void to_json(nlohmann::json& j, const AnalyticsFailureEventInfo& o) {
-  j                = nlohmann::json();
-  j["event"]       = o.m_Event;
+  j = nlohmann::json();
+  j["event"] = o.m_Event;
   j["failureCode"] = o.m_FailureCode;
 }
 
@@ -67,9 +68,7 @@ void from_json(const nlohmann::json& j, AnalyticsFailureEventInfo& o) {
   j.at("failureCode").get_to(o.m_FailureCode);
 }
 
-AnalyticsEvent AnalyticsFailureEventInfo::getEvent() const {
-  return m_Event;
-}
+AnalyticsEvent AnalyticsFailureEventInfo::getEvent() const { return m_Event; }
 void AnalyticsFailureEventInfo::setEvent(AnalyticsEvent const& value) {
   m_Event = value;
 }

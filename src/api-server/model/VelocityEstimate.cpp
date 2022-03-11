@@ -13,16 +13,17 @@
  */
 
 #include "VelocityEstimate.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 VelocityEstimate::VelocityEstimate() {
-  m_HSpeed       = 0.0f;
-  m_Bearing      = 0;
-  m_VSpeed       = 0.0f;
+  m_HSpeed = 0.0f;
+  m_Bearing = 0;
+  m_VSpeed = 0.0f;
   m_HUncertainty = 0.0f;
   m_VUncertainty = 0.0f;
 }
@@ -38,14 +39,14 @@ bool VelocityEstimate::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool VelocityEstimate::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool VelocityEstimate::validate(std::stringstream& msg,
+                                const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "VelocityEstimate" : pathPrefix;
 
   /* HSpeed */ {
-    const float& value                 = m_HSpeed;
+    const float& value = m_HSpeed;
     const std::string currentValuePath = _pathPrefix + ".hSpeed";
 
     if (value < static_cast<float>(0)) {
@@ -59,7 +60,7 @@ bool VelocityEstimate::validate(
   }
 
   /* Bearing */ {
-    const int32_t& value               = m_Bearing;
+    const int32_t& value = m_Bearing;
     const std::string currentValuePath = _pathPrefix + ".bearing";
 
     if (value < 0) {
@@ -73,7 +74,7 @@ bool VelocityEstimate::validate(
   }
 
   /* VSpeed */ {
-    const float& value                 = m_VSpeed;
+    const float& value = m_VSpeed;
     const std::string currentValuePath = _pathPrefix + ".vSpeed";
 
     if (value < static_cast<float>(0)) {
@@ -87,7 +88,7 @@ bool VelocityEstimate::validate(
   }
 
   /* HUncertainty */ {
-    const float& value                 = m_HUncertainty;
+    const float& value = m_HUncertainty;
     const std::string currentValuePath = _pathPrefix + ".hUncertainty";
 
     if (value < static_cast<float>(0)) {
@@ -101,7 +102,7 @@ bool VelocityEstimate::validate(
   }
 
   /* VUncertainty */ {
-    const float& value                 = m_VUncertainty;
+    const float& value = m_VUncertainty;
     const std::string currentValuePath = _pathPrefix + ".vUncertainty";
 
     if (value < static_cast<float>(0)) {
@@ -140,11 +141,11 @@ bool VelocityEstimate::operator!=(const VelocityEstimate& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const VelocityEstimate& o) {
-  j                 = nlohmann::json();
-  j["hSpeed"]       = o.m_HSpeed;
-  j["bearing"]      = o.m_Bearing;
-  j["vSpeed"]       = o.m_VSpeed;
-  j["vDirection"]   = o.m_VDirection;
+  j = nlohmann::json();
+  j["hSpeed"] = o.m_HSpeed;
+  j["bearing"] = o.m_Bearing;
+  j["vSpeed"] = o.m_VSpeed;
+  j["vDirection"] = o.m_VDirection;
   j["hUncertainty"] = o.m_HUncertainty;
   j["vUncertainty"] = o.m_VUncertainty;
 }
@@ -158,39 +159,23 @@ void from_json(const nlohmann::json& j, VelocityEstimate& o) {
   j.at("vUncertainty").get_to(o.m_VUncertainty);
 }
 
-float VelocityEstimate::getHSpeed() const {
-  return m_HSpeed;
-}
-void VelocityEstimate::setHSpeed(float const value) {
-  m_HSpeed = value;
-}
-int32_t VelocityEstimate::getBearing() const {
-  return m_Bearing;
-}
-void VelocityEstimate::setBearing(int32_t const value) {
-  m_Bearing = value;
-}
-float VelocityEstimate::getVSpeed() const {
-  return m_VSpeed;
-}
-void VelocityEstimate::setVSpeed(float const value) {
-  m_VSpeed = value;
-}
+float VelocityEstimate::getHSpeed() const { return m_HSpeed; }
+void VelocityEstimate::setHSpeed(float const value) { m_HSpeed = value; }
+int32_t VelocityEstimate::getBearing() const { return m_Bearing; }
+void VelocityEstimate::setBearing(int32_t const value) { m_Bearing = value; }
+float VelocityEstimate::getVSpeed() const { return m_VSpeed; }
+void VelocityEstimate::setVSpeed(float const value) { m_VSpeed = value; }
 VerticalDirection VelocityEstimate::getVDirection() const {
   return m_VDirection;
 }
 void VelocityEstimate::setVDirection(VerticalDirection const& value) {
   m_VDirection = value;
 }
-float VelocityEstimate::getHUncertainty() const {
-  return m_HUncertainty;
-}
+float VelocityEstimate::getHUncertainty() const { return m_HUncertainty; }
 void VelocityEstimate::setHUncertainty(float const value) {
   m_HUncertainty = value;
 }
-float VelocityEstimate::getVUncertainty() const {
-  return m_VUncertainty;
-}
+float VelocityEstimate::getVUncertainty() const { return m_VUncertainty; }
 void VelocityEstimate::setVUncertainty(float const value) {
   m_VUncertainty = value;
 }

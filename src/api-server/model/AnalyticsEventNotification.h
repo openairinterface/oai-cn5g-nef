@@ -19,10 +19,11 @@
 #ifndef AnalyticsEventNotification_H_
 #define AnalyticsEventNotification_H_
 
-#include "AnalyticsEventNotif.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "AnalyticsEventNotif.h"
 
 namespace oai::nef::model {
 

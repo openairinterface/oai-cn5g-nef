@@ -13,9 +13,10 @@
  */
 
 #include "LocationPrivacyInd.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -32,8 +33,8 @@ bool LocationPrivacyInd::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LocationPrivacyInd::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool LocationPrivacyInd::validate(std::stringstream& msg,
+                                  const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocationPrivacyInd" : pathPrefix;

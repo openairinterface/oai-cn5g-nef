@@ -19,9 +19,10 @@
 #ifndef CmInfoReport_H_
 #define CmInfoReport_H_
 
-#include <vector>
-#include "CmInfo.h"
 #include <nlohmann/json.hpp>
+#include <vector>
+
+#include "CmInfo.h"
 
 namespace oai::nef::model {
 

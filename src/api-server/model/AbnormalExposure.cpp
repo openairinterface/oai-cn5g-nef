@@ -12,20 +12,21 @@
  */
 
 #include "AbnormalExposure.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 AbnormalExposure::AbnormalExposure() {
-  m_GpsisIsSet        = false;
-  m_AppId             = "";
-  m_AppIdIsSet        = false;
-  m_Ratio             = 0;
-  m_RatioIsSet        = false;
-  m_Confidence        = 0;
-  m_ConfidenceIsSet   = false;
+  m_GpsisIsSet = false;
+  m_AppId = "";
+  m_AppIdIsSet = false;
+  m_Ratio = 0;
+  m_RatioIsSet = false;
+  m_Confidence = 0;
+  m_ConfidenceIsSet = false;
   m_AddtMeasInfoIsSet = false;
 }
 
@@ -40,15 +41,15 @@ bool AbnormalExposure::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AbnormalExposure::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AbnormalExposure::validate(std::stringstream& msg,
+                                const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AbnormalExposure" : pathPrefix;
 
   if (gpsisIsSet()) {
     const std::vector<std::string>& value = m_Gpsis;
-    const std::string currentValuePath    = _pathPrefix + ".gpsis";
+    const std::string currentValuePath = _pathPrefix + ".gpsis";
 
     if (value.size() < 1) {
       success = false;
@@ -56,7 +57,7 @@ bool AbnormalExposure::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -67,7 +68,7 @@ bool AbnormalExposure::validate(
   }
 
   if (ratioIsSet()) {
-    const int32_t& value               = m_Ratio;
+    const int32_t& value = m_Ratio;
     const std::string currentValuePath = _pathPrefix + ".ratio";
 
     if (value < 1) {
@@ -81,7 +82,7 @@ bool AbnormalExposure::validate(
   }
 
   if (confidenceIsSet()) {
-    const int32_t& value               = m_Confidence;
+    const int32_t& value = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -156,76 +157,44 @@ void from_json(const nlohmann::json& j, AbnormalExposure& o) {
   }
 }
 
-std::vector<std::string> AbnormalExposure::getGpsis() const {
-  return m_Gpsis;
-}
+std::vector<std::string> AbnormalExposure::getGpsis() const { return m_Gpsis; }
 void AbnormalExposure::setGpsis(std::vector<std::string> const& value) {
-  m_Gpsis      = value;
+  m_Gpsis = value;
   m_GpsisIsSet = true;
 }
-bool AbnormalExposure::gpsisIsSet() const {
-  return m_GpsisIsSet;
-}
-void AbnormalExposure::unsetGpsis() {
-  m_GpsisIsSet = false;
-}
-std::string AbnormalExposure::getAppId() const {
-  return m_AppId;
-}
+bool AbnormalExposure::gpsisIsSet() const { return m_GpsisIsSet; }
+void AbnormalExposure::unsetGpsis() { m_GpsisIsSet = false; }
+std::string AbnormalExposure::getAppId() const { return m_AppId; }
 void AbnormalExposure::setAppId(std::string const& value) {
-  m_AppId      = value;
+  m_AppId = value;
   m_AppIdIsSet = true;
 }
-bool AbnormalExposure::appIdIsSet() const {
-  return m_AppIdIsSet;
-}
-void AbnormalExposure::unsetAppId() {
-  m_AppIdIsSet = false;
-}
-Exception AbnormalExposure::getExcep() const {
-  return m_Excep;
-}
-void AbnormalExposure::setExcep(Exception const& value) {
-  m_Excep = value;
-}
-int32_t AbnormalExposure::getRatio() const {
-  return m_Ratio;
-}
+bool AbnormalExposure::appIdIsSet() const { return m_AppIdIsSet; }
+void AbnormalExposure::unsetAppId() { m_AppIdIsSet = false; }
+Exception AbnormalExposure::getExcep() const { return m_Excep; }
+void AbnormalExposure::setExcep(Exception const& value) { m_Excep = value; }
+int32_t AbnormalExposure::getRatio() const { return m_Ratio; }
 void AbnormalExposure::setRatio(int32_t const value) {
-  m_Ratio      = value;
+  m_Ratio = value;
   m_RatioIsSet = true;
 }
-bool AbnormalExposure::ratioIsSet() const {
-  return m_RatioIsSet;
-}
-void AbnormalExposure::unsetRatio() {
-  m_RatioIsSet = false;
-}
-int32_t AbnormalExposure::getConfidence() const {
-  return m_Confidence;
-}
+bool AbnormalExposure::ratioIsSet() const { return m_RatioIsSet; }
+void AbnormalExposure::unsetRatio() { m_RatioIsSet = false; }
+int32_t AbnormalExposure::getConfidence() const { return m_Confidence; }
 void AbnormalExposure::setConfidence(int32_t const value) {
-  m_Confidence      = value;
+  m_Confidence = value;
   m_ConfidenceIsSet = true;
 }
-bool AbnormalExposure::confidenceIsSet() const {
-  return m_ConfidenceIsSet;
-}
-void AbnormalExposure::unsetConfidence() {
-  m_ConfidenceIsSet = false;
-}
+bool AbnormalExposure::confidenceIsSet() const { return m_ConfidenceIsSet; }
+void AbnormalExposure::unsetConfidence() { m_ConfidenceIsSet = false; }
 AdditionalMeasurement AbnormalExposure::getAddtMeasInfo() const {
   return m_AddtMeasInfo;
 }
 void AbnormalExposure::setAddtMeasInfo(AdditionalMeasurement const& value) {
-  m_AddtMeasInfo      = value;
+  m_AddtMeasInfo = value;
   m_AddtMeasInfoIsSet = true;
 }
-bool AbnormalExposure::addtMeasInfoIsSet() const {
-  return m_AddtMeasInfoIsSet;
-}
-void AbnormalExposure::unsetAddtMeasInfo() {
-  m_AddtMeasInfoIsSet = false;
-}
+bool AbnormalExposure::addtMeasInfoIsSet() const { return m_AddtMeasInfoIsSet; }
+void AbnormalExposure::unsetAddtMeasInfo() { m_AddtMeasInfoIsSet = false; }
 
 }  // namespace oai::nef::model

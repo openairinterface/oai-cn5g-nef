@@ -12,17 +12,18 @@
  */
 
 #include "RouteInformation.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 RouteInformation::RouteInformation() {
-  m_Ipv4Addr      = "";
+  m_Ipv4Addr = "";
   m_Ipv4AddrIsSet = false;
   m_Ipv6AddrIsSet = false;
-  m_PortNumber    = 0;
+  m_PortNumber = 0;
 }
 
 void RouteInformation::validate() const {
@@ -36,19 +37,19 @@ bool RouteInformation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool RouteInformation::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool RouteInformation::validate(std::stringstream& msg,
+                                const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "RouteInformation" : pathPrefix;
 
   if (ipv4AddrIsSet()) {
-    const std::string& value           = m_Ipv4Addr;
+    const std::string& value = m_Ipv4Addr;
     const std::string currentValuePath = _pathPrefix + ".ipv4Addr";
   }
 
   /* PortNumber */ {
-    const int32_t& value               = m_PortNumber;
+    const int32_t& value = m_PortNumber;
     const std::string currentValuePath = _pathPrefix + ".portNumber";
 
     if (value < 0) {
@@ -99,35 +100,21 @@ void from_json(const nlohmann::json& j, RouteInformation& o) {
   j.at("portNumber").get_to(o.m_PortNumber);
 }
 
-std::string RouteInformation::getIpv4Addr() const {
-  return m_Ipv4Addr;
-}
+std::string RouteInformation::getIpv4Addr() const { return m_Ipv4Addr; }
 void RouteInformation::setIpv4Addr(std::string const& value) {
-  m_Ipv4Addr      = value;
+  m_Ipv4Addr = value;
   m_Ipv4AddrIsSet = true;
 }
-bool RouteInformation::ipv4AddrIsSet() const {
-  return m_Ipv4AddrIsSet;
-}
-void RouteInformation::unsetIpv4Addr() {
-  m_Ipv4AddrIsSet = false;
-}
-Ipv6Addr_1 RouteInformation::getIpv6Addr() const {
-  return m_Ipv6Addr;
-}
+bool RouteInformation::ipv4AddrIsSet() const { return m_Ipv4AddrIsSet; }
+void RouteInformation::unsetIpv4Addr() { m_Ipv4AddrIsSet = false; }
+Ipv6Addr_1 RouteInformation::getIpv6Addr() const { return m_Ipv6Addr; }
 void RouteInformation::setIpv6Addr(Ipv6Addr_1 const& value) {
-  m_Ipv6Addr      = value;
+  m_Ipv6Addr = value;
   m_Ipv6AddrIsSet = true;
 }
-bool RouteInformation::ipv6AddrIsSet() const {
-  return m_Ipv6AddrIsSet;
-}
-void RouteInformation::unsetIpv6Addr() {
-  m_Ipv6AddrIsSet = false;
-}
-int32_t RouteInformation::getPortNumber() const {
-  return m_PortNumber;
-}
+bool RouteInformation::ipv6AddrIsSet() const { return m_Ipv6AddrIsSet; }
+void RouteInformation::unsetIpv6Addr() { m_Ipv6AddrIsSet = false; }
+int32_t RouteInformation::getPortNumber() const { return m_PortNumber; }
 void RouteInformation::setPortNumber(int32_t const value) {
   m_PortNumber = value;
 }

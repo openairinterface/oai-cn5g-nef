@@ -20,8 +20,9 @@
 #ifndef LdrType_H_
 #define LdrType_H_
 
-#include "LdrType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "LdrType_anyOf.h"
 
 namespace oai::nef::model {
 

@@ -20,12 +20,13 @@
 #ifndef Polygon_H_
 #define Polygon_H_
 
-#include "GeographicalCoordinates.h"
-#include "GADShape.h"
+#include <nlohmann/json.hpp>
 #include <vector>
+
+#include "GADShape.h"
+#include "GeographicalCoordinates.h"
 #include "Polygon_allOf.h"
 #include "SupportedGADShapes.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

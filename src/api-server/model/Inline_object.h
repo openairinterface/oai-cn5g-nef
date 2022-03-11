@@ -19,9 +19,10 @@
 #ifndef Inline_object_H_
 #define Inline_object_H_
 
-#include <string>
-#include "DeliverReqData.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "DeliverReqData.h"
 
 namespace oai::nef::model {
 

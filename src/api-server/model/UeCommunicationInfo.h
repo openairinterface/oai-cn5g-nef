@@ -19,10 +19,11 @@
 #ifndef UeCommunicationInfo_H_
 #define UeCommunicationInfo_H_
 
-#include <string>
-#include "CommunicationCollection.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "CommunicationCollection.h"
 
 namespace oai::nef::model {
 

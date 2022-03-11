@@ -19,12 +19,13 @@
 #ifndef AnalyticsRequest_H_
 #define AnalyticsRequest_H_
 
-#include "AnalyticsEventFilter.h"
-#include <string>
-#include "TargetUeId.h"
-#include "AnalyticsEvent.h"
-#include "EventReportingRequirement.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "AnalyticsEvent.h"
+#include "AnalyticsEventFilter.h"
+#include "EventReportingRequirement.h"
+#include "TargetUeId.h"
 
 namespace oai::nef::model {
 

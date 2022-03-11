@@ -19,10 +19,11 @@
 #ifndef NefEventExposureNotif_H_
 #define NefEventExposureNotif_H_
 
-#include "NefEventNotification.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "NefEventNotification.h"
 
 namespace oai::nef::model {
 

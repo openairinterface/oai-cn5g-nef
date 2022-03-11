@@ -20,14 +20,15 @@
 #ifndef LocationInfo_H_
 #define LocationInfo_H_
 
+#include <nlohmann/json.hpp>
+#include <string>
+
 #include "AccuracyFulfilmentIndicator.h"
-#include "LdrType.h"
 #include "CivicAddress.h"
 #include "GeographicArea.h"
-#include "VelocityEstimate.h"
-#include <string>
+#include "LdrType.h"
 #include "PositioningMethod.h"
-#include <nlohmann/json.hpp>
+#include "VelocityEstimate.h"
 
 namespace oai::nef::model {
 

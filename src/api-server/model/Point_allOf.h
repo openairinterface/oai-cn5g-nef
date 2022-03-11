@@ -20,8 +20,9 @@
 #ifndef Point_allOf_H_
 #define Point_allOf_H_
 
-#include "GeographicalCoordinates.h"
 #include <nlohmann/json.hpp>
+
+#include "GeographicalCoordinates.h"
 
 namespace oai::nef::model {
 

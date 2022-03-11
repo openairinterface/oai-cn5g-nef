@@ -12,9 +12,10 @@
  */
 
 #include "5GsUserState.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool _5GsUserState::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool _5GsUserState::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool _5GsUserState::validate(std::stringstream& msg,
+                             const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "5GsUserState" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, _5GsUserState& o) {
   from_json(j, o.m_value);
 }
 
-_5GsUserState_anyOf _5GsUserState::getValue() const {
-  return m_value;
-}
+_5GsUserState_anyOf _5GsUserState::getValue() const { return m_value; }
 
-void _5GsUserState::setValue(_5GsUserState_anyOf value) {
-  m_value = value;
-}
+void _5GsUserState::setValue(_5GsUserState_anyOf value) { m_value = value; }
 
 _5GsUserState_anyOf::e_5GsUserState_anyOf _5GsUserState::getEnumValue() const {
   return m_value.getValue();

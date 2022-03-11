@@ -19,9 +19,10 @@
 #ifndef QosRequirement_H_
 #define QosRequirement_H_
 
-#include "QosResourceType.h"
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "QosResourceType.h"
 
 namespace oai::nef::model {
 

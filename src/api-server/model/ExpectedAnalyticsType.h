@@ -23,8 +23,9 @@
 #ifndef ExpectedAnalyticsType_H_
 #define ExpectedAnalyticsType_H_
 
-#include "ExpectedAnalyticsType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "ExpectedAnalyticsType_anyOf.h"
 
 namespace oai::nef::model {
 
@@ -73,8 +74,8 @@ class ExpectedAnalyticsType {
   friend void to_json(nlohmann::json& j, const ExpectedAnalyticsType& o);
   friend void from_json(const nlohmann::json& j, ExpectedAnalyticsType& o);
   friend void to_json(nlohmann::json& j, const ExpectedAnalyticsType_anyOf& o);
-  friend void from_json(
-      const nlohmann::json& j, ExpectedAnalyticsType_anyOf& o);
+  friend void from_json(const nlohmann::json& j,
+                        ExpectedAnalyticsType_anyOf& o);
 
  protected:
   ExpectedAnalyticsType_anyOf m_value;

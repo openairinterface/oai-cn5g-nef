@@ -19,9 +19,10 @@
 #ifndef LadnInfo_H_
 #define LadnInfo_H_
 
-#include <string>
-#include "PresenceState.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "PresenceState.h"
 
 namespace oai::nef::model {
 

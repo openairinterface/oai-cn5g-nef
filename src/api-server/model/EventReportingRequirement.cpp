@@ -12,25 +12,26 @@
  */
 
 #include "EventReportingRequirement.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 EventReportingRequirement::EventReportingRequirement() {
-  m_AccuracyIsSet      = false;
-  m_StartTs            = "";
-  m_StartTsIsSet       = false;
-  m_EndTs              = "";
-  m_EndTsIsSet         = false;
-  m_SampRatio          = 0;
-  m_SampRatioIsSet     = false;
-  m_MaxObjectNbr       = 0;
-  m_MaxObjectNbrIsSet  = false;
-  m_MaxSupiNbr         = 0;
-  m_MaxSupiNbrIsSet    = false;
-  m_TimeAnaNeeded      = "";
+  m_AccuracyIsSet = false;
+  m_StartTs = "";
+  m_StartTsIsSet = false;
+  m_EndTs = "";
+  m_EndTsIsSet = false;
+  m_SampRatio = 0;
+  m_SampRatioIsSet = false;
+  m_MaxObjectNbr = 0;
+  m_MaxObjectNbrIsSet = false;
+  m_MaxSupiNbr = 0;
+  m_MaxSupiNbrIsSet = false;
+  m_TimeAnaNeeded = "";
   m_TimeAnaNeededIsSet = false;
 }
 
@@ -45,14 +46,14 @@ bool EventReportingRequirement::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool EventReportingRequirement::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool EventReportingRequirement::validate(std::stringstream& msg,
+                                         const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "EventReportingRequirement" : pathPrefix;
 
   if (sampRatioIsSet()) {
-    const int32_t& value               = m_SampRatio;
+    const int32_t& value = m_SampRatio;
     const std::string currentValuePath = _pathPrefix + ".sampRatio";
 
     if (value < 1) {
@@ -66,7 +67,7 @@ bool EventReportingRequirement::validate(
   }
 
   if (maxObjectNbrIsSet()) {
-    const int32_t& value               = m_MaxObjectNbr;
+    const int32_t& value = m_MaxObjectNbr;
     const std::string currentValuePath = _pathPrefix + ".maxObjectNbr";
 
     if (value < 0) {
@@ -76,7 +77,7 @@ bool EventReportingRequirement::validate(
   }
 
   if (maxSupiNbrIsSet()) {
-    const int32_t& value               = m_MaxSupiNbr;
+    const int32_t& value = m_MaxSupiNbr;
     const std::string currentValuePath = _pathPrefix + ".maxSupiNbr";
 
     if (value < 0) {
@@ -169,63 +170,43 @@ void from_json(const nlohmann::json& j, EventReportingRequirement& o) {
   }
 }
 
-Accuracy EventReportingRequirement::getAccuracy() const {
-  return m_Accuracy;
-}
+Accuracy EventReportingRequirement::getAccuracy() const { return m_Accuracy; }
 void EventReportingRequirement::setAccuracy(Accuracy const& value) {
-  m_Accuracy      = value;
+  m_Accuracy = value;
   m_AccuracyIsSet = true;
 }
 bool EventReportingRequirement::accuracyIsSet() const {
   return m_AccuracyIsSet;
 }
-void EventReportingRequirement::unsetAccuracy() {
-  m_AccuracyIsSet = false;
-}
-std::string EventReportingRequirement::getStartTs() const {
-  return m_StartTs;
-}
+void EventReportingRequirement::unsetAccuracy() { m_AccuracyIsSet = false; }
+std::string EventReportingRequirement::getStartTs() const { return m_StartTs; }
 void EventReportingRequirement::setStartTs(std::string const& value) {
-  m_StartTs      = value;
+  m_StartTs = value;
   m_StartTsIsSet = true;
 }
-bool EventReportingRequirement::startTsIsSet() const {
-  return m_StartTsIsSet;
-}
-void EventReportingRequirement::unsetStartTs() {
-  m_StartTsIsSet = false;
-}
-std::string EventReportingRequirement::getEndTs() const {
-  return m_EndTs;
-}
+bool EventReportingRequirement::startTsIsSet() const { return m_StartTsIsSet; }
+void EventReportingRequirement::unsetStartTs() { m_StartTsIsSet = false; }
+std::string EventReportingRequirement::getEndTs() const { return m_EndTs; }
 void EventReportingRequirement::setEndTs(std::string const& value) {
-  m_EndTs      = value;
+  m_EndTs = value;
   m_EndTsIsSet = true;
 }
-bool EventReportingRequirement::endTsIsSet() const {
-  return m_EndTsIsSet;
-}
-void EventReportingRequirement::unsetEndTs() {
-  m_EndTsIsSet = false;
-}
-int32_t EventReportingRequirement::getSampRatio() const {
-  return m_SampRatio;
-}
+bool EventReportingRequirement::endTsIsSet() const { return m_EndTsIsSet; }
+void EventReportingRequirement::unsetEndTs() { m_EndTsIsSet = false; }
+int32_t EventReportingRequirement::getSampRatio() const { return m_SampRatio; }
 void EventReportingRequirement::setSampRatio(int32_t const value) {
-  m_SampRatio      = value;
+  m_SampRatio = value;
   m_SampRatioIsSet = true;
 }
 bool EventReportingRequirement::sampRatioIsSet() const {
   return m_SampRatioIsSet;
 }
-void EventReportingRequirement::unsetSampRatio() {
-  m_SampRatioIsSet = false;
-}
+void EventReportingRequirement::unsetSampRatio() { m_SampRatioIsSet = false; }
 int32_t EventReportingRequirement::getMaxObjectNbr() const {
   return m_MaxObjectNbr;
 }
 void EventReportingRequirement::setMaxObjectNbr(int32_t const value) {
-  m_MaxObjectNbr      = value;
+  m_MaxObjectNbr = value;
   m_MaxObjectNbrIsSet = true;
 }
 bool EventReportingRequirement::maxObjectNbrIsSet() const {
@@ -238,20 +219,18 @@ int32_t EventReportingRequirement::getMaxSupiNbr() const {
   return m_MaxSupiNbr;
 }
 void EventReportingRequirement::setMaxSupiNbr(int32_t const value) {
-  m_MaxSupiNbr      = value;
+  m_MaxSupiNbr = value;
   m_MaxSupiNbrIsSet = true;
 }
 bool EventReportingRequirement::maxSupiNbrIsSet() const {
   return m_MaxSupiNbrIsSet;
 }
-void EventReportingRequirement::unsetMaxSupiNbr() {
-  m_MaxSupiNbrIsSet = false;
-}
+void EventReportingRequirement::unsetMaxSupiNbr() { m_MaxSupiNbrIsSet = false; }
 std::string EventReportingRequirement::getTimeAnaNeeded() const {
   return m_TimeAnaNeeded;
 }
 void EventReportingRequirement::setTimeAnaNeeded(std::string const& value) {
-  m_TimeAnaNeeded      = value;
+  m_TimeAnaNeeded = value;
   m_TimeAnaNeededIsSet = true;
 }
 bool EventReportingRequirement::timeAnaNeededIsSet() const {

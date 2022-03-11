@@ -12,9 +12,10 @@
  */
 
 #include "PdnType.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,9 +32,9 @@ bool PdnType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PdnType::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool PdnType::validate(std::stringstream& msg,
+                       const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "PdnType" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -48,26 +49,18 @@ bool PdnType::operator==(const PdnType& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool PdnType::operator!=(const PdnType& rhs) const {
-  return !(*this == rhs);
-}
+bool PdnType::operator!=(const PdnType& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const PdnType& o) {
   j = nlohmann::json();
   to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, PdnType& o) {
-  from_json(j, o.m_value);
-}
+void from_json(const nlohmann::json& j, PdnType& o) { from_json(j, o.m_value); }
 
-PdnType_anyOf PdnType::getValue() const {
-  return m_value;
-}
+PdnType_anyOf PdnType::getValue() const { return m_value; }
 
-void PdnType::setValue(PdnType_anyOf value) {
-  m_value = value;
-}
+void PdnType::setValue(PdnType_anyOf value) { m_value = value; }
 
 PdnType_anyOf::ePdnType_anyOf PdnType::getEnumValue() const {
   return m_value.getValue();

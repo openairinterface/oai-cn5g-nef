@@ -19,11 +19,12 @@
 #ifndef NrLocation_H_
 #define NrLocation_H_
 
+#include <nlohmann/json.hpp>
+#include <string>
+
+#include "GlobalRanNodeId.h"
 #include "Ncgi.h"
 #include "Tai.h"
-#include <string>
-#include "GlobalRanNodeId.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

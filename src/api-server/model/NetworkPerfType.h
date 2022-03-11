@@ -27,8 +27,9 @@
 #ifndef NetworkPerfType_H_
 #define NetworkPerfType_H_
 
-#include "NetworkPerfType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "NetworkPerfType_anyOf.h"
 
 namespace oai::nef::model {
 

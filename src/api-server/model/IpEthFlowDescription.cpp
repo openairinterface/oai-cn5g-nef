@@ -12,15 +12,16 @@
  */
 
 #include "IpEthFlowDescription.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 IpEthFlowDescription::IpEthFlowDescription() {
-  m_IpTrafficFilter       = "";
-  m_IpTrafficFilterIsSet  = false;
+  m_IpTrafficFilter = "";
+  m_IpTrafficFilterIsSet = false;
   m_EthTrafficFilterIsSet = false;
 }
 
@@ -35,8 +36,8 @@ bool IpEthFlowDescription::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool IpEthFlowDescription::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool IpEthFlowDescription::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "IpEthFlowDescription" : pathPrefix;
@@ -83,7 +84,7 @@ std::string IpEthFlowDescription::getIpTrafficFilter() const {
   return m_IpTrafficFilter;
 }
 void IpEthFlowDescription::setIpTrafficFilter(std::string const& value) {
-  m_IpTrafficFilter      = value;
+  m_IpTrafficFilter = value;
   m_IpTrafficFilterIsSet = true;
 }
 bool IpEthFlowDescription::ipTrafficFilterIsSet() const {
@@ -97,7 +98,7 @@ EthFlowDescription IpEthFlowDescription::getEthTrafficFilter() const {
 }
 void IpEthFlowDescription::setEthTrafficFilter(
     EthFlowDescription const& value) {
-  m_EthTrafficFilter      = value;
+  m_EthTrafficFilter = value;
   m_EthTrafficFilterIsSet = true;
 }
 bool IpEthFlowDescription::ethTrafficFilterIsSet() const {

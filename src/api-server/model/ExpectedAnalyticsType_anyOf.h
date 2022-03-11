@@ -70,8 +70,8 @@ class ExpectedAnalyticsType_anyOf {
       ExpectedAnalyticsType_anyOf::eExpectedAnalyticsType_anyOf value);
 
   friend void to_json(nlohmann::json& j, const ExpectedAnalyticsType_anyOf& o);
-  friend void from_json(
-      const nlohmann::json& j, ExpectedAnalyticsType_anyOf& o);
+  friend void from_json(const nlohmann::json& j,
+                        ExpectedAnalyticsType_anyOf& o);
 
  protected:
   ExpectedAnalyticsType_anyOf::eExpectedAnalyticsType_anyOf m_value =

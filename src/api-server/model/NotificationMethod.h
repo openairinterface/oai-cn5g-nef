@@ -19,8 +19,9 @@
 #ifndef NotificationMethod_H_
 #define NotificationMethod_H_
 
-#include "NotificationMethod_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "NotificationMethod_anyOf.h"
 
 namespace oai::nef::model {
 

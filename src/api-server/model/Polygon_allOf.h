@@ -20,9 +20,10 @@
 #ifndef Polygon_allOf_H_
 #define Polygon_allOf_H_
 
-#include "GeographicalCoordinates.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <vector>
+
+#include "GeographicalCoordinates.h"
 
 namespace oai::nef::model {
 

@@ -19,11 +19,12 @@
 #ifndef UeMobilityExposure_H_
 #define UeMobilityExposure_H_
 
-#include "UeLocationInfo.h"
-#include <string>
-#include "ScheduledCommunicationTime.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "ScheduledCommunicationTime.h"
+#include "UeLocationInfo.h"
 
 namespace oai::nef::model {
 

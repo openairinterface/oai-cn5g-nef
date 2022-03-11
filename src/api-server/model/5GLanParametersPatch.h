@@ -19,11 +19,12 @@
 #ifndef _5GLanParametersPatch_H_
 #define _5GLanParametersPatch_H_
 
-#include <string>
-#include "AppDescriptorRm.h"
 #include <map>
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "AppDescriptorRm.h"
 
 namespace oai::nef::model {
 

@@ -12,9 +12,10 @@
  */
 
 #include "LocationType.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool LocationType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LocationType::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool LocationType::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocationType" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, LocationType& o) {
   from_json(j, o.m_value);
 }
 
-LocationType_anyOf LocationType::getValue() const {
-  return m_value;
-}
+LocationType_anyOf LocationType::getValue() const { return m_value; }
 
-void LocationType::setValue(LocationType_anyOf value) {
-  m_value = value;
-}
+void LocationType::setValue(LocationType_anyOf value) { m_value = value; }
 
 LocationType_anyOf::eLocationType_anyOf LocationType::getEnumValue() const {
   return m_value.getValue();

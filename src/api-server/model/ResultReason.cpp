@@ -12,9 +12,10 @@
  */
 
 #include "ResultReason.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool ResultReason::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ResultReason::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool ResultReason::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ResultReason" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, ResultReason& o) {
   from_json(j, o.m_value);
 }
 
-ResultReason_anyOf ResultReason::getValue() const {
-  return m_value;
-}
+ResultReason_anyOf ResultReason::getValue() const { return m_value; }
 
-void ResultReason::setValue(ResultReason_anyOf value) {
-  m_value = value;
-}
+void ResultReason::setValue(ResultReason_anyOf value) { m_value = value; }
 
 ResultReason_anyOf::eResultReason_anyOf ResultReason::getEnumValue() const {
   return m_value.getValue();

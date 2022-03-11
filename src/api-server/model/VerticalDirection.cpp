@@ -13,9 +13,11 @@
  */
 
 #include "VerticalDirection.h"
-#include "Helpers.h"
-#include <stdexcept>
+
 #include <sstream>
+#include <stdexcept>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -32,8 +34,8 @@ bool VerticalDirection::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool VerticalDirection::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool VerticalDirection::validate(std::stringstream& msg,
+                                 const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "VerticalDirection" : pathPrefix;

@@ -19,16 +19,17 @@
 #ifndef Report_H_
 #define Report_H_
 
-#include "ChangeOfSupiPeiAssociationReport.h"
-#include "CnType.h"
-#include "CmInfoReport.h"
-#include "RoamingStatusReport.h"
-#include <string>
-#include "PlmnId.h"
-#include "CnTypeChangeReport.h"
-#include <vector>
-#include "CmInfo.h"
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "ChangeOfSupiPeiAssociationReport.h"
+#include "CmInfo.h"
+#include "CmInfoReport.h"
+#include "CnType.h"
+#include "CnTypeChangeReport.h"
+#include "PlmnId.h"
+#include "RoamingStatusReport.h"
 
 namespace oai::nef::model {
 

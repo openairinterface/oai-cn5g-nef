@@ -19,19 +19,20 @@
 #ifndef AmfEventReport_H_
 #define AmfEventReport_H_
 
-#include "RmInfo.h"
-#include "UeReachability.h"
-#include "AmfEventState.h"
-#include "AmfEventArea.h"
+#include <nlohmann/json.hpp>
 #include <string>
-#include "UserLocation.h"
-#include "5GsUserStateInfo.h"
 #include <vector>
+
+#include "5GsUserStateInfo.h"
 #include "AccessType.h"
+#include "AmfEventArea.h"
+#include "AmfEventState.h"
 #include "AmfEventType.h"
 #include "CmInfo.h"
 #include "CommunicationFailure.h"
-#include <nlohmann/json.hpp>
+#include "RmInfo.h"
+#include "UeReachability.h"
+#include "UserLocation.h"
 
 namespace oai::nef::model {
 

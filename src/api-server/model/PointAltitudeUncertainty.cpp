@@ -13,16 +13,17 @@
  */
 
 #include "PointAltitudeUncertainty.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 PointAltitudeUncertainty::PointAltitudeUncertainty() {
-  m_Altitude            = 0.0;
+  m_Altitude = 0.0;
   m_UncertaintyAltitude = 0.0f;
-  m_Confidence          = 0;
+  m_Confidence = 0;
 }
 
 void PointAltitudeUncertainty::validate() const {
@@ -36,14 +37,14 @@ bool PointAltitudeUncertainty::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PointAltitudeUncertainty::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool PointAltitudeUncertainty::validate(std::stringstream& msg,
+                                        const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PointAltitudeUncertainty" : pathPrefix;
 
   /* Altitude */ {
-    const double& value                = m_Altitude;
+    const double& value = m_Altitude;
     const std::string currentValuePath = _pathPrefix + ".altitude";
 
     if (value < -32767) {
@@ -57,7 +58,7 @@ bool PointAltitudeUncertainty::validate(
   }
 
   /* UncertaintyAltitude */ {
-    const float& value                 = m_UncertaintyAltitude;
+    const float& value = m_UncertaintyAltitude;
     const std::string currentValuePath = _pathPrefix + ".uncertaintyAltitude";
 
     if (value < static_cast<float>(0)) {
@@ -67,7 +68,7 @@ bool PointAltitudeUncertainty::validate(
   }
 
   /* Confidence */ {
-    const int32_t& value               = m_Confidence;
+    const int32_t& value = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -108,13 +109,13 @@ bool PointAltitudeUncertainty::operator!=(
 }
 
 void to_json(nlohmann::json& j, const PointAltitudeUncertainty& o) {
-  j                        = nlohmann::json();
-  j["shape"]               = o.m_Shape;
-  j["point"]               = o.m_Point;
-  j["altitude"]            = o.m_Altitude;
-  j["uncertaintyEllipse"]  = o.m_UncertaintyEllipse;
+  j = nlohmann::json();
+  j["shape"] = o.m_Shape;
+  j["point"] = o.m_Point;
+  j["altitude"] = o.m_Altitude;
+  j["uncertaintyEllipse"] = o.m_UncertaintyEllipse;
   j["uncertaintyAltitude"] = o.m_UncertaintyAltitude;
-  j["confidence"]          = o.m_Confidence;
+  j["confidence"] = o.m_Confidence;
 }
 
 void from_json(const nlohmann::json& j, PointAltitudeUncertainty& o) {
@@ -138,9 +139,7 @@ GeographicalCoordinates PointAltitudeUncertainty::getPoint() const {
 void PointAltitudeUncertainty::setPoint(GeographicalCoordinates const& value) {
   m_Point = value;
 }
-double PointAltitudeUncertainty::getAltitude() const {
-  return m_Altitude;
-}
+double PointAltitudeUncertainty::getAltitude() const { return m_Altitude; }
 void PointAltitudeUncertainty::setAltitude(double const value) {
   m_Altitude = value;
 }
@@ -157,9 +156,7 @@ float PointAltitudeUncertainty::getUncertaintyAltitude() const {
 void PointAltitudeUncertainty::setUncertaintyAltitude(float const value) {
   m_UncertaintyAltitude = value;
 }
-int32_t PointAltitudeUncertainty::getConfidence() const {
-  return m_Confidence;
-}
+int32_t PointAltitudeUncertainty::getConfidence() const { return m_Confidence; }
 void PointAltitudeUncertainty::setConfidence(int32_t const value) {
   m_Confidence = value;
 }

@@ -19,9 +19,10 @@
 #ifndef AfAckInfo_H_
 #define AfAckInfo_H_
 
-#include <string>
-#include "AfResultInfo.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "AfResultInfo.h"
 
 namespace oai::nef::model {
 

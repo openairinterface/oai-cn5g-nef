@@ -19,9 +19,10 @@
 #ifndef CommunicationFailure_H_
 #define CommunicationFailure_H_
 
-#include "NgApCause.h"
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "NgApCause.h"
 
 namespace oai::nef::model {
 

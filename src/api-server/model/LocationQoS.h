@@ -19,9 +19,10 @@
 #ifndef LocationQoS_H_
 #define LocationQoS_H_
 
+#include <nlohmann/json.hpp>
+
 #include "LcsQosClass.h"
 #include "ResponseTime.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

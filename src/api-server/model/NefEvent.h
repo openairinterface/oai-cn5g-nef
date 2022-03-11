@@ -19,8 +19,9 @@
 #ifndef NefEvent_H_
 #define NefEvent_H_
 
-#include "NefEvent_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "NefEvent_anyOf.h"
 
 namespace oai::nef::model {
 

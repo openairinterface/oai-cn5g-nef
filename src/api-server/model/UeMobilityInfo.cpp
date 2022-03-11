@@ -12,15 +12,16 @@
  */
 
 #include "UeMobilityInfo.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 UeMobilityInfo::UeMobilityInfo() {
-  m_Supi       = "";
-  m_AppId      = "";
+  m_Supi = "";
+  m_AppId = "";
   m_AppIdIsSet = false;
 }
 
@@ -35,20 +36,20 @@ bool UeMobilityInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UeMobilityInfo::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool UeMobilityInfo::validate(std::stringstream& msg,
+                              const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UeMobilityInfo" : pathPrefix;
 
   /* Supi */ {
-    const std::string& value           = m_Supi;
+    const std::string& value = m_Supi;
     const std::string currentValuePath = _pathPrefix + ".supi";
   }
 
   /* UeTrajs */ {
     const std::vector<UeTrajectoryInfo>& value = m_UeTrajs;
-    const std::string currentValuePath         = _pathPrefix + ".ueTrajs";
+    const std::string currentValuePath = _pathPrefix + ".ueTrajs";
 
     if (value.size() < 1) {
       success = false;
@@ -56,7 +57,7 @@ bool UeMobilityInfo::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const UeTrajectoryInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -89,7 +90,7 @@ bool UeMobilityInfo::operator!=(const UeMobilityInfo& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const UeMobilityInfo& o) {
-  j         = nlohmann::json();
+  j = nlohmann::json();
   j["supi"] = o.m_Supi;
   if (o.appIdIsSet()) j["appId"] = o.m_AppId;
   j["ueTrajs"] = o.m_UeTrajs;
@@ -104,25 +105,15 @@ void from_json(const nlohmann::json& j, UeMobilityInfo& o) {
   j.at("ueTrajs").get_to(o.m_UeTrajs);
 }
 
-std::string UeMobilityInfo::getSupi() const {
-  return m_Supi;
-}
-void UeMobilityInfo::setSupi(std::string const& value) {
-  m_Supi = value;
-}
-std::string UeMobilityInfo::getAppId() const {
-  return m_AppId;
-}
+std::string UeMobilityInfo::getSupi() const { return m_Supi; }
+void UeMobilityInfo::setSupi(std::string const& value) { m_Supi = value; }
+std::string UeMobilityInfo::getAppId() const { return m_AppId; }
 void UeMobilityInfo::setAppId(std::string const& value) {
-  m_AppId      = value;
+  m_AppId = value;
   m_AppIdIsSet = true;
 }
-bool UeMobilityInfo::appIdIsSet() const {
-  return m_AppIdIsSet;
-}
-void UeMobilityInfo::unsetAppId() {
-  m_AppIdIsSet = false;
-}
+bool UeMobilityInfo::appIdIsSet() const { return m_AppIdIsSet; }
+void UeMobilityInfo::unsetAppId() { m_AppIdIsSet = false; }
 std::vector<UeTrajectoryInfo> UeMobilityInfo::getUeTrajs() const {
   return m_UeTrajs;
 }

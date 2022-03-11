@@ -12,9 +12,11 @@
  */
 
 #include "AssociationType_anyOf.h"
-#include "Helpers.h"
-#include <stdexcept>
+
 #include <sstream>
+#include <stdexcept>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +33,8 @@ bool AssociationType_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AssociationType_anyOf::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AssociationType_anyOf::validate(std::stringstream& msg,
+                                     const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AssociationType_anyOf" : pathPrefix;

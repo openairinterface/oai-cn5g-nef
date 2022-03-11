@@ -27,8 +27,9 @@
 #ifndef AnalyticsEvent_H_
 #define AnalyticsEvent_H_
 
-#include "AnalyticsEvent_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "AnalyticsEvent_anyOf.h"
 
 namespace oai::nef::model {
 

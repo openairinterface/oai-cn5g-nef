@@ -19,9 +19,10 @@
 #ifndef CircumstanceDescription_H_
 #define CircumstanceDescription_H_
 
-#include <string>
-#include "NetworkAreaInfo.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "NetworkAreaInfo.h"
 
 namespace oai::nef::model {
 

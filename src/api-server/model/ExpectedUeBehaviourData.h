@@ -19,15 +19,16 @@
 #ifndef ExpectedUeBehaviourData_H_
 #define ExpectedUeBehaviourData_H_
 
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
 #include "BatteryIndication.h"
 #include "LocationArea.h"
-#include "ScheduledCommunicationType.h"
-#include "TrafficProfile.h"
-#include <string>
 #include "ScheduledCommunicationTime_1.h"
-#include <vector>
+#include "ScheduledCommunicationType.h"
 #include "StationaryIndication.h"
-#include <nlohmann/json.hpp>
+#include "TrafficProfile.h"
 
 namespace oai::nef::model {
 

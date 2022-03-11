@@ -19,15 +19,16 @@
 #ifndef AnalyticsData_H_
 #define AnalyticsData_H_
 
-#include "CongestInfo.h"
-#include <string>
-#include "UeCommunication.h"
-#include "AbnormalExposure.h"
-#include "QosSustainabilityExposure.h"
-#include <vector>
-#include "UeMobilityExposure.h"
-#include "NetworkPerfExposure.h"
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "AbnormalExposure.h"
+#include "CongestInfo.h"
+#include "NetworkPerfExposure.h"
+#include "QosSustainabilityExposure.h"
+#include "UeCommunication.h"
+#include "UeMobilityExposure.h"
 
 namespace oai::nef::model {
 

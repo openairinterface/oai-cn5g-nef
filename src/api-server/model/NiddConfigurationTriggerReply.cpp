@@ -12,9 +12,10 @@
  */
 
 #include "NiddConfigurationTriggerReply.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -40,7 +41,7 @@ bool NiddConfigurationTriggerReply::validate(
       pathPrefix.empty() ? "NiddConfigurationTriggerReply" : pathPrefix;
 
   /* SuppFeat */ {
-    const std::string& value           = m_SuppFeat;
+    const std::string& value = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -62,7 +63,7 @@ bool NiddConfigurationTriggerReply::operator!=(
 }
 
 void to_json(nlohmann::json& j, const NiddConfigurationTriggerReply& o) {
-  j             = nlohmann::json();
+  j = nlohmann::json();
   j["suppFeat"] = o.m_SuppFeat;
 }
 

@@ -19,13 +19,14 @@
 #ifndef AnalyticsExposureSubsc_H_
 #define AnalyticsExposureSubsc_H_
 
-#include "AnalyticsFailureEventInfo.h"
-#include "ReportingInformation.h"
-#include "AnalyticsEventNotif.h"
-#include "AnalyticsEventSubsc.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "AnalyticsEventNotif.h"
+#include "AnalyticsEventSubsc.h"
+#include "AnalyticsFailureEventInfo.h"
+#include "ReportingInformation.h"
 
 namespace oai::nef::model {
 

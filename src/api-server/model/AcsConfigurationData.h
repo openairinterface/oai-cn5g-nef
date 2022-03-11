@@ -19,9 +19,10 @@
 #ifndef AcsConfigurationData_H_
 #define AcsConfigurationData_H_
 
-#include <string>
-#include "AcsInfo.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "AcsInfo.h"
 
 namespace oai::nef::model {
 

@@ -19,9 +19,10 @@
 #ifndef NefEventSubs_H_
 #define NefEventSubs_H_
 
+#include <nlohmann/json.hpp>
+
 #include "NefEvent.h"
 #include "NefEventFilter.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

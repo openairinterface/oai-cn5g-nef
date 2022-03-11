@@ -19,11 +19,12 @@
 #ifndef ReachabilityReport_H_
 #define ReachabilityReport_H_
 
-#include "UeReachability.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
+
 #include "AccessType.h"
-#include <nlohmann/json.hpp>
+#include "UeReachability.h"
 
 namespace oai::nef::model {
 

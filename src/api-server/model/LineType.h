@@ -19,8 +19,9 @@
 #ifndef LineType_H_
 #define LineType_H_
 
-#include "LineType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "LineType_anyOf.h"
 
 namespace oai::nef::model {
 

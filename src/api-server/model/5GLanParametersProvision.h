@@ -19,9 +19,10 @@
 #ifndef _5GLanParametersProvision_H_
 #define _5GLanParametersProvision_H_
 
-#include <string>
-#include "5GLanParameters.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "5GLanParameters.h"
 
 namespace oai::nef::model {
 

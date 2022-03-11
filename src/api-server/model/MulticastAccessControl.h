@@ -19,10 +19,11 @@
 #ifndef MulticastAccessControl_H_
 #define MulticastAccessControl_H_
 
-#include "AccessRightStatus.h"
-#include <string>
-#include "Ipv6Addr.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "AccessRightStatus.h"
+#include "Ipv6Addr.h"
 
 namespace oai::nef::model {
 

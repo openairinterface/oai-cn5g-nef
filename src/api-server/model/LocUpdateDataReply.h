@@ -20,8 +20,8 @@
 #ifndef LocUpdateDataReply_H_
 #define LocUpdateDataReply_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

@@ -20,8 +20,9 @@
 #ifndef HorizontalWithVerticalVelocityAndUncertainty_H_
 #define HorizontalWithVerticalVelocityAndUncertainty_H_
 
-#include "VerticalDirection.h"
 #include <nlohmann/json.hpp>
+
+#include "VerticalDirection.h"
 
 namespace oai::nef::model {
 
@@ -90,10 +91,10 @@ class HorizontalWithVerticalVelocityAndUncertainty {
   float getVUncertainty() const;
   void setVUncertainty(float const value);
 
-  friend void to_json(
-      nlohmann::json& j, const HorizontalWithVerticalVelocityAndUncertainty& o);
-  friend void from_json(
-      const nlohmann::json& j, HorizontalWithVerticalVelocityAndUncertainty& o);
+  friend void to_json(nlohmann::json& j,
+                      const HorizontalWithVerticalVelocityAndUncertainty& o);
+  friend void from_json(const nlohmann::json& j,
+                        HorizontalWithVerticalVelocityAndUncertainty& o);
 
  protected:
   float m_HSpeed;

@@ -12,9 +12,10 @@
  */
 
 #include "SmContextReleaseData.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool SmContextReleaseData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmContextReleaseData::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool SmContextReleaseData::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextReleaseData" : pathPrefix;
@@ -53,7 +54,7 @@ bool SmContextReleaseData::operator!=(const SmContextReleaseData& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const SmContextReleaseData& o) {
-  j          = nlohmann::json();
+  j = nlohmann::json();
   j["cause"] = o.m_Cause;
 }
 
@@ -61,9 +62,7 @@ void from_json(const nlohmann::json& j, SmContextReleaseData& o) {
   j.at("cause").get_to(o.m_Cause);
 }
 
-ReleaseCause SmContextReleaseData::getCause() const {
-  return m_Cause;
-}
+ReleaseCause SmContextReleaseData::getCause() const { return m_Cause; }
 void SmContextReleaseData::setCause(ReleaseCause const& value) {
   m_Cause = value;
 }

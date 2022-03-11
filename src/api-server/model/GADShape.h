@@ -20,8 +20,9 @@
 #ifndef GADShape_H_
 #define GADShape_H_
 
-#include "SupportedGADShapes.h"
 #include <nlohmann/json.hpp>
+
+#include "SupportedGADShapes.h"
 
 namespace oai::nef::model {
 

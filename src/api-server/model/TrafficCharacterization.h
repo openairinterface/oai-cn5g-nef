@@ -19,11 +19,12 @@
 #ifndef TrafficCharacterization_H_
 #define TrafficCharacterization_H_
 
-#include "IpEthFlowDescription.h"
-#include <string>
-#include "Snssai.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "IpEthFlowDescription.h"
+#include "Snssai.h"
 
 namespace oai::nef::model {
 

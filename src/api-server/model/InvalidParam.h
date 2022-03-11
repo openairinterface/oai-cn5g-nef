@@ -20,8 +20,8 @@
 #ifndef InvalidParam_H_
 #define InvalidParam_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

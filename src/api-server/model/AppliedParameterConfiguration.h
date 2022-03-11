@@ -19,9 +19,9 @@
 #ifndef AppliedParameterConfiguration_H_
 #define AppliedParameterConfiguration_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 
@@ -94,10 +94,10 @@ class AppliedParameterConfiguration {
   bool maximumDetectionTimeIsSet() const;
   void unsetMaximumDetectionTime();
 
-  friend void to_json(
-      nlohmann::json& j, const AppliedParameterConfiguration& o);
-  friend void from_json(
-      const nlohmann::json& j, AppliedParameterConfiguration& o);
+  friend void to_json(nlohmann::json& j,
+                      const AppliedParameterConfiguration& o);
+  friend void from_json(const nlohmann::json& j,
+                        AppliedParameterConfiguration& o);
 
  protected:
   std::vector<std::string> m_ExternalIds;

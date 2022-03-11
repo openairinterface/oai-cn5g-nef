@@ -19,8 +19,9 @@
 #ifndef CmState_H_
 #define CmState_H_
 
-#include "CmState_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "CmState_anyOf.h"
 
 namespace oai::nef::model {
 

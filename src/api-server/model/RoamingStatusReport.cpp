@@ -12,15 +12,14 @@
  */
 
 #include "RoamingStatusReport.h"
-#include "Helpers.h"
 
 #include <sstream>
 
+#include "Helpers.h"
+
 namespace oai::nef::model {
 
-RoamingStatusReport::RoamingStatusReport() {
-  m_Roaming = false;
-}
+RoamingStatusReport::RoamingStatusReport() { m_Roaming = false; }
 
 void RoamingStatusReport::validate() const {
   std::stringstream msg;
@@ -33,8 +32,8 @@ bool RoamingStatusReport::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool RoamingStatusReport::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool RoamingStatusReport::validate(std::stringstream& msg,
+                                   const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "RoamingStatusReport" : pathPrefix;
@@ -57,8 +56,8 @@ bool RoamingStatusReport::operator!=(const RoamingStatusReport& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const RoamingStatusReport& o) {
-  j                   = nlohmann::json();
-  j["roaming"]        = o.m_Roaming;
+  j = nlohmann::json();
+  j["roaming"] = o.m_Roaming;
   j["newServingPlmn"] = o.m_NewServingPlmn;
 }
 
@@ -67,12 +66,8 @@ void from_json(const nlohmann::json& j, RoamingStatusReport& o) {
   j.at("newServingPlmn").get_to(o.m_NewServingPlmn);
 }
 
-bool RoamingStatusReport::isRoaming() const {
-  return m_Roaming;
-}
-void RoamingStatusReport::setRoaming(bool const value) {
-  m_Roaming = value;
-}
+bool RoamingStatusReport::isRoaming() const { return m_Roaming; }
+void RoamingStatusReport::setRoaming(bool const value) { m_Roaming = value; }
 PlmnId RoamingStatusReport::getNewServingPlmn() const {
   return m_NewServingPlmn;
 }

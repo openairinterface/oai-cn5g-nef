@@ -21,8 +21,9 @@
 #ifndef AssociationType_H_
 #define AssociationType_H_
 
-#include "AssociationType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "AssociationType_anyOf.h"
 
 namespace oai::nef::model {
 

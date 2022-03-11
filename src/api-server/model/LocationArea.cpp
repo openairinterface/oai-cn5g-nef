@@ -12,16 +12,17 @@
  */
 
 #include "LocationArea.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 LocationArea::LocationArea() {
   m_GeographicAreasIsSet = false;
-  m_CivicAddressesIsSet  = false;
-  m_NwAreaInfoIsSet      = false;
+  m_CivicAddressesIsSet = false;
+  m_NwAreaInfoIsSet = false;
 }
 
 void LocationArea::validate() const {
@@ -35,15 +36,15 @@ bool LocationArea::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LocationArea::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool LocationArea::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocationArea" : pathPrefix;
 
   if (geographicAreasIsSet()) {
     const std::vector<GeographicArea>& value = m_GeographicAreas;
-    const std::string currentValuePath       = _pathPrefix + ".geographicAreas";
+    const std::string currentValuePath = _pathPrefix + ".geographicAreas";
 
     if (value.size() < 0) {
       success = false;
@@ -51,7 +52,7 @@ bool LocationArea::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const GeographicArea& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -66,7 +67,7 @@ bool LocationArea::validate(
 
   if (civicAddressesIsSet()) {
     const std::vector<CivicAddress>& value = m_CivicAddresses;
-    const std::string currentValuePath     = _pathPrefix + ".civicAddresses";
+    const std::string currentValuePath = _pathPrefix + ".civicAddresses";
 
     if (value.size() < 0) {
       success = false;
@@ -74,7 +75,7 @@ bool LocationArea::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const CivicAddress& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -141,40 +142,28 @@ std::vector<GeographicArea> LocationArea::getGeographicAreas() const {
 }
 void LocationArea::setGeographicAreas(
     std::vector<GeographicArea> const& value) {
-  m_GeographicAreas      = value;
+  m_GeographicAreas = value;
   m_GeographicAreasIsSet = true;
 }
 bool LocationArea::geographicAreasIsSet() const {
   return m_GeographicAreasIsSet;
 }
-void LocationArea::unsetGeographicAreas() {
-  m_GeographicAreasIsSet = false;
-}
+void LocationArea::unsetGeographicAreas() { m_GeographicAreasIsSet = false; }
 std::vector<CivicAddress> LocationArea::getCivicAddresses() const {
   return m_CivicAddresses;
 }
 void LocationArea::setCivicAddresses(std::vector<CivicAddress> const& value) {
-  m_CivicAddresses      = value;
+  m_CivicAddresses = value;
   m_CivicAddressesIsSet = true;
 }
-bool LocationArea::civicAddressesIsSet() const {
-  return m_CivicAddressesIsSet;
-}
-void LocationArea::unsetCivicAddresses() {
-  m_CivicAddressesIsSet = false;
-}
-NetworkAreaInfo LocationArea::getNwAreaInfo() const {
-  return m_NwAreaInfo;
-}
+bool LocationArea::civicAddressesIsSet() const { return m_CivicAddressesIsSet; }
+void LocationArea::unsetCivicAddresses() { m_CivicAddressesIsSet = false; }
+NetworkAreaInfo LocationArea::getNwAreaInfo() const { return m_NwAreaInfo; }
 void LocationArea::setNwAreaInfo(NetworkAreaInfo const& value) {
-  m_NwAreaInfo      = value;
+  m_NwAreaInfo = value;
   m_NwAreaInfoIsSet = true;
 }
-bool LocationArea::nwAreaInfoIsSet() const {
-  return m_NwAreaInfoIsSet;
-}
-void LocationArea::unsetNwAreaInfo() {
-  m_NwAreaInfoIsSet = false;
-}
+bool LocationArea::nwAreaInfoIsSet() const { return m_NwAreaInfoIsSet; }
+void LocationArea::unsetNwAreaInfo() { m_NwAreaInfoIsSet = false; }
 
 }  // namespace oai::nef::model

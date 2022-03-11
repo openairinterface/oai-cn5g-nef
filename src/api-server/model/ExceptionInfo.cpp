@@ -12,16 +12,17 @@
  */
 
 #include "ExceptionInfo.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 ExceptionInfo::ExceptionInfo() {
-  m_IpTrafficFilterIsSet  = false;
+  m_IpTrafficFilterIsSet = false;
   m_EthTrafficFilterIsSet = false;
-  m_ExcepsIsSet           = false;
+  m_ExcepsIsSet = false;
 }
 
 void ExceptionInfo::validate() const {
@@ -35,15 +36,15 @@ bool ExceptionInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ExceptionInfo::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool ExceptionInfo::validate(std::stringstream& msg,
+                             const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExceptionInfo" : pathPrefix;
 
   if (excepsIsSet()) {
     const std::vector<Exception>& value = m_Exceps;
-    const std::string currentValuePath  = _pathPrefix + ".exceps";
+    const std::string currentValuePath = _pathPrefix + ".exceps";
 
     if (value.size() < 1) {
       success = false;
@@ -51,7 +52,7 @@ bool ExceptionInfo::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const Exception& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -109,44 +110,32 @@ void from_json(const nlohmann::json& j, ExceptionInfo& o) {
   }
 }
 
-FlowInfo ExceptionInfo::getIpTrafficFilter() const {
-  return m_IpTrafficFilter;
-}
+FlowInfo ExceptionInfo::getIpTrafficFilter() const { return m_IpTrafficFilter; }
 void ExceptionInfo::setIpTrafficFilter(FlowInfo const& value) {
-  m_IpTrafficFilter      = value;
+  m_IpTrafficFilter = value;
   m_IpTrafficFilterIsSet = true;
 }
 bool ExceptionInfo::ipTrafficFilterIsSet() const {
   return m_IpTrafficFilterIsSet;
 }
-void ExceptionInfo::unsetIpTrafficFilter() {
-  m_IpTrafficFilterIsSet = false;
-}
+void ExceptionInfo::unsetIpTrafficFilter() { m_IpTrafficFilterIsSet = false; }
 EthFlowDescription ExceptionInfo::getEthTrafficFilter() const {
   return m_EthTrafficFilter;
 }
 void ExceptionInfo::setEthTrafficFilter(EthFlowDescription const& value) {
-  m_EthTrafficFilter      = value;
+  m_EthTrafficFilter = value;
   m_EthTrafficFilterIsSet = true;
 }
 bool ExceptionInfo::ethTrafficFilterIsSet() const {
   return m_EthTrafficFilterIsSet;
 }
-void ExceptionInfo::unsetEthTrafficFilter() {
-  m_EthTrafficFilterIsSet = false;
-}
-std::vector<Exception> ExceptionInfo::getExceps() const {
-  return m_Exceps;
-}
+void ExceptionInfo::unsetEthTrafficFilter() { m_EthTrafficFilterIsSet = false; }
+std::vector<Exception> ExceptionInfo::getExceps() const { return m_Exceps; }
 void ExceptionInfo::setExceps(std::vector<Exception> const& value) {
-  m_Exceps      = value;
+  m_Exceps = value;
   m_ExcepsIsSet = true;
 }
-bool ExceptionInfo::excepsIsSet() const {
-  return m_ExcepsIsSet;
-}
-void ExceptionInfo::unsetExceps() {
-  m_ExcepsIsSet = false;
-}
+bool ExceptionInfo::excepsIsSet() const { return m_ExcepsIsSet; }
+void ExceptionInfo::unsetExceps() { m_ExcepsIsSet = false; }
 
 }  // namespace oai::nef::model

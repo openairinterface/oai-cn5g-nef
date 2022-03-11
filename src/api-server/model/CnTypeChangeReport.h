@@ -19,8 +19,9 @@
 #ifndef CnTypeChangeReport_H_
 #define CnTypeChangeReport_H_
 
-#include "CnType.h"
 #include <nlohmann/json.hpp>
+
+#include "CnType.h"
 
 namespace oai::nef::model {
 

@@ -21,8 +21,9 @@
 #ifndef SmfEvent_H_
 #define SmfEvent_H_
 
-#include "SmfEvent_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "SmfEvent_anyOf.h"
 
 namespace oai::nef::model {
 

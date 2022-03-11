@@ -12,15 +12,14 @@
  */
 
 #include "AppDescriptorRm.h"
-#include "Helpers.h"
 
 #include <sstream>
 
+#include "Helpers.h"
+
 namespace oai::nef::model {
 
-AppDescriptorRm::AppDescriptorRm() {
-  m_AppIdsIsSet = false;
-}
+AppDescriptorRm::AppDescriptorRm() { m_AppIdsIsSet = false; }
 
 void AppDescriptorRm::validate() const {
   std::stringstream msg;
@@ -33,15 +32,15 @@ bool AppDescriptorRm::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AppDescriptorRm::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AppDescriptorRm::validate(std::stringstream& msg,
+                               const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AppDescriptorRm" : pathPrefix;
 
   if (appIdsIsSet()) {
     const std::map<std::string, std::string>& value = m_AppIds;
-    const std::string currentValuePath              = _pathPrefix + ".appIds";
+    const std::string currentValuePath = _pathPrefix + ".appIds";
   }
 
   return success;
@@ -77,14 +76,10 @@ std::map<std::string, std::string> AppDescriptorRm::getAppIds() const {
 }
 void AppDescriptorRm::setAppIds(
     std::map<std::string, std::string> const& value) {
-  m_AppIds      = value;
+  m_AppIds = value;
   m_AppIdsIsSet = true;
 }
-bool AppDescriptorRm::appIdsIsSet() const {
-  return m_AppIdsIsSet;
-}
-void AppDescriptorRm::unsetAppIds() {
-  m_AppIdsIsSet = false;
-}
+bool AppDescriptorRm::appIdsIsSet() const { return m_AppIdsIsSet; }
+void AppDescriptorRm::unsetAppIds() { m_AppIdsIsSet = false; }
 
 }  // namespace oai::nef::model

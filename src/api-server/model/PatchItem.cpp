@@ -12,17 +12,19 @@
  */
 
 #include "PatchItem.h"
-#include "Helpers.h"
+
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai {
 namespace nef {
 namespace model {
 
 PatchItem::PatchItem() {
-  m_Path       = "";
-  m_From       = "";
-  m_FromIsSet  = false;
+  m_Path = "";
+  m_From = "";
+  m_FromIsSet = false;
   m_ValueIsSet = false;
 }
 
@@ -39,9 +41,9 @@ bool PatchItem::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PatchItem::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool PatchItem::validate(std::stringstream& msg,
+                         const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "PatchItem" : pathPrefix;
 
   return success;
@@ -68,8 +70,8 @@ bool PatchItem::operator!=(const PatchItem& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const PatchItem& o) {
-  j         = nlohmann::json();
-  j["op"]   = o.m_Op;
+  j = nlohmann::json();
+  j["op"] = o.m_Op;
   j["path"] = o.m_Path;
   if (o.fromIsSet()) j["from"] = o.m_From;
   if (o.valueIsSet()) j["value"] = o.m_Value;
@@ -88,44 +90,24 @@ void from_json(const nlohmann::json& j, PatchItem& o) {
   }
 }
 
-std::string PatchItem::getOp() const {
-  return m_Op;
-}
-void PatchItem::setOp(std::string const& value) {
-  m_Op = value;
-}
-std::string PatchItem::getPath() const {
-  return m_Path;
-}
-void PatchItem::setPath(std::string const& value) {
-  m_Path = value;
-}
-std::string PatchItem::getFrom() const {
-  return m_From;
-}
+std::string PatchItem::getOp() const { return m_Op; }
+void PatchItem::setOp(std::string const& value) { m_Op = value; }
+std::string PatchItem::getPath() const { return m_Path; }
+void PatchItem::setPath(std::string const& value) { m_Path = value; }
+std::string PatchItem::getFrom() const { return m_From; }
 void PatchItem::setFrom(std::string const& value) {
-  m_From      = value;
+  m_From = value;
   m_FromIsSet = true;
 }
-bool PatchItem::fromIsSet() const {
-  return m_FromIsSet;
-}
-void PatchItem::unsetFrom() {
-  m_FromIsSet = false;
-}
-std::string PatchItem::getValue() const {
-  return m_Value;
-}
+bool PatchItem::fromIsSet() const { return m_FromIsSet; }
+void PatchItem::unsetFrom() { m_FromIsSet = false; }
+std::string PatchItem::getValue() const { return m_Value; }
 void PatchItem::setValue(std::string const& value) {
-  m_Value      = value;
+  m_Value = value;
   m_ValueIsSet = true;
 }
-bool PatchItem::valueIsSet() const {
-  return m_ValueIsSet;
-}
-void PatchItem::unsetValue() {
-  m_ValueIsSet = false;
-}
+bool PatchItem::valueIsSet() const { return m_ValueIsSet; }
+void PatchItem::unsetValue() { m_ValueIsSet = false; }
 
 }  // namespace model
 }  // namespace nef

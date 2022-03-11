@@ -12,9 +12,10 @@
  */
 
 #include "DeliverReqData.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool DeliverReqData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool DeliverReqData::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool DeliverReqData::validate(std::stringstream& msg,
+                              const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "DeliverReqData" : pathPrefix;
@@ -53,7 +54,7 @@ bool DeliverReqData::operator!=(const DeliverReqData& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const DeliverReqData& o) {
-  j         = nlohmann::json();
+  j = nlohmann::json();
   j["data"] = o.m_Data;
 }
 
@@ -61,11 +62,7 @@ void from_json(const nlohmann::json& j, DeliverReqData& o) {
   j.at("data").get_to(o.m_Data);
 }
 
-RefToBinaryData DeliverReqData::getData() const {
-  return m_Data;
-}
-void DeliverReqData::setData(RefToBinaryData const& value) {
-  m_Data = value;
-}
+RefToBinaryData DeliverReqData::getData() const { return m_Data; }
+void DeliverReqData::setData(RefToBinaryData const& value) { m_Data = value; }
 
 }  // namespace oai::nef::model

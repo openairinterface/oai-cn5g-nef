@@ -12,15 +12,16 @@
  */
 
 #include "Snssai.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 Snssai::Snssai() {
-  m_Sst     = 0;
-  m_Sd      = "";
+  m_Sst = 0;
+  m_Sd = "";
   m_SdIsSet = false;
 }
 
@@ -35,13 +36,13 @@ bool Snssai::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Snssai::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool Snssai::validate(std::stringstream& msg,
+                      const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Snssai" : pathPrefix;
 
   /* Sst */ {
-    const int32_t& value               = m_Sst;
+    const int32_t& value = m_Sst;
     const std::string currentValuePath = _pathPrefix + ".sst";
 
     if (value < 0) {
@@ -55,7 +56,7 @@ bool Snssai::validate(
   }
 
   if (sdIsSet()) {
-    const std::string& value           = m_Sd;
+    const std::string& value = m_Sd;
     const std::string currentValuePath = _pathPrefix + ".sd";
   }
 
@@ -73,12 +74,10 @@ bool Snssai::operator==(const Snssai& rhs) const {
           ;
 }
 
-bool Snssai::operator!=(const Snssai& rhs) const {
-  return !(*this == rhs);
-}
+bool Snssai::operator!=(const Snssai& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const Snssai& o) {
-  j        = nlohmann::json();
+  j = nlohmann::json();
   j["sst"] = o.m_Sst;
   if (o.sdIsSet()) j["sd"] = o.m_Sd;
 }
@@ -91,24 +90,14 @@ void from_json(const nlohmann::json& j, Snssai& o) {
   }
 }
 
-int32_t Snssai::getSst() const {
-  return m_Sst;
-}
-void Snssai::setSst(int32_t const value) {
-  m_Sst = value;
-}
-std::string Snssai::getSd() const {
-  return m_Sd;
-}
+int32_t Snssai::getSst() const { return m_Sst; }
+void Snssai::setSst(int32_t const value) { m_Sst = value; }
+std::string Snssai::getSd() const { return m_Sd; }
 void Snssai::setSd(std::string const& value) {
-  m_Sd      = value;
+  m_Sd = value;
   m_SdIsSet = true;
 }
-bool Snssai::sdIsSet() const {
-  return m_SdIsSet;
-}
-void Snssai::unsetSd() {
-  m_SdIsSet = false;
-}
+bool Snssai::sdIsSet() const { return m_SdIsSet; }
+void Snssai::unsetSd() { m_SdIsSet = false; }
 
 }  // namespace oai::nef::model

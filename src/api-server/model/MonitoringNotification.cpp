@@ -12,21 +12,22 @@
  */
 
 #include "MonitoringNotification.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 MonitoringNotification::MonitoringNotification() {
-  m_Subscription                = "";
-  m_ConfigResultsIsSet          = false;
+  m_Subscription = "";
+  m_ConfigResultsIsSet = false;
   m_MonitoringEventReportsIsSet = false;
-  m_CancelInd                   = false;
-  m_CancelIndIsSet              = false;
-  m_CancelExternalIdsIsSet      = false;
-  m_CancelMsisdnsIsSet          = false;
-  m_AppliedParamIsSet           = false;
+  m_CancelInd = false;
+  m_CancelIndIsSet = false;
+  m_CancelExternalIdsIsSet = false;
+  m_CancelMsisdnsIsSet = false;
+  m_AppliedParamIsSet = false;
 }
 
 void MonitoringNotification::validate() const {
@@ -40,15 +41,15 @@ bool MonitoringNotification::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool MonitoringNotification::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool MonitoringNotification::validate(std::stringstream& msg,
+                                      const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "MonitoringNotification" : pathPrefix;
 
   if (configResultsIsSet()) {
     const std::vector<ConfigResult>& value = m_ConfigResults;
-    const std::string currentValuePath     = _pathPrefix + ".configResults";
+    const std::string currentValuePath = _pathPrefix + ".configResults";
 
     if (value.size() < 1) {
       success = false;
@@ -56,7 +57,7 @@ bool MonitoringNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const ConfigResult& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -80,7 +81,7 @@ bool MonitoringNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const MonitoringEventReport& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -96,7 +97,7 @@ bool MonitoringNotification::validate(
 
   if (cancelExternalIdsIsSet()) {
     const std::vector<std::string>& value = m_CancelExternalIds;
-    const std::string currentValuePath    = _pathPrefix + ".cancelExternalIds";
+    const std::string currentValuePath = _pathPrefix + ".cancelExternalIds";
 
     if (value.size() < 1) {
       success = false;
@@ -104,7 +105,7 @@ bool MonitoringNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -116,7 +117,7 @@ bool MonitoringNotification::validate(
 
   if (cancelMsisdnsIsSet()) {
     const std::vector<std::string>& value = m_CancelMsisdns;
-    const std::string currentValuePath    = _pathPrefix + ".cancelMsisdns";
+    const std::string currentValuePath = _pathPrefix + ".cancelMsisdns";
 
     if (value.size() < 1) {
       success = false;
@@ -124,7 +125,7 @@ bool MonitoringNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -176,7 +177,7 @@ bool MonitoringNotification::operator!=(
 }
 
 void to_json(nlohmann::json& j, const MonitoringNotification& o) {
-  j                 = nlohmann::json();
+  j = nlohmann::json();
   j["subscription"] = o.m_Subscription;
   if (o.configResultsIsSet() || !o.m_ConfigResults.empty())
     j["configResults"] = o.m_ConfigResults;
@@ -229,7 +230,7 @@ std::vector<ConfigResult> MonitoringNotification::getConfigResults() const {
 }
 void MonitoringNotification::setConfigResults(
     std::vector<ConfigResult> const& value) {
-  m_ConfigResults      = value;
+  m_ConfigResults = value;
   m_ConfigResultsIsSet = true;
 }
 bool MonitoringNotification::configResultsIsSet() const {
@@ -244,7 +245,7 @@ MonitoringNotification::getMonitoringEventReports() const {
 }
 void MonitoringNotification::setMonitoringEventReports(
     std::vector<MonitoringEventReport> const& value) {
-  m_MonitoringEventReports      = value;
+  m_MonitoringEventReports = value;
   m_MonitoringEventReportsIsSet = true;
 }
 bool MonitoringNotification::monitoringEventReportsIsSet() const {
@@ -253,25 +254,19 @@ bool MonitoringNotification::monitoringEventReportsIsSet() const {
 void MonitoringNotification::unsetMonitoringEventReports() {
   m_MonitoringEventReportsIsSet = false;
 }
-bool MonitoringNotification::isCancelInd() const {
-  return m_CancelInd;
-}
+bool MonitoringNotification::isCancelInd() const { return m_CancelInd; }
 void MonitoringNotification::setCancelInd(bool const value) {
-  m_CancelInd      = value;
+  m_CancelInd = value;
   m_CancelIndIsSet = true;
 }
-bool MonitoringNotification::cancelIndIsSet() const {
-  return m_CancelIndIsSet;
-}
-void MonitoringNotification::unsetCancelInd() {
-  m_CancelIndIsSet = false;
-}
+bool MonitoringNotification::cancelIndIsSet() const { return m_CancelIndIsSet; }
+void MonitoringNotification::unsetCancelInd() { m_CancelIndIsSet = false; }
 std::vector<std::string> MonitoringNotification::getCancelExternalIds() const {
   return m_CancelExternalIds;
 }
 void MonitoringNotification::setCancelExternalIds(
     std::vector<std::string> const& value) {
-  m_CancelExternalIds      = value;
+  m_CancelExternalIds = value;
   m_CancelExternalIdsIsSet = true;
 }
 bool MonitoringNotification::cancelExternalIdsIsSet() const {
@@ -285,7 +280,7 @@ std::vector<std::string> MonitoringNotification::getCancelMsisdns() const {
 }
 void MonitoringNotification::setCancelMsisdns(
     std::vector<std::string> const& value) {
-  m_CancelMsisdns      = value;
+  m_CancelMsisdns = value;
   m_CancelMsisdnsIsSet = true;
 }
 bool MonitoringNotification::cancelMsisdnsIsSet() const {
@@ -299,7 +294,7 @@ AppliedParameterConfiguration MonitoringNotification::getAppliedParam() const {
 }
 void MonitoringNotification::setAppliedParam(
     AppliedParameterConfiguration const& value) {
-  m_AppliedParam      = value;
+  m_AppliedParam = value;
   m_AppliedParamIsSet = true;
 }
 bool MonitoringNotification::appliedParamIsSet() const {

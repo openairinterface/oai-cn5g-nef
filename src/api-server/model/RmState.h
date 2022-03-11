@@ -19,8 +19,9 @@
 #ifndef RmState_H_
 #define RmState_H_
 
-#include "RmState_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "RmState_anyOf.h"
 
 namespace oai::nef::model {
 

@@ -19,9 +19,10 @@
 #ifndef SmContextUpdateData_H_
 #define SmContextUpdateData_H_
 
-#include <string>
-#include "SmContextConfiguration.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "SmContextConfiguration.h"
 
 namespace oai::nef::model {
 

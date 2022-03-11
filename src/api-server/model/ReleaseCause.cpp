@@ -12,9 +12,10 @@
  */
 
 #include "ReleaseCause.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool ReleaseCause::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ReleaseCause::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool ReleaseCause::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ReleaseCause" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, ReleaseCause& o) {
   from_json(j, o.m_value);
 }
 
-ReleaseCause_anyOf ReleaseCause::getValue() const {
-  return m_value;
-}
+ReleaseCause_anyOf ReleaseCause::getValue() const { return m_value; }
 
-void ReleaseCause::setValue(ReleaseCause_anyOf value) {
-  m_value = value;
-}
+void ReleaseCause::setValue(ReleaseCause_anyOf value) { m_value = value; }
 
 ReleaseCause_anyOf::eReleaseCause_anyOf ReleaseCause::getEnumValue() const {
   return m_value.getValue();

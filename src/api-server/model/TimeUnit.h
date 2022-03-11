@@ -20,8 +20,9 @@
 #ifndef TimeUnit_H_
 #define TimeUnit_H_
 
-#include "TimeUnit_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "TimeUnit_anyOf.h"
 
 namespace oai::nef::model {
 

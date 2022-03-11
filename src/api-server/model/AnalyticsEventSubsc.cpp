@@ -12,15 +12,16 @@
  */
 
 #include "AnalyticsEventSubsc.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 AnalyticsEventSubsc::AnalyticsEventSubsc() {
   m_AnalyEventFilterIsSet = false;
-  m_TgtUeIsSet            = false;
+  m_TgtUeIsSet = false;
 }
 
 void AnalyticsEventSubsc::validate() const {
@@ -34,8 +35,8 @@ bool AnalyticsEventSubsc::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsEventSubsc::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AnalyticsEventSubsc::validate(std::stringstream& msg,
+                                   const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsEventSubsc" : pathPrefix;
@@ -63,7 +64,7 @@ bool AnalyticsEventSubsc::operator!=(const AnalyticsEventSubsc& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AnalyticsEventSubsc& o) {
-  j               = nlohmann::json();
+  j = nlohmann::json();
   j["analyEvent"] = o.m_AnalyEvent;
   if (o.analyEventFilterIsSet()) j["analyEventFilter"] = o.m_AnalyEventFilter;
   if (o.tgtUeIsSet()) j["tgtUe"] = o.m_TgtUe;
@@ -92,7 +93,7 @@ AnalyticsEventFilterSubsc AnalyticsEventSubsc::getAnalyEventFilter() const {
 }
 void AnalyticsEventSubsc::setAnalyEventFilter(
     AnalyticsEventFilterSubsc const& value) {
-  m_AnalyEventFilter      = value;
+  m_AnalyEventFilter = value;
   m_AnalyEventFilterIsSet = true;
 }
 bool AnalyticsEventSubsc::analyEventFilterIsSet() const {
@@ -101,18 +102,12 @@ bool AnalyticsEventSubsc::analyEventFilterIsSet() const {
 void AnalyticsEventSubsc::unsetAnalyEventFilter() {
   m_AnalyEventFilterIsSet = false;
 }
-TargetUeId AnalyticsEventSubsc::getTgtUe() const {
-  return m_TgtUe;
-}
+TargetUeId AnalyticsEventSubsc::getTgtUe() const { return m_TgtUe; }
 void AnalyticsEventSubsc::setTgtUe(TargetUeId const& value) {
-  m_TgtUe      = value;
+  m_TgtUe = value;
   m_TgtUeIsSet = true;
 }
-bool AnalyticsEventSubsc::tgtUeIsSet() const {
-  return m_TgtUeIsSet;
-}
-void AnalyticsEventSubsc::unsetTgtUe() {
-  m_TgtUeIsSet = false;
-}
+bool AnalyticsEventSubsc::tgtUeIsSet() const { return m_TgtUeIsSet; }
+void AnalyticsEventSubsc::unsetTgtUe() { m_TgtUeIsSet = false; }
 
 }  // namespace oai::nef::model

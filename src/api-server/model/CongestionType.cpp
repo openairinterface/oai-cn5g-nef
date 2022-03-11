@@ -12,9 +12,10 @@
  */
 
 #include "CongestionType.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool CongestionType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CongestionType::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool CongestionType::validate(std::stringstream& msg,
+                              const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CongestionType" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, CongestionType& o) {
   from_json(j, o.m_value);
 }
 
-CongestionType_anyOf CongestionType::getValue() const {
-  return m_value;
-}
+CongestionType_anyOf CongestionType::getValue() const { return m_value; }
 
-void CongestionType::setValue(CongestionType_anyOf value) {
-  m_value = value;
-}
+void CongestionType::setValue(CongestionType_anyOf value) { m_value = value; }
 
 CongestionType_anyOf::eCongestionType_anyOf CongestionType::getEnumValue()
     const {

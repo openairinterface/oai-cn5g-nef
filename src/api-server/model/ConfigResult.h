@@ -19,10 +19,11 @@
 #ifndef ConfigResult_H_
 #define ConfigResult_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
+
 #include "ResultReason.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

@@ -13,18 +13,19 @@
  */
 
 #include "EllipsoidArc_allOf.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 EllipsoidArc_allOf::EllipsoidArc_allOf() {
-  m_InnerRadius       = 0;
+  m_InnerRadius = 0;
   m_UncertaintyRadius = 0.0f;
-  m_OffsetAngle       = 0;
-  m_IncludedAngle     = 0;
-  m_Confidence        = 0;
+  m_OffsetAngle = 0;
+  m_IncludedAngle = 0;
+  m_Confidence = 0;
 }
 
 void EllipsoidArc_allOf::validate() const {
@@ -38,14 +39,14 @@ bool EllipsoidArc_allOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool EllipsoidArc_allOf::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool EllipsoidArc_allOf::validate(std::stringstream& msg,
+                                  const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "EllipsoidArc_allOf" : pathPrefix;
 
   /* InnerRadius */ {
-    const int32_t& value               = m_InnerRadius;
+    const int32_t& value = m_InnerRadius;
     const std::string currentValuePath = _pathPrefix + ".innerRadius";
 
     if (value < 0) {
@@ -59,7 +60,7 @@ bool EllipsoidArc_allOf::validate(
   }
 
   /* UncertaintyRadius */ {
-    const float& value                 = m_UncertaintyRadius;
+    const float& value = m_UncertaintyRadius;
     const std::string currentValuePath = _pathPrefix + ".uncertaintyRadius";
 
     if (value < static_cast<float>(0)) {
@@ -69,7 +70,7 @@ bool EllipsoidArc_allOf::validate(
   }
 
   /* OffsetAngle */ {
-    const int32_t& value               = m_OffsetAngle;
+    const int32_t& value = m_OffsetAngle;
     const std::string currentValuePath = _pathPrefix + ".offsetAngle";
 
     if (value < 0) {
@@ -83,7 +84,7 @@ bool EllipsoidArc_allOf::validate(
   }
 
   /* IncludedAngle */ {
-    const int32_t& value               = m_IncludedAngle;
+    const int32_t& value = m_IncludedAngle;
     const std::string currentValuePath = _pathPrefix + ".includedAngle";
 
     if (value < 0) {
@@ -97,7 +98,7 @@ bool EllipsoidArc_allOf::validate(
   }
 
   /* Confidence */ {
-    const int32_t& value               = m_Confidence;
+    const int32_t& value = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -136,13 +137,13 @@ bool EllipsoidArc_allOf::operator!=(const EllipsoidArc_allOf& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const EllipsoidArc_allOf& o) {
-  j                      = nlohmann::json();
-  j["point"]             = o.m_Point;
-  j["innerRadius"]       = o.m_InnerRadius;
+  j = nlohmann::json();
+  j["point"] = o.m_Point;
+  j["innerRadius"] = o.m_InnerRadius;
   j["uncertaintyRadius"] = o.m_UncertaintyRadius;
-  j["offsetAngle"]       = o.m_OffsetAngle;
-  j["includedAngle"]     = o.m_IncludedAngle;
-  j["confidence"]        = o.m_Confidence;
+  j["offsetAngle"] = o.m_OffsetAngle;
+  j["includedAngle"] = o.m_IncludedAngle;
+  j["confidence"] = o.m_Confidence;
 }
 
 void from_json(const nlohmann::json& j, EllipsoidArc_allOf& o) {
@@ -154,15 +155,11 @@ void from_json(const nlohmann::json& j, EllipsoidArc_allOf& o) {
   j.at("confidence").get_to(o.m_Confidence);
 }
 
-GeographicalCoordinates EllipsoidArc_allOf::getPoint() const {
-  return m_Point;
-}
+GeographicalCoordinates EllipsoidArc_allOf::getPoint() const { return m_Point; }
 void EllipsoidArc_allOf::setPoint(GeographicalCoordinates const& value) {
   m_Point = value;
 }
-int32_t EllipsoidArc_allOf::getInnerRadius() const {
-  return m_InnerRadius;
-}
+int32_t EllipsoidArc_allOf::getInnerRadius() const { return m_InnerRadius; }
 void EllipsoidArc_allOf::setInnerRadius(int32_t const value) {
   m_InnerRadius = value;
 }
@@ -172,21 +169,15 @@ float EllipsoidArc_allOf::getUncertaintyRadius() const {
 void EllipsoidArc_allOf::setUncertaintyRadius(float const value) {
   m_UncertaintyRadius = value;
 }
-int32_t EllipsoidArc_allOf::getOffsetAngle() const {
-  return m_OffsetAngle;
-}
+int32_t EllipsoidArc_allOf::getOffsetAngle() const { return m_OffsetAngle; }
 void EllipsoidArc_allOf::setOffsetAngle(int32_t const value) {
   m_OffsetAngle = value;
 }
-int32_t EllipsoidArc_allOf::getIncludedAngle() const {
-  return m_IncludedAngle;
-}
+int32_t EllipsoidArc_allOf::getIncludedAngle() const { return m_IncludedAngle; }
 void EllipsoidArc_allOf::setIncludedAngle(int32_t const value) {
   m_IncludedAngle = value;
 }
-int32_t EllipsoidArc_allOf::getConfidence() const {
-  return m_Confidence;
-}
+int32_t EllipsoidArc_allOf::getConfidence() const { return m_Confidence; }
 void EllipsoidArc_allOf::setConfidence(int32_t const value) {
   m_Confidence = value;
 }

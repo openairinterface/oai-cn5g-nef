@@ -12,20 +12,21 @@
  */
 
 #include "DddTrafficDescriptor.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 DddTrafficDescriptor::DddTrafficDescriptor() {
-  m_Ipv4Addr        = "";
-  m_Ipv4AddrIsSet   = false;
-  m_Ipv6AddrIsSet   = false;
-  m_PortNumber      = 0;
+  m_Ipv4Addr = "";
+  m_Ipv4AddrIsSet = false;
+  m_Ipv6AddrIsSet = false;
+  m_PortNumber = 0;
   m_PortNumberIsSet = false;
-  m_MacAddr         = "";
-  m_MacAddrIsSet    = false;
+  m_MacAddr = "";
+  m_MacAddrIsSet = false;
 }
 
 void DddTrafficDescriptor::validate() const {
@@ -39,19 +40,19 @@ bool DddTrafficDescriptor::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool DddTrafficDescriptor::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool DddTrafficDescriptor::validate(std::stringstream& msg,
+                                    const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "DddTrafficDescriptor" : pathPrefix;
 
   if (ipv4AddrIsSet()) {
-    const std::string& value           = m_Ipv4Addr;
+    const std::string& value = m_Ipv4Addr;
     const std::string currentValuePath = _pathPrefix + ".ipv4Addr";
   }
 
   if (portNumberIsSet()) {
-    const int32_t& value               = m_PortNumber;
+    const int32_t& value = m_PortNumber;
     const std::string currentValuePath = _pathPrefix + ".portNumber";
 
     if (value < 0) {
@@ -61,7 +62,7 @@ bool DddTrafficDescriptor::validate(
   }
 
   if (macAddrIsSet()) {
-    const std::string& value           = m_MacAddr;
+    const std::string& value = m_MacAddr;
     const std::string currentValuePath = _pathPrefix + ".macAddr";
   }
 
@@ -121,57 +122,33 @@ void from_json(const nlohmann::json& j, DddTrafficDescriptor& o) {
   }
 }
 
-std::string DddTrafficDescriptor::getIpv4Addr() const {
-  return m_Ipv4Addr;
-}
+std::string DddTrafficDescriptor::getIpv4Addr() const { return m_Ipv4Addr; }
 void DddTrafficDescriptor::setIpv4Addr(std::string const& value) {
-  m_Ipv4Addr      = value;
+  m_Ipv4Addr = value;
   m_Ipv4AddrIsSet = true;
 }
-bool DddTrafficDescriptor::ipv4AddrIsSet() const {
-  return m_Ipv4AddrIsSet;
-}
-void DddTrafficDescriptor::unsetIpv4Addr() {
-  m_Ipv4AddrIsSet = false;
-}
-Ipv6Addr DddTrafficDescriptor::getIpv6Addr() const {
-  return m_Ipv6Addr;
-}
+bool DddTrafficDescriptor::ipv4AddrIsSet() const { return m_Ipv4AddrIsSet; }
+void DddTrafficDescriptor::unsetIpv4Addr() { m_Ipv4AddrIsSet = false; }
+Ipv6Addr DddTrafficDescriptor::getIpv6Addr() const { return m_Ipv6Addr; }
 void DddTrafficDescriptor::setIpv6Addr(Ipv6Addr const& value) {
-  m_Ipv6Addr      = value;
+  m_Ipv6Addr = value;
   m_Ipv6AddrIsSet = true;
 }
-bool DddTrafficDescriptor::ipv6AddrIsSet() const {
-  return m_Ipv6AddrIsSet;
-}
-void DddTrafficDescriptor::unsetIpv6Addr() {
-  m_Ipv6AddrIsSet = false;
-}
-int32_t DddTrafficDescriptor::getPortNumber() const {
-  return m_PortNumber;
-}
+bool DddTrafficDescriptor::ipv6AddrIsSet() const { return m_Ipv6AddrIsSet; }
+void DddTrafficDescriptor::unsetIpv6Addr() { m_Ipv6AddrIsSet = false; }
+int32_t DddTrafficDescriptor::getPortNumber() const { return m_PortNumber; }
 void DddTrafficDescriptor::setPortNumber(int32_t const value) {
-  m_PortNumber      = value;
+  m_PortNumber = value;
   m_PortNumberIsSet = true;
 }
-bool DddTrafficDescriptor::portNumberIsSet() const {
-  return m_PortNumberIsSet;
-}
-void DddTrafficDescriptor::unsetPortNumber() {
-  m_PortNumberIsSet = false;
-}
-std::string DddTrafficDescriptor::getMacAddr() const {
-  return m_MacAddr;
-}
+bool DddTrafficDescriptor::portNumberIsSet() const { return m_PortNumberIsSet; }
+void DddTrafficDescriptor::unsetPortNumber() { m_PortNumberIsSet = false; }
+std::string DddTrafficDescriptor::getMacAddr() const { return m_MacAddr; }
 void DddTrafficDescriptor::setMacAddr(std::string const& value) {
-  m_MacAddr      = value;
+  m_MacAddr = value;
   m_MacAddrIsSet = true;
 }
-bool DddTrafficDescriptor::macAddrIsSet() const {
-  return m_MacAddrIsSet;
-}
-void DddTrafficDescriptor::unsetMacAddr() {
-  m_MacAddrIsSet = false;
-}
+bool DddTrafficDescriptor::macAddrIsSet() const { return m_MacAddrIsSet; }
+void DddTrafficDescriptor::unsetMacAddr() { m_MacAddrIsSet = false; }
 
 }  // namespace oai::nef::model

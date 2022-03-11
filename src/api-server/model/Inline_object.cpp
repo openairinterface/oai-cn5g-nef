@@ -12,14 +12,15 @@
  */
 
 #include "Inline_object.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 Inline_object::Inline_object() {
-  m_JsonDataIsSet     = false;
+  m_JsonDataIsSet = false;
   m_BinaryMoDataIsSet = false;
 }
 
@@ -34,8 +35,8 @@ bool Inline_object::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Inline_object::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool Inline_object::validate(std::stringstream& msg,
+                             const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "Inline_object" : pathPrefix;
@@ -78,31 +79,19 @@ void from_json(const nlohmann::json& j, Inline_object& o) {
   }
 }
 
-DeliverReqData Inline_object::getJsonData() const {
-  return m_JsonData;
-}
+DeliverReqData Inline_object::getJsonData() const { return m_JsonData; }
 void Inline_object::setJsonData(DeliverReqData const& value) {
-  m_JsonData      = value;
+  m_JsonData = value;
   m_JsonDataIsSet = true;
 }
-bool Inline_object::jsonDataIsSet() const {
-  return m_JsonDataIsSet;
-}
-void Inline_object::unsetJsonData() {
-  m_JsonDataIsSet = false;
-}
-std::string Inline_object::getBinaryMoData() const {
-  return m_BinaryMoData;
-}
+bool Inline_object::jsonDataIsSet() const { return m_JsonDataIsSet; }
+void Inline_object::unsetJsonData() { m_JsonDataIsSet = false; }
+std::string Inline_object::getBinaryMoData() const { return m_BinaryMoData; }
 void Inline_object::setBinaryMoData(std::string const& value) {
-  m_BinaryMoData      = value;
+  m_BinaryMoData = value;
   m_BinaryMoDataIsSet = true;
 }
-bool Inline_object::binaryMoDataIsSet() const {
-  return m_BinaryMoDataIsSet;
-}
-void Inline_object::unsetBinaryMoData() {
-  m_BinaryMoDataIsSet = false;
-}
+bool Inline_object::binaryMoDataIsSet() const { return m_BinaryMoDataIsSet; }
+void Inline_object::unsetBinaryMoData() { m_BinaryMoDataIsSet = false; }
 
 }  // namespace oai::nef::model

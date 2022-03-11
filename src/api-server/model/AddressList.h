@@ -19,10 +19,11 @@
 #ifndef AddressList_H_
 #define AddressList_H_
 
-#include <string>
-#include "Ipv6Addr.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "Ipv6Addr.h"
 
 namespace oai::nef::model {
 

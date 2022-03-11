@@ -19,10 +19,11 @@
 #ifndef CongestionAnalytics_H_
 #define CongestionAnalytics_H_
 
-#include "ThresholdLevel.h"
-#include "CongestionType.h"
-#include "TimeWindow.h"
 #include <nlohmann/json.hpp>
+
+#include "CongestionType.h"
+#include "ThresholdLevel.h"
+#include "TimeWindow.h"
 
 namespace oai::nef::model {
 

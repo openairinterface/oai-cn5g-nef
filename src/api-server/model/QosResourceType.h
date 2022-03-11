@@ -19,8 +19,9 @@
 #ifndef QosResourceType_H_
 #define QosResourceType_H_
 
-#include "QosResourceType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "QosResourceType_anyOf.h"
 
 namespace oai::nef::model {
 

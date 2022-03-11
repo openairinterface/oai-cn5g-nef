@@ -19,9 +19,10 @@
 #ifndef AmfEventArea_H_
 #define AmfEventArea_H_
 
-#include "PresenceInfo.h"
-#include "LadnInfo.h"
 #include <nlohmann/json.hpp>
+
+#include "LadnInfo.h"
+#include "PresenceInfo.h"
 
 namespace oai::nef::model {
 

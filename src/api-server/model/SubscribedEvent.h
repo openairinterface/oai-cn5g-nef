@@ -20,8 +20,9 @@
 #ifndef SubscribedEvent_H_
 #define SubscribedEvent_H_
 
-#include "SubscribedEvent_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "SubscribedEvent_anyOf.h"
 
 namespace oai::nef::model {
 

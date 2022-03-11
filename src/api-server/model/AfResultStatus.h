@@ -23,8 +23,9 @@
 #ifndef AfResultStatus_H_
 #define AfResultStatus_H_
 
-#include "AfResultStatus_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "AfResultStatus_anyOf.h"
 
 namespace oai::nef::model {
 

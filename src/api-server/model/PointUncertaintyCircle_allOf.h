@@ -20,8 +20,9 @@
 #ifndef PointUncertaintyCircle_allOf_H_
 #define PointUncertaintyCircle_allOf_H_
 
-#include "GeographicalCoordinates.h"
 #include <nlohmann/json.hpp>
+
+#include "GeographicalCoordinates.h"
 
 namespace oai::nef::model {
 
@@ -69,8 +70,8 @@ class PointUncertaintyCircle_allOf {
   void setUncertainty(float const value);
 
   friend void to_json(nlohmann::json& j, const PointUncertaintyCircle_allOf& o);
-  friend void from_json(
-      const nlohmann::json& j, PointUncertaintyCircle_allOf& o);
+  friend void from_json(const nlohmann::json& j,
+                        PointUncertaintyCircle_allOf& o);
 
  protected:
   GeographicalCoordinates m_Point;

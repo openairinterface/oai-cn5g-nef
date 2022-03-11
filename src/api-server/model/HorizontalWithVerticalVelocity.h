@@ -20,8 +20,9 @@
 #ifndef HorizontalWithVerticalVelocity_H_
 #define HorizontalWithVerticalVelocity_H_
 
-#include "VerticalDirection.h"
 #include <nlohmann/json.hpp>
+
+#include "VerticalDirection.h"
 
 namespace oai::nef::model {
 
@@ -78,10 +79,10 @@ class HorizontalWithVerticalVelocity {
   VerticalDirection getVDirection() const;
   void setVDirection(VerticalDirection const& value);
 
-  friend void to_json(
-      nlohmann::json& j, const HorizontalWithVerticalVelocity& o);
-  friend void from_json(
-      const nlohmann::json& j, HorizontalWithVerticalVelocity& o);
+  friend void to_json(nlohmann::json& j,
+                      const HorizontalWithVerticalVelocity& o);
+  friend void from_json(const nlohmann::json& j,
+                        HorizontalWithVerticalVelocity& o);
 
  protected:
   float m_HSpeed;

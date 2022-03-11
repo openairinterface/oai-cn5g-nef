@@ -20,12 +20,13 @@
 #ifndef PointUncertaintyEllipse_H_
 #define PointUncertaintyEllipse_H_
 
-#include "GeographicalCoordinates.h"
-#include "UncertaintyEllipse.h"
+#include <nlohmann/json.hpp>
+
 #include "GADShape.h"
+#include "GeographicalCoordinates.h"
 #include "PointUncertaintyEllipse_allOf.h"
 #include "SupportedGADShapes.h"
-#include <nlohmann/json.hpp>
+#include "UncertaintyEllipse.h"
 
 namespace oai::nef::model {
 

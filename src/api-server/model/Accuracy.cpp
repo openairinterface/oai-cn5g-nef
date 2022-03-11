@@ -12,9 +12,10 @@
  */
 
 #include "Accuracy.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,9 +32,9 @@ bool Accuracy::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Accuracy::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool Accuracy::validate(std::stringstream& msg,
+                        const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Accuracy" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -48,9 +49,7 @@ bool Accuracy::operator==(const Accuracy& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool Accuracy::operator!=(const Accuracy& rhs) const {
-  return !(*this == rhs);
-}
+bool Accuracy::operator!=(const Accuracy& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const Accuracy& o) {
   j = nlohmann::json();
@@ -61,13 +60,9 @@ void from_json(const nlohmann::json& j, Accuracy& o) {
   from_json(j, o.m_value);
 }
 
-Accuracy_anyOf Accuracy::getValue() const {
-  return m_value;
-}
+Accuracy_anyOf Accuracy::getValue() const { return m_value; }
 
-void Accuracy::setValue(Accuracy_anyOf value) {
-  m_value = value;
-}
+void Accuracy::setValue(Accuracy_anyOf value) { m_value = value; }
 
 Accuracy_anyOf::eAccuracy_anyOf Accuracy::getEnumValue() const {
   return m_value.getValue();

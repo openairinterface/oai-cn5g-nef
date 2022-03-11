@@ -19,8 +19,9 @@
 #ifndef DeliverReqData_H_
 #define DeliverReqData_H_
 
-#include "RefToBinaryData.h"
 #include <nlohmann/json.hpp>
+
+#include "RefToBinaryData.h"
 
 namespace oai::nef::model {
 

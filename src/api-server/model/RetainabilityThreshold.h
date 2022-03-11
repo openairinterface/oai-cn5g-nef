@@ -19,8 +19,9 @@
 #ifndef RetainabilityThreshold_H_
 #define RetainabilityThreshold_H_
 
-#include "TimeUnit.h"
 #include <nlohmann/json.hpp>
+
+#include "TimeUnit.h"
 
 namespace oai::nef::model {
 

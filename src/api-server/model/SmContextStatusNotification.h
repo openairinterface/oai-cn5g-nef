@@ -19,12 +19,13 @@
 #ifndef SmContextStatusNotification_H_
 #define SmContextStatusNotification_H_
 
-#include "ReleaseCause.h"
-#include <string>
-#include "SmallDataRateStatus.h"
-#include "SmContextStatus.h"
-#include "ApnRateStatus.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "ApnRateStatus.h"
+#include "ReleaseCause.h"
+#include "SmContextStatus.h"
+#include "SmallDataRateStatus.h"
 
 namespace oai::nef::model {
 
@@ -93,8 +94,8 @@ class SmContextStatusNotification {
   void unsetApnRateStatus();
 
   friend void to_json(nlohmann::json& j, const SmContextStatusNotification& o);
-  friend void from_json(
-      const nlohmann::json& j, SmContextStatusNotification& o);
+  friend void from_json(const nlohmann::json& j,
+                        SmContextStatusNotification& o);
 
  protected:
   SmContextStatus m_Status;

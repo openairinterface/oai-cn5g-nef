@@ -19,9 +19,10 @@
 #ifndef MonitoringEventReports_H_
 #define MonitoringEventReports_H_
 
-#include "MonitoringEventReport.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <vector>
+
+#include "MonitoringEventReport.h"
 
 namespace oai::nef::model {
 

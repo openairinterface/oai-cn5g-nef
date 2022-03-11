@@ -19,14 +19,15 @@
 #ifndef PresenceInfo_H_
 #define PresenceInfo_H_
 
-#include "Ecgi.h"
-#include "Ncgi.h"
-#include "Tai.h"
-#include <string>
-#include "PresenceState.h"
-#include "GlobalRanNodeId.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "Ecgi.h"
+#include "GlobalRanNodeId.h"
+#include "Ncgi.h"
+#include "PresenceState.h"
+#include "Tai.h"
 
 namespace oai::nef::model {
 

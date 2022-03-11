@@ -12,15 +12,14 @@
  */
 
 #include "AnalyticsEventNotification.h"
-#include "Helpers.h"
 
 #include <sstream>
 
+#include "Helpers.h"
+
 namespace oai::nef::model {
 
-AnalyticsEventNotification::AnalyticsEventNotification() {
-  m_NotifId = "";
-}
+AnalyticsEventNotification::AnalyticsEventNotification() { m_NotifId = ""; }
 
 void AnalyticsEventNotification::validate() const {
   std::stringstream msg;
@@ -33,8 +32,8 @@ bool AnalyticsEventNotification::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsEventNotification::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AnalyticsEventNotification::validate(std::stringstream& msg,
+                                          const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsEventNotification" : pathPrefix;
@@ -49,7 +48,7 @@ bool AnalyticsEventNotification::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const AnalyticsEventNotif& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -82,8 +81,8 @@ bool AnalyticsEventNotification::operator!=(
 }
 
 void to_json(nlohmann::json& j, const AnalyticsEventNotification& o) {
-  j                     = nlohmann::json();
-  j["notifId"]          = o.m_NotifId;
+  j = nlohmann::json();
+  j["notifId"] = o.m_NotifId;
   j["analyEventNotifs"] = o.m_AnalyEventNotifs;
 }
 
@@ -92,9 +91,7 @@ void from_json(const nlohmann::json& j, AnalyticsEventNotification& o) {
   j.at("analyEventNotifs").get_to(o.m_AnalyEventNotifs);
 }
 
-std::string AnalyticsEventNotification::getNotifId() const {
-  return m_NotifId;
-}
+std::string AnalyticsEventNotification::getNotifId() const { return m_NotifId; }
 void AnalyticsEventNotification::setNotifId(std::string const& value) {
   m_NotifId = value;
 }

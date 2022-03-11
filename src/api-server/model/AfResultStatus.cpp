@@ -12,9 +12,10 @@
  */
 
 #include "AfResultStatus.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool AfResultStatus::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AfResultStatus::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AfResultStatus::validate(std::stringstream& msg,
+                              const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AfResultStatus" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, AfResultStatus& o) {
   from_json(j, o.m_value);
 }
 
-AfResultStatus_anyOf AfResultStatus::getValue() const {
-  return m_value;
-}
+AfResultStatus_anyOf AfResultStatus::getValue() const { return m_value; }
 
-void AfResultStatus::setValue(AfResultStatus_anyOf value) {
-  m_value = value;
-}
+void AfResultStatus::setValue(AfResultStatus_anyOf value) { m_value = value; }
 
 AfResultStatus_anyOf::eAfResultStatus_anyOf AfResultStatus::getEnumValue()
     const {

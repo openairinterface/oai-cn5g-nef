@@ -12,15 +12,16 @@
  */
 
 #include "Tai.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 Tai::Tai() {
-  m_Tac      = "";
-  m_Nid      = "";
+  m_Tac = "";
+  m_Nid = "";
   m_NidIsSet = false;
 }
 
@@ -31,22 +32,20 @@ void Tai::validate() const {
   }
 }
 
-bool Tai::validate(std::stringstream& msg) const {
-  return validate(msg, "");
-}
+bool Tai::validate(std::stringstream& msg) const { return validate(msg, ""); }
 
-bool Tai::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool Tai::validate(std::stringstream& msg,
+                   const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Tai" : pathPrefix;
 
   /* Tac */ {
-    const std::string& value           = m_Tac;
+    const std::string& value = m_Tac;
     const std::string currentValuePath = _pathPrefix + ".tac";
   }
 
   if (nidIsSet()) {
-    const std::string& value           = m_Nid;
+    const std::string& value = m_Nid;
     const std::string currentValuePath = _pathPrefix + ".nid";
   }
 
@@ -66,14 +65,12 @@ bool Tai::operator==(const Tai& rhs) const {
           ;
 }
 
-bool Tai::operator!=(const Tai& rhs) const {
-  return !(*this == rhs);
-}
+bool Tai::operator!=(const Tai& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const Tai& o) {
-  j           = nlohmann::json();
+  j = nlohmann::json();
   j["plmnId"] = o.m_PlmnId;
-  j["tac"]    = o.m_Tac;
+  j["tac"] = o.m_Tac;
   if (o.nidIsSet()) j["nid"] = o.m_Nid;
 }
 
@@ -86,30 +83,16 @@ void from_json(const nlohmann::json& j, Tai& o) {
   }
 }
 
-PlmnId Tai::getPlmnId() const {
-  return m_PlmnId;
-}
-void Tai::setPlmnId(PlmnId const& value) {
-  m_PlmnId = value;
-}
-std::string Tai::getTac() const {
-  return m_Tac;
-}
-void Tai::setTac(std::string const& value) {
-  m_Tac = value;
-}
-std::string Tai::getNid() const {
-  return m_Nid;
-}
+PlmnId Tai::getPlmnId() const { return m_PlmnId; }
+void Tai::setPlmnId(PlmnId const& value) { m_PlmnId = value; }
+std::string Tai::getTac() const { return m_Tac; }
+void Tai::setTac(std::string const& value) { m_Tac = value; }
+std::string Tai::getNid() const { return m_Nid; }
 void Tai::setNid(std::string const& value) {
-  m_Nid      = value;
+  m_Nid = value;
   m_NidIsSet = true;
 }
-bool Tai::nidIsSet() const {
-  return m_NidIsSet;
-}
-void Tai::unsetNid() {
-  m_NidIsSet = false;
-}
+bool Tai::nidIsSet() const { return m_NidIsSet; }
+void Tai::unsetNid() { m_NidIsSet = false; }
 
 }  // namespace oai::nef::model

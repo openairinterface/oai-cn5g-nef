@@ -12,33 +12,34 @@
  */
 
 #include "EventNotification.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 EventNotification::EventNotification() {
-  m_AfTransId               = "";
-  m_AfTransIdIsSet          = false;
+  m_AfTransId = "";
+  m_AfTransIdIsSet = false;
   m_SourceTrafficRouteIsSet = false;
   m_TargetTrafficRouteIsSet = false;
-  m_SourceDnai              = "";
-  m_SourceDnaiIsSet         = false;
-  m_TargetDnai              = "";
-  m_TargetDnaiIsSet         = false;
-  m_Gpsi                    = "";
-  m_GpsiIsSet               = false;
-  m_SrcUeIpv4Addr           = "";
-  m_SrcUeIpv4AddrIsSet      = false;
-  m_SrcUeIpv6PrefixIsSet    = false;
-  m_TgtUeIpv4Addr           = "";
-  m_TgtUeIpv4AddrIsSet      = false;
-  m_TgtUeIpv6PrefixIsSet    = false;
-  m_UeMac                   = "";
-  m_UeMacIsSet              = false;
-  m_AfAckUri                = "";
-  m_AfAckUriIsSet           = false;
+  m_SourceDnai = "";
+  m_SourceDnaiIsSet = false;
+  m_TargetDnai = "";
+  m_TargetDnaiIsSet = false;
+  m_Gpsi = "";
+  m_GpsiIsSet = false;
+  m_SrcUeIpv4Addr = "";
+  m_SrcUeIpv4AddrIsSet = false;
+  m_SrcUeIpv6PrefixIsSet = false;
+  m_TgtUeIpv4Addr = "";
+  m_TgtUeIpv4AddrIsSet = false;
+  m_TgtUeIpv6PrefixIsSet = false;
+  m_UeMac = "";
+  m_UeMacIsSet = false;
+  m_AfAckUri = "";
+  m_AfAckUriIsSet = false;
 }
 
 void EventNotification::validate() const {
@@ -52,19 +53,19 @@ bool EventNotification::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool EventNotification::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool EventNotification::validate(std::stringstream& msg,
+                                 const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "EventNotification" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value           = m_Gpsi;
+    const std::string& value = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
   if (ueMacIsSet()) {
-    const std::string& value           = m_UeMac;
+    const std::string& value = m_UeMac;
     const std::string currentValuePath = _pathPrefix + ".ueMac";
   }
 
@@ -204,19 +205,13 @@ void from_json(const nlohmann::json& j, EventNotification& o) {
   }
 }
 
-std::string EventNotification::getAfTransId() const {
-  return m_AfTransId;
-}
+std::string EventNotification::getAfTransId() const { return m_AfTransId; }
 void EventNotification::setAfTransId(std::string const& value) {
-  m_AfTransId      = value;
+  m_AfTransId = value;
   m_AfTransIdIsSet = true;
 }
-bool EventNotification::afTransIdIsSet() const {
-  return m_AfTransIdIsSet;
-}
-void EventNotification::unsetAfTransId() {
-  m_AfTransIdIsSet = false;
-}
+bool EventNotification::afTransIdIsSet() const { return m_AfTransIdIsSet; }
+void EventNotification::unsetAfTransId() { m_AfTransIdIsSet = false; }
 DnaiChangeType EventNotification::getDnaiChgType() const {
   return m_DnaiChgType;
 }
@@ -227,7 +222,7 @@ RouteToLocation EventNotification::getSourceTrafficRoute() const {
   return m_SourceTrafficRoute;
 }
 void EventNotification::setSourceTrafficRoute(RouteToLocation const& value) {
-  m_SourceTrafficRoute      = value;
+  m_SourceTrafficRoute = value;
   m_SourceTrafficRouteIsSet = true;
 }
 bool EventNotification::sourceTrafficRouteIsSet() const {
@@ -246,7 +241,7 @@ RouteToLocation EventNotification::getTargetTrafficRoute() const {
   return m_TargetTrafficRoute;
 }
 void EventNotification::setTargetTrafficRoute(RouteToLocation const& value) {
-  m_TargetTrafficRoute      = value;
+  m_TargetTrafficRoute = value;
   m_TargetTrafficRouteIsSet = true;
 }
 bool EventNotification::targetTrafficRouteIsSet() const {
@@ -255,63 +250,43 @@ bool EventNotification::targetTrafficRouteIsSet() const {
 void EventNotification::unsetTargetTrafficRoute() {
   m_TargetTrafficRouteIsSet = false;
 }
-std::string EventNotification::getSourceDnai() const {
-  return m_SourceDnai;
-}
+std::string EventNotification::getSourceDnai() const { return m_SourceDnai; }
 void EventNotification::setSourceDnai(std::string const& value) {
-  m_SourceDnai      = value;
+  m_SourceDnai = value;
   m_SourceDnaiIsSet = true;
 }
-bool EventNotification::sourceDnaiIsSet() const {
-  return m_SourceDnaiIsSet;
-}
-void EventNotification::unsetSourceDnai() {
-  m_SourceDnaiIsSet = false;
-}
-std::string EventNotification::getTargetDnai() const {
-  return m_TargetDnai;
-}
+bool EventNotification::sourceDnaiIsSet() const { return m_SourceDnaiIsSet; }
+void EventNotification::unsetSourceDnai() { m_SourceDnaiIsSet = false; }
+std::string EventNotification::getTargetDnai() const { return m_TargetDnai; }
 void EventNotification::setTargetDnai(std::string const& value) {
-  m_TargetDnai      = value;
+  m_TargetDnai = value;
   m_TargetDnaiIsSet = true;
 }
-bool EventNotification::targetDnaiIsSet() const {
-  return m_TargetDnaiIsSet;
-}
-void EventNotification::unsetTargetDnai() {
-  m_TargetDnaiIsSet = false;
-}
-std::string EventNotification::getGpsi() const {
-  return m_Gpsi;
-}
+bool EventNotification::targetDnaiIsSet() const { return m_TargetDnaiIsSet; }
+void EventNotification::unsetTargetDnai() { m_TargetDnaiIsSet = false; }
+std::string EventNotification::getGpsi() const { return m_Gpsi; }
 void EventNotification::setGpsi(std::string const& value) {
-  m_Gpsi      = value;
+  m_Gpsi = value;
   m_GpsiIsSet = true;
 }
-bool EventNotification::gpsiIsSet() const {
-  return m_GpsiIsSet;
-}
-void EventNotification::unsetGpsi() {
-  m_GpsiIsSet = false;
-}
+bool EventNotification::gpsiIsSet() const { return m_GpsiIsSet; }
+void EventNotification::unsetGpsi() { m_GpsiIsSet = false; }
 std::string EventNotification::getSrcUeIpv4Addr() const {
   return m_SrcUeIpv4Addr;
 }
 void EventNotification::setSrcUeIpv4Addr(std::string const& value) {
-  m_SrcUeIpv4Addr      = value;
+  m_SrcUeIpv4Addr = value;
   m_SrcUeIpv4AddrIsSet = true;
 }
 bool EventNotification::srcUeIpv4AddrIsSet() const {
   return m_SrcUeIpv4AddrIsSet;
 }
-void EventNotification::unsetSrcUeIpv4Addr() {
-  m_SrcUeIpv4AddrIsSet = false;
-}
+void EventNotification::unsetSrcUeIpv4Addr() { m_SrcUeIpv4AddrIsSet = false; }
 Ipv6Prefix EventNotification::getSrcUeIpv6Prefix() const {
   return m_SrcUeIpv6Prefix;
 }
 void EventNotification::setSrcUeIpv6Prefix(Ipv6Prefix const& value) {
-  m_SrcUeIpv6Prefix      = value;
+  m_SrcUeIpv6Prefix = value;
   m_SrcUeIpv6PrefixIsSet = true;
 }
 bool EventNotification::srcUeIpv6PrefixIsSet() const {
@@ -324,20 +299,18 @@ std::string EventNotification::getTgtUeIpv4Addr() const {
   return m_TgtUeIpv4Addr;
 }
 void EventNotification::setTgtUeIpv4Addr(std::string const& value) {
-  m_TgtUeIpv4Addr      = value;
+  m_TgtUeIpv4Addr = value;
   m_TgtUeIpv4AddrIsSet = true;
 }
 bool EventNotification::tgtUeIpv4AddrIsSet() const {
   return m_TgtUeIpv4AddrIsSet;
 }
-void EventNotification::unsetTgtUeIpv4Addr() {
-  m_TgtUeIpv4AddrIsSet = false;
-}
+void EventNotification::unsetTgtUeIpv4Addr() { m_TgtUeIpv4AddrIsSet = false; }
 Ipv6Prefix EventNotification::getTgtUeIpv6Prefix() const {
   return m_TgtUeIpv6Prefix;
 }
 void EventNotification::setTgtUeIpv6Prefix(Ipv6Prefix const& value) {
-  m_TgtUeIpv6Prefix      = value;
+  m_TgtUeIpv6Prefix = value;
   m_TgtUeIpv6PrefixIsSet = true;
 }
 bool EventNotification::tgtUeIpv6PrefixIsSet() const {
@@ -346,31 +319,19 @@ bool EventNotification::tgtUeIpv6PrefixIsSet() const {
 void EventNotification::unsetTgtUeIpv6Prefix() {
   m_TgtUeIpv6PrefixIsSet = false;
 }
-std::string EventNotification::getUeMac() const {
-  return m_UeMac;
-}
+std::string EventNotification::getUeMac() const { return m_UeMac; }
 void EventNotification::setUeMac(std::string const& value) {
-  m_UeMac      = value;
+  m_UeMac = value;
   m_UeMacIsSet = true;
 }
-bool EventNotification::ueMacIsSet() const {
-  return m_UeMacIsSet;
-}
-void EventNotification::unsetUeMac() {
-  m_UeMacIsSet = false;
-}
-std::string EventNotification::getAfAckUri() const {
-  return m_AfAckUri;
-}
+bool EventNotification::ueMacIsSet() const { return m_UeMacIsSet; }
+void EventNotification::unsetUeMac() { m_UeMacIsSet = false; }
+std::string EventNotification::getAfAckUri() const { return m_AfAckUri; }
 void EventNotification::setAfAckUri(std::string const& value) {
-  m_AfAckUri      = value;
+  m_AfAckUri = value;
   m_AfAckUriIsSet = true;
 }
-bool EventNotification::afAckUriIsSet() const {
-  return m_AfAckUriIsSet;
-}
-void EventNotification::unsetAfAckUri() {
-  m_AfAckUriIsSet = false;
-}
+bool EventNotification::afAckUriIsSet() const { return m_AfAckUriIsSet; }
+void EventNotification::unsetAfAckUri() { m_AfAckUriIsSet = false; }
 
 }  // namespace oai::nef::model

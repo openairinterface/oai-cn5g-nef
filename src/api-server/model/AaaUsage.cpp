@@ -12,9 +12,10 @@
  */
 
 #include "AaaUsage.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,9 +32,9 @@ bool AaaUsage::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AaaUsage::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool AaaUsage::validate(std::stringstream& msg,
+                        const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "AaaUsage" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -48,9 +49,7 @@ bool AaaUsage::operator==(const AaaUsage& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool AaaUsage::operator!=(const AaaUsage& rhs) const {
-  return !(*this == rhs);
-}
+bool AaaUsage::operator!=(const AaaUsage& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const AaaUsage& o) {
   j = nlohmann::json();
@@ -61,13 +60,9 @@ void from_json(const nlohmann::json& j, AaaUsage& o) {
   from_json(j, o.m_value);
 }
 
-AaaUsage_anyOf AaaUsage::getValue() const {
-  return m_value;
-}
+AaaUsage_anyOf AaaUsage::getValue() const { return m_value; }
 
-void AaaUsage::setValue(AaaUsage_anyOf value) {
-  m_value = value;
-}
+void AaaUsage::setValue(AaaUsage_anyOf value) { m_value = value; }
 
 AaaUsage_anyOf::eAaaUsage_anyOf AaaUsage::getEnumValue() const {
   return m_value.getValue();

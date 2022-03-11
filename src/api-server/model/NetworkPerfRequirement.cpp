@@ -12,17 +12,18 @@
  */
 
 #include "NetworkPerfRequirement.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 NetworkPerfRequirement::NetworkPerfRequirement() {
-  m_RelativeRatio      = 0;
+  m_RelativeRatio = 0;
   m_RelativeRatioIsSet = false;
-  m_AbsoluteNum        = 0;
-  m_AbsoluteNumIsSet   = false;
+  m_AbsoluteNum = 0;
+  m_AbsoluteNumIsSet = false;
 }
 
 void NetworkPerfRequirement::validate() const {
@@ -36,14 +37,14 @@ bool NetworkPerfRequirement::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NetworkPerfRequirement::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool NetworkPerfRequirement::validate(std::stringstream& msg,
+                                      const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NetworkPerfRequirement" : pathPrefix;
 
   if (relativeRatioIsSet()) {
-    const int32_t& value               = m_RelativeRatio;
+    const int32_t& value = m_RelativeRatio;
     const std::string currentValuePath = _pathPrefix + ".relativeRatio";
 
     if (value < 1) {
@@ -57,7 +58,7 @@ bool NetworkPerfRequirement::validate(
   }
 
   if (absoluteNumIsSet()) {
-    const int32_t& value               = m_AbsoluteNum;
+    const int32_t& value = m_AbsoluteNum;
     const std::string currentValuePath = _pathPrefix + ".absoluteNum";
 
     if (value < 0) {
@@ -92,7 +93,7 @@ bool NetworkPerfRequirement::operator!=(
 }
 
 void to_json(nlohmann::json& j, const NetworkPerfRequirement& o) {
-  j               = nlohmann::json();
+  j = nlohmann::json();
   j["nwPerfType"] = o.m_NwPerfType;
   if (o.relativeRatioIsSet()) j["relativeRatio"] = o.m_RelativeRatio;
   if (o.absoluteNumIsSet()) j["absoluteNum"] = o.m_AbsoluteNum;
@@ -120,7 +121,7 @@ int32_t NetworkPerfRequirement::getRelativeRatio() const {
   return m_RelativeRatio;
 }
 void NetworkPerfRequirement::setRelativeRatio(int32_t const value) {
-  m_RelativeRatio      = value;
+  m_RelativeRatio = value;
   m_RelativeRatioIsSet = true;
 }
 bool NetworkPerfRequirement::relativeRatioIsSet() const {
@@ -129,18 +130,14 @@ bool NetworkPerfRequirement::relativeRatioIsSet() const {
 void NetworkPerfRequirement::unsetRelativeRatio() {
   m_RelativeRatioIsSet = false;
 }
-int32_t NetworkPerfRequirement::getAbsoluteNum() const {
-  return m_AbsoluteNum;
-}
+int32_t NetworkPerfRequirement::getAbsoluteNum() const { return m_AbsoluteNum; }
 void NetworkPerfRequirement::setAbsoluteNum(int32_t const value) {
-  m_AbsoluteNum      = value;
+  m_AbsoluteNum = value;
   m_AbsoluteNumIsSet = true;
 }
 bool NetworkPerfRequirement::absoluteNumIsSet() const {
   return m_AbsoluteNumIsSet;
 }
-void NetworkPerfRequirement::unsetAbsoluteNum() {
-  m_AbsoluteNumIsSet = false;
-}
+void NetworkPerfRequirement::unsetAbsoluteNum() { m_AbsoluteNumIsSet = false; }
 
 }  // namespace oai::nef::model

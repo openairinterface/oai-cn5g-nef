@@ -19,19 +19,20 @@
 #ifndef AnalyticsEventFilterSubsc_H_
 #define AnalyticsEventFilterSubsc_H_
 
-#include "QosRequirement.h"
-#include "RetainabilityThreshold.h"
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "EventReportingRequirement.h"
+#include "Exception.h"
 #include "ExpectedAnalyticsType.h"
 #include "ExpectedUeBehaviourData.h"
-#include "ThresholdLevel.h"
-#include <string>
-#include "Exception.h"
-#include "NetworkPerfRequirement.h"
 #include "LocationArea5G.h"
+#include "NetworkPerfRequirement.h"
+#include "QosRequirement.h"
+#include "RetainabilityThreshold.h"
 #include "Snssai.h"
-#include <vector>
-#include "EventReportingRequirement.h"
-#include <nlohmann/json.hpp>
+#include "ThresholdLevel.h"
 
 namespace oai::nef::model {
 

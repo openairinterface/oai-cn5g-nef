@@ -19,12 +19,13 @@
 #ifndef MonitoringNotification_H_
 #define MonitoringNotification_H_
 
-#include <string>
-#include "MonitoringEventReport.h"
-#include "ConfigResult.h"
-#include <vector>
-#include "AppliedParameterConfiguration.h"
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "AppliedParameterConfiguration.h"
+#include "ConfigResult.h"
+#include "MonitoringEventReport.h"
 
 namespace oai::nef::model {
 

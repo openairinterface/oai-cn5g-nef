@@ -19,12 +19,13 @@
 #ifndef MonitoringReport_H_
 #define MonitoringReport_H_
 
+#include <nlohmann/json.hpp>
+#include <string>
+
+#include "EventType.h"
 #include "ReachabilityForSmsReport.h"
 #include "ReachabilityReport.h"
-#include <string>
-#include "EventType.h"
 #include "Report.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

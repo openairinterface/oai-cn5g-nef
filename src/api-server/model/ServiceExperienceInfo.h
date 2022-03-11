@@ -19,10 +19,11 @@
 #ifndef ServiceExperienceInfo_H_
 #define ServiceExperienceInfo_H_
 
-#include "ServiceExperienceInfoPerFlow.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "ServiceExperienceInfoPerFlow.h"
 
 namespace oai::nef::model {
 

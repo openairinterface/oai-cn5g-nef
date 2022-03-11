@@ -43,8 +43,9 @@
 #ifndef MonitoringType_H_
 #define MonitoringType_H_
 
-#include "MonitoringType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "MonitoringType_anyOf.h"
 
 namespace oai::nef::model {
 

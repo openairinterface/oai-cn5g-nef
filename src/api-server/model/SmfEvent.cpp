@@ -12,9 +12,10 @@
  */
 
 #include "SmfEvent.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,9 +32,9 @@ bool SmfEvent::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmfEvent::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool SmfEvent::validate(std::stringstream& msg,
+                        const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "SmfEvent" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -48,9 +49,7 @@ bool SmfEvent::operator==(const SmfEvent& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool SmfEvent::operator!=(const SmfEvent& rhs) const {
-  return !(*this == rhs);
-}
+bool SmfEvent::operator!=(const SmfEvent& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const SmfEvent& o) {
   j = nlohmann::json();
@@ -61,13 +60,9 @@ void from_json(const nlohmann::json& j, SmfEvent& o) {
   from_json(j, o.m_value);
 }
 
-SmfEvent_anyOf SmfEvent::getValue() const {
-  return m_value;
-}
+SmfEvent_anyOf SmfEvent::getValue() const { return m_value; }
 
-void SmfEvent::setValue(SmfEvent_anyOf value) {
-  m_value = value;
-}
+void SmfEvent::setValue(SmfEvent_anyOf value) { m_value = value; }
 
 SmfEvent_anyOf::eSmfEvent_anyOf SmfEvent::getEnumValue() const {
   return m_value.getValue();

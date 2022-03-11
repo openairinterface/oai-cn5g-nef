@@ -21,8 +21,9 @@
 #ifndef InterfaceIndication_H_
 #define InterfaceIndication_H_
 
-#include "InterfaceIndication_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "InterfaceIndication_anyOf.h"
 
 namespace oai::nef::model {
 

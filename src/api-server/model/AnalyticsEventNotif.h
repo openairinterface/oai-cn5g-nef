@@ -19,16 +19,17 @@
 #ifndef AnalyticsEventNotif_H_
 #define AnalyticsEventNotif_H_
 
-#include "CongestInfo.h"
-#include <string>
-#include "UeCommunication.h"
-#include "AbnormalExposure.h"
-#include "QosSustainabilityExposure.h"
-#include <vector>
-#include "AnalyticsEvent.h"
-#include "UeMobilityExposure.h"
-#include "NetworkPerfExposure.h"
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "AbnormalExposure.h"
+#include "AnalyticsEvent.h"
+#include "CongestInfo.h"
+#include "NetworkPerfExposure.h"
+#include "QosSustainabilityExposure.h"
+#include "UeCommunication.h"
+#include "UeMobilityExposure.h"
 
 namespace oai::nef::model {
 

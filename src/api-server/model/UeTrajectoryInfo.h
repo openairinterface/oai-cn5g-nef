@@ -19,9 +19,10 @@
 #ifndef UeTrajectoryInfo_H_
 #define UeTrajectoryInfo_H_
 
-#include <string>
-#include "UserLocation.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "UserLocation.h"
 
 namespace oai::nef::model {
 

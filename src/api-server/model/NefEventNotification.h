@@ -19,14 +19,15 @@
 #ifndef NefEventNotification_H_
 #define NefEventNotification_H_
 
-#include "ExceptionInfo.h"
-#include "NefEvent.h"
-#include "UeMobilityInfo.h"
-#include "UeCommunicationInfo.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
+
+#include "ExceptionInfo.h"
+#include "NefEvent.h"
 #include "ServiceExperienceInfo.h"
-#include <nlohmann/json.hpp>
+#include "UeCommunicationInfo.h"
+#include "UeMobilityInfo.h"
 
 namespace oai::nef::model {
 

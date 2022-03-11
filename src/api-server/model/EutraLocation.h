@@ -19,11 +19,12 @@
 #ifndef EutraLocation_H_
 #define EutraLocation_H_
 
-#include "Ecgi.h"
-#include "Tai.h"
-#include <string>
-#include "GlobalRanNodeId.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "Ecgi.h"
+#include "GlobalRanNodeId.h"
+#include "Tai.h"
 
 namespace oai::nef::model {
 

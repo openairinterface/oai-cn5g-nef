@@ -12,99 +12,100 @@
  */
 
 #include "MonitoringEventSubscription.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 MonitoringEventSubscription::MonitoringEventSubscription() {
-  m_Self                            = "";
-  m_SelfIsSet                       = false;
-  m_SupportedFeatures               = "";
-  m_SupportedFeaturesIsSet          = false;
-  m_MtcProviderId                   = "";
-  m_MtcProviderIdIsSet              = false;
-  m_ExternalId                      = "";
-  m_ExternalIdIsSet                 = false;
-  m_Msisdn                          = "";
-  m_MsisdnIsSet                     = false;
-  m_ExcludedExternalIdsIsSet        = false;
-  m_ExcludedMsisdnsIsSet            = false;
-  m_ExternalGroupId                 = "";
-  m_ExternalGroupIdIsSet            = false;
-  m_AddExtGroupIdIsSet              = false;
-  m_Ipv4Addr                        = "";
-  m_Ipv4AddrIsSet                   = false;
-  m_Ipv6Addr                        = "";
-  m_Ipv6AddrIsSet                   = false;
-  m_Dnn                             = "";
-  m_DnnIsSet                        = false;
-  m_NotificationDestination         = "";
-  m_RequestTestNotification         = false;
-  m_RequestTestNotificationIsSet    = false;
-  m_WebsockNotifConfigIsSet         = false;
-  m_MaximumNumberOfReports          = 0;
-  m_MaximumNumberOfReportsIsSet     = false;
-  m_MonitorExpireTime               = "";
-  m_MonitorExpireTimeIsSet          = false;
-  m_RepPeriod                       = 0;
-  m_RepPeriodIsSet                  = false;
-  m_GroupReportGuardTime            = 0;
-  m_GroupReportGuardTimeIsSet       = false;
-  m_MaximumDetectionTime            = 0;
-  m_MaximumDetectionTimeIsSet       = false;
-  m_ReachabilityTypeIsSet           = false;
-  m_MaximumLatency                  = 0;
-  m_MaximumLatencyIsSet             = false;
-  m_MaximumResponseTime             = 0;
-  m_MaximumResponseTimeIsSet        = false;
-  m_SuggestedNumberOfDlPackets      = 0;
+  m_Self = "";
+  m_SelfIsSet = false;
+  m_SupportedFeatures = "";
+  m_SupportedFeaturesIsSet = false;
+  m_MtcProviderId = "";
+  m_MtcProviderIdIsSet = false;
+  m_ExternalId = "";
+  m_ExternalIdIsSet = false;
+  m_Msisdn = "";
+  m_MsisdnIsSet = false;
+  m_ExcludedExternalIdsIsSet = false;
+  m_ExcludedMsisdnsIsSet = false;
+  m_ExternalGroupId = "";
+  m_ExternalGroupIdIsSet = false;
+  m_AddExtGroupIdIsSet = false;
+  m_Ipv4Addr = "";
+  m_Ipv4AddrIsSet = false;
+  m_Ipv6Addr = "";
+  m_Ipv6AddrIsSet = false;
+  m_Dnn = "";
+  m_DnnIsSet = false;
+  m_NotificationDestination = "";
+  m_RequestTestNotification = false;
+  m_RequestTestNotificationIsSet = false;
+  m_WebsockNotifConfigIsSet = false;
+  m_MaximumNumberOfReports = 0;
+  m_MaximumNumberOfReportsIsSet = false;
+  m_MonitorExpireTime = "";
+  m_MonitorExpireTimeIsSet = false;
+  m_RepPeriod = 0;
+  m_RepPeriodIsSet = false;
+  m_GroupReportGuardTime = 0;
+  m_GroupReportGuardTimeIsSet = false;
+  m_MaximumDetectionTime = 0;
+  m_MaximumDetectionTimeIsSet = false;
+  m_ReachabilityTypeIsSet = false;
+  m_MaximumLatency = 0;
+  m_MaximumLatencyIsSet = false;
+  m_MaximumResponseTime = 0;
+  m_MaximumResponseTimeIsSet = false;
+  m_SuggestedNumberOfDlPackets = 0;
   m_SuggestedNumberOfDlPacketsIsSet = false;
-  m_IdleStatusIndication            = false;
-  m_IdleStatusIndicationIsSet       = false;
-  m_LocationTypeIsSet               = false;
-  m_AccuracyIsSet                   = false;
-  m_MinimumReportInterval           = 0;
-  m_MinimumReportIntervalIsSet      = false;
-  m_MaxRptExpireIntvl               = 0;
-  m_MaxRptExpireIntvlIsSet          = false;
-  m_SamplingInterval                = 0;
-  m_SamplingIntervalIsSet           = false;
-  m_ReportingLocEstInd              = false;
-  m_ReportingLocEstIndIsSet         = false;
-  m_LinearDistance                  = 0;
-  m_LinearDistanceIsSet             = false;
-  m_LocQoSIsSet                     = false;
-  m_SvcId                           = "";
-  m_SvcIdIsSet                      = false;
-  m_LdrTypeIsSet                    = false;
-  m_VelocityRequestedIsSet          = false;
-  m_MaxAgeOfLocEst                  = 0;
-  m_MaxAgeOfLocEstIsSet             = false;
-  m_LocTimeWindowIsSet              = false;
-  m_SupportedGADShapesIsSet         = false;
-  m_CodeWord                        = "";
-  m_CodeWordIsSet                   = false;
-  m_AssociationTypeIsSet            = false;
-  m_PlmnIndication                  = false;
-  m_PlmnIndicationIsSet             = false;
-  m_LocationAreaIsSet               = false;
-  m_LocationArea5GIsSet             = false;
-  m_DddTraDescriptorsIsSet          = false;
-  m_DddStatiIsSet                   = false;
-  m_ApiNamesIsSet                   = false;
-  m_MonitoringEventReportIsSet      = false;
-  m_SnssaiIsSet                     = false;
-  m_TgtNsThresholdIsSet             = false;
-  m_ImmediateRep                    = false;
-  m_ImmediateRepIsSet               = false;
-  m_UavPolicyIsSet                  = false;
-  m_SesEstInd                       = false;
-  m_SesEstIndIsSet                  = false;
-  m_SubTypeIsSet                    = false;
-  m_AddnMonTypesIsSet               = false;
-  m_AddnMonEventReportsIsSet        = false;
+  m_IdleStatusIndication = false;
+  m_IdleStatusIndicationIsSet = false;
+  m_LocationTypeIsSet = false;
+  m_AccuracyIsSet = false;
+  m_MinimumReportInterval = 0;
+  m_MinimumReportIntervalIsSet = false;
+  m_MaxRptExpireIntvl = 0;
+  m_MaxRptExpireIntvlIsSet = false;
+  m_SamplingInterval = 0;
+  m_SamplingIntervalIsSet = false;
+  m_ReportingLocEstInd = false;
+  m_ReportingLocEstIndIsSet = false;
+  m_LinearDistance = 0;
+  m_LinearDistanceIsSet = false;
+  m_LocQoSIsSet = false;
+  m_SvcId = "";
+  m_SvcIdIsSet = false;
+  m_LdrTypeIsSet = false;
+  m_VelocityRequestedIsSet = false;
+  m_MaxAgeOfLocEst = 0;
+  m_MaxAgeOfLocEstIsSet = false;
+  m_LocTimeWindowIsSet = false;
+  m_SupportedGADShapesIsSet = false;
+  m_CodeWord = "";
+  m_CodeWordIsSet = false;
+  m_AssociationTypeIsSet = false;
+  m_PlmnIndication = false;
+  m_PlmnIndicationIsSet = false;
+  m_LocationAreaIsSet = false;
+  m_LocationArea5GIsSet = false;
+  m_DddTraDescriptorsIsSet = false;
+  m_DddStatiIsSet = false;
+  m_ApiNamesIsSet = false;
+  m_MonitoringEventReportIsSet = false;
+  m_SnssaiIsSet = false;
+  m_TgtNsThresholdIsSet = false;
+  m_ImmediateRep = false;
+  m_ImmediateRepIsSet = false;
+  m_UavPolicyIsSet = false;
+  m_SesEstInd = false;
+  m_SesEstIndIsSet = false;
+  m_SubTypeIsSet = false;
+  m_AddnMonTypesIsSet = false;
+  m_AddnMonEventReportsIsSet = false;
 }
 
 void MonitoringEventSubscription::validate() const {
@@ -125,7 +126,7 @@ bool MonitoringEventSubscription::validate(
       pathPrefix.empty() ? "MonitoringEventSubscription" : pathPrefix;
 
   if (supportedFeaturesIsSet()) {
-    const std::string& value           = m_SupportedFeatures;
+    const std::string& value = m_SupportedFeatures;
     const std::string currentValuePath = _pathPrefix + ".supportedFeatures";
   }
 
@@ -139,7 +140,7 @@ bool MonitoringEventSubscription::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -151,7 +152,7 @@ bool MonitoringEventSubscription::validate(
 
   if (excludedMsisdnsIsSet()) {
     const std::vector<std::string>& value = m_ExcludedMsisdns;
-    const std::string currentValuePath    = _pathPrefix + ".excludedMsisdns";
+    const std::string currentValuePath = _pathPrefix + ".excludedMsisdns";
 
     if (value.size() < 1) {
       success = false;
@@ -159,7 +160,7 @@ bool MonitoringEventSubscription::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -171,7 +172,7 @@ bool MonitoringEventSubscription::validate(
 
   if (addExtGroupIdIsSet()) {
     const std::vector<std::string>& value = m_AddExtGroupId;
-    const std::string currentValuePath    = _pathPrefix + ".addExtGroupId";
+    const std::string currentValuePath = _pathPrefix + ".addExtGroupId";
 
     if (value.size() < 2) {
       success = false;
@@ -179,7 +180,7 @@ bool MonitoringEventSubscription::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -201,7 +202,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (repPeriodIsSet()) {
-    const int32_t& value               = m_RepPeriod;
+    const int32_t& value = m_RepPeriod;
     const std::string currentValuePath = _pathPrefix + ".repPeriod";
 
     if (value < 0) {
@@ -211,7 +212,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (groupReportGuardTimeIsSet()) {
-    const int32_t& value               = m_GroupReportGuardTime;
+    const int32_t& value = m_GroupReportGuardTime;
     const std::string currentValuePath = _pathPrefix + ".groupReportGuardTime";
 
     if (value < 0) {
@@ -221,7 +222,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (maximumDetectionTimeIsSet()) {
-    const int32_t& value               = m_MaximumDetectionTime;
+    const int32_t& value = m_MaximumDetectionTime;
     const std::string currentValuePath = _pathPrefix + ".maximumDetectionTime";
 
     if (value < 0) {
@@ -231,7 +232,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (maximumLatencyIsSet()) {
-    const int32_t& value               = m_MaximumLatency;
+    const int32_t& value = m_MaximumLatency;
     const std::string currentValuePath = _pathPrefix + ".maximumLatency";
 
     if (value < 0) {
@@ -241,7 +242,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (maximumResponseTimeIsSet()) {
-    const int32_t& value               = m_MaximumResponseTime;
+    const int32_t& value = m_MaximumResponseTime;
     const std::string currentValuePath = _pathPrefix + ".maximumResponseTime";
 
     if (value < 0) {
@@ -262,7 +263,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (minimumReportIntervalIsSet()) {
-    const int32_t& value               = m_MinimumReportInterval;
+    const int32_t& value = m_MinimumReportInterval;
     const std::string currentValuePath = _pathPrefix + ".minimumReportInterval";
 
     if (value < 0) {
@@ -272,7 +273,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (maxRptExpireIntvlIsSet()) {
-    const int32_t& value               = m_MaxRptExpireIntvl;
+    const int32_t& value = m_MaxRptExpireIntvl;
     const std::string currentValuePath = _pathPrefix + ".maxRptExpireIntvl";
 
     if (value < 0) {
@@ -282,7 +283,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (samplingIntervalIsSet()) {
-    const int32_t& value               = m_SamplingInterval;
+    const int32_t& value = m_SamplingInterval;
     const std::string currentValuePath = _pathPrefix + ".samplingInterval";
 
     if (value < 0) {
@@ -292,7 +293,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (linearDistanceIsSet()) {
-    const int32_t& value               = m_LinearDistance;
+    const int32_t& value = m_LinearDistance;
     const std::string currentValuePath = _pathPrefix + ".linearDistance";
 
     if (value < 1) {
@@ -306,7 +307,7 @@ bool MonitoringEventSubscription::validate(
   }
 
   if (maxAgeOfLocEstIsSet()) {
-    const int32_t& value               = m_MaxAgeOfLocEst;
+    const int32_t& value = m_MaxAgeOfLocEst;
     const std::string currentValuePath = _pathPrefix + ".maxAgeOfLocEst";
 
     if (value < 0) {
@@ -325,7 +326,7 @@ bool MonitoringEventSubscription::validate(
 
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const SupportedGADShapes& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -349,7 +350,7 @@ bool MonitoringEventSubscription::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const DddTrafficDescriptor& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -365,7 +366,7 @@ bool MonitoringEventSubscription::validate(
 
   if (dddStatiIsSet()) {
     const std::vector<DlDataDeliveryStatus>& value = m_DddStati;
-    const std::string currentValuePath             = _pathPrefix + ".dddStati";
+    const std::string currentValuePath = _pathPrefix + ".dddStati";
 
     if (value.size() < 1) {
       success = false;
@@ -373,7 +374,7 @@ bool MonitoringEventSubscription::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const DlDataDeliveryStatus& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -388,7 +389,7 @@ bool MonitoringEventSubscription::validate(
 
   if (apiNamesIsSet()) {
     const std::vector<std::string>& value = m_ApiNames;
-    const std::string currentValuePath    = _pathPrefix + ".apiNames";
+    const std::string currentValuePath = _pathPrefix + ".apiNames";
 
     if (value.size() < 1) {
       success = false;
@@ -396,7 +397,7 @@ bool MonitoringEventSubscription::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -408,11 +409,11 @@ bool MonitoringEventSubscription::validate(
 
   if (addnMonTypesIsSet()) {
     const std::vector<MonitoringType>& value = m_AddnMonTypes;
-    const std::string currentValuePath       = _pathPrefix + ".addnMonTypes";
+    const std::string currentValuePath = _pathPrefix + ".addnMonTypes";
 
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const MonitoringType& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -431,7 +432,7 @@ bool MonitoringEventSubscription::validate(
 
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i                          = 0;
+      int i = 0;
       for (const MonitoringEventReport& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -993,25 +994,19 @@ void from_json(const nlohmann::json& j, MonitoringEventSubscription& o) {
   }
 }
 
-std::string MonitoringEventSubscription::getSelf() const {
-  return m_Self;
-}
+std::string MonitoringEventSubscription::getSelf() const { return m_Self; }
 void MonitoringEventSubscription::setSelf(std::string const& value) {
-  m_Self      = value;
+  m_Self = value;
   m_SelfIsSet = true;
 }
-bool MonitoringEventSubscription::selfIsSet() const {
-  return m_SelfIsSet;
-}
-void MonitoringEventSubscription::unsetSelf() {
-  m_SelfIsSet = false;
-}
+bool MonitoringEventSubscription::selfIsSet() const { return m_SelfIsSet; }
+void MonitoringEventSubscription::unsetSelf() { m_SelfIsSet = false; }
 std::string MonitoringEventSubscription::getSupportedFeatures() const {
   return m_SupportedFeatures;
 }
 void MonitoringEventSubscription::setSupportedFeatures(
     std::string const& value) {
-  m_SupportedFeatures      = value;
+  m_SupportedFeatures = value;
   m_SupportedFeaturesIsSet = true;
 }
 bool MonitoringEventSubscription::supportedFeaturesIsSet() const {
@@ -1024,7 +1019,7 @@ std::string MonitoringEventSubscription::getMtcProviderId() const {
   return m_MtcProviderId;
 }
 void MonitoringEventSubscription::setMtcProviderId(std::string const& value) {
-  m_MtcProviderId      = value;
+  m_MtcProviderId = value;
   m_MtcProviderIdIsSet = true;
 }
 bool MonitoringEventSubscription::mtcProviderIdIsSet() const {
@@ -1037,7 +1032,7 @@ std::string MonitoringEventSubscription::getExternalId() const {
   return m_ExternalId;
 }
 void MonitoringEventSubscription::setExternalId(std::string const& value) {
-  m_ExternalId      = value;
+  m_ExternalId = value;
   m_ExternalIdIsSet = true;
 }
 bool MonitoringEventSubscription::externalIdIsSet() const {
@@ -1046,26 +1041,20 @@ bool MonitoringEventSubscription::externalIdIsSet() const {
 void MonitoringEventSubscription::unsetExternalId() {
   m_ExternalIdIsSet = false;
 }
-std::string MonitoringEventSubscription::getMsisdn() const {
-  return m_Msisdn;
-}
+std::string MonitoringEventSubscription::getMsisdn() const { return m_Msisdn; }
 void MonitoringEventSubscription::setMsisdn(std::string const& value) {
-  m_Msisdn      = value;
+  m_Msisdn = value;
   m_MsisdnIsSet = true;
 }
-bool MonitoringEventSubscription::msisdnIsSet() const {
-  return m_MsisdnIsSet;
-}
-void MonitoringEventSubscription::unsetMsisdn() {
-  m_MsisdnIsSet = false;
-}
+bool MonitoringEventSubscription::msisdnIsSet() const { return m_MsisdnIsSet; }
+void MonitoringEventSubscription::unsetMsisdn() { m_MsisdnIsSet = false; }
 std::vector<std::string> MonitoringEventSubscription::getExcludedExternalIds()
     const {
   return m_ExcludedExternalIds;
 }
 void MonitoringEventSubscription::setExcludedExternalIds(
     std::vector<std::string> const& value) {
-  m_ExcludedExternalIds      = value;
+  m_ExcludedExternalIds = value;
   m_ExcludedExternalIdsIsSet = true;
 }
 bool MonitoringEventSubscription::excludedExternalIdsIsSet() const {
@@ -1080,7 +1069,7 @@ std::vector<std::string> MonitoringEventSubscription::getExcludedMsisdns()
 }
 void MonitoringEventSubscription::setExcludedMsisdns(
     std::vector<std::string> const& value) {
-  m_ExcludedMsisdns      = value;
+  m_ExcludedMsisdns = value;
   m_ExcludedMsisdnsIsSet = true;
 }
 bool MonitoringEventSubscription::excludedMsisdnsIsSet() const {
@@ -1093,7 +1082,7 @@ std::string MonitoringEventSubscription::getExternalGroupId() const {
   return m_ExternalGroupId;
 }
 void MonitoringEventSubscription::setExternalGroupId(std::string const& value) {
-  m_ExternalGroupId      = value;
+  m_ExternalGroupId = value;
   m_ExternalGroupIdIsSet = true;
 }
 bool MonitoringEventSubscription::externalGroupIdIsSet() const {
@@ -1107,7 +1096,7 @@ std::vector<std::string> MonitoringEventSubscription::getAddExtGroupId() const {
 }
 void MonitoringEventSubscription::setAddExtGroupId(
     std::vector<std::string> const& value) {
-  m_AddExtGroupId      = value;
+  m_AddExtGroupId = value;
   m_AddExtGroupIdIsSet = true;
 }
 bool MonitoringEventSubscription::addExtGroupIdIsSet() const {
@@ -1120,41 +1109,31 @@ std::string MonitoringEventSubscription::getIpv4Addr() const {
   return m_Ipv4Addr;
 }
 void MonitoringEventSubscription::setIpv4Addr(std::string const& value) {
-  m_Ipv4Addr      = value;
+  m_Ipv4Addr = value;
   m_Ipv4AddrIsSet = true;
 }
 bool MonitoringEventSubscription::ipv4AddrIsSet() const {
   return m_Ipv4AddrIsSet;
 }
-void MonitoringEventSubscription::unsetIpv4Addr() {
-  m_Ipv4AddrIsSet = false;
-}
+void MonitoringEventSubscription::unsetIpv4Addr() { m_Ipv4AddrIsSet = false; }
 std::string MonitoringEventSubscription::getIpv6Addr() const {
   return m_Ipv6Addr;
 }
 void MonitoringEventSubscription::setIpv6Addr(std::string const& value) {
-  m_Ipv6Addr      = value;
+  m_Ipv6Addr = value;
   m_Ipv6AddrIsSet = true;
 }
 bool MonitoringEventSubscription::ipv6AddrIsSet() const {
   return m_Ipv6AddrIsSet;
 }
-void MonitoringEventSubscription::unsetIpv6Addr() {
-  m_Ipv6AddrIsSet = false;
-}
-std::string MonitoringEventSubscription::getDnn() const {
-  return m_Dnn;
-}
+void MonitoringEventSubscription::unsetIpv6Addr() { m_Ipv6AddrIsSet = false; }
+std::string MonitoringEventSubscription::getDnn() const { return m_Dnn; }
 void MonitoringEventSubscription::setDnn(std::string const& value) {
-  m_Dnn      = value;
+  m_Dnn = value;
   m_DnnIsSet = true;
 }
-bool MonitoringEventSubscription::dnnIsSet() const {
-  return m_DnnIsSet;
-}
-void MonitoringEventSubscription::unsetDnn() {
-  m_DnnIsSet = false;
-}
+bool MonitoringEventSubscription::dnnIsSet() const { return m_DnnIsSet; }
+void MonitoringEventSubscription::unsetDnn() { m_DnnIsSet = false; }
 std::string MonitoringEventSubscription::getNotificationDestination() const {
   return m_NotificationDestination;
 }
@@ -1166,7 +1145,7 @@ bool MonitoringEventSubscription::isRequestTestNotification() const {
   return m_RequestTestNotification;
 }
 void MonitoringEventSubscription::setRequestTestNotification(bool const value) {
-  m_RequestTestNotification      = value;
+  m_RequestTestNotification = value;
   m_RequestTestNotificationIsSet = true;
 }
 bool MonitoringEventSubscription::requestTestNotificationIsSet() const {
@@ -1180,7 +1159,7 @@ WebsockNotifConfig MonitoringEventSubscription::getWebsockNotifConfig() const {
 }
 void MonitoringEventSubscription::setWebsockNotifConfig(
     WebsockNotifConfig const& value) {
-  m_WebsockNotifConfig      = value;
+  m_WebsockNotifConfig = value;
   m_WebsockNotifConfigIsSet = true;
 }
 bool MonitoringEventSubscription::websockNotifConfigIsSet() const {
@@ -1201,7 +1180,7 @@ int32_t MonitoringEventSubscription::getMaximumNumberOfReports() const {
 }
 void MonitoringEventSubscription::setMaximumNumberOfReports(
     int32_t const value) {
-  m_MaximumNumberOfReports      = value;
+  m_MaximumNumberOfReports = value;
   m_MaximumNumberOfReportsIsSet = true;
 }
 bool MonitoringEventSubscription::maximumNumberOfReportsIsSet() const {
@@ -1215,7 +1194,7 @@ std::string MonitoringEventSubscription::getMonitorExpireTime() const {
 }
 void MonitoringEventSubscription::setMonitorExpireTime(
     std::string const& value) {
-  m_MonitorExpireTime      = value;
+  m_MonitorExpireTime = value;
   m_MonitorExpireTimeIsSet = true;
 }
 bool MonitoringEventSubscription::monitorExpireTimeIsSet() const {
@@ -1228,20 +1207,18 @@ int32_t MonitoringEventSubscription::getRepPeriod() const {
   return m_RepPeriod;
 }
 void MonitoringEventSubscription::setRepPeriod(int32_t const value) {
-  m_RepPeriod      = value;
+  m_RepPeriod = value;
   m_RepPeriodIsSet = true;
 }
 bool MonitoringEventSubscription::repPeriodIsSet() const {
   return m_RepPeriodIsSet;
 }
-void MonitoringEventSubscription::unsetRepPeriod() {
-  m_RepPeriodIsSet = false;
-}
+void MonitoringEventSubscription::unsetRepPeriod() { m_RepPeriodIsSet = false; }
 int32_t MonitoringEventSubscription::getGroupReportGuardTime() const {
   return m_GroupReportGuardTime;
 }
 void MonitoringEventSubscription::setGroupReportGuardTime(int32_t const value) {
-  m_GroupReportGuardTime      = value;
+  m_GroupReportGuardTime = value;
   m_GroupReportGuardTimeIsSet = true;
 }
 bool MonitoringEventSubscription::groupReportGuardTimeIsSet() const {
@@ -1254,7 +1231,7 @@ int32_t MonitoringEventSubscription::getMaximumDetectionTime() const {
   return m_MaximumDetectionTime;
 }
 void MonitoringEventSubscription::setMaximumDetectionTime(int32_t const value) {
-  m_MaximumDetectionTime      = value;
+  m_MaximumDetectionTime = value;
   m_MaximumDetectionTimeIsSet = true;
 }
 bool MonitoringEventSubscription::maximumDetectionTimeIsSet() const {
@@ -1268,7 +1245,7 @@ ReachabilityType MonitoringEventSubscription::getReachabilityType() const {
 }
 void MonitoringEventSubscription::setReachabilityType(
     ReachabilityType const& value) {
-  m_ReachabilityType      = value;
+  m_ReachabilityType = value;
   m_ReachabilityTypeIsSet = true;
 }
 bool MonitoringEventSubscription::reachabilityTypeIsSet() const {
@@ -1281,7 +1258,7 @@ int32_t MonitoringEventSubscription::getMaximumLatency() const {
   return m_MaximumLatency;
 }
 void MonitoringEventSubscription::setMaximumLatency(int32_t const value) {
-  m_MaximumLatency      = value;
+  m_MaximumLatency = value;
   m_MaximumLatencyIsSet = true;
 }
 bool MonitoringEventSubscription::maximumLatencyIsSet() const {
@@ -1294,7 +1271,7 @@ int32_t MonitoringEventSubscription::getMaximumResponseTime() const {
   return m_MaximumResponseTime;
 }
 void MonitoringEventSubscription::setMaximumResponseTime(int32_t const value) {
-  m_MaximumResponseTime      = value;
+  m_MaximumResponseTime = value;
   m_MaximumResponseTimeIsSet = true;
 }
 bool MonitoringEventSubscription::maximumResponseTimeIsSet() const {
@@ -1308,7 +1285,7 @@ int32_t MonitoringEventSubscription::getSuggestedNumberOfDlPackets() const {
 }
 void MonitoringEventSubscription::setSuggestedNumberOfDlPackets(
     int32_t const value) {
-  m_SuggestedNumberOfDlPackets      = value;
+  m_SuggestedNumberOfDlPackets = value;
   m_SuggestedNumberOfDlPacketsIsSet = true;
 }
 bool MonitoringEventSubscription::suggestedNumberOfDlPacketsIsSet() const {
@@ -1321,7 +1298,7 @@ bool MonitoringEventSubscription::isIdleStatusIndication() const {
   return m_IdleStatusIndication;
 }
 void MonitoringEventSubscription::setIdleStatusIndication(bool const value) {
-  m_IdleStatusIndication      = value;
+  m_IdleStatusIndication = value;
   m_IdleStatusIndicationIsSet = true;
 }
 bool MonitoringEventSubscription::idleStatusIndicationIsSet() const {
@@ -1334,7 +1311,7 @@ LocationType MonitoringEventSubscription::getLocationType() const {
   return m_LocationType;
 }
 void MonitoringEventSubscription::setLocationType(LocationType const& value) {
-  m_LocationType      = value;
+  m_LocationType = value;
   m_LocationTypeIsSet = true;
 }
 bool MonitoringEventSubscription::locationTypeIsSet() const {
@@ -1343,25 +1320,21 @@ bool MonitoringEventSubscription::locationTypeIsSet() const {
 void MonitoringEventSubscription::unsetLocationType() {
   m_LocationTypeIsSet = false;
 }
-Accuracy MonitoringEventSubscription::getAccuracy() const {
-  return m_Accuracy;
-}
+Accuracy MonitoringEventSubscription::getAccuracy() const { return m_Accuracy; }
 void MonitoringEventSubscription::setAccuracy(Accuracy const& value) {
-  m_Accuracy      = value;
+  m_Accuracy = value;
   m_AccuracyIsSet = true;
 }
 bool MonitoringEventSubscription::accuracyIsSet() const {
   return m_AccuracyIsSet;
 }
-void MonitoringEventSubscription::unsetAccuracy() {
-  m_AccuracyIsSet = false;
-}
+void MonitoringEventSubscription::unsetAccuracy() { m_AccuracyIsSet = false; }
 int32_t MonitoringEventSubscription::getMinimumReportInterval() const {
   return m_MinimumReportInterval;
 }
 void MonitoringEventSubscription::setMinimumReportInterval(
     int32_t const value) {
-  m_MinimumReportInterval      = value;
+  m_MinimumReportInterval = value;
   m_MinimumReportIntervalIsSet = true;
 }
 bool MonitoringEventSubscription::minimumReportIntervalIsSet() const {
@@ -1374,7 +1347,7 @@ int32_t MonitoringEventSubscription::getMaxRptExpireIntvl() const {
   return m_MaxRptExpireIntvl;
 }
 void MonitoringEventSubscription::setMaxRptExpireIntvl(int32_t const value) {
-  m_MaxRptExpireIntvl      = value;
+  m_MaxRptExpireIntvl = value;
   m_MaxRptExpireIntvlIsSet = true;
 }
 bool MonitoringEventSubscription::maxRptExpireIntvlIsSet() const {
@@ -1387,7 +1360,7 @@ int32_t MonitoringEventSubscription::getSamplingInterval() const {
   return m_SamplingInterval;
 }
 void MonitoringEventSubscription::setSamplingInterval(int32_t const value) {
-  m_SamplingInterval      = value;
+  m_SamplingInterval = value;
   m_SamplingIntervalIsSet = true;
 }
 bool MonitoringEventSubscription::samplingIntervalIsSet() const {
@@ -1400,7 +1373,7 @@ bool MonitoringEventSubscription::isReportingLocEstInd() const {
   return m_ReportingLocEstInd;
 }
 void MonitoringEventSubscription::setReportingLocEstInd(bool const value) {
-  m_ReportingLocEstInd      = value;
+  m_ReportingLocEstInd = value;
   m_ReportingLocEstIndIsSet = true;
 }
 bool MonitoringEventSubscription::reportingLocEstIndIsSet() const {
@@ -1413,7 +1386,7 @@ int32_t MonitoringEventSubscription::getLinearDistance() const {
   return m_LinearDistance;
 }
 void MonitoringEventSubscription::setLinearDistance(int32_t const value) {
-  m_LinearDistance      = value;
+  m_LinearDistance = value;
   m_LinearDistanceIsSet = true;
 }
 bool MonitoringEventSubscription::linearDistanceIsSet() const {
@@ -1422,51 +1395,35 @@ bool MonitoringEventSubscription::linearDistanceIsSet() const {
 void MonitoringEventSubscription::unsetLinearDistance() {
   m_LinearDistanceIsSet = false;
 }
-LocationQoS MonitoringEventSubscription::getLocQoS() const {
-  return m_LocQoS;
-}
+LocationQoS MonitoringEventSubscription::getLocQoS() const { return m_LocQoS; }
 void MonitoringEventSubscription::setLocQoS(LocationQoS const& value) {
-  m_LocQoS      = value;
+  m_LocQoS = value;
   m_LocQoSIsSet = true;
 }
-bool MonitoringEventSubscription::locQoSIsSet() const {
-  return m_LocQoSIsSet;
-}
-void MonitoringEventSubscription::unsetLocQoS() {
-  m_LocQoSIsSet = false;
-}
-std::string MonitoringEventSubscription::getSvcId() const {
-  return m_SvcId;
-}
+bool MonitoringEventSubscription::locQoSIsSet() const { return m_LocQoSIsSet; }
+void MonitoringEventSubscription::unsetLocQoS() { m_LocQoSIsSet = false; }
+std::string MonitoringEventSubscription::getSvcId() const { return m_SvcId; }
 void MonitoringEventSubscription::setSvcId(std::string const& value) {
-  m_SvcId      = value;
+  m_SvcId = value;
   m_SvcIdIsSet = true;
 }
-bool MonitoringEventSubscription::svcIdIsSet() const {
-  return m_SvcIdIsSet;
-}
-void MonitoringEventSubscription::unsetSvcId() {
-  m_SvcIdIsSet = false;
-}
-LdrType MonitoringEventSubscription::getLdrType() const {
-  return m_LdrType;
-}
+bool MonitoringEventSubscription::svcIdIsSet() const { return m_SvcIdIsSet; }
+void MonitoringEventSubscription::unsetSvcId() { m_SvcIdIsSet = false; }
+LdrType MonitoringEventSubscription::getLdrType() const { return m_LdrType; }
 void MonitoringEventSubscription::setLdrType(LdrType const& value) {
-  m_LdrType      = value;
+  m_LdrType = value;
   m_LdrTypeIsSet = true;
 }
 bool MonitoringEventSubscription::ldrTypeIsSet() const {
   return m_LdrTypeIsSet;
 }
-void MonitoringEventSubscription::unsetLdrType() {
-  m_LdrTypeIsSet = false;
-}
+void MonitoringEventSubscription::unsetLdrType() { m_LdrTypeIsSet = false; }
 VelocityRequested MonitoringEventSubscription::getVelocityRequested() const {
   return m_VelocityRequested;
 }
 void MonitoringEventSubscription::setVelocityRequested(
     VelocityRequested const& value) {
-  m_VelocityRequested      = value;
+  m_VelocityRequested = value;
   m_VelocityRequestedIsSet = true;
 }
 bool MonitoringEventSubscription::velocityRequestedIsSet() const {
@@ -1479,7 +1436,7 @@ int32_t MonitoringEventSubscription::getMaxAgeOfLocEst() const {
   return m_MaxAgeOfLocEst;
 }
 void MonitoringEventSubscription::setMaxAgeOfLocEst(int32_t const value) {
-  m_MaxAgeOfLocEst      = value;
+  m_MaxAgeOfLocEst = value;
   m_MaxAgeOfLocEstIsSet = true;
 }
 bool MonitoringEventSubscription::maxAgeOfLocEstIsSet() const {
@@ -1492,7 +1449,7 @@ TimeWindow MonitoringEventSubscription::getLocTimeWindow() const {
   return m_LocTimeWindow;
 }
 void MonitoringEventSubscription::setLocTimeWindow(TimeWindow const& value) {
-  m_LocTimeWindow      = value;
+  m_LocTimeWindow = value;
   m_LocTimeWindowIsSet = true;
 }
 bool MonitoringEventSubscription::locTimeWindowIsSet() const {
@@ -1507,7 +1464,7 @@ MonitoringEventSubscription::getSupportedGADShapes() const {
 }
 void MonitoringEventSubscription::setSupportedGADShapes(
     std::vector<SupportedGADShapes> const& value) {
-  m_SupportedGADShapes      = value;
+  m_SupportedGADShapes = value;
   m_SupportedGADShapesIsSet = true;
 }
 bool MonitoringEventSubscription::supportedGADShapesIsSet() const {
@@ -1520,21 +1477,19 @@ std::string MonitoringEventSubscription::getCodeWord() const {
   return m_CodeWord;
 }
 void MonitoringEventSubscription::setCodeWord(std::string const& value) {
-  m_CodeWord      = value;
+  m_CodeWord = value;
   m_CodeWordIsSet = true;
 }
 bool MonitoringEventSubscription::codeWordIsSet() const {
   return m_CodeWordIsSet;
 }
-void MonitoringEventSubscription::unsetCodeWord() {
-  m_CodeWordIsSet = false;
-}
+void MonitoringEventSubscription::unsetCodeWord() { m_CodeWordIsSet = false; }
 AssociationType MonitoringEventSubscription::getAssociationType() const {
   return m_AssociationType;
 }
 void MonitoringEventSubscription::setAssociationType(
     AssociationType const& value) {
-  m_AssociationType      = value;
+  m_AssociationType = value;
   m_AssociationTypeIsSet = true;
 }
 bool MonitoringEventSubscription::associationTypeIsSet() const {
@@ -1547,7 +1502,7 @@ bool MonitoringEventSubscription::isPlmnIndication() const {
   return m_PlmnIndication;
 }
 void MonitoringEventSubscription::setPlmnIndication(bool const value) {
-  m_PlmnIndication      = value;
+  m_PlmnIndication = value;
   m_PlmnIndicationIsSet = true;
 }
 bool MonitoringEventSubscription::plmnIndicationIsSet() const {
@@ -1560,7 +1515,7 @@ LocationArea MonitoringEventSubscription::getLocationArea() const {
   return m_LocationArea;
 }
 void MonitoringEventSubscription::setLocationArea(LocationArea const& value) {
-  m_LocationArea      = value;
+  m_LocationArea = value;
   m_LocationAreaIsSet = true;
 }
 bool MonitoringEventSubscription::locationAreaIsSet() const {
@@ -1574,7 +1529,7 @@ LocationArea5G MonitoringEventSubscription::getLocationArea5G() const {
 }
 void MonitoringEventSubscription::setLocationArea5G(
     LocationArea5G const& value) {
-  m_LocationArea5G      = value;
+  m_LocationArea5G = value;
   m_LocationArea5GIsSet = true;
 }
 bool MonitoringEventSubscription::locationArea5GIsSet() const {
@@ -1589,7 +1544,7 @@ MonitoringEventSubscription::getDddTraDescriptors() const {
 }
 void MonitoringEventSubscription::setDddTraDescriptors(
     std::vector<DddTrafficDescriptor> const& value) {
-  m_DddTraDescriptors      = value;
+  m_DddTraDescriptors = value;
   m_DddTraDescriptorsIsSet = true;
 }
 bool MonitoringEventSubscription::dddTraDescriptorsIsSet() const {
@@ -1604,36 +1559,32 @@ std::vector<DlDataDeliveryStatus> MonitoringEventSubscription::getDddStati()
 }
 void MonitoringEventSubscription::setDddStati(
     std::vector<DlDataDeliveryStatus> const& value) {
-  m_DddStati      = value;
+  m_DddStati = value;
   m_DddStatiIsSet = true;
 }
 bool MonitoringEventSubscription::dddStatiIsSet() const {
   return m_DddStatiIsSet;
 }
-void MonitoringEventSubscription::unsetDddStati() {
-  m_DddStatiIsSet = false;
-}
+void MonitoringEventSubscription::unsetDddStati() { m_DddStatiIsSet = false; }
 std::vector<std::string> MonitoringEventSubscription::getApiNames() const {
   return m_ApiNames;
 }
 void MonitoringEventSubscription::setApiNames(
     std::vector<std::string> const& value) {
-  m_ApiNames      = value;
+  m_ApiNames = value;
   m_ApiNamesIsSet = true;
 }
 bool MonitoringEventSubscription::apiNamesIsSet() const {
   return m_ApiNamesIsSet;
 }
-void MonitoringEventSubscription::unsetApiNames() {
-  m_ApiNamesIsSet = false;
-}
+void MonitoringEventSubscription::unsetApiNames() { m_ApiNamesIsSet = false; }
 MonitoringEventReport MonitoringEventSubscription::getMonitoringEventReport()
     const {
   return m_MonitoringEventReport;
 }
 void MonitoringEventSubscription::setMonitoringEventReport(
     MonitoringEventReport const& value) {
-  m_MonitoringEventReport      = value;
+  m_MonitoringEventReport = value;
   m_MonitoringEventReportIsSet = true;
 }
 bool MonitoringEventSubscription::monitoringEventReportIsSet() const {
@@ -1642,24 +1593,18 @@ bool MonitoringEventSubscription::monitoringEventReportIsSet() const {
 void MonitoringEventSubscription::unsetMonitoringEventReport() {
   m_MonitoringEventReportIsSet = false;
 }
-Snssai MonitoringEventSubscription::getSnssai() const {
-  return m_Snssai;
-}
+Snssai MonitoringEventSubscription::getSnssai() const { return m_Snssai; }
 void MonitoringEventSubscription::setSnssai(Snssai const& value) {
-  m_Snssai      = value;
+  m_Snssai = value;
   m_SnssaiIsSet = true;
 }
-bool MonitoringEventSubscription::snssaiIsSet() const {
-  return m_SnssaiIsSet;
-}
-void MonitoringEventSubscription::unsetSnssai() {
-  m_SnssaiIsSet = false;
-}
+bool MonitoringEventSubscription::snssaiIsSet() const { return m_SnssaiIsSet; }
+void MonitoringEventSubscription::unsetSnssai() { m_SnssaiIsSet = false; }
 SACInfo MonitoringEventSubscription::getTgtNsThreshold() const {
   return m_TgtNsThreshold;
 }
 void MonitoringEventSubscription::setTgtNsThreshold(SACInfo const& value) {
-  m_TgtNsThreshold      = value;
+  m_TgtNsThreshold = value;
   m_TgtNsThresholdIsSet = true;
 }
 bool MonitoringEventSubscription::tgtNsThresholdIsSet() const {
@@ -1672,7 +1617,7 @@ bool MonitoringEventSubscription::isImmediateRep() const {
   return m_ImmediateRep;
 }
 void MonitoringEventSubscription::setImmediateRep(bool const value) {
-  m_ImmediateRep      = value;
+  m_ImmediateRep = value;
   m_ImmediateRepIsSet = true;
 }
 bool MonitoringEventSubscription::immediateRepIsSet() const {
@@ -1685,48 +1630,38 @@ UavPolicy MonitoringEventSubscription::getUavPolicy() const {
   return m_UavPolicy;
 }
 void MonitoringEventSubscription::setUavPolicy(UavPolicy const& value) {
-  m_UavPolicy      = value;
+  m_UavPolicy = value;
   m_UavPolicyIsSet = true;
 }
 bool MonitoringEventSubscription::uavPolicyIsSet() const {
   return m_UavPolicyIsSet;
 }
-void MonitoringEventSubscription::unsetUavPolicy() {
-  m_UavPolicyIsSet = false;
-}
-bool MonitoringEventSubscription::isSesEstInd() const {
-  return m_SesEstInd;
-}
+void MonitoringEventSubscription::unsetUavPolicy() { m_UavPolicyIsSet = false; }
+bool MonitoringEventSubscription::isSesEstInd() const { return m_SesEstInd; }
 void MonitoringEventSubscription::setSesEstInd(bool const value) {
-  m_SesEstInd      = value;
+  m_SesEstInd = value;
   m_SesEstIndIsSet = true;
 }
 bool MonitoringEventSubscription::sesEstIndIsSet() const {
   return m_SesEstIndIsSet;
 }
-void MonitoringEventSubscription::unsetSesEstInd() {
-  m_SesEstIndIsSet = false;
-}
-SubType MonitoringEventSubscription::getSubType() const {
-  return m_SubType;
-}
+void MonitoringEventSubscription::unsetSesEstInd() { m_SesEstIndIsSet = false; }
+SubType MonitoringEventSubscription::getSubType() const { return m_SubType; }
 void MonitoringEventSubscription::setSubType(SubType const& value) {
-  m_SubType      = value;
+  m_SubType = value;
   m_SubTypeIsSet = true;
 }
 bool MonitoringEventSubscription::subTypeIsSet() const {
   return m_SubTypeIsSet;
 }
-void MonitoringEventSubscription::unsetSubType() {
-  m_SubTypeIsSet = false;
-}
+void MonitoringEventSubscription::unsetSubType() { m_SubTypeIsSet = false; }
 std::vector<MonitoringType> MonitoringEventSubscription::getAddnMonTypes()
     const {
   return m_AddnMonTypes;
 }
 void MonitoringEventSubscription::setAddnMonTypes(
     std::vector<MonitoringType> const& value) {
-  m_AddnMonTypes      = value;
+  m_AddnMonTypes = value;
   m_AddnMonTypesIsSet = true;
 }
 bool MonitoringEventSubscription::addnMonTypesIsSet() const {
@@ -1741,7 +1676,7 @@ MonitoringEventSubscription::getAddnMonEventReports() const {
 }
 void MonitoringEventSubscription::setAddnMonEventReports(
     std::vector<MonitoringEventReport> const& value) {
-  m_AddnMonEventReports      = value;
+  m_AddnMonEventReports = value;
   m_AddnMonEventReportsIsSet = true;
 }
 bool MonitoringEventSubscription::addnMonEventReportsIsSet() const {

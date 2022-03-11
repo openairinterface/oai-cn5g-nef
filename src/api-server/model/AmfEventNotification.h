@@ -19,10 +19,11 @@
 #ifndef AmfEventNotification_H_
 #define AmfEventNotification_H_
 
-#include "AmfEventReport.h"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "AmfEventReport.h"
 
 namespace oai::nef::model {
 

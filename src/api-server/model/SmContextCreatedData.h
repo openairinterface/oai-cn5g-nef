@@ -19,9 +19,10 @@
 #ifndef SmContextCreatedData_H_
 #define SmContextCreatedData_H_
 
-#include <string>
-#include "Snssai.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "Snssai.h"
 
 namespace oai::nef::model {
 

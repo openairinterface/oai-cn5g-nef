@@ -12,15 +12,14 @@
  */
 
 #include "AfResultInfo.h"
-#include "Helpers.h"
 
 #include <sstream>
 
+#include "Helpers.h"
+
 namespace oai::nef::model {
 
-AfResultInfo::AfResultInfo() {
-  m_TrafficRouteIsSet = false;
-}
+AfResultInfo::AfResultInfo() { m_TrafficRouteIsSet = false; }
 
 void AfResultInfo::validate() const {
   std::stringstream msg;
@@ -33,8 +32,8 @@ bool AfResultInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AfResultInfo::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AfResultInfo::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AfResultInfo" : pathPrefix;
@@ -59,7 +58,7 @@ bool AfResultInfo::operator!=(const AfResultInfo& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AfResultInfo& o) {
-  j             = nlohmann::json();
+  j = nlohmann::json();
   j["afStatus"] = o.m_AfStatus;
   if (o.trafficRouteIsSet()) j["trafficRoute"] = o.m_TrafficRoute;
 }
@@ -72,24 +71,16 @@ void from_json(const nlohmann::json& j, AfResultInfo& o) {
   }
 }
 
-AfResultStatus AfResultInfo::getAfStatus() const {
-  return m_AfStatus;
-}
+AfResultStatus AfResultInfo::getAfStatus() const { return m_AfStatus; }
 void AfResultInfo::setAfStatus(AfResultStatus const& value) {
   m_AfStatus = value;
 }
-RouteToLocation AfResultInfo::getTrafficRoute() const {
-  return m_TrafficRoute;
-}
+RouteToLocation AfResultInfo::getTrafficRoute() const { return m_TrafficRoute; }
 void AfResultInfo::setTrafficRoute(RouteToLocation const& value) {
-  m_TrafficRoute      = value;
+  m_TrafficRoute = value;
   m_TrafficRouteIsSet = true;
 }
-bool AfResultInfo::trafficRouteIsSet() const {
-  return m_TrafficRouteIsSet;
-}
-void AfResultInfo::unsetTrafficRoute() {
-  m_TrafficRouteIsSet = false;
-}
+bool AfResultInfo::trafficRouteIsSet() const { return m_TrafficRouteIsSet; }
+void AfResultInfo::unsetTrafficRoute() { m_TrafficRouteIsSet = false; }
 
 }  // namespace oai::nef::model

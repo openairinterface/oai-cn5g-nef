@@ -12,9 +12,11 @@
  */
 
 #include "AccessType.h"
-#include "Helpers.h"
-#include <stdexcept>
+
 #include <sstream>
+#include <stdexcept>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +33,8 @@ bool AccessType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AccessType::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool AccessType::validate(std::stringstream& msg,
+                          const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AccessType" : pathPrefix;
@@ -86,11 +88,7 @@ void from_json(const nlohmann::json& j, AccessType& o) {
   }
 }
 
-AccessType::eAccessType AccessType::getValue() const {
-  return m_value;
-}
-void AccessType::setValue(AccessType::eAccessType value) {
-  m_value = value;
-}
+AccessType::eAccessType AccessType::getValue() const { return m_value; }
+void AccessType::setValue(AccessType::eAccessType value) { m_value = value; }
 
 }  // namespace oai::nef::model

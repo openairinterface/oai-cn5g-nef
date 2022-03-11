@@ -20,10 +20,11 @@
 #ifndef LocUpdateData_H_
 #define LocUpdateData_H_
 
-#include "LocationInfo.h"
-#include "LcsQosClass.h"
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "LcsQosClass.h"
+#include "LocationInfo.h"
 
 namespace oai::nef::model {
 

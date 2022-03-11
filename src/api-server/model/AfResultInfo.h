@@ -19,9 +19,10 @@
 #ifndef AfResultInfo_H_
 #define AfResultInfo_H_
 
+#include <nlohmann/json.hpp>
+
 #include "AfResultStatus.h"
 #include "RouteToLocation.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

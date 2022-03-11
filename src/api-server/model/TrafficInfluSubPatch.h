@@ -19,13 +19,14 @@
 #ifndef TrafficInfluSubPatch_H_
 #define TrafficInfluSubPatch_H_
 
-#include "FlowInfo.h"
-#include "EthFlowDescription.h"
+#include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
+
+#include "EthFlowDescription.h"
+#include "FlowInfo.h"
 #include "RouteToLocation.h"
 #include "TemporalValidity.h"
-#include <vector>
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

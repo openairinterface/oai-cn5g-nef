@@ -20,8 +20,9 @@
 #ifndef SmContextStatus_H_
 #define SmContextStatus_H_
 
-#include "SmContextStatus_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "SmContextStatus_anyOf.h"
 
 namespace oai::nef::model {
 

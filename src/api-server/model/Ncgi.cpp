@@ -12,15 +12,16 @@
  */
 
 #include "Ncgi.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 Ncgi::Ncgi() {
   m_NrCellId = "";
-  m_Nid      = "";
+  m_Nid = "";
   m_NidIsSet = false;
 }
 
@@ -31,22 +32,20 @@ void Ncgi::validate() const {
   }
 }
 
-bool Ncgi::validate(std::stringstream& msg) const {
-  return validate(msg, "");
-}
+bool Ncgi::validate(std::stringstream& msg) const { return validate(msg, ""); }
 
-bool Ncgi::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
-  bool success                  = true;
+bool Ncgi::validate(std::stringstream& msg,
+                    const std::string& pathPrefix) const {
+  bool success = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Ncgi" : pathPrefix;
 
   /* NrCellId */ {
-    const std::string& value           = m_NrCellId;
+    const std::string& value = m_NrCellId;
     const std::string currentValuePath = _pathPrefix + ".nrCellId";
   }
 
   if (nidIsSet()) {
-    const std::string& value           = m_Nid;
+    const std::string& value = m_Nid;
     const std::string currentValuePath = _pathPrefix + ".nid";
   }
 
@@ -66,13 +65,11 @@ bool Ncgi::operator==(const Ncgi& rhs) const {
           ;
 }
 
-bool Ncgi::operator!=(const Ncgi& rhs) const {
-  return !(*this == rhs);
-}
+bool Ncgi::operator!=(const Ncgi& rhs) const { return !(*this == rhs); }
 
 void to_json(nlohmann::json& j, const Ncgi& o) {
-  j             = nlohmann::json();
-  j["plmnId"]   = o.m_PlmnId;
+  j = nlohmann::json();
+  j["plmnId"] = o.m_PlmnId;
   j["nrCellId"] = o.m_NrCellId;
   if (o.nidIsSet()) j["nid"] = o.m_Nid;
 }
@@ -86,30 +83,16 @@ void from_json(const nlohmann::json& j, Ncgi& o) {
   }
 }
 
-PlmnId Ncgi::getPlmnId() const {
-  return m_PlmnId;
-}
-void Ncgi::setPlmnId(PlmnId const& value) {
-  m_PlmnId = value;
-}
-std::string Ncgi::getNrCellId() const {
-  return m_NrCellId;
-}
-void Ncgi::setNrCellId(std::string const& value) {
-  m_NrCellId = value;
-}
-std::string Ncgi::getNid() const {
-  return m_Nid;
-}
+PlmnId Ncgi::getPlmnId() const { return m_PlmnId; }
+void Ncgi::setPlmnId(PlmnId const& value) { m_PlmnId = value; }
+std::string Ncgi::getNrCellId() const { return m_NrCellId; }
+void Ncgi::setNrCellId(std::string const& value) { m_NrCellId = value; }
+std::string Ncgi::getNid() const { return m_Nid; }
 void Ncgi::setNid(std::string const& value) {
-  m_Nid      = value;
+  m_Nid = value;
   m_NidIsSet = true;
 }
-bool Ncgi::nidIsSet() const {
-  return m_NidIsSet;
-}
-void Ncgi::unsetNid() {
-  m_NidIsSet = false;
-}
+bool Ncgi::nidIsSet() const { return m_NidIsSet; }
+void Ncgi::unsetNid() { m_NidIsSet = false; }
 
 }  // namespace oai::nef::model

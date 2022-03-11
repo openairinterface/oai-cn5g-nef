@@ -19,12 +19,13 @@
 #ifndef IptvConfigData_H_
 #define IptvConfigData_H_
 
-#include <string>
-#include "MulticastAccessControl.h"
 #include <map>
-#include "Snssai.h"
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "MulticastAccessControl.h"
+#include "Snssai.h"
 
 namespace oai::nef::model {
 

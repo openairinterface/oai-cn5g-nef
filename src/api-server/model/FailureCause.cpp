@@ -12,27 +12,28 @@
  */
 
 #include "FailureCause.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 FailureCause::FailureCause() {
-  m_BssgpCause       = 0;
-  m_BssgpCauseIsSet  = false;
-  m_CauseType        = 0;
-  m_CauseTypeIsSet   = false;
-  m_GmmCause         = 0;
-  m_GmmCauseIsSet    = false;
-  m_RanapCause       = 0;
-  m_RanapCauseIsSet  = false;
-  m_RanNasCause      = "";
+  m_BssgpCause = 0;
+  m_BssgpCauseIsSet = false;
+  m_CauseType = 0;
+  m_CauseTypeIsSet = false;
+  m_GmmCause = 0;
+  m_GmmCauseIsSet = false;
+  m_RanapCause = 0;
+  m_RanapCauseIsSet = false;
+  m_RanNasCause = "";
   m_RanNasCauseIsSet = false;
-  m_S1ApCause        = 0;
-  m_S1ApCauseIsSet   = false;
-  m_SmCause          = 0;
-  m_SmCauseIsSet     = false;
+  m_S1ApCause = 0;
+  m_S1ApCauseIsSet = false;
+  m_SmCause = 0;
+  m_SmCauseIsSet = false;
 }
 
 void FailureCause::validate() const {
@@ -46,8 +47,8 @@ bool FailureCause::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool FailureCause::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool FailureCause::validate(std::stringstream& msg,
+                            const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "FailureCause" : pathPrefix;
@@ -135,96 +136,54 @@ void from_json(const nlohmann::json& j, FailureCause& o) {
   }
 }
 
-int32_t FailureCause::getBssgpCause() const {
-  return m_BssgpCause;
-}
+int32_t FailureCause::getBssgpCause() const { return m_BssgpCause; }
 void FailureCause::setBssgpCause(int32_t const value) {
-  m_BssgpCause      = value;
+  m_BssgpCause = value;
   m_BssgpCauseIsSet = true;
 }
-bool FailureCause::bssgpCauseIsSet() const {
-  return m_BssgpCauseIsSet;
-}
-void FailureCause::unsetBssgpCause() {
-  m_BssgpCauseIsSet = false;
-}
-int32_t FailureCause::getCauseType() const {
-  return m_CauseType;
-}
+bool FailureCause::bssgpCauseIsSet() const { return m_BssgpCauseIsSet; }
+void FailureCause::unsetBssgpCause() { m_BssgpCauseIsSet = false; }
+int32_t FailureCause::getCauseType() const { return m_CauseType; }
 void FailureCause::setCauseType(int32_t const value) {
-  m_CauseType      = value;
+  m_CauseType = value;
   m_CauseTypeIsSet = true;
 }
-bool FailureCause::causeTypeIsSet() const {
-  return m_CauseTypeIsSet;
-}
-void FailureCause::unsetCauseType() {
-  m_CauseTypeIsSet = false;
-}
-int32_t FailureCause::getGmmCause() const {
-  return m_GmmCause;
-}
+bool FailureCause::causeTypeIsSet() const { return m_CauseTypeIsSet; }
+void FailureCause::unsetCauseType() { m_CauseTypeIsSet = false; }
+int32_t FailureCause::getGmmCause() const { return m_GmmCause; }
 void FailureCause::setGmmCause(int32_t const value) {
-  m_GmmCause      = value;
+  m_GmmCause = value;
   m_GmmCauseIsSet = true;
 }
-bool FailureCause::gmmCauseIsSet() const {
-  return m_GmmCauseIsSet;
-}
-void FailureCause::unsetGmmCause() {
-  m_GmmCauseIsSet = false;
-}
-int32_t FailureCause::getRanapCause() const {
-  return m_RanapCause;
-}
+bool FailureCause::gmmCauseIsSet() const { return m_GmmCauseIsSet; }
+void FailureCause::unsetGmmCause() { m_GmmCauseIsSet = false; }
+int32_t FailureCause::getRanapCause() const { return m_RanapCause; }
 void FailureCause::setRanapCause(int32_t const value) {
-  m_RanapCause      = value;
+  m_RanapCause = value;
   m_RanapCauseIsSet = true;
 }
-bool FailureCause::ranapCauseIsSet() const {
-  return m_RanapCauseIsSet;
-}
-void FailureCause::unsetRanapCause() {
-  m_RanapCauseIsSet = false;
-}
-std::string FailureCause::getRanNasCause() const {
-  return m_RanNasCause;
-}
+bool FailureCause::ranapCauseIsSet() const { return m_RanapCauseIsSet; }
+void FailureCause::unsetRanapCause() { m_RanapCauseIsSet = false; }
+std::string FailureCause::getRanNasCause() const { return m_RanNasCause; }
 void FailureCause::setRanNasCause(std::string const& value) {
-  m_RanNasCause      = value;
+  m_RanNasCause = value;
   m_RanNasCauseIsSet = true;
 }
-bool FailureCause::ranNasCauseIsSet() const {
-  return m_RanNasCauseIsSet;
-}
-void FailureCause::unsetRanNasCause() {
-  m_RanNasCauseIsSet = false;
-}
-int32_t FailureCause::getS1ApCause() const {
-  return m_S1ApCause;
-}
+bool FailureCause::ranNasCauseIsSet() const { return m_RanNasCauseIsSet; }
+void FailureCause::unsetRanNasCause() { m_RanNasCauseIsSet = false; }
+int32_t FailureCause::getS1ApCause() const { return m_S1ApCause; }
 void FailureCause::setS1ApCause(int32_t const value) {
-  m_S1ApCause      = value;
+  m_S1ApCause = value;
   m_S1ApCauseIsSet = true;
 }
-bool FailureCause::s1ApCauseIsSet() const {
-  return m_S1ApCauseIsSet;
-}
-void FailureCause::unsetS1ApCause() {
-  m_S1ApCauseIsSet = false;
-}
-int32_t FailureCause::getSmCause() const {
-  return m_SmCause;
-}
+bool FailureCause::s1ApCauseIsSet() const { return m_S1ApCauseIsSet; }
+void FailureCause::unsetS1ApCause() { m_S1ApCauseIsSet = false; }
+int32_t FailureCause::getSmCause() const { return m_SmCause; }
 void FailureCause::setSmCause(int32_t const value) {
-  m_SmCause      = value;
+  m_SmCause = value;
   m_SmCauseIsSet = true;
 }
-bool FailureCause::smCauseIsSet() const {
-  return m_SmCauseIsSet;
-}
-void FailureCause::unsetSmCause() {
-  m_SmCauseIsSet = false;
-}
+bool FailureCause::smCauseIsSet() const { return m_SmCauseIsSet; }
+void FailureCause::unsetSmCause() { m_SmCauseIsSet = false; }
 
 }  // namespace oai::nef::model

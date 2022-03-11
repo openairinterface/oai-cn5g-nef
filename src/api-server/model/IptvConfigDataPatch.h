@@ -19,10 +19,11 @@
 #ifndef IptvConfigDataPatch_H_
 #define IptvConfigDataPatch_H_
 
-#include "MulticastAccessControl.h"
 #include <map>
-#include <vector>
 #include <nlohmann/json.hpp>
+#include <vector>
+
+#include "MulticastAccessControl.h"
 
 namespace oai::nef::model {
 

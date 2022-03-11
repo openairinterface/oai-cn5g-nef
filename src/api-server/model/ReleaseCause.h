@@ -21,8 +21,9 @@
 #ifndef ReleaseCause_H_
 #define ReleaseCause_H_
 
-#include "ReleaseCause_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "ReleaseCause_anyOf.h"
 
 namespace oai::nef::model {
 

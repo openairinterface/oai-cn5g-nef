@@ -12,20 +12,21 @@
  */
 
 #include "QosSustainabilityExposure.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
 QosSustainabilityExposure::QosSustainabilityExposure() {
-  m_StartTs            = "";
-  m_EndTs              = "";
+  m_StartTs = "";
+  m_EndTs = "";
   m_QosFlowRetThdIsSet = false;
-  m_RanUeThrouThd      = "";
+  m_RanUeThrouThd = "";
   m_RanUeThrouThdIsSet = false;
-  m_Confidence         = 0;
-  m_ConfidenceIsSet    = false;
+  m_Confidence = 0;
+  m_ConfidenceIsSet = false;
 }
 
 void QosSustainabilityExposure::validate() const {
@@ -39,19 +40,19 @@ bool QosSustainabilityExposure::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool QosSustainabilityExposure::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool QosSustainabilityExposure::validate(std::stringstream& msg,
+                                         const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "QosSustainabilityExposure" : pathPrefix;
 
   if (ranUeThrouThdIsSet()) {
-    const std::string& value           = m_RanUeThrouThd;
+    const std::string& value = m_RanUeThrouThd;
     const std::string currentValuePath = _pathPrefix + ".ranUeThrouThd";
   }
 
   if (confidenceIsSet()) {
-    const int32_t& value               = m_Confidence;
+    const int32_t& value = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -94,10 +95,10 @@ bool QosSustainabilityExposure::operator!=(
 }
 
 void to_json(nlohmann::json& j, const QosSustainabilityExposure& o) {
-  j            = nlohmann::json();
+  j = nlohmann::json();
   j["locArea"] = o.m_LocArea;
   j["startTs"] = o.m_StartTs;
-  j["endTs"]   = o.m_EndTs;
+  j["endTs"] = o.m_EndTs;
   if (o.qosFlowRetThdIsSet()) j["qosFlowRetThd"] = o.m_QosFlowRetThd;
   if (o.ranUeThrouThdIsSet()) j["ranUeThrouThd"] = o.m_RanUeThrouThd;
   if (o.confidenceIsSet()) j["confidence"] = o.m_Confidence;
@@ -127,15 +128,11 @@ LocationArea5G QosSustainabilityExposure::getLocArea() const {
 void QosSustainabilityExposure::setLocArea(LocationArea5G const& value) {
   m_LocArea = value;
 }
-std::string QosSustainabilityExposure::getStartTs() const {
-  return m_StartTs;
-}
+std::string QosSustainabilityExposure::getStartTs() const { return m_StartTs; }
 void QosSustainabilityExposure::setStartTs(std::string const& value) {
   m_StartTs = value;
 }
-std::string QosSustainabilityExposure::getEndTs() const {
-  return m_EndTs;
-}
+std::string QosSustainabilityExposure::getEndTs() const { return m_EndTs; }
 void QosSustainabilityExposure::setEndTs(std::string const& value) {
   m_EndTs = value;
 }
@@ -144,7 +141,7 @@ RetainabilityThreshold QosSustainabilityExposure::getQosFlowRetThd() const {
 }
 void QosSustainabilityExposure::setQosFlowRetThd(
     RetainabilityThreshold const& value) {
-  m_QosFlowRetThd      = value;
+  m_QosFlowRetThd = value;
   m_QosFlowRetThdIsSet = true;
 }
 bool QosSustainabilityExposure::qosFlowRetThdIsSet() const {
@@ -157,7 +154,7 @@ std::string QosSustainabilityExposure::getRanUeThrouThd() const {
   return m_RanUeThrouThd;
 }
 void QosSustainabilityExposure::setRanUeThrouThd(std::string const& value) {
-  m_RanUeThrouThd      = value;
+  m_RanUeThrouThd = value;
   m_RanUeThrouThdIsSet = true;
 }
 bool QosSustainabilityExposure::ranUeThrouThdIsSet() const {
@@ -170,14 +167,12 @@ int32_t QosSustainabilityExposure::getConfidence() const {
   return m_Confidence;
 }
 void QosSustainabilityExposure::setConfidence(int32_t const value) {
-  m_Confidence      = value;
+  m_Confidence = value;
   m_ConfidenceIsSet = true;
 }
 bool QosSustainabilityExposure::confidenceIsSet() const {
   return m_ConfidenceIsSet;
 }
-void QosSustainabilityExposure::unsetConfidence() {
-  m_ConfidenceIsSet = false;
-}
+void QosSustainabilityExposure::unsetConfidence() { m_ConfidenceIsSet = false; }
 
 }  // namespace oai::nef::model

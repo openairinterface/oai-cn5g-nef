@@ -20,8 +20,9 @@
 #ifndef StationaryIndication_H_
 #define StationaryIndication_H_
 
-#include "StationaryIndication_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "StationaryIndication_anyOf.h"
 
 namespace oai::nef::model {
 

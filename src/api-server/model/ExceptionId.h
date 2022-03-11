@@ -26,8 +26,9 @@
 #ifndef ExceptionId_H_
 #define ExceptionId_H_
 
-#include "ExceptionId_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "ExceptionId_anyOf.h"
 
 namespace oai::nef::model {
 

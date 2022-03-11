@@ -21,8 +21,9 @@
 #ifndef AccessRightStatus_H_
 #define AccessRightStatus_H_
 
-#include "AccessRightStatus_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "AccessRightStatus_anyOf.h"
 
 namespace oai::nef::model {
 

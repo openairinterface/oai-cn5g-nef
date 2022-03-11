@@ -12,9 +12,10 @@
  */
 
 #include "MonitoringType.h"
-#include "Helpers.h"
 
 #include <sstream>
+
+#include "Helpers.h"
 
 namespace oai::nef::model {
 
@@ -31,8 +32,8 @@ bool MonitoringType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool MonitoringType::validate(
-    std::stringstream& msg, const std::string& pathPrefix) const {
+bool MonitoringType::validate(std::stringstream& msg,
+                              const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "MonitoringType" : pathPrefix;
@@ -62,13 +63,9 @@ void from_json(const nlohmann::json& j, MonitoringType& o) {
   from_json(j, o.m_value);
 }
 
-MonitoringType_anyOf MonitoringType::getValue() const {
-  return m_value;
-}
+MonitoringType_anyOf MonitoringType::getValue() const { return m_value; }
 
-void MonitoringType::setValue(MonitoringType_anyOf value) {
-  m_value = value;
-}
+void MonitoringType::setValue(MonitoringType_anyOf value) { m_value = value; }
 
 MonitoringType_anyOf::eMonitoringType_anyOf MonitoringType::getEnumValue()
     const {

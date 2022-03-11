@@ -19,10 +19,11 @@
 #ifndef ServiceParameterData_H_
 #define ServiceParameterData_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
+
 #include "Ipv6Addr.h"
 #include "Snssai.h"
-#include <nlohmann/json.hpp>
 
 namespace oai::nef::model {
 

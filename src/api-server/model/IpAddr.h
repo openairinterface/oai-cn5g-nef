@@ -19,10 +19,11 @@
 #ifndef IpAddr_H_
 #define IpAddr_H_
 
-#include <string>
-#include "Ipv6Prefix.h"
-#include "Ipv6Addr.h"
 #include <nlohmann/json.hpp>
+#include <string>
+
+#include "Ipv6Addr.h"
+#include "Ipv6Prefix.h"
 
 namespace oai::nef::model {
 

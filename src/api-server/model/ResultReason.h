@@ -21,8 +21,9 @@
 #ifndef ResultReason_H_
 #define ResultReason_H_
 
-#include "ResultReason_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "ResultReason_anyOf.h"
 
 namespace oai::nef::model {
 

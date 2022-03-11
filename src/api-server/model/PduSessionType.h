@@ -19,8 +19,9 @@
 #ifndef PduSessionType_H_
 #define PduSessionType_H_
 
-#include "PduSessionType_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "PduSessionType_anyOf.h"
 
 namespace oai::nef::model {
 

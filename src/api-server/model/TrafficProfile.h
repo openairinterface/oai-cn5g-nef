@@ -24,8 +24,9 @@
 #ifndef TrafficProfile_H_
 #define TrafficProfile_H_
 
-#include "TrafficProfile_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "TrafficProfile_anyOf.h"
 
 namespace oai::nef::model {
 

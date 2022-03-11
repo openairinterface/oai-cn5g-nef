@@ -19,8 +19,9 @@
 #ifndef _5GLanParametersProvisionPatch_H_
 #define _5GLanParametersProvisionPatch_H_
 
-#include "5GLanParametersPatch.h"
 #include <nlohmann/json.hpp>
+
+#include "5GLanParametersPatch.h"
 
 namespace oai::nef::model {
 
@@ -64,10 +65,10 @@ class _5GLanParametersProvisionPatch {
   bool r5gLanParamsPatchIsSet() const;
   void unsetr_5gLanParamsPatch();
 
-  friend void to_json(
-      nlohmann::json& j, const _5GLanParametersProvisionPatch& o);
-  friend void from_json(
-      const nlohmann::json& j, _5GLanParametersProvisionPatch& o);
+  friend void to_json(nlohmann::json& j,
+                      const _5GLanParametersProvisionPatch& o);
+  friend void from_json(const nlohmann::json& j,
+                        _5GLanParametersProvisionPatch& o);
 
  protected:
   _5GLanParametersPatch m_r_5gLanParamsPatch;

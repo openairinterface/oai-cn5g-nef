@@ -19,8 +19,8 @@
 #ifndef SmallDataRateStatus_H_
 #define SmallDataRateStatus_H_
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace oai::nef::model {
 

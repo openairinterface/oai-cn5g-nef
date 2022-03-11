@@ -22,8 +22,9 @@
 #ifndef LocationFailureCause_H_
 #define LocationFailureCause_H_
 
-#include "LocationFailureCause_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "LocationFailureCause_anyOf.h"
 
 namespace oai::nef::model {
 

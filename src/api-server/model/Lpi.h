@@ -20,9 +20,10 @@
 #ifndef Lpi_H_
 #define Lpi_H_
 
-#include "ValidTimePeriod.h"
-#include "LocationPrivacyInd.h"
 #include <nlohmann/json.hpp>
+
+#include "LocationPrivacyInd.h"
+#include "ValidTimePeriod.h"
 
 namespace oai::nef::model {
 

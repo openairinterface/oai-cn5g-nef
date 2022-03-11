@@ -19,9 +19,10 @@
 #ifndef AnalyticsFailureEventInfo_H_
 #define AnalyticsFailureEventInfo_H_
 
-#include "AnalyticsFailureCode.h"
-#include "AnalyticsEvent.h"
 #include <nlohmann/json.hpp>
+
+#include "AnalyticsEvent.h"
+#include "AnalyticsFailureCode.h"
 
 namespace oai::nef::model {
 

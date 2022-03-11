@@ -21,8 +21,9 @@
 #ifndef AaaUsage_H_
 #define AaaUsage_H_
 
-#include "AaaUsage_anyOf.h"
 #include <nlohmann/json.hpp>
+
+#include "AaaUsage_anyOf.h"
 
 namespace oai::nef::model {
 
