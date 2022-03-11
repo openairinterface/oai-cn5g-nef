@@ -12,6 +12,7 @@
  */
 
 #include "SubscriptionsCollectionApiImpl.h"
+
 #include "3gpp_29.500.h"
 #include "ProblemDetails.h"
 #include "logger.hpp"
@@ -38,10 +39,10 @@ void SubscriptionsCollectionApiImpl::create_individual_subcription(
     Pistache::Http::ResponseWriter& response) {
   Logger::nef_sbi().info("Got a request to create an individual subscription");
 
-  int http_code                  = 0;
+  int http_code = 0;
   ProblemDetails problem_details = {};
-  std::string sub_id             = {};
-  uint8_t http_version           = 1;
+  std::string sub_id = {};
+  uint8_t http_version = 1;
 
   NefEventExposureSubsc created_ev_sub = {};
   m_nef_app->handle_create_individual_subscription(
@@ -55,7 +56,7 @@ void SubscriptionsCollectionApiImpl::create_individual_subcription(
     to_json(json_data, problem_details);
     content_type = "application/problem+json";
   } else {
-    to_json(json_data, nefEventExposureSubsc);
+    to_json(json_data, created_ev_sub);
     json_data["subscriptionId"] = sub_id;
     // Location header
     response.headers().add<Pistache::Http::Header::Location>(

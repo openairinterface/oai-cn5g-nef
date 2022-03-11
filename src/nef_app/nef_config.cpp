@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+
 #include "string.hpp"
 
 // C includes
@@ -66,20 +67,20 @@ int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
     if_cfg.lookupValue(NEF_CONFIG_STRING_IPV4_ADDRESS, address);
     util::trim(address);
     if (boost::iequals(address, "read")) {
-      if (get_inet_addr_infos_from_iface(
-              cfg.if_name, cfg.addr4, cfg.network4, cfg.mtu)) {
+      if (get_inet_addr_infos_from_iface(cfg.if_name, cfg.addr4, cfg.network4,
+                                         cfg.mtu)) {
         Logger::nef_app().error(
             "Could not read %s network interface configuration", cfg.if_name);
         return RETURNerror;
       }
     } else {
       std::vector<std::string> words;
-      boost::split(
-          words, address, boost::is_any_of("/"), boost::token_compress_on);
+      boost::split(words, address, boost::is_any_of("/"),
+                   boost::token_compress_on);
       if (words.size() != 2) {
-        Logger::nef_app().error(
-            "Bad value " NEF_CONFIG_STRING_IPV4_ADDRESS " = %s in config file",
-            address.c_str());
+        Logger::nef_app().error("Bad value " NEF_CONFIG_STRING_IPV4_ADDRESS
+                                " = %s in config file",
+                                address.c_str());
         return RETURNerror;
       }
       unsigned char buf_in_addr[sizeof(struct in6_addr)];
@@ -93,16 +94,16 @@ int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
             util::trim(words.at(0)).c_str());
         return RETURNerror;
       }
-      cfg.network4.s_addr = htons(
-          ntohs(cfg.addr4.s_addr) &
-          0xFFFFFFFF << (32 - std::stoi(util::trim(words.at(1)))));
+      cfg.network4.s_addr =
+          htons(ntohs(cfg.addr4.s_addr) &
+                0xFFFFFFFF << (32 - std::stoi(util::trim(words.at(1)))));
     }
     // Port
     if_cfg.lookupValue(NEF_CONFIG_STRING_PORT, cfg.port);
 
     // HTTP2 port
-    if (!(if_cfg.lookupValue(
-            NEF_CONFIG_STRING_SBI_HTTP2_PORT, cfg.http2_port))) {
+    if (!(if_cfg.lookupValue(NEF_CONFIG_STRING_SBI_HTTP2_PORT,
+                             cfg.http2_port))) {
       Logger::nef_app().error(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
       throw(NEF_CONFIG_STRING_SBI_HTTP2_PORT "failed");
     }
@@ -125,14 +126,12 @@ int nef_config::load(const string& config_file) {
   try {
     cfg.readFile(config_file.c_str());
   } catch (const FileIOException& fioex) {
-    Logger::nef_app().error(
-        "I/O error while reading file %s - %s", config_file.c_str(),
-        fioex.what());
+    Logger::nef_app().error("I/O error while reading file %s - %s",
+                            config_file.c_str(), fioex.what());
     throw;
   } catch (const ParseException& pex) {
-    Logger::nef_app().error(
-        "Parse error at %s:%d - %s", pex.getFile(), pex.getLine(),
-        pex.getError());
+    Logger::nef_app().error("Parse error at %s:%d - %s", pex.getFile(),
+                            pex.getLine(), pex.getError());
     throw;
   }
 
@@ -150,15 +149,15 @@ int nef_config::load(const string& config_file) {
   try {
     nef_cfg.lookupValue(NEF_CONFIG_STRING_INSTANCE, instance);
   } catch (const SettingNotFoundException& nfex) {
-    Logger::nef_app().info(
-        "%s : %s, using defaults", nfex.what(), nfex.getPath());
+    Logger::nef_app().info("%s : %s, using defaults", nfex.what(),
+                           nfex.getPath());
   }
 
   try {
     nef_cfg.lookupValue(NEF_CONFIG_STRING_PID_DIRECTORY, pid_dir);
   } catch (const SettingNotFoundException& nfex) {
-    Logger::nef_app().info(
-        "%s : %s, using defaults", nfex.what(), nfex.getPath());
+    Logger::nef_app().info("%s : %s, using defaults", nfex.what(),
+                           nfex.getPath());
   }
 
   try {
@@ -174,8 +173,8 @@ int nef_config::load(const string& config_file) {
 
 //------------------------------------------------------------------------------
 void nef_config::display() {
-  Logger::nef_app().info(
-      "==== OAI-CN5G %s v%s ====", PACKAGE_NAME, PACKAGE_VERSION);
+  Logger::nef_app().info("==== OAI-CN5G %s v%s ====", PACKAGE_NAME,
+                         PACKAGE_VERSION);
   Logger::nef_app().info("Configuration NEF:");
   Logger::nef_app().info("- Instance ..............: %d\n", instance);
   Logger::nef_app().info("- PID dir ...............: %s\n", pid_dir.c_str());
@@ -185,9 +184,20 @@ void nef_config::display() {
   Logger::nef_app().info("    IPv4 Addr ...........: %s", inet_ntoa(sbi.addr4));
   Logger::nef_app().info("    Port ................: %d", sbi.port);
   Logger::nef_app().info("    HTTP2 port ..........: %d", sbi.http2_port);
-  Logger::nef_app().info(
-      "    API version..........: %s", sbi.api_version.c_str());
+  Logger::nef_app().info("    API version..........: %s",
+                         sbi.api_version.c_str());
 }
 
 //------------------------------------------------------------------------------
 nef_config::~nef_config() {}
+
+//------------------------------------------------------------------------------
+std::string nef_config::get_event_exposure_url() {
+  return std::string(inet_ntoa(sbi.addr4)) + ":" + std::to_string(sbi.port) +
+         NNEF_EVENT_EXPOSURE_BASE + sbi.api_version;
+}
+
+//------------------------------------------------------------------------------
+std::string nef_config::get_event_exposure_subscription_url() {
+  return get_event_exposure_url() + NNEF_EE_SUBSCRIPTION_URL;
+}

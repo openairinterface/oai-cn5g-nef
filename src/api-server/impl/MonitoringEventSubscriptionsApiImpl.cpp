@@ -13,6 +13,13 @@
 
 #include "MonitoringEventSubscriptionsApiImpl.h"
 
+#include "3gpp_29.500.h"
+#include "ProblemDetails.h"
+#include "logger.hpp"
+#include "nef_app.hpp"
+#include "nef_config.hpp"
+extern oai::nef::app::nef_config nef_cfg;
+
 namespace oai {
 namespace nef {
 namespace api {
@@ -20,14 +27,48 @@ namespace api {
 using namespace oai::nef::model;
 
 MonitoringEventSubscriptionsApiImpl::MonitoringEventSubscriptionsApiImpl(
-    const std::shared_ptr<Pistache::Rest::Router>& rtr)
-    : MonitoringEventSubscriptionsApi(rtr) {}
+    const std::shared_ptr<Pistache::Rest::Router>& rtr,
+    oai::nef::app::nef_app* nef_app_inst, std::string address)
+    : MonitoringEventSubscriptionsApi(rtr),
+      m_nef_app(nef_app_inst),
+      m_address(address) {}
 
 void MonitoringEventSubscriptionsApiImpl::create_monitoring_event_subscription(
     const std::string& scsAsId,
     const MonitoringEventSubscription& monitoringEventSubscription,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  Logger::nef_sbi().info(
+      "Got a request to create Monitoring Event Subscription");
+
+  int http_code = 0;
+  ProblemDetails problem_details = {};
+  std::string sub_id = {};
+  uint8_t http_version = 1;
+
+  MonitoringEventSubscription created_ev_sub = {};
+  m_nef_app->handle_create_monitoring_event_subscription(
+      sub_id, monitoringEventSubscription, created_ev_sub, http_version,
+      http_code, problem_details);
+
+  nlohmann::json json_data = {};
+  std::string content_type = "application/json";
+
+  if (http_code != HTTP_STATUS_CODE_201_CREATED) {
+    to_json(json_data, problem_details);
+    content_type = "application/problem+json";
+  } else {
+    to_json(json_data, created_ev_sub);
+    json_data["subscriptionId"] = sub_id;
+    // Location header
+    response.headers().add<Pistache::Http::Header::Location>(
+        m_address + base + nef_cfg.sbi.api_version + "/subscriptions/" +
+        sub_id);
+  }
+
+  // Content type
+  response.headers().add<Pistache::Http::Header::ContentType>(
+      Pistache::Http::Mime::MediaType(content_type));
+  response.send(Pistache::Http::Code(http_code), json_data.dump().c_str());
 }
 void MonitoringEventSubscriptionsApiImpl::
     fetch_all_monitoring_event_subscriptions(

@@ -33,8 +33,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <libconfig.h++>
 
+#include <libconfig.h++>
 #include <mutex>
 #include <vector>
 
@@ -79,8 +79,8 @@ class nef_config {
   bool local_configuration = false;
 
   nef_config() : m_rw_lock(), pid_dir(), instance(0), sbi() {
-    sbi.port        = 80;
-    sbi_http2_port  = 8080;
+    sbi.port = 80;
+    sbi_http2_port = 8080;
     sbi_api_version = "v1";
   };
   virtual ~nef_config();
@@ -88,6 +88,9 @@ class nef_config {
   void unlock() { m_rw_lock.unlock(); };
   int load(const std::string& config_file);
   void display();
+
+  std::string get_event_exposure_url();
+  std::string get_event_exposure_subscription_url();
 };
 
 }  // namespace oai::nef::app

@@ -30,16 +30,18 @@
 #ifndef FILE_NEF_APP_HPP_SEEN
 #define FILE_NEF_APP_HPP_SEEN
 
+#include <shared_mutex>
 #include <string>
-#include "uint_generator.hpp"
-#include "NefEventExposureSubsc.h"
-#include "NefEventExposureNotif.h"
+
 #include "AmfEventNotification.h"
-#include "NsmfEventExposureNotification.h"
+#include "MonitoringEventSubscription.h"
 #include "MonitoringReport.h"
+#include "NefEventExposureNotif.h"
+#include "NefEventExposureSubsc.h"
+#include "NsmfEventExposureNotification.h"
 #include "ProblemDetails.h"
 #include "nef.h"
-#include <shared_mutex>
+#include "uint_generator.hpp"
 
 using namespace oai::nef::model;
 
@@ -53,13 +55,6 @@ class nef_app {
   void operator=(nef_app const&) = delete;
 
   virtual ~nef_app();
-
-  /*
-   * Generate a random UUID for NEF instance
-   * @param [void]
-   * @return void
-   */
-  void generate_uuid();
 
   /*
    * Generate an unique ID for the new subscription
@@ -107,9 +102,10 @@ class nef_app {
    * @param [ProblemDetails &] problem_details: Store details of the error
    * @return void
    */
-  void handle_remove_individual_subscription(
-      const std::string& sub_id, const uint8_t http_version, int& http_code,
-      ProblemDetails& problem_details);
+  void handle_remove_individual_subscription(const std::string& sub_id,
+                                             const uint8_t http_version,
+                                             int& http_code,
+                                             ProblemDetails& problem_details);
 
   /*
    * Handle a request to get a subscription information (Event Exposure)
@@ -120,10 +116,11 @@ class nef_app {
    * @param [ProblemDetails &] problem_details: Store details of the error
    * @return void
    */
-  void handle_get_individual_subscription(
-      const std::string& sub_id, nlohmann::json& ev_sub,
-      const uint8_t http_version, int& http_code,
-      ProblemDetails& problem_details);
+  void handle_get_individual_subscription(const std::string& sub_id,
+                                          nlohmann::json& ev_sub,
+                                          const uint8_t http_version,
+                                          int& http_code,
+                                          ProblemDetails& problem_details);
 
   /*
    * Handle a request to update a subscription information (Event Exposure)
@@ -149,9 +146,9 @@ class nef_app {
    * @param [int &] http_code: HTTP code used to return to the service consumer
    * @return void
    */
-  void handle_nf_event_notification(
-      const NefEventExposureNotif& eventNotif, nlohmann::json& response_data,
-      const uint8_t http_version, int& http_code);
+  void handle_nf_event_notification(const NefEventExposureNotif& eventNotif,
+                                    nlohmann::json& response_data,
+                                    const uint8_t http_version, int& http_code);
 
   /*
    * Handle an event notification from AMF
@@ -195,6 +192,11 @@ class nef_app {
       nlohmann::json& response_data, const uint8_t http_version,
       int& http_code);
 
+  void handle_create_monitoring_event_subscription(
+      std::string& sub_id, const MonitoringEventSubscription& ev_sub,
+      MonitoringEventSubscription& created_ev_sub, const uint8_t http_version,
+      int& http_code, ProblemDetails& problem_details);
+
   /*
    * Add a new individual subscription (Event Exposure) to the DB
    * @param [std::string &] sub_id: ID of the created subscription
@@ -203,8 +205,8 @@ class nef_app {
    * @return true if the subscription is created successfully, otherwise return
    * false
    */
-  bool add_ee_subscription(
-      const std::string& sub_id, std::shared_ptr<NefEventExposureSubsc> ces);
+  bool add_ee_subscription(const std::string& sub_id,
+                           std::shared_ptr<NefEventExposureSubsc> ces);
 
   /*
    * Remove an existing subscription (Event Exposure) from the DB
@@ -223,15 +225,39 @@ class nef_app {
    */
   bool get_ee_subscription(const std::string& sub_id, nlohmann::json& ev_sub);
 
+  bool add_ee_subscription(const std::string& sub_id,
+                           std::shared_ptr<MonitoringEventSubscription> ces);
+
+  void subscribe_nf_events(const MonitoringEventSubscription& ev_sub,
+                           const std::string& sub_id, std::string& nf_sub_id,
+                           int& http_code);
+
+  void subscribe_amf_events(
+      const std::string& sub_id,
+      oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf& event_type,
+      const MonitoringEventSubscription& ev_sub, int& http_code);
+
  private:
+  /*
+   * Generate a random UUID for NEF instance
+   * @param [void]
+   * @return void
+   */
+  void generate_uuid();
+
   util::uint_generator<uint32_t> evsub_id_generator;
   std::string nef_instance_id;  // NEF instance ID
 
   // NF's instance id <-> list of subscription IDs
   std::map<std::string, std::vector<std::string>> nef_subscriptions;
-  mutable std::shared_mutex m_instance_id2nrf_profile;
+  mutable std::shared_mutex m_instance_id2nef_subscription;
 
-  // Sub_id <->Subscription
+  // Sub_id <->Subscription (for Northbound APIs)
+  std::map<std::string, std::shared_ptr<MonitoringEventSubscription>>
+      subscrition_id2nef_monitoring_subscription;
+  mutable std::shared_mutex m_subscription_id2nef_monitoring_subscription;
+
+  // Sub_id <->Subscription (Soundbound APIs)
   std::map<std::string, std::shared_ptr<NefEventExposureSubsc>>
       subscrition_id2nef_subscription;
   mutable std::shared_mutex m_subscription_id2nef_subscription;
@@ -240,6 +266,11 @@ class nef_app {
   std::map<NefEvent_anyOf::eNefEvent_anyOf, std::set<std::string>>
       event_sub2subscriptions;
   mutable std::shared_mutex m_event_sub2subscriptions;
+
+  // Event Sub<->list of Subscriptions (Northbound)
+  std::map<MonitoringType_anyOf::eMonitoringType_anyOf, std::set<std::string>>
+      event_sub2monitoring_subscriptions;
+  mutable std::shared_mutex m_event_sub2monitoring_subscriptions;
 };
 }  // namespace oai::nef::app
 #include "nef_config.hpp"

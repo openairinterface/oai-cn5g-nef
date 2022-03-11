@@ -30,6 +30,7 @@
 #include "nef_app.hpp"
 
 #include <unistd.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -41,6 +42,9 @@
 
 #include "3gpp_29.500.h"
 #include "3gpp_29.510.h"
+#include "3gpp_conversions.hpp"
+#include "AmfCreateEventSubscription.h"
+#include "MonitoringType_anyOf.h"
 #include "api_conversions.hpp"
 #include "common_defs.h"
 #include "logger.hpp"
@@ -65,6 +69,8 @@ nef_app::nef_app(const std::string& config_file) {
     throw;
   }
 
+  // Generate NF instance Id
+  generate_uuid();
   // subscribe to NFs' events
   // subscribe_nfs_events();
 
@@ -128,8 +134,8 @@ void nef_app::handle_create_individual_subscription(
         "Created a new subscription with Subscription ID %s", sub_id);
 
     to_json(json_tmp, created_ev_sub);
-    Logger::nef_app().debug(
-        "Created subscription info: %s", json_tmp.dump().c_str());
+    Logger::nef_app().debug("Created subscription info: %s",
+                            json_tmp.dump().c_str());
     http_code = HTTP_STATUS_CODE_201_CREATED;
 
   } else {
@@ -165,13 +171,13 @@ void nef_app::handle_get_individual_subscription(
     const uint8_t http_version, int& http_code,
     ProblemDetails& problem_details) {
   if (get_ee_subscription(sub_id, ev_sub)) {
-    Logger::nef_app().debug(
-        "Found subscription with Subscription ID %s ", sub_id.c_str());
+    Logger::nef_app().debug("Found subscription with Subscription ID %s ",
+                            sub_id.c_str());
     Logger::nef_app().debug("Subscription info: %s ", ev_sub.dump().c_str());
     http_code = HTTP_STATUS_CODE_200_OK;
   } else {
-    Logger::nef_app().debug(
-        "Subscription not found with Subscription ID %s", sub_id.c_str());
+    Logger::nef_app().debug("Subscription not found with Subscription ID %s",
+                            sub_id.c_str());
     http_code = HTTP_STATUS_CODE_404_NOT_FOUND;
     // TODO: ProblemDetails
   }
@@ -206,8 +212,8 @@ void nef_app::handle_update_individual_subscription(
         "Updated a new subscription with Subscription ID %s", sub_id);
 
     to_json(json_tmp, created_ev_sub);
-    Logger::nef_app().debug(
-        "Updated subscription info: %s", json_tmp.dump().c_str());
+    Logger::nef_app().debug("Updated subscription info: %s",
+                            json_tmp.dump().c_str());
   } else {
     Logger::nef_app().debug("Error when updating a new subscription!");
     // TODO: Set corresponding Code
@@ -257,8 +263,52 @@ void nef_app::handle_udm_event_notification(
 }
 
 //------------------------------------------------------------------------------
-bool nef_app::add_ee_subscription(
-    const std::string& sub_id, std::shared_ptr<NefEventExposureSubsc> ces) {
+void nef_app::handle_create_monitoring_event_subscription(
+    std::string& sub_id, const MonitoringEventSubscription& ev_sub,
+    MonitoringEventSubscription& created_ev_sub, const uint8_t http_version,
+    int& http_code, ProblemDetails& problem_details) {
+  Logger::nef_app().info(
+      "Handle a request to create a Monitoring Event Subscription");
+  nlohmann::json json_tmp = {};
+  to_json(json_tmp, ev_sub);
+  Logger::nef_app().debug("Subscription info: %s", json_tmp.dump().c_str());
+
+  // Generate a subscription ID Id and store the corresponding information in a
+  // map (subscription id, info)
+  generate_ev_subscription_id(sub_id);
+
+  // Get information from corresponding NF (e.g., UDM/AMF/SMF)
+  int nf_http_code = 0;
+  std::string nf_sub_id = {};
+
+  subscribe_nf_events(ev_sub, sub_id, nf_sub_id, nf_http_code);
+
+  created_ev_sub = ev_sub;
+  // TODO: update created subscription with corresponding info
+
+  std::shared_ptr<MonitoringEventSubscription> ces =
+      std::make_shared<MonitoringEventSubscription>(created_ev_sub);
+
+  if (add_ee_subscription(sub_id, ces)) {
+    Logger::nef_app().debug(
+        "Created a new subscription with Subscription ID %s", sub_id);
+
+    to_json(json_tmp, created_ev_sub);
+    Logger::nef_app().debug("Created subscription info: %s",
+                            json_tmp.dump().c_str());
+    http_code = HTTP_STATUS_CODE_201_CREATED;
+
+  } else {
+    Logger::nef_app().debug("Error when creating a new subscription!");
+    // TODO: Set corresponding Code
+    http_code = HTTP_STATUS_CODE_500_INTERNAL_SERVER_ERROR;
+    // ProblemDetails
+  }
+  return;
+}
+//------------------------------------------------------------------------------
+bool nef_app::add_ee_subscription(const std::string& sub_id,
+                                  std::shared_ptr<NefEventExposureSubsc> ces) {
   std::unique_lock lock(m_subscription_id2nef_subscription);
   subscrition_id2nef_subscription[sub_id] = ces;
 
@@ -291,12 +341,92 @@ bool nef_app::remove_ee_subscription(const std::string& sub_id) {
 }
 
 //------------------------------------------------------------------------------
-bool nef_app::get_ee_subscription(
-    const std::string& sub_id, nlohmann::json& ev_sub) {
+bool nef_app::get_ee_subscription(const std::string& sub_id,
+                                  nlohmann::json& ev_sub) {
   std::shared_lock lock(m_subscription_id2nef_subscription);
   if (subscrition_id2nef_subscription.count(sub_id) > 0) {
     to_json(ev_sub, *subscrition_id2nef_subscription[sub_id]);
     return true;
   }
   return false;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::add_ee_subscription(
+    const std::string& sub_id,
+    std::shared_ptr<MonitoringEventSubscription> ces) {
+  std::unique_lock lock(m_subscription_id2nef_monitoring_subscription);
+  subscrition_id2nef_monitoring_subscription[sub_id] = ces;
+
+  // Store subscription per event
+  MonitoringType monitoring_type = ces->getMonitoringType();
+  MonitoringType_anyOf::eMonitoringType_anyOf value =
+      monitoring_type.getEnumValue();
+  event_sub2monitoring_subscriptions[value].insert(sub_id);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+void nef_app::subscribe_nf_events(const MonitoringEventSubscription& ev_sub,
+                                  const std::string& sub_id,
+                                  std::string& nf_sub_id, int& http_code) {
+  MonitoringType monitoring_type = ev_sub.getMonitoringType();
+  MonitoringType_anyOf::eMonitoringType_anyOf event_type =
+      monitoring_type.getEnumValue();
+
+  /*	    INVALID_VALUE_OPENAPI_GENERATED = 0,
+              LOSS_OF_CONNECTIVITY, //AMF
+              UE_REACHABILITY, //AMF+UDM
+              LOCATION_REPORTING, //AMF, GMLC
+              CHANGE_OF_IMSI_IMEI_ASSOCIATION, //UDM
+              ROAMING_STATUS, //UDM
+              COMMUNICATION_FAILURE, //AM
+              AVAILABILITY_AFTER_DDN_FAILURE, //AMF
+              NUMBER_OF_UES_IN_AN_AREA,//AMF
+              PDN_CONNECTIVITY_STATUS, //SMF
+              DOWNLINK_DATA_DELIVERY_STATUS, //SMF
+              API_SUPPORT_CAPABILITY,//
+              NUM_OF_REGD_UES,
+              NUM_OF_ESTD_PDU_SESSIONS,
+              AREA_OF_INTEREST
+  */
+  switch (event_type) {
+    case oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf::
+        LOSS_OF_CONNECTIVITY: {
+      subscribe_amf_events(sub_id, event_type, ev_sub, http_code);
+      // TODO:
+    } break;
+    case oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf::
+        UE_REACHABILITY: {
+      // subscribe_amf_events(value);
+      // TODO:
+    } break;
+
+    default: {
+    }
+  }
+}
+
+void nef_app::subscribe_amf_events(
+    const std::string& sub_id,
+    oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf& event_type,
+    const MonitoringEventSubscription& ev_sub, int& http_code) {
+  // Fill message content and send an Event Exposure msg to AMF
+  oai::nef::model::AmfCreateEventSubscription create_ev_subscription = {};
+  xgpp_conv::monitoring_event_to_amf_event(ev_sub, create_ev_subscription);
+  AmfEventSubscription ev_subscription =
+      create_ev_subscription.getSubscription();
+  // SubsChangeNotifyUri
+  ev_subscription.setSubsChangeNotifyUri(
+      nef_cfg.get_event_exposure_subscription_url() + "/" + sub_id);
+  // NfId
+  ev_subscription.setNfId(nef_instance_id);
+
+  create_ev_subscription.setSubscription(ev_subscription);
+  nlohmann::json json_body = {};
+  to_json(json_body, create_ev_subscription);
+  std::string amf_uri = {};
+
+  nef_client_inst->send_event_exposure_subscribe(json_body, amf_uri, http_code);
 }

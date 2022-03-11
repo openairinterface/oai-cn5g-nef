@@ -20,20 +20,21 @@
 #ifndef MONITORING_EVENT_SUBSCRIPTIONS_API_IMPL_H_
 #define MONITORING_EVENT_SUBSCRIPTIONS_API_IMPL_H_
 
+#include <MonitoringEventSubscriptionsApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <MonitoringEventSubscriptionsApi.h>
+#include <string>
 
 #include "IpAddr.h"
 #include "MonitoringEventReport.h"
 #include "MonitoringEventReports.h"
 #include "MonitoringEventSubscription.h"
 #include "ProblemDetails.h"
-#include <string>
+#include "nef_app.hpp"
 
 namespace oai::nef::api {
 
@@ -43,7 +44,8 @@ class MonitoringEventSubscriptionsApiImpl
     : public oai::nef::api::MonitoringEventSubscriptionsApi {
  public:
   explicit MonitoringEventSubscriptionsApiImpl(
-      const std::shared_ptr<Pistache::Rest::Router>& rtr);
+      const std::shared_ptr<Pistache::Rest::Router>& rtr,
+      oai::nef::app::nef_app* nef_app_inst, std::string address);
   ~MonitoringEventSubscriptionsApiImpl() override = default;
 
   void create_monitoring_event_subscription(
@@ -56,6 +58,10 @@ class MonitoringEventSubscriptionsApiImpl
       const std::optional<std::string>& ipDomain,
       const std::optional<std::vector<std::string>>& macAddrs,
       Pistache::Http::ResponseWriter& response);
+
+ private:
+  oai::nef::app::nef_app* m_nef_app;
+  std::string m_address;
 };
 
 }  // namespace oai::nef::api
