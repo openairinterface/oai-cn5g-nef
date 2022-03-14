@@ -131,10 +131,11 @@ class nef_client {
     return util::uint_uid_generator<uint64_t>::get_instance().get_uid();
   }
 
+  std::string get_header_location(const std::string& header_data);
   void send_event_exposure_subscribe(nlohmann::json& json_body,
                                      std::string& amf_uri,
                                      std::string& response_data,
-                                     std::string& header_data, int& http_code);
+                                     std::string& location, int& http_code);
 };
 }  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

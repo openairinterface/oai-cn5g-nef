@@ -264,7 +264,7 @@ bool nef_client::curl_create_handle(
 void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
                                                std::string& amf_uri,
                                                std::string& response_data,
-                                               std::string& header_data,
+                                               std::string& location,
                                                int& http_code) {
   // Generate a promise and associate this promise to the curl handle
   uint32_t promise_id = generate_promise_id();
@@ -276,6 +276,7 @@ void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
   f = p->get_future();
   add_promise(promise_id, p);
 
+  std::string header_data = {};
   // Create a new curl easy handle and add to the multi handle
   if (!curl_create_handle(amf_uri, json_body.dump(), response_data, header_data,
                           pid_ptr, "POST")) {
@@ -287,8 +288,17 @@ void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
   // Wait for the response back
   uint32_t response_code = get_available_response(f);
   http_code = response_code;
+  location = get_header_location(header_data);
 
   Logger::nef_app().debug("Got result for promise ID %d", promise_id);
   Logger::nef_app().debug("Response code %u", response_code);
+  Logger::nef_app().debug("Location %s", location.c_str());
   Logger::nef_app().debug("Response data %s", response_data.c_str());
+}
+
+//------------------------------------------------------------------------------
+std::string nef_client::get_header_location(const std::string& header_data) {
+  std::string location = {};
+  // TODO
+  return location;
 }
