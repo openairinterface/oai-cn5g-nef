@@ -72,7 +72,8 @@ class nef_client {
    * @param [const std::string&] method: HTTP method
    * @return true if a handle was created successfully, otherwise return false
    */
-  bool curl_create_handle(const std::string& uri, std::string& response_data,
+  bool curl_create_handle(const std::string& uri, const std::string& data,
+                          std::string& response_data, std::string& header_data,
                           uint32_t* promise_id, const std::string& method,
                           uint8_t http_version = 1);
 
@@ -130,14 +131,10 @@ class nef_client {
     return util::uint_uid_generator<uint64_t>::get_instance().get_uid();
   }
 
-  bool curl_create_handle(const std::string& uri, const std::string& data,
-                          std::string& response_data, uint32_t* promise_id,
-                          const std::string& method, uint8_t http_version = 1);
-
   void send_event_exposure_subscribe(nlohmann::json& json_body,
                                      std::string& amf_uri,
                                      std::string& response_data,
-                                     int& http_code);
+                                     std::string& header_data, int& http_code);
 };
 }  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

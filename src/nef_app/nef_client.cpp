@@ -202,7 +202,8 @@ void nef_client::trigger_process_response(uint32_t pid, uint32_t http_code) {
 //------------------------------------------------------------------------------
 bool nef_client::curl_create_handle(
     const std::string& uri, const std::string& data, std::string& response_data,
-    uint32_t* promise_id, const std::string& method, uint8_t http_version) {
+    std::string& header_data, uint32_t* promise_id, const std::string& method,
+    uint8_t http_version) {
   // Create handle for a curl request
   CURL* curl = curl_easy_init();
 
@@ -240,6 +241,10 @@ bool nef_client::curl_create_handle(
   // Hook up data handling function.
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
+
+  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &callback);
+  curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_data);
+
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
   if (method.compare("DELETE") != 0) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
@@ -259,6 +264,7 @@ bool nef_client::curl_create_handle(
 void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
                                                std::string& amf_uri,
                                                std::string& response_data,
+                                               std::string& header_data,
                                                int& http_code) {
   // Generate a promise and associate this promise to the curl handle
   uint32_t promise_id = generate_promise_id();
@@ -271,8 +277,8 @@ void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
   add_promise(promise_id, p);
 
   // Create a new curl easy handle and add to the multi handle
-  if (!curl_create_handle(amf_uri, json_body.dump(), response_data, pid_ptr,
-                          "POST")) {
+  if (!curl_create_handle(amf_uri, json_body.dump(), response_data, header_data,
+                          pid_ptr, "POST")) {
     Logger::nef_app().warn("Could not create a new handle to send message");
     remove_promise(promise_id);
     return;
