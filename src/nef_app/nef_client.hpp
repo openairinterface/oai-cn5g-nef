@@ -135,7 +135,9 @@ class nef_client {
                           const std::string& method, uint8_t http_version = 1);
 
   void send_event_exposure_subscribe(nlohmann::json& json_body,
-                                     std::string& amf_uri, int& http_code);
+                                     std::string& amf_uri,
+                                     std::string& response_data,
+                                     int& http_code);
 };
 }  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

@@ -258,8 +258,8 @@ bool nef_client::curl_create_handle(
 //------------------------------------------------------------------------------
 void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
                                                std::string& amf_uri,
+                                               std::string& response_data,
                                                int& http_code) {
-  std::string response_data;
   // Generate a promise and associate this promise to the curl handle
   uint32_t promise_id = generate_promise_id();
   Logger::nef_app().debug("Promise ID generated %d", promise_id);
@@ -280,6 +280,7 @@ void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
 
   // Wait for the response back
   uint32_t response_code = get_available_response(f);
+  http_code = response_code;
 
   Logger::nef_app().debug("Got result for promise ID %d", promise_id);
   Logger::nef_app().debug("Response code %u", response_code);
