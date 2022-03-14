@@ -50,7 +50,8 @@ class nef_client {
   struct curl_slist* headers;
 
   mutable std::shared_mutex m_curl_handle_promises;
-  std::map<uint32_t, boost::shared_ptr<boost::promise<uint32_t>>>
+  std::map<uint32_t,
+           boost::shared_ptr<boost::promise<std::pair<uint32_t, std::string>>>>
       curl_handle_promises;
 
   //  bs2::connection
@@ -95,7 +96,8 @@ class nef_client {
    * @param [boost::shared_future<uint32_t>&] f: future
    * @return future value
    */
-  uint32_t get_available_response(boost::shared_future<uint32_t>& f);
+  std::pair<uint32_t, std::string> get_available_response(
+      boost::shared_future<std::pair<uint32_t, std::string>>& f);
 
   /*
    * Store the promise
@@ -103,8 +105,9 @@ class nef_client {
    * @param [boost::shared_ptr<boost::promise<uint32_t>>&] p: promise
    * @return void
    */
-  void add_promise(uint32_t pid,
-                   boost::shared_ptr<boost::promise<uint32_t>>& p);
+  void add_promise(
+      uint32_t pid,
+      boost::shared_ptr<boost::promise<std::pair<uint32_t, std::string>>>& p);
 
   /*
    * Remove the promise
@@ -119,7 +122,8 @@ class nef_client {
    * @param [uint32_t ] http_code: http response code
    * @return void
    */
-  void trigger_process_response(uint32_t pid, uint32_t http_code);
+  void trigger_process_response(uint32_t pid,
+                                std::pair<uint32_t, std::string>& result);
 
   /*
    * Generate an unique value for promise id
@@ -136,8 +140,8 @@ class nef_client {
 
   void send_event_exposure_subscribe(nlohmann::json& json_body,
                                      std::string& amf_uri,
-                                     std::string& response_data,
-                                     int& http_code);
+                                     std::string& response_data, int& http_code,
+                                     std::string& location);
 };
 }  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

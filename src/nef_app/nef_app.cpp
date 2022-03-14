@@ -475,7 +475,8 @@ void nef_app::subscribe_amf_events(
   to_json(json_body, create_ev_subscription);
   std::string amf_uri = {};
   std::string response_data = {};
-  nef_client_inst->send_event_exposure_subscribe(json_body, amf_uri,
-                                                 response_data, http_code);
+  std::string location = {};
+  nef_client_inst->send_event_exposure_subscribe(
+      json_body, amf_uri, response_data, http_code, location);
   return;
 }

@@ -132,7 +132,9 @@ void nef_client::curl_release_handles() {
       if (promise_id) {
         Logger::nef_app().debug("Prepare to make promise id %d ready!",
                                 *promise_id);
-        trigger_process_response(*promise_id, http_code);
+        std::pair<uint32_t, std::string> result =
+            std::make_pair(http_code, "TEST");
+        trigger_process_response(*promise_id, result);
       }
 
       curl_multi_remove_handle(curl_multi, curl);
@@ -162,19 +164,21 @@ void nef_client::curl_release_handles() {
 }
 
 //---------------------------------------------------------------------------------------------
-uint32_t nef_client::get_available_response(boost::shared_future<uint32_t>& f) {
+std::pair<uint32_t, std::string> nef_client::get_available_response(
+    boost::shared_future<std::pair<uint32_t, std::string>>& f) {
   f.wait();  // Wait for it to finish
   assert(f.is_ready());
   assert(f.has_value());
   assert(!f.has_exception());
 
-  uint32_t response_code = f.get();
-  return response_code;
+  std::pair<uint32_t, std::string> result = f.get();
+  return result;
 }
 
 //---------------------------------------------------------------------------------------------
-void nef_client::add_promise(uint32_t id,
-                             boost::shared_ptr<boost::promise<uint32_t>>& p) {
+void nef_client::add_promise(
+    uint32_t id,
+    boost::shared_ptr<boost::promise<std::pair<uint32_t, std::string>>>& p) {
   std::unique_lock lock(m_curl_handle_promises);
   curl_handle_promises.emplace(id, p);
 }
@@ -186,14 +190,15 @@ void nef_client::remove_promise(uint32_t id) {
 }
 
 //------------------------------------------------------------------------------
-void nef_client::trigger_process_response(uint32_t pid, uint32_t http_code) {
+void nef_client::trigger_process_response(
+    uint32_t pid, std::pair<uint32_t, std::string>& result) {
   Logger::nef_app().debug(
       "Trigger process response: Set promise with ID %u "
       "to ready",
       pid);
   std::unique_lock lock(m_curl_handle_promises);
   if (curl_handle_promises.count(pid) > 0) {
-    curl_handle_promises[pid]->set_value(http_code);
+    curl_handle_promises[pid]->set_value(result);
     // Remove this promise from list
     curl_handle_promises.erase(pid);
   }
@@ -237,9 +242,14 @@ bool nef_client::curl_create_handle(
                      CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE);
   }
 
+  // TEST
+  std::string header_data;
   // Hook up data handling function.
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
+  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &callback);
+  curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_data);
+
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
   if (method.compare("DELETE") != 0) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
@@ -259,14 +269,15 @@ bool nef_client::curl_create_handle(
 void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
                                                std::string& amf_uri,
                                                std::string& response_data,
-                                               int& http_code) {
+                                               int& http_code,
+                                               std::string& location) {
   // Generate a promise and associate this promise to the curl handle
   uint32_t promise_id = generate_promise_id();
   Logger::nef_app().debug("Promise ID generated %d", promise_id);
   uint32_t* pid_ptr = &promise_id;
-  boost::shared_ptr<boost::promise<uint32_t>> p =
-      boost::make_shared<boost::promise<uint32_t>>();
-  boost::shared_future<uint32_t> f;
+  boost::shared_ptr<boost::promise<std::pair<uint32_t, std::string>>> p =
+      boost::make_shared<boost::promise<std::pair<uint32_t, std::string>>>();
+  boost::shared_future<std::pair<uint32_t, std::string>> f;
   f = p->get_future();
   add_promise(promise_id, p);
 
@@ -279,10 +290,12 @@ void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
   }
 
   // Wait for the response back
-  uint32_t response_code = get_available_response(f);
-  http_code = response_code;
+  std::pair<uint32_t, std::string> result = get_available_response(f);
+  http_code = result.first;
+  location = result.second;
 
   Logger::nef_app().debug("Got result for promise ID %d", promise_id);
-  Logger::nef_app().debug("Response code %u", response_code);
+  Logger::nef_app().debug("Response code %u", result.first);
+  Logger::nef_app().debug("Location %s", result.second.c_str());
   Logger::nef_app().debug("Response data %s", response_data.c_str());
 }
