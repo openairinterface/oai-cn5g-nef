@@ -20,6 +20,7 @@
  */
 
 #include "NFEventNotifyApi.h"
+
 #include "Helpers.h"
 #include "logger.hpp"
 
@@ -34,24 +35,25 @@ NFEventNotifyApi::NFEventNotifyApi(
   router = rtr;
 }
 
-void NFEventNotifyApi::init() {
-  setupRoutes();
-}
+void NFEventNotifyApi::init() { setupRoutes(); }
 
 void NFEventNotifyApi::setupRoutes() {
   using namespace Pistache::Rest;
 
-  Routes::Post(
-      *router, base + "/udm",
-      Routes::bind(&NFEventNotifyApi::notify_udm_event_handler, this));
+  Routes::Post(*router, base + "/udm",
+               Routes::bind(&NFEventNotifyApi::notify_udm_event_handler, this));
 
-  Routes::Post(
-      *router, base + "/amf",
-      Routes::bind(&NFEventNotifyApi::notify_amf_event_handler, this));
+  Routes::Post(*router, base + "/amf",
+               Routes::bind(&NFEventNotifyApi::notify_amf_event_handler, this));
 
+  Routes::Post(*router, base + "/smf",
+               Routes::bind(&NFEventNotifyApi::notify_smf_event_handler, this));
+
+  /*//TODO:
   Routes::Post(
-      *router, base + "/smf",
-      Routes::bind(&NFEventNotifyApi::notify_smf_event_handler, this));
+      *router, base + "/notify",
+      Routes::bind(&NFEventNotifyApi::notify_nf_event_change_handler, this));
+  */
 
   // Default handler, called when a route is not found
   router->addCustomHandler(
@@ -112,8 +114,8 @@ void NFEventNotifyApi::notify_smf_event_handler(
 
   try {
     nlohmann::json::parse(request.body()).get_to(smfEventExposureNotification);
-    this->receive_smf_event_notification(
-        smfEventExposureNotification, response);
+    this->receive_smf_event_notification(smfEventExposureNotification,
+                                         response);
   } catch (nlohmann::detail::exception& e) {
     // send a 400 error
     response.send(Pistache::Http::Code::Bad_Request, e.what());
@@ -130,8 +132,8 @@ void NFEventNotifyApi::notify_smf_event_handler(
 
 void NFEventNotifyApi::notify_nf_event_default_handler(
     const Pistache::Rest::Request&, Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

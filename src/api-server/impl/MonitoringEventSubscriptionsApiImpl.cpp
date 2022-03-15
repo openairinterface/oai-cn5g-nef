@@ -47,8 +47,8 @@ void MonitoringEventSubscriptionsApiImpl::create_monitoring_event_subscription(
 
   MonitoringEventSubscription created_ev_sub = {};
   m_nef_app->handle_create_monitoring_event_subscription(
-      sub_id, monitoringEventSubscription, created_ev_sub, http_version,
-      http_code, problem_details);
+      scsAsId, sub_id, monitoringEventSubscription, created_ev_sub,
+      http_version, http_code, problem_details);
 
   nlohmann::json json_data = {};
   std::string content_type = "application/json";
@@ -77,7 +77,29 @@ void MonitoringEventSubscriptionsApiImpl::
         const std::optional<std::string>& ipDomain,
         const std::optional<std::vector<std::string>>& macAddrs,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  Logger::nef_sbi().info(
+      "Got a request to Fetch all Monitoring Event Subscriptions associated "
+      "with NF ID %s",
+      scsAsId.c_str());
+
+  int http_code = 0;
+  nlohmann::json result = {};
+  uint8_t http_version = 1;
+
+  m_nef_app->handle_fetch_all_monitoring_event_subscriptions(
+      scsAsId, ipAddrs, ipDomain, macAddrs, http_version, result, http_code);
+
+  nlohmann::json json_data = {};
+  std::string content_type = "application/json";
+
+  if (http_code != HTTP_STATUS_CODE_201_CREATED) {
+    content_type = "application/problem+json";
+  }
+
+  // Content type
+  response.headers().add<Pistache::Http::Header::ContentType>(
+      Pistache::Http::Mime::MediaType(content_type));
+  response.send(Pistache::Http::Code(http_code), result.dump().c_str());
 }
 
 }  // namespace api

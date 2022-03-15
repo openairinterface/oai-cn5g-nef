@@ -80,6 +80,7 @@ typedef uint32_t evsub_id_t;
 #define NNEF_EVENT_EXPOSURE_BASE "/nnef-eventexposure/"
 #define NNEF_NFM_NF_INSTANCES "/nf-instances/"
 #define NNEF_EE_SUBSCRIPTION_URL "/subscriptions"
+#define NNEF_EE_SUBSCRIPTION_NOTIFY_URL "/subscriptions/notify"
 
 #define NF_CURL_TIMEOUT_MS 1000L
 

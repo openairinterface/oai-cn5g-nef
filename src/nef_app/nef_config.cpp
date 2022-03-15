@@ -201,3 +201,8 @@ std::string nef_config::get_event_exposure_url() {
 std::string nef_config::get_event_exposure_subscription_url() {
   return get_event_exposure_url() + NNEF_EE_SUBSCRIPTION_URL;
 }
+
+//------------------------------------------------------------------------------
+std::string nef_config::get_event_exposure_subscription_notify_url() {
+  return get_event_exposure_url() + NNEF_EE_SUBSCRIPTION_NOTIFY_URL;
+}

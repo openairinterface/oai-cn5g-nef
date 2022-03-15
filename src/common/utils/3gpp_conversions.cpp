@@ -62,35 +62,34 @@ bool xgpp_conv::monitoring_event_to_amf_event(
   amf_events.push_back(amf_event);
   ev_subscription.setEventList(amf_events);
 
-  // EventNotifyUri (Consumer's URI (e.g., AF))
+  // EventNotifyUri: Notification endpoint of the Consumer (e.g., AF to get the
+  // notification data)
   ev_subscription.setEventNotifyUri(
       monitoring_event_sub.getNotificationDestination());
+  // TODO:
   // NotifyCorrelationId
 
   // NfId -  to be set later on NEF APP
-  // SubsChangeNotifyUri - to be set later on NEF APP
-  // SubsChangeNotifyUriIsSet;
+  // SubsChangeNotifyUri (Notification endpoint of NEF, to get the notification
+  // when subscription changes) - to be set later on NEF APP
 
-  // SubsChangeNotifyCorrelationId;
-  // SubsChangeNotifyCorrelationIdIsSet;
+  // TODO:
+  // SubsChangeNotifyCorrelationId
+  // Supi
+  // GroupId
+  // Gpsi
+  // Pei
+  // AnyUE
 
-  // Supi;
-  // SupiIsSet;
-
-  // GroupId;
-  // GroupIdIsSet;
-
-  // Gpsi;
-  // GpsiIsSet;
-
-  // Pei;
-  // PeiIsSet;
-
-  // AnyUE;
-  // AnyUEIsSet;
-
-  // Options;
-  // OptionsIsSet;
+  //   AmfEventMode Options
+  AmfEventMode option = {};
+  AmfEventTrigger amf_event_trigger = {};
+  amf_event_trigger.setEnumValue(
+      AmfEventTrigger_anyOf::eAmfEventTrigger_anyOf::
+          CONTINUOUS);  // TODO: get from MonitoringEventSubscription
+  option.setTrigger(amf_event_trigger);
+  option.setMaxReports(monitoring_event_sub.getMaximumNumberOfReports());
+  option.setExpiry(monitoring_event_sub.getMonitorExpireTime());
 
   // SupportedFeatures
   amf_event_sub.setSupportedFeatures(

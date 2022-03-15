@@ -20,20 +20,21 @@
 #ifndef INDIVIDUAL_MONITORING_EVENT_SUBSCRIPTION_API_IMPL_H_
 #define INDIVIDUAL_MONITORING_EVENT_SUBSCRIPTION_API_IMPL_H_
 
+#include <IndividualMonitoringEventSubscriptionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualMonitoringEventSubscriptionApi.h>
+#include <string>
+#include <vector>
 
 #include "MonitoringEventReport.h"
 #include "MonitoringEventSubscription.h"
 #include "PatchItem.h"
 #include "ProblemDetails.h"
-#include <string>
-#include <vector>
+#include "nef_app.hpp"
 
 namespace oai::nef::api {
 
@@ -43,7 +44,8 @@ class IndividualMonitoringEventSubscriptionApiImpl
     : public oai::nef::api::IndividualMonitoringEventSubscriptionApi {
  public:
   explicit IndividualMonitoringEventSubscriptionApiImpl(
-      const std::shared_ptr<Pistache::Rest::Router>& rtr);
+      const std::shared_ptr<Pistache::Rest::Router>& rtr,
+      oai::nef::app::nef_app* nef_app_inst, std::string address);
   ~IndividualMonitoringEventSubscriptionApiImpl() override = default;
 
   void delete_ind_monitoring_event_subscription(
@@ -60,6 +62,10 @@ class IndividualMonitoringEventSubscriptionApiImpl
       const std::string& scsAsId, const std::string& subscriptionId,
       const MonitoringEventSubscription& monitoringEventSubscription,
       Pistache::Http::ResponseWriter& response);
+
+ private:
+  oai::nef::app::nef_app* m_nef_app;
+  std::string m_address;
 };
 
 }  // namespace oai::nef::api

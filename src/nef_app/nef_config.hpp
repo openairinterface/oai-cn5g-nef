@@ -91,6 +91,9 @@ class nef_config {
 
   std::string get_event_exposure_url();
   std::string get_event_exposure_subscription_url();
+  // NEF endpoint which will be use to receive the notification (change) from
+  // AMF/SMF
+  std::string get_event_exposure_subscription_notify_url();
 };
 
 }  // namespace oai::nef::app
