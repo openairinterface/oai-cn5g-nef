@@ -31,14 +31,16 @@
  */
 
 #include "nef-api-server.h"
+
 #include "logger.hpp"
 #include "pistache/endpoint.h"
 #include "pistache/http.h"
 #include "pistache/router.h"
 #ifdef __linux__
-#include <vector>
 #include <signal.h>
 #include <unistd.h>
+
+#include <vector>
 #endif
 
 #define PISTACHE_SERVER_MAX_PAYLOAD 32768
@@ -63,8 +65,8 @@ void setUpUnixSignals(std::vector<int> quitSignals) {
 
   struct sigaction sa;
   sa.sa_handler = sigHandler;
-  sa.sa_mask    = blocking_mask;
-  sa.sa_flags   = 0;
+  sa.sa_mask = blocking_mask;
+  sa.sa_flags = 0;
 
   for (auto sig : quitSignals) sigaction(sig, &sa, nullptr);
 }
@@ -81,12 +83,14 @@ void NEFApiServer::init(size_t thr) {
   m_individualSubscriptionDocumentApiImpl->init();
   m_nfEventNotifyApiImpl->init();
   m_subscriptionsCollectionApiImpl->init();
+  m_individualMonitoringEventSubscriptionApiImpl->init();
+  m_monitoringEventSubscriptionsApiImpl->init();
 }
+
 void NEFApiServer::start() {
   Logger::nef_sbi().info("HTTP1 server started");
   m_httpEndpoint->setHandler(m_router->handler());
   m_httpEndpoint->serve();
 }
-void NEFApiServer::shutdown() {
-  m_httpEndpoint->shutdown();
-}
+
+void NEFApiServer::shutdown() { m_httpEndpoint->shutdown(); }

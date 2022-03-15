@@ -29,13 +29,6 @@
 
 #include "nef_config.hpp"
 
-#include <cstdlib>
-#include <iomanip>
-#include <iostream>
-
-#include "string.hpp"
-
-// C includes
 #include <arpa/inet.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -46,17 +39,51 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
 
 #include "common_defs.h"
+#include "fqdn.hpp"
 #include "if.hpp"
 #include "logger.hpp"
 #include "nef_app.hpp"
+#include "string.hpp"
 
 using namespace std;
 using namespace libconfig;
 using namespace oai::nef::app;
 
 extern nef_config nef_cfg;
+
+nef_config::nef_config() : m_rw_lock(), pid_dir(), instance(0), sbi() {
+  sbi.port = 80;
+  sbi.http2_port = 8080;
+  sbi.api_version = "v1";
+  support_features.use_fqdn_dns = false;
+  support_features.use_http2 = false;
+
+  amf_addr.ipv4_addr.s_addr = INADDR_ANY;
+  amf_addr.port = 80;
+  amf_addr.http2_port = 8080;
+  amf_addr.fqdn = {};
+  amf_addr.api_version = "v1";
+
+  smf_addr.ipv4_addr.s_addr = INADDR_ANY;
+  smf_addr.port = 80;
+  smf_addr.http2_port = 8080;
+  smf_addr.fqdn = {};
+  smf_addr.api_version = "v1";
+
+  udm_addr.ipv4_addr.s_addr = INADDR_ANY;
+  udm_addr.port = 80;
+  udm_addr.http2_port = 8080;
+  udm_addr.fqdn = {};
+  udm_addr.api_version = "v1";
+};
+
+//------------------------------------------------------------------------------
+nef_config::~nef_config() {}
 
 //------------------------------------------------------------------------------
 int nef_config::load_interface(const Setting& if_cfg, interface_cfg_t& cfg) {
@@ -168,9 +195,98 @@ int nef_config::load(const string& config_file) {
     return RETURNerror;
   }
 
+  try {
+    // AMF
+    const Setting& amf_cfg = nef_cfg[NEF_CONFIG_STRING_AMF];
+    load_nf_info(amf_cfg, amf_addr);
+    // SMF
+    const Setting& smf_cfg = nef_cfg[NEF_CONFIG_STRING_SMF];
+    load_nf_info(smf_cfg, smf_addr);
+    // SMF
+    const Setting& udm_cfg = nef_cfg[NEF_CONFIG_STRING_UDM];
+    load_nf_info(udm_cfg, udm_addr);
+  } catch (const SettingNotFoundException& nfex) {
+    Logger::nef_app().error("%s : %s", nfex.what(), nfex.getPath());
+    return RETURNerror;
+  }
+
+  // Supported features
+  try {
+    const Setting& support_features_cfg =
+        nef_cfg[NEF_CONFIG_STRING_SUPPORT_FEATURES];
+    string opt;
+
+    support_features_cfg.lookupValue(
+        NEF_CONFIG_STRING_SUPPORT_FEATURES_USE_FQDN_DNS, opt);
+    if (boost::iequals(opt, "yes")) {
+      support_features.use_fqdn_dns = true;
+    } else {
+      support_features.use_fqdn_dns = false;
+    }
+
+    support_features_cfg.lookupValue(
+        NEF_CONFIG_STRING_SUPPORT_FEATURES_USE_HTTP2, opt);
+    if (boost::iequals(opt, "yes")) {
+      support_features.use_http2 = true;
+    } else {
+      support_features.use_http2 = false;
+    }
+
+  } catch (const SettingNotFoundException& nfex) {
+    Logger::nef_app().error("%s : %s, using defaults", nfex.what(),
+                            nfex.getPath());
+    return RETURNerror;
+  }
+
   return true;
 }
 
+//------------------------------------------------------------------------------
+void nef_config::load_nf_info(const Setting& nf_cfg, nf_addr_t& nf_addr) {
+  string astring = {};
+  struct in_addr nf_ipv4_addr = {};
+  unsigned int nf_port = {0};
+  std::string nf_api_version = {};
+
+  if (!support_features.use_fqdn_dns) {
+    nf_cfg.lookupValue(NEF_CONFIG_STRING_IPV4_ADDRESS, astring);
+    IPV4_STR_ADDR_TO_INADDR(util::trim(astring).c_str(), nf_ipv4_addr,
+                            "BAD IPv4 ADDRESS FORMAT FOR NRF !");
+    nf_addr.ipv4_addr = nf_ipv4_addr;
+    if (!(nf_cfg.lookupValue(NEF_CONFIG_STRING_PORT, nf_port))) {
+      Logger::nef_app().error(NEF_CONFIG_STRING_PORT "failed");
+      throw(NEF_CONFIG_STRING_PORT "failed");
+    }
+    nf_addr.port = nf_port;
+
+    if (!(nf_cfg.lookupValue(NEF_CONFIG_STRING_API_VERSION, nf_api_version))) {
+      Logger::nef_app().error(NEF_CONFIG_STRING_API_VERSION "failed");
+      throw(NEF_CONFIG_STRING_API_VERSION "failed");
+    }
+    nf_addr.api_version = nf_api_version;
+  } else {
+    nf_cfg.lookupValue(NEF_CONFIG_STRING_FQDN_DNS, astring);
+    uint8_t addr_type = {0};
+    std::string address = {};
+    fqdn::resolve(astring, address, nf_port, addr_type);
+    if (addr_type != 0) {  // IPv6
+      // TODO:
+      throw("DO NOT SUPPORT IPV6 ADDR FOR NF!");
+    } else {  // IPv4
+      IPV4_STR_ADDR_TO_INADDR(util::trim(address).c_str(), nf_ipv4_addr,
+                              "BAD IPv4 ADDRESS FORMAT FOR NF!");
+      nf_addr.ipv4_addr = nf_ipv4_addr;
+      // We hardcode nf port from config for the moment
+      if (!(nf_cfg.lookupValue(NEF_CONFIG_STRING_PORT, nf_port))) {
+        Logger::nef_app().error(NEF_CONFIG_STRING_PORT "failed");
+        throw(NEF_CONFIG_STRING_PORT "failed");
+      }
+      nf_addr.port = nf_port;
+      nf_addr.api_version = "v1";  // TODO: to get API version from DNS
+      nf_addr.fqdn = astring;
+    }
+  }
+}
 //------------------------------------------------------------------------------
 void nef_config::display() {
   Logger::nef_app().info("==== OAI-CN5G %s v%s ====", PACKAGE_NAME,
@@ -186,10 +302,52 @@ void nef_config::display() {
   Logger::nef_app().info("    HTTP2 port ..........: %d", sbi.http2_port);
   Logger::nef_app().info("    API version..........: %s",
                          sbi.api_version.c_str());
-}
 
-//------------------------------------------------------------------------------
-nef_config::~nef_config() {}
+  // AMF
+  Logger::nef_app().info("- AMF:");
+  Logger::nef_app().info("    IPv4 Addr ...........: %s",
+                         inet_ntoa(*((struct in_addr*)&amf_addr.ipv4_addr)));
+  Logger::nef_app().info("    Port ................: %lu  ", amf_addr.port);
+  Logger::nef_app().info("    HTTP/2 port .........: %lu  ",
+                         amf_addr.http2_port);
+  Logger::nef_app().info("    API version .........: %s",
+                         amf_addr.api_version.c_str());
+  if (support_features.use_fqdn_dns)
+    Logger::nef_app().info("    FQDN ................: %s",
+                           amf_addr.fqdn.c_str());
+
+  // SMF
+  Logger::nef_app().info("- SMF:");
+  Logger::nef_app().info("    IPv4 Addr ...........: %s",
+                         inet_ntoa(*((struct in_addr*)&smf_addr.ipv4_addr)));
+  Logger::nef_app().info("    Port ................: %lu  ", smf_addr.port);
+  Logger::nef_app().info("    HTTP/2 port .........: %lu  ",
+                         smf_addr.http2_port);
+  Logger::nef_app().info("    API version .........: %s",
+                         smf_addr.api_version.c_str());
+  if (support_features.use_fqdn_dns)
+    Logger::nef_app().info("    FQDN ................: %s",
+                           smf_addr.fqdn.c_str());
+
+  // UDM
+  Logger::nef_app().info("- UDM:");
+  Logger::nef_app().info("    IPv4 Addr ...........: %s",
+                         inet_ntoa(*((struct in_addr*)&udm_addr.ipv4_addr)));
+  Logger::nef_app().info("    Port ................: %lu  ", udm_addr.port);
+  Logger::nef_app().info("    HTTP/2 port .........: %lu  ",
+                         udm_addr.http2_port);
+  Logger::nef_app().info("    API version .........: %s",
+                         udm_addr.api_version.c_str());
+  if (support_features.use_fqdn_dns)
+    Logger::nef_app().info("    FQDN ................: %s",
+                           udm_addr.fqdn.c_str());
+
+  Logger::nef_app().info("- Supported Features:");
+  Logger::nef_app().info("    Use FQDN ..............: %s",
+                         support_features.use_fqdn_dns ? "Yes" : "No");
+  Logger::nef_app().info("    Use HTTP2..............: %s",
+                         support_features.use_http2 ? "Yes" : "No");
+}
 
 //------------------------------------------------------------------------------
 std::string nef_config::get_event_exposure_url() {

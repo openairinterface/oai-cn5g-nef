@@ -38,15 +38,18 @@
 #include "pistache/http.h"
 #include "pistache/router.h"
 #ifdef __linux__
-#include <vector>
 #include <signal.h>
 #include <unistd.h>
+
+#include <vector>
 #endif
 
-#include "nef_app.hpp"
+#include "IndividualMonitoringEventSubscriptionApiImpl.h"
 #include "IndividualSubscriptionDocumentApiImpl.h"
+#include "MonitoringEventSubscriptionsApiImpl.h"
 #include "NFEventNotifyApiImpl.h"
 #include "SubscriptionsCollectionApiImpl.h"
+#include "nef_app.hpp"
 
 using namespace oai::nef::api;
 using namespace oai::nef::app;
@@ -54,7 +57,7 @@ class NEFApiServer {
  public:
   NEFApiServer(Pistache::Address address, nef_app* nef_app_inst)
       : m_httpEndpoint(std::make_shared<Pistache::Http::Endpoint>(address)) {
-    m_router  = std::make_shared<Pistache::Rest::Router>();
+    m_router = std::make_shared<Pistache::Rest::Router>();
     m_address = address.host() + ":" + (address.port()).toString();
 
     m_individualSubscriptionDocumentApiImpl =
@@ -64,7 +67,14 @@ class NEFApiServer {
     m_nfEventNotifyApiImpl = std::make_shared<NFEventNotifyApiImpl>(
         m_router, nef_app_inst, m_address);
     m_subscriptionsCollectionApiImpl =
-        std::make_shared<SubscriptionsCollectionApiImpl>(
+        std::make_shared<SubscriptionsCollectionApiImpl>(m_router, nef_app_inst,
+                                                         m_address);
+
+    m_individualMonitoringEventSubscriptionApiImpl =
+        std::make_shared<IndividualMonitoringEventSubscriptionApiImpl>(
+            m_router, nef_app_inst, m_address);
+    m_monitoringEventSubscriptionsApiImpl =
+        std::make_shared<MonitoringEventSubscriptionsApiImpl>(
             m_router, nef_app_inst, m_address);
   }
   void init(size_t thr = 1);
@@ -80,6 +90,11 @@ class NEFApiServer {
   std::shared_ptr<NFEventNotifyApiImpl> m_nfEventNotifyApiImpl;
   std::shared_ptr<SubscriptionsCollectionApiImpl>
       m_subscriptionsCollectionApiImpl;
+
+  std::shared_ptr<IndividualMonitoringEventSubscriptionApiImpl>
+      m_individualMonitoringEventSubscriptionApiImpl;
+  std::shared_ptr<MonitoringEventSubscriptionsApiImpl>
+      m_monitoringEventSubscriptionsApiImpl;
 };
 
 #endif

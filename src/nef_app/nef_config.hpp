@@ -47,9 +47,18 @@
 #define NEF_CONFIG_STRING_PORT "PORT"
 #define NEF_CONFIG_STRING_SBI_HTTP2_PORT "HTTP2_PORT"
 #define NEF_CONFIG_STRING_API_VERSION "API_VERSION"
+#define NEF_CONFIG_STRING_FQDN_DNS "FQDN"
+
+#define NEF_CONFIG_STRING_AMF "AMF"
+#define NEF_CONFIG_STRING_SMF "SMF"
+#define NEF_CONFIG_STRING_UDM "UDM"
+
+#define NEF_CONFIG_STRING_SUPPORT_FEATURES "SUPPORT_FEATURES"
+#define NEF_CONFIG_STRING_SUPPORT_FEATURES_USE_FQDN_DNS "USE_FQDN_DNS"
+#define NEF_CONFIG_STRING_SUPPORT_FEATURES_USE_HTTP2 "USE_HTTP2"
 
 namespace oai::nef::app {
-
+using namespace libconfig;
 typedef struct interface_cfg_s {
   std::string if_name;
   struct in_addr addr4;
@@ -59,12 +68,20 @@ typedef struct interface_cfg_s {
   unsigned int port;
   unsigned int http2_port;
   std::string api_version;
-
 } interface_cfg_t;
+
+typedef struct nf_addr_s {
+  struct in_addr ipv4_addr;
+  unsigned int port;
+  unsigned int http2_port;
+  std::string api_version;
+  std::string fqdn;
+} nf_addr_t;
 
 class nef_config {
  private:
   int load_interface(const libconfig::Setting& if_cfg, interface_cfg_t& cfg);
+  void load_nf_info(const Setting& nf_cfg, nf_addr_t& nf_addr);
 
  public:
   /* Reader/writer lock for this configuration */
@@ -73,16 +90,16 @@ class nef_config {
   unsigned int instance = 0;
 
   interface_cfg_t sbi;
-  unsigned int sbi_http2_port;
-  std::string sbi_api_version;
-  // Local configuration
-  bool local_configuration = false;
+  nf_addr_t amf_addr;
+  nf_addr_t smf_addr;
+  nf_addr_t udm_addr;
 
-  nef_config() : m_rw_lock(), pid_dir(), instance(0), sbi() {
-    sbi.port = 80;
-    sbi_http2_port = 8080;
-    sbi_api_version = "v1";
-  };
+  struct {
+    bool use_fqdn_dns;
+    bool use_http2;
+  } support_features;
+
+  nef_config();
   virtual ~nef_config();
   void lock() { m_rw_lock.lock(); };
   void unlock() { m_rw_lock.unlock(); };

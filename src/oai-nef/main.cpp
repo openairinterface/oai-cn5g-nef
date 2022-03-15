@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+#include <signal.h>
+#include <stdint.h>
+#include <stdlib.h>  // srand
+#include <unistd.h>  // get_pid(), pause()
+
+#include <iostream>
+#include <thread>
+
+#include "conversions.hpp"
 #include "logger.hpp"
 #include "nef-api-server.h"
 #include "nef-http2-server.h"
@@ -21,18 +30,9 @@
 #include "nef_client.hpp"
 #include "options.hpp"
 #include "pid_file.hpp"
-#include "conversions.hpp"
-
 #include "pistache/endpoint.h"
 #include "pistache/http.h"
 #include "pistache/router.h"
-
-#include <signal.h>
-#include <stdint.h>
-#include <stdlib.h>  // srand
-#include <unistd.h>  // get_pid(), pause()
-#include <iostream>
-#include <thread>
 
 using namespace oai::nef::app;
 using namespace util;
@@ -40,7 +40,7 @@ using namespace std;
 
 nef_app* nef_app_inst = nullptr;
 nef_config nef_cfg;
-NEFApiServer* api_server           = nullptr;
+NEFApiServer* api_server = nullptr;
 nef_http2_server* nef_api_server_2 = nullptr;
 
 //------------------------------------------------------------------------------
@@ -91,15 +91,15 @@ int main(int argc, char** argv) {
   nef_cfg.display();
 
   // Event subsystem
-  //nef_event ev;
+  // nef_event ev;
 
   // NEF application layer
-  //nef_app_inst = new nef_app(Options::getlibconfigConfig(), ev);
+  // nef_app_inst = new nef_app(Options::getlibconfigConfig(), ev);
   nef_app_inst = new nef_app(Options::getlibconfigConfig());
 
   // Task Manager
- // task_manager tm(ev);
- // std::thread task_manager_thread(&task_manager::run, &tm);
+  // task_manager tm(ev);
+  // std::thread task_manager_thread(&task_manager::run, &tm);
 
   // PID file
   // Currently hard-coded value. TODO: add as config option.
@@ -111,23 +111,23 @@ int main(int argc, char** argv) {
 
   // NEF Pistache API server (HTTP1)
   Pistache::Address addr(
-      std::string(inet_ntoa(*((struct in_addr*) &nef_cfg.sbi.addr4))),
+      std::string(inet_ntoa(*((struct in_addr*)&nef_cfg.sbi.addr4))),
       Pistache::Port(nef_cfg.sbi.port));
   api_server = new NEFApiServer(addr, nef_app_inst);
   api_server->init(2);
   std::thread nef_manager(&NEFApiServer::start, api_server);
 
   // NEF NGHTTP API server (HTTP2)
-  nef_api_server_2 = new nef_http2_server(
-      conv::toString(nef_cfg.sbi.addr4), nef_cfg.sbi_http2_port, nef_app_inst);
+  nef_api_server_2 = new nef_http2_server(conv::toString(nef_cfg.sbi.addr4),
+                                          nef_cfg.sbi.http2_port, nef_app_inst);
   std::thread nef_http2_manager(&nef_http2_server::start, nef_api_server_2);
 
   nef_manager.join();
   nef_http2_manager.join();
 
-  FILE* fp             = NULL;
+  FILE* fp = NULL;
   std::string filename = fmt::format("/tmp/nef_{}.status", getpid());
-  fp                   = fopen(filename.c_str(), "w+");
+  fp = fopen(filename.c_str(), "w+");
   fprintf(fp, "STARTED\n");
   fflush(fp);
   fclose(fp);
