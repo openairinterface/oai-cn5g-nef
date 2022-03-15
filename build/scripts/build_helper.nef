@@ -144,7 +144,11 @@ install_pistache_from_git() {
     cd pistache && git checkout e18ed9baeb2145af6f9ea41246cf48054ffd9907
     ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
     mkdir _build && cd _build
-    $CMAKE -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+    $CMAKE -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release \
+        -DPISTACHE_BUILD_EXAMPLES=false \
+        -DPISTACHE_BUILD_TESTS=false \
+        -DPISTACHE_BUILD_DOCS=false \
+        .. 
     ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
     make
     ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
@@ -155,9 +159,6 @@ install_pistache_from_git() {
   echo "pistache installation complete"
   return 0
 }
-
-
-
 
 #-------------------------------------------------------------------------------
 #arg1 is force (0 or 1) (no interactive script)
@@ -283,7 +284,7 @@ install_nghttp2_from_git() {
     ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
     autoconf
     ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
-    ./configure --enable-asio-lib
+    ./configure --enable-asio-lib --enable-lib-only
     ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
     make
     ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
@@ -295,80 +296,6 @@ install_nghttp2_from_git() {
   return 0  
 }
 
-
-
-#-------------------------------------------------------------------------------
-#arg1 is force (0 or 1) (no interactive script)
-#arg2 is debug (0 or 1) (install debug libraries)
-install_cpp_jwt_from_git() {
-  echo "Starting to install cpp_jwt"
-  if [ $1 -eq 0 ]; then
-    read -p "Do you want to install CPP-JWT ? <y/N> " prompt
-    OPTION=""
-  else
-    prompt='y'
-    OPTION="-y"
-  fi
-  if [ $2 -eq 0 ]; then
-    debug=0
-  else
-    debug=1
-  fi
-
-
-  if [[ $prompt =~ [yY](es)* ]]
-  then
-    if [[ $OS_DISTRO == "ubuntu" ]]; then
-      PACKAGE_LIST="\
-        libgtest-dev \
-        libssl-dev"
-    elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
-      PACKAGE_LIST="\
-        gtest-devel \
-        openssl-devel"
-    else
-      echo_fatal "$OS_DISTRO is not a supported distribution." 
-    fi
-    $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
-    ret=$?;[[ $ret -ne 0 ]] && return $ret
-   
-   #install libgtest
-    if [[ $OS_DISTRO == "ubuntu" ]]; then
-      echo "Building the gtest library" 
-      pushd $OPENAIRCN_DIR/build/ext    
-      cd /usr/src/gtest
-      $SUDO $CMAKE CMakeLists.txt
-      $SUDO make
-      $SUDO cp *.a /usr/lib
-      ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
-      popd
-    fi
- 
-    GIT_URL=https://github.com/arun11299/cpp-jwt.git
-    echo "Install Cpp-jwt from $GIT_URL"
-    pushd $OPENAIRCN_DIR/build/ext
-    echo "Downloading CPP-JWT"
-    
-    if [[ $prompt =~ [yY](es)* ]]
-    then
-      $SUDO rm -rf cpp-jwt
-    fi
-
-    git clone $GIT_URL
-    cd cpp-jwt && git checkout -f v1.4
-    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
-    mkdir _build && cd _build
-    $CMAKE ..
-    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
-    make
-    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
-    $SUDO make install
-    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
-    popd
-  fi
-  echo "cpp_jwt installation complete"
-  return 0  
-}
 #-------------------------------------------------------------------------------
 #arg1 is force (0 or 1) (no interactive script)
 #arg2 is debug (0 or 1) (install debug libraries)
@@ -405,7 +332,7 @@ check_install_nef_deps() {
 
   # Compilers, generators, ...
   if [[ $OS_DISTRO == "ubuntu" ]]; then
-    PACKAGE_LIST="\
+    PACKAGE_LIST="apt-utils \
       autoconf \
       automake \
       bison \
@@ -421,6 +348,7 @@ check_install_nef_deps() {
       autoconf \
       automake \
       bison \
+      gcc-c++ \
       $CMAKE \
       make \
       doxygen \
@@ -434,22 +362,30 @@ check_install_nef_deps() {
   $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
-
   # Libraries
   if [[ $OS_DISTRO == "ubuntu" ]]; then
     case "$(get_distribution_release)" in
       "ubuntu18.04")
+        # Currently Ubuntu18.04 has boost 1.65 as the latest
+        # We need at least 1.66
+        # PPA has 1.67
+        $SUDO add-apt-repository ppa:mhier/libboost-latest --yes
+        $SUDO $INSTALLER update
+        specific_packages="libconfig++-dev libboost1.67-dev"        
+      ;;
+      "ubuntu20.04")
         specific_packages="libconfig++-dev libasio-dev libboost-all-dev"
       ;;
     esac
     # removed libspdlog-dev
     PACKAGE_LIST="\
       $specific_packages \
+      libconfig++ \
       guile-2.0-dev \
       libcurl4-gnutls-dev \
       libevent-dev \
-      libgcrypt-dev \
-      libgmp-dev \
+      libgcrypt?-dev \
+      libgmp?-dev \
       libhogweed? \
       libidn2-0-dev \
       libidn11-dev \
@@ -463,7 +399,8 @@ check_install_nef_deps() {
       nettle-dev \
       libcurl4 \
       net-tools \
-      pkg-config"
+      pkg-config \
+      libasan?"
   elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
     PACKAGE_LIST="\
       guile-devel \
@@ -482,25 +419,30 @@ check_install_nef_deps() {
       nettle-devel \
       libcurl-devel \
       python2 \
-      pkgconfig"
+      pkgconfig \
+      libasan"
   else
     echo_fatal "$OS_DISTRO is not a supported distribution."
   fi
   echo "Install distro libs"
   $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  
+  # fix issue with libboost in U18 for a bare metal deployment
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    case "$(get_distribution_release)" in
+      "ubuntu18.04")
+        $SUDO $INSTALLER remove $OPTION libboost1.65-dev || true
+        $SUDO $INSTALLER install $OPTION libboost1.67-dev
+        ;;    
+    esac
+  fi 
+  
   ret=$?;[[ $ret -ne 0 ]] && return $ret
   echo "distro libs installation complete"
 
-  # Use fmt lib included in spdlog
-  #install_fmt $1
-  #ret=$?;[[ $ret -ne 0 ]] && return $ret
-
   install_spdlog_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
-  
-  install_fb_folly_from_source $1 $2
-  ret=$?;[[ $ret -ne 0 ]] && return $ret
-  
+   
   install_pistache_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
   
@@ -509,11 +451,8 @@ check_install_nef_deps() {
 
   install_nghttp2_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
-
-  install_cpp_jwt_from_git $1 $2
-  ret=$?;[[ $ret -ne 0 ]] && return $ret
-    
-  $SUDO ldconfig
+  
+  $SUDO ldconfig  
   return 0
 }
 #-------------------------------------------------------------------------------
@@ -609,8 +548,7 @@ check_install_nef_min_deps() {
   echo "Install networking tools"
   $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
   ret=$?;[[ $ret -ne 0 ]] && return $ret
+  echo "networking tools installation complete"
 
   return 0
 }
-
-

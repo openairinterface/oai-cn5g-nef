@@ -231,7 +231,6 @@ int nef_config::load(const string& config_file) {
     } else {
       support_features.use_http2 = false;
     }
-
   } catch (const SettingNotFoundException& nfex) {
     Logger::nef_app().error("%s : %s, using defaults", nfex.what(),
                             nfex.getPath());

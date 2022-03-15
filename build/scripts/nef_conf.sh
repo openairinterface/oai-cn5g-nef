@@ -38,7 +38,7 @@ NEF_CONF[@UDM_FQDN@]='oai_udm'
 
 
 NEF_CONF[@USE_FQDN_DNS@]='no'
-NEF_CONF[@HTTP_VERSION@]='1'
+NEF_CONF[@USE_HTTP2@]='no'
 
 
 for K in "${!NEF_CONF[@]}"; do 
