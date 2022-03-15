@@ -339,7 +339,7 @@ void nef_app::handle_delete_ind_monitoring_event_subscription(
 //------------------------------------------------------------------------------
 void nef_app::handle_fetch_ind_monitoring_event_subscription(
     const std::string& consumer_nf_id, const std::string& sub_id,
-    nlohmann::json& response_data, const uint8_t http_version, int& http_code) {
+    const uint8_t http_version, nlohmann::json& response_data, int& http_code) {
 }
 
 //------------------------------------------------------------------------------
@@ -351,8 +351,8 @@ void nef_app::handle_modify_ind_monitoring_event_subscription(
 //------------------------------------------------------------------------------
 void nef_app::handle_update_ind_monitoring_event_subscription(
     const std::string& consumer_nf_id, const std::string& sub_id,
-    const MonitoringEventSubscription& ev_sub, nlohmann::json& response_data,
-    const uint8_t http_version, int& http_code) {}
+    const MonitoringEventSubscription& ev_sub, const uint8_t http_version,
+    nlohmann::json& response_data, int& http_code) {}
 
 //------------------------------------------------------------------------------
 bool nef_app::add_ee_subscription(const std::string& sub_id,

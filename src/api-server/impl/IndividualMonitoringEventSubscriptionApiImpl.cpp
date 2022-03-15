@@ -82,7 +82,7 @@ void IndividualMonitoringEventSubscriptionApiImpl::
   nlohmann::json json_data = {};
 
   m_nef_app->handle_fetch_ind_monitoring_event_subscription(
-      scsAsId, subscriptionId, json_data, http_version, http_code);
+      scsAsId, subscriptionId, http_version, json_data, http_code);
 
   std::string content_type = "application/json";
 
@@ -147,8 +147,8 @@ void IndividualMonitoringEventSubscriptionApiImpl::
   nlohmann::json json_data = {};
 
   m_nef_app->handle_update_ind_monitoring_event_subscription(
-      scsAsId, subscriptionId, monitoringEventSubscription, json_data,
-      http_version, http_code);
+      scsAsId, subscriptionId, monitoringEventSubscription, http_version,
+      json_data, http_code);
 
   std::string content_type = "application/json";
 

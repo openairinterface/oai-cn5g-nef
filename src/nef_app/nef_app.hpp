@@ -229,25 +229,70 @@ class nef_app {
       const std::optional<std::vector<std::string>>& macAddrs,
       const uint8_t http_version, nlohmann::json& result, int& http_code);
 
+  /*
+   * Handle a request to delete an existing subscription for a consumer NF
+   * (e.g., AF)
+   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @param [ProblemDetails &] problem_details: Store details of the error
+   * @return void
+   */
   void handle_delete_ind_monitoring_event_subscription(
       const std::string& consumer_nf_id, const std::string& sub_id,
       const uint8_t http_version, int& http_code,
       ProblemDetails& problem_details);
 
+  /*
+   * Handle a request to fetch a subscription for a consumer NF
+   * (e.g., AF)
+   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [nlohmann::json&] result: the result in Json format
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @return void
+   */
   void handle_fetch_ind_monitoring_event_subscription(
       const std::string& consumer_nf_id, const std::string& sub_id,
-      nlohmann::json& response_data, const uint8_t http_version,
+      const uint8_t http_version, nlohmann::json& response_data,
       int& http_code);
 
+  /*
+   * Handle a request to modify an existing subscription for a consumer NF
+   * (e.g., AF)
+   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [const std::vector<PatchItem>&] patchItem: List of updated item
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @param [ProblemDetails &] problem_details: Store details of the error
+   * @return void
+   */
   void handle_modify_ind_monitoring_event_subscription(
       const std::string& consumer_nf_id, const std::string& sub_id,
       const std::vector<PatchItem>& patchItem, const uint8_t http_version,
       int& http_code, ProblemDetails& problem_details);
 
+  /*
+   * Handle a request to update an existing subscription for a consumer NF
+   * (e.g., AF)
+   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
+   * @param [std::string &] sub_id: ID of the created subscription
+   * @param [const MonitoringEventSubscription&] ev_sub: Updated subscription
+   * information
+   * @param [const uint8_t] http_version: HTTP version
+   * @param [int &] http_code: HTTP code used to return to the service consumer
+   * @param [nlohmann::json&] result: the result in Json format
+   * @param [ProblemDetails &] problem_details: Store details of the error
+   * @return void
+   */
   void handle_update_ind_monitoring_event_subscription(
       const std::string& consumer_nf_id, const std::string& sub_id,
-      const MonitoringEventSubscription& ev_sub, nlohmann::json& response_data,
-      const uint8_t http_version, int& http_code);
+      const MonitoringEventSubscription& ev_sub, const uint8_t http_version,
+      nlohmann::json& response_data, int& http_code);
+
   /*
    * Add a new individual subscription (Event Exposure) to the DB
    * @param [std::string &] sub_id: ID of the created subscription
