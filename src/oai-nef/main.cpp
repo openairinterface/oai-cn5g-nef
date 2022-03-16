@@ -102,8 +102,8 @@ int main(int argc, char** argv) {
   // std::thread task_manager_thread(&task_manager::run, &tm);
 
   // PID file
-  // Currently hard-coded value. TODO: add as config option.
-  string pid_file_name = get_exe_absolute_path("/var/run", nef_cfg.instance);
+  string pid_file_name =
+      get_exe_absolute_path(nef_cfg.pid_dir, nef_cfg.instance);
   if (!is_pid_file_lock_success(pid_file_name.c_str())) {
     Logger::nef_app().error("Lock PID file %s failed\n", pid_file_name.c_str());
     exit(-EDEADLK);

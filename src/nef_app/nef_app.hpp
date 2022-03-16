@@ -384,12 +384,12 @@ class nef_app {
   std::map<std::string, std::vector<std::string>> nef_subscriptions;
   mutable std::shared_mutex m_instance_id2nef_subscription;
 
-  // Sub_id <->Subscription (Soundbound APIs)
+  // Sub_id <->Subscription (Southbound APIs)
   std::map<std::string, std::shared_ptr<NefEventExposureSubsc>>
       subscrition_id2nef_subscription;
   mutable std::shared_mutex m_subscription_id2nef_subscription;
 
-  // Event Sub<->list of Subscriptions (Soundbound)
+  // Event Sub<->list of Subscriptions (Southbound)
   std::map<NefEvent_anyOf::eNefEvent_anyOf, std::set<std::string>>
       event_sub2subscriptions;
   mutable std::shared_mutex m_event_sub2subscriptions;

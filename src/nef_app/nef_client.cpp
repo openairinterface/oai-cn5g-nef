@@ -31,7 +31,6 @@
 
 #include <curl/curl.h>
 #include <pistache/http.h>
-#include <pistache/mime.h>
 
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -41,8 +40,6 @@
 #include "nef.h"
 #include "nef_config.hpp"
 
-using namespace Pistache::Http;
-using namespace Pistache::Http::Mime;
 using namespace oai::nef::app;
 using json = nlohmann::json;
 

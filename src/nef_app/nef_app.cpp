@@ -31,11 +31,6 @@
 
 #include <unistd.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
-#include <boost/date_time/posix_time/time_formatters.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <chrono>
@@ -52,7 +47,7 @@
 #include "nef_config.hpp"
 
 using namespace oai::nef::app;
-using namespace std::chrono;
+// using namespace std::chrono;
 
 extern nef_app* nef_app_inst;
 extern nef_config nef_cfg;
@@ -89,7 +84,7 @@ nef_app::~nef_app() {
 
 //------------------------------------------------------------------------------
 void nef_app::generate_uuid() {
-  // nef_instance_id = to_string(boost::uuids::random_generator()());
+  nef_instance_id = to_string(boost::uuids::random_generator()());
 }
 
 //------------------------------------------------------------------------------
