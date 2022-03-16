@@ -12,7 +12,10 @@
  */
 
 #include "MonitoringEventSubscriptionsApi.h"
+
 #include "Helpers.h"
+#include "nef_config.hpp"
+extern oai::nef::app::nef_config nef_cfg;
 
 namespace oai::nef::api {
 
@@ -20,37 +23,33 @@ using namespace oai::nef::helpers;
 using namespace oai::nef::model;
 
 const std::string MonitoringEventSubscriptionsApi::base =
-    "/3gpp-monitoring-event/v1";
+    "/3gpp-monitoring-event/";
 
 MonitoringEventSubscriptionsApi::MonitoringEventSubscriptionsApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void MonitoringEventSubscriptionsApi::init() {
-  setupRoutes();
-}
+void MonitoringEventSubscriptionsApi::init() { setupRoutes(); }
 
 void MonitoringEventSubscriptionsApi::setupRoutes() {
   using namespace Pistache::Rest;
 
-  Routes::Post(
-      *router, base + "/:scsAsId/subscriptions",
-      Routes::bind(
-          &MonitoringEventSubscriptionsApi::
-              create_monitoring_event_subscription_handler,
-          this));
-  Routes::Get(
-      *router, base + "/:scsAsId/subscriptions",
-      Routes::bind(
-          &MonitoringEventSubscriptionsApi::
-              fetch_all_monitoring_event_subscriptions_handler,
-          this));
+  Routes::Post(*router,
+               base + nef_cfg.sbi.api_version + "/:scsAsId/subscriptions",
+               Routes::bind(&MonitoringEventSubscriptionsApi::
+                                create_monitoring_event_subscription_handler,
+                            this));
+  Routes::Get(*router,
+              base + nef_cfg.sbi.api_version + "/:scsAsId/subscriptions",
+              Routes::bind(&MonitoringEventSubscriptionsApi::
+                               fetch_all_monitoring_event_subscriptions_handler,
+                           this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(Routes::bind(
-      &MonitoringEventSubscriptionsApi::
-          monitoring_event_subscriptions_api_default_handler,
-      this));
+  router->addCustomHandler(
+      Routes::bind(&MonitoringEventSubscriptionsApi::
+                       monitoring_event_subscriptions_api_default_handler,
+                   this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -63,8 +62,8 @@ MonitoringEventSubscriptionsApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -148,8 +147,8 @@ void MonitoringEventSubscriptionsApi::
     }
 
     try {
-      this->fetch_all_monitoring_event_subscriptions(
-          scsAsId, ipAddrs, ipDomain, macAddrs, response);
+      this->fetch_all_monitoring_event_subscriptions(scsAsId, ipAddrs, ipDomain,
+                                                     macAddrs, response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -169,8 +168,8 @@ void MonitoringEventSubscriptionsApi::
     monitoring_event_subscriptions_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

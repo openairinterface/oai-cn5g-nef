@@ -31,7 +31,6 @@ SCRIPT=$(readlink -f ${BASH_SOURCE})
 THIS_SCRIPT_PATH=`dirname $SCRIPT`
 source $THIS_SCRIPT_PATH/build_helper
 source $THIS_SCRIPT_PATH/build_helper.libconfig
-source $THIS_SCRIPT_PATH/build_helper.fb_folly
 
 #-------------------------------------------------------------------------------
 #arg1 is force (0 or 1) (no interactive script)
@@ -400,7 +399,8 @@ check_install_nef_deps() {
       libcurl4 \
       net-tools \
       pkg-config \
-      libasan?"
+      libasan? \
+      libgflags-dev"
   elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
     PACKAGE_LIST="\
       guile-devel \
@@ -442,7 +442,7 @@ check_install_nef_deps() {
 
   install_spdlog_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
-   
+  
   install_pistache_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
   

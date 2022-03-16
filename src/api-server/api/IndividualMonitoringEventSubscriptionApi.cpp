@@ -12,7 +12,10 @@
  */
 
 #include "IndividualMonitoringEventSubscriptionApi.h"
+
 #include "Helpers.h"
+#include "nef_config.hpp"
+extern oai::nef::app::nef_config nef_cfg;
 
 namespace oai::nef::api {
 
@@ -20,44 +23,44 @@ using namespace oai::nef::helpers;
 using namespace oai::nef::model;
 
 const std::string IndividualMonitoringEventSubscriptionApi::base =
-    "/3gpp-monitoring-event/v1";
+    "/3gpp-monitoring-event/";
 
 IndividualMonitoringEventSubscriptionApi::
     IndividualMonitoringEventSubscriptionApi(
         const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void IndividualMonitoringEventSubscriptionApi::init() {
-  setupRoutes();
-}
+void IndividualMonitoringEventSubscriptionApi::init() { setupRoutes(); }
 
 void IndividualMonitoringEventSubscriptionApi::setupRoutes() {
   using namespace Pistache::Rest;
 
   Routes::Delete(
-      *router, base + "/:scsAsId/subscriptions/:subscriptionId",
-      Routes::bind(
-          &IndividualMonitoringEventSubscriptionApi::
-              delete_ind_monitoring_event_subscription_handler,
-          this));
-  Routes::Get(
-      *router, base + "/:scsAsId/subscriptions/:subscriptionId",
-      Routes::bind(
-          &IndividualMonitoringEventSubscriptionApi::
-              fetch_ind_monitoring_event_subscription_handler,
-          this));
+      *router,
+      base + nef_cfg.sbi.api_version +
+          "/:scsAsId/subscriptions/:subscriptionId",
+      Routes::bind(&IndividualMonitoringEventSubscriptionApi::
+                       delete_ind_monitoring_event_subscription_handler,
+                   this));
+  Routes::Get(*router,
+              base + nef_cfg.sbi.api_version +
+                  "/:scsAsId/subscriptions/:subscriptionId",
+              Routes::bind(&IndividualMonitoringEventSubscriptionApi::
+                               fetch_ind_monitoring_event_subscription_handler,
+                           this));
   Routes::Patch(
-      *router, base + "/:scsAsId/subscriptions/:subscriptionId",
-      Routes::bind(
-          &IndividualMonitoringEventSubscriptionApi::
-              modify_ind_monitoring_event_subscription_handler,
-          this));
-  Routes::Put(
-      *router, base + "/:scsAsId/subscriptions/:subscriptionId",
-      Routes::bind(
-          &IndividualMonitoringEventSubscriptionApi::
-              update_ind_monitoring_event_subscription_handler,
-          this));
+      *router,
+      base + nef_cfg.sbi.api_version +
+          "/:scsAsId/subscriptions/:subscriptionId",
+      Routes::bind(&IndividualMonitoringEventSubscriptionApi::
+                       modify_ind_monitoring_event_subscription_handler,
+                   this));
+  Routes::Put(*router,
+              base + nef_cfg.sbi.api_version +
+                  "/:scsAsId/subscriptions/:subscriptionId",
+              Routes::bind(&IndividualMonitoringEventSubscriptionApi::
+                               update_ind_monitoring_event_subscription_handler,
+                           this));
 
   // Default handler, called when a route is not found
   router->addCustomHandler(Routes::bind(
@@ -76,8 +79,8 @@ IndividualMonitoringEventSubscriptionApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -93,12 +96,12 @@ void IndividualMonitoringEventSubscriptionApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto scsAsId        = request.param(":scsAsId").as<std::string>();
+    auto scsAsId = request.param(":scsAsId").as<std::string>();
     auto subscriptionId = request.param(":subscriptionId").as<std::string>();
 
     try {
-      this->delete_ind_monitoring_event_subscription(
-          scsAsId, subscriptionId, response);
+      this->delete_ind_monitoring_event_subscription(scsAsId, subscriptionId,
+                                                     response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -119,12 +122,12 @@ void IndividualMonitoringEventSubscriptionApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto scsAsId        = request.param(":scsAsId").as<std::string>();
+    auto scsAsId = request.param(":scsAsId").as<std::string>();
     auto subscriptionId = request.param(":subscriptionId").as<std::string>();
 
     try {
-      this->fetch_ind_monitoring_event_subscription(
-          scsAsId, subscriptionId, response);
+      this->fetch_ind_monitoring_event_subscription(scsAsId, subscriptionId,
+                                                    response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -145,7 +148,7 @@ void IndividualMonitoringEventSubscriptionApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto scsAsId        = request.param(":scsAsId").as<std::string>();
+    auto scsAsId = request.param(":scsAsId").as<std::string>();
     auto subscriptionId = request.param(":subscriptionId").as<std::string>();
 
     // Getting the body param
@@ -162,8 +165,8 @@ void IndividualMonitoringEventSubscriptionApi::
     }
 
     try {
-      this->modify_ind_monitoring_event_subscription(
-          scsAsId, subscriptionId, patchItem, response);
+      this->modify_ind_monitoring_event_subscription(scsAsId, subscriptionId,
+                                                     patchItem, response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -184,7 +187,7 @@ void IndividualMonitoringEventSubscriptionApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto scsAsId        = request.param(":scsAsId").as<std::string>();
+    auto scsAsId = request.param(":scsAsId").as<std::string>();
     auto subscriptionId = request.param(":subscriptionId").as<std::string>();
 
     // Getting the body param
@@ -223,8 +226,8 @@ void IndividualMonitoringEventSubscriptionApi::
     individual_monitoring_event_subscription_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

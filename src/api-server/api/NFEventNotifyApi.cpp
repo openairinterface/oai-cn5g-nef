@@ -23,12 +23,14 @@
 
 #include "Helpers.h"
 #include "logger.hpp"
+#include "nef_config.hpp"
+extern oai::nef::app::nef_config nef_cfg;
 
 namespace oai::nef::api {
 
 using namespace oai::nef::helpers;
 using namespace oai::nef::model;
-const std::string NFEventNotifyApi::base = "/nnef-nfevent-notify/v1";
+const std::string NFEventNotifyApi::base = "/nnef-nfevent-notify/";
 
 NFEventNotifyApi::NFEventNotifyApi(
     std::shared_ptr<Pistache::Rest::Router> rtr) {
@@ -40,13 +42,13 @@ void NFEventNotifyApi::init() { setupRoutes(); }
 void NFEventNotifyApi::setupRoutes() {
   using namespace Pistache::Rest;
 
-  Routes::Post(*router, base + "/udm",
+  Routes::Post(*router, base + nef_cfg.sbi.api_version + "/udm",
                Routes::bind(&NFEventNotifyApi::notify_udm_event_handler, this));
 
-  Routes::Post(*router, base + "/amf",
+  Routes::Post(*router, base + nef_cfg.sbi.api_version + "/amf",
                Routes::bind(&NFEventNotifyApi::notify_amf_event_handler, this));
 
-  Routes::Post(*router, base + "/smf",
+  Routes::Post(*router, base + nef_cfg.sbi.api_version + "/smf",
                Routes::bind(&NFEventNotifyApi::notify_smf_event_handler, this));
 
   /*//TODO:

@@ -12,28 +12,29 @@
  */
 
 #include "SubscriptionsCollectionApi.h"
+
 #include "Helpers.h"
+#include "nef_config.hpp"
+extern oai::nef::app::nef_config nef_cfg;
 
 namespace oai::nef::api {
 
 using namespace oai::nef::helpers;
 using namespace oai::nef::model;
 
-const std::string SubscriptionsCollectionApi::base = "/nnef-eventexposure/v1";
+const std::string SubscriptionsCollectionApi::base = "/nnef-eventexposure/";
 
 SubscriptionsCollectionApi::SubscriptionsCollectionApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void SubscriptionsCollectionApi::init() {
-  setupRoutes();
-}
+void SubscriptionsCollectionApi::init() { setupRoutes(); }
 
 void SubscriptionsCollectionApi::setupRoutes() {
   using namespace Pistache::Rest;
 
   Routes::Post(
-      *router, base + "/subscriptions",
+      *router, base + nef_cfg.sbi.api_version + "/subscriptions",
       Routes::bind(
           &SubscriptionsCollectionApi::create_individual_subcription_handler,
           this));
@@ -54,8 +55,8 @@ SubscriptionsCollectionApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -102,8 +103,8 @@ void SubscriptionsCollectionApi::create_individual_subcription_handler(
 
 void SubscriptionsCollectionApi::subscriptions_collection_api_default_handler(
     const Pistache::Rest::Request&, Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api
