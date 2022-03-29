@@ -20,18 +20,18 @@
 #ifndef ANALYTICS_EXPOSURE_API_FETCH_ANALYTICS_INFORMATION_API_IMPL_H_
 #define ANALYTICS_EXPOSURE_API_FETCH_ANALYTICS_INFORMATION_API_IMPL_H_
 
+#include <AnalyticsExposureAPIFetchAnalyticsInformationApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <AnalyticsExposureAPIFetchAnalyticsInformationApi.h>
+#include <string>
 
 #include "AnalyticsData.h"
 #include "AnalyticsRequest.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -44,9 +44,9 @@ class AnalyticsExposureAPIFetchAnalyticsInformationApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~AnalyticsExposureAPIFetchAnalyticsInformationApiImpl() override = default;
 
-  void af_id_fetch_post(
-      const std::string& afId, const AnalyticsRequest& analyticsRequest,
-      Pistache::Http::ResponseWriter& response);
+  void af_id_fetch_post(const std::string& afId,
+                        const AnalyticsRequest& analyticsRequest,
+                        Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

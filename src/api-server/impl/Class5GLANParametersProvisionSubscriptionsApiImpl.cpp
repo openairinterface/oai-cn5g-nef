@@ -26,14 +26,16 @@ Class5GLANParametersProvisionSubscriptionsApiImpl::
 
 void Class5GLANParametersProvisionSubscriptionsApiImpl::af_id_subscriptions_get(
     const std::string& afId, Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 void Class5GLANParametersProvisionSubscriptionsApiImpl::
     af_id_subscriptions_post(
         const std::string& afId,
         const _5GLanParametersProvision& r_5GLanParametersProvision,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

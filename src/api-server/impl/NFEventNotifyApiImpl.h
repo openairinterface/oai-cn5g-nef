@@ -28,14 +28,13 @@
 #ifndef NF_EVENT_NOTIFY_API_IMPL_H_
 #define NF_EVENT_NOTIFY_API_IMPL_H_
 
+#include <NFEventNotifyApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
-#include <pistache/router.h>
-#include <memory>
-
-#include <NFEventNotifyApi.h>
-
 #include <pistache/optional.h>
+#include <pistache/router.h>
+
+#include <memory>
 
 #include "ProblemDetails.h"
 #include "nef_app.hpp"
@@ -46,9 +45,9 @@ using namespace oai::nef::model;
 
 class NFEventNotifyApiImpl : public oai::nef::api::NFEventNotifyApi {
  public:
-  NFEventNotifyApiImpl(
-      std::shared_ptr<Pistache::Rest::Router>,
-      oai::nef::app::nef_app* nef_app_inst, std::string address);
+  NFEventNotifyApiImpl(std::shared_ptr<Pistache::Rest::Router>,
+                       oai::nef::app::nef_app* nef_app_inst,
+                       std::string address);
   ~NFEventNotifyApiImpl() {}
 
   void receive_nf_event_notification(

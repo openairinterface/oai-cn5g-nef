@@ -20,18 +20,18 @@
 #ifndef INDIVIDUAL_IPTV_CONFIGURATION_API_IMPL_H_
 #define INDIVIDUAL_IPTV_CONFIGURATION_API_IMPL_H_
 
+#include <IndividualIPTVConfigurationApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualIPTVConfigurationApi.h>
+#include <string>
 
 #include "IptvConfigData.h"
 #include "IptvConfigDataPatch.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 

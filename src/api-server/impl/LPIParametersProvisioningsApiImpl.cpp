@@ -26,13 +26,15 @@ LPIParametersProvisioningsApiImpl::LPIParametersProvisioningsApiImpl(
 
 void LPIParametersProvisioningsApiImpl::af_id_provisioned_lpis_get(
     const std::string& afId, Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 void LPIParametersProvisioningsApiImpl::af_id_provisioned_lpis_post(
     const std::string& afId,
     const LpiParametersProvision& lpiParametersProvision,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

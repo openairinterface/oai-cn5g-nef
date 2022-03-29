@@ -20,17 +20,17 @@
 #ifndef INDIVIDUAL_ANALYTICS_EXPOSURE_SUBSCRIPTION_API_IMPL_H_
 #define INDIVIDUAL_ANALYTICS_EXPOSURE_SUBSCRIPTION_API_IMPL_H_
 
+#include <IndividualAnalyticsExposureSubscriptionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualAnalyticsExposureSubscriptionApi.h>
+#include <string>
 
 #include "AnalyticsExposureSubsc.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 

@@ -26,13 +26,15 @@ AnalyticsExposureSubscriptionsApiImpl::AnalyticsExposureSubscriptionsApiImpl(
 void AnalyticsExposureSubscriptionsApiImpl::af_id_subscriptions_get(
     const std::string& afId, const std::optional<std::string>& suppFeat,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 void AnalyticsExposureSubscriptionsApiImpl::af_id_subscriptions_post(
     const std::string& afId,
     const AnalyticsExposureSubsc& analyticsExposureSubsc,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

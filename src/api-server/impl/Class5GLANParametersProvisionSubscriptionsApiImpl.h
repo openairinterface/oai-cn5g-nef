@@ -20,17 +20,17 @@
 #ifndef CLASS5_GLAN_PARAMETERS_PROVISION_SUBSCRIPTIONS_API_IMPL_H_
 #define CLASS5_GLAN_PARAMETERS_PROVISION_SUBSCRIPTIONS_API_IMPL_H_
 
+#include <Class5GLANParametersProvisionSubscriptionsApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <Class5GLANParametersProvisionSubscriptionsApi.h>
+#include <string>
 
 #include "5GLanParametersProvision.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -43,8 +43,8 @@ class Class5GLANParametersProvisionSubscriptionsApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~Class5GLANParametersProvisionSubscriptionsApiImpl() override = default;
 
-  void af_id_subscriptions_get(
-      const std::string& afId, Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_get(const std::string& afId,
+                               Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_post(
       const std::string& afId,
       const _5GLanParametersProvision& r_5GLanParametersProvision,

@@ -20,17 +20,17 @@
 #ifndef SERVICE_PARAMETER_SUBSCRIPTIONS_API_IMPL_H_
 #define SERVICE_PARAMETER_SUBSCRIPTIONS_API_IMPL_H_
 
+#include <ServiceParameterSubscriptionsApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <ServiceParameterSubscriptionsApi.h>
+#include <string>
 
 #include "ProblemDetails.h"
 #include "ServiceParameterData.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -43,8 +43,8 @@ class ServiceParameterSubscriptionsApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~ServiceParameterSubscriptionsApiImpl() override = default;
 
-  void af_id_subscriptions_get(
-      const std::string& afId, Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_get(const std::string& afId,
+                               Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_post(
       const std::string& afId, const ServiceParameterData& serviceParameterData,
       Pistache::Http::ResponseWriter& response);

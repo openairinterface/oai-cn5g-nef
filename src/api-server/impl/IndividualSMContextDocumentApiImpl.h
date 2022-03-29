@@ -20,20 +20,20 @@
 #ifndef INDIVIDUAL_SM_CONTEXT_DOCUMENT_API_IMPL_H_
 #define INDIVIDUAL_SM_CONTEXT_DOCUMENT_API_IMPL_H_
 
+#include <IndividualSMContextDocumentApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualSMContextDocumentApi.h>
+#include <string>
 
 #include "DeliverReqData.h"
 #include "ProblemDetails.h"
 #include "SmContextReleaseData.h"
 #include "SmContextReleasedData.h"
 #include "SmContextUpdateData.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -46,17 +46,14 @@ class IndividualSMContextDocumentApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~IndividualSMContextDocumentApiImpl() override = default;
 
-  void deliver(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter& response);
-  void r_delete(
-      const std::string& smContextId,
-      const SmContextReleaseData& smContextReleaseData,
-      Pistache::Http::ResponseWriter& response);
-  void update(
-      const std::string& smContextId,
-      const SmContextUpdateData& smContextUpdateData,
-      Pistache::Http::ResponseWriter& response);
+  void deliver(const Pistache::Rest::Request& request,
+               Pistache::Http::ResponseWriter& response);
+  void r_delete(const std::string& smContextId,
+                const SmContextReleaseData& smContextReleaseData,
+                Pistache::Http::ResponseWriter& response);
+  void update(const std::string& smContextId,
+              const SmContextUpdateData& smContextUpdateData,
+              Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

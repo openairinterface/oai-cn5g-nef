@@ -33,6 +33,7 @@
  */
 
 #include "NFEventNotifyApiImpl.h"
+
 #include "3gpp_29.500.h"
 #include "ProblemDetails.h"
 #include "logger.hpp"
@@ -55,15 +56,15 @@ void NFEventNotifyApiImpl::receive_nf_event_notification(
     Pistache::Http::ResponseWriter& response) {
   Logger::nef_sbi().info("Got a NF Event Notification");
 
-  int http_code                  = 0;
+  int http_code = 0;
   ProblemDetails problem_details = {};
-  std::string sub_id             = {};
-  uint8_t http_version           = 1;
-  nlohmann::json response_json   = {};
+  std::string sub_id = {};
+  uint8_t http_version = 1;
+  nlohmann::json response_json = {};
 
   NefEventExposureSubsc created_ev_sub = {};
-  m_nef_app->handle_nf_event_notification(
-      eventExposureNotif, response_json, http_version, http_code);
+  m_nef_app->handle_nf_event_notification(eventExposureNotif, response_json,
+                                          http_version, http_code);
 
   std::string content_type = "application/json";
 
@@ -82,14 +83,14 @@ void NFEventNotifyApiImpl::receive_amf_event_notification(
     Pistache::Http::ResponseWriter& response) {
   Logger::nef_sbi().info("Got an Event Notification message from AMF");
 
-  int http_code                  = 0;
+  int http_code = 0;
   ProblemDetails problem_details = {};
-  std::string sub_id             = {};
-  uint8_t http_version           = 1;
-  nlohmann::json response_json   = {};
+  std::string sub_id = {};
+  uint8_t http_version = 1;
+  nlohmann::json response_json = {};
 
-  m_nef_app->handle_amf_event_notification(
-      amfEventNotification, response_json, http_version, http_code);
+  m_nef_app->handle_amf_event_notification(amfEventNotification, response_json,
+                                           http_version, http_code);
 
   std::string content_type = "application/json";
 
@@ -108,11 +109,11 @@ void NFEventNotifyApiImpl::receive_smf_event_notification(
     Pistache::Http::ResponseWriter& response) {
   Logger::nef_sbi().info("Got an Event Notification message from SMF");
 
-  int http_code                  = 0;
+  int http_code = 0;
   ProblemDetails problem_details = {};
-  std::string sub_id             = {};
-  uint8_t http_version           = 1;
-  nlohmann::json response_json   = {};
+  std::string sub_id = {};
+  uint8_t http_version = 1;
+  nlohmann::json response_json = {};
 
   m_nef_app->handle_smf_event_notification(
       smfEventExposureNotification, response_json, http_version, http_code);
@@ -134,14 +135,14 @@ void NFEventNotifyApiImpl::receive_udm_event_notification(
     Pistache::Http::ResponseWriter& response) {
   Logger::nef_sbi().info("Got an Event Notification message from UDM");
 
-  int http_code                  = 0;
+  int http_code = 0;
   ProblemDetails problem_details = {};
-  std::string sub_id             = {};
-  uint8_t http_version           = 1;
-  nlohmann::json response_json   = {};
+  std::string sub_id = {};
+  uint8_t http_version = 1;
+  nlohmann::json response_json = {};
 
-  m_nef_app->handle_udm_event_notification(
-      eventExposureNotif, response_json, http_version, http_code);
+  m_nef_app->handle_udm_event_notification(eventExposureNotif, response_json,
+                                           http_version, http_code);
 
   std::string content_type = "application/json";
 

@@ -27,7 +27,8 @@ AnalyticsExposureAPIFetchAnalyticsInformationApiImpl::
 void AnalyticsExposureAPIFetchAnalyticsInformationApiImpl::af_id_fetch_post(
     const std::string& afId, const AnalyticsRequest& analyticsRequest,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

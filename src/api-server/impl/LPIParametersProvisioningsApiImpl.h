@@ -21,17 +21,17 @@
 #ifndef LPI_PARAMETERS_PROVISIONINGS_API_IMPL_H_
 #define LPI_PARAMETERS_PROVISIONINGS_API_IMPL_H_
 
+#include <LPIParametersProvisioningsApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <LPIParametersProvisioningsApi.h>
+#include <string>
 
 #include "LpiParametersProvision.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -44,8 +44,8 @@ class LPIParametersProvisioningsApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~LPIParametersProvisioningsApiImpl() override = default;
 
-  void af_id_provisioned_lpis_get(
-      const std::string& afId, Pistache::Http::ResponseWriter& response);
+  void af_id_provisioned_lpis_get(const std::string& afId,
+                                  Pistache::Http::ResponseWriter& response);
   void af_id_provisioned_lpis_post(
       const std::string& afId,
       const LpiParametersProvision& lpiParametersProvision,

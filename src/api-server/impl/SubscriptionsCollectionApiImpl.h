@@ -20,18 +20,18 @@
 #ifndef SUBSCRIPTIONS_COLLECTION_API_IMPL_H_
 #define SUBSCRIPTIONS_COLLECTION_API_IMPL_H_
 
+#include <SubscriptionsCollectionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <SubscriptionsCollectionApi.h>
+#include <string>
 
 #include "NefEventExposureSubsc.h"
 #include "ProblemDetails.h"
 #include "nef_app.hpp"
-#include <string>
 
 namespace oai::nef::api {
 

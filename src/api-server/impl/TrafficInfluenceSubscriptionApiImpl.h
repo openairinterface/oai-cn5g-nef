@@ -20,17 +20,17 @@
 #ifndef TRAFFIC_INFLUENCE_SUBSCRIPTION_API_IMPL_H_
 #define TRAFFIC_INFLUENCE_SUBSCRIPTION_API_IMPL_H_
 
+#include <TrafficInfluenceSubscriptionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <TrafficInfluenceSubscriptionApi.h>
+#include <string>
 
 #include "ProblemDetails.h"
 #include "TrafficInfluSub.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -43,11 +43,11 @@ class TrafficInfluenceSubscriptionApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~TrafficInfluenceSubscriptionApiImpl() override = default;
 
-  void af_id_subscriptions_get(
-      const std::string& afId, Pistache::Http::ResponseWriter& response);
-  void af_id_subscriptions_post(
-      const std::string& afId, const TrafficInfluSub& trafficInfluSub,
-      Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_get(const std::string& afId,
+                               Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_post(const std::string& afId,
+                                const TrafficInfluSub& trafficInfluSub,
+                                Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

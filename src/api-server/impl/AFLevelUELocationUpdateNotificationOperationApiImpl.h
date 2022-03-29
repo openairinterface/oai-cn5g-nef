@@ -21,18 +21,18 @@
 #ifndef AF_LEVEL_UE_LOCATION_UPDATE_NOTIFICATION_OPERATION_API_IMPL_H_
 #define AF_LEVEL_UE_LOCATION_UPDATE_NOTIFICATION_OPERATION_API_IMPL_H_
 
+#include <AFLevelUELocationUpdateNotificationOperationApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <AFLevelUELocationUpdateNotificationOperationApi.h>
+#include <string>
 
 #include "LocUpdateData.h"
 #include "LocUpdateDataReply.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -45,9 +45,8 @@ class AFLevelUELocationUpdateNotificationOperationApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~AFLevelUELocationUpdateNotificationOperationApiImpl() override = default;
 
-  void root_post(
-      const LocUpdateData& locUpdateData,
-      Pistache::Http::ResponseWriter& response);
+  void root_post(const LocUpdateData& locUpdateData,
+                 Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

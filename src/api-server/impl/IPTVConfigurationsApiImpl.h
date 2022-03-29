@@ -20,17 +20,17 @@
 #ifndef IPTV_CONFIGURATIONS_API_IMPL_H_
 #define IPTV_CONFIGURATIONS_API_IMPL_H_
 
+#include <IPTVConfigurationsApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IPTVConfigurationsApi.h>
+#include <string>
 
 #include "IptvConfigData.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -42,11 +42,11 @@ class IPTVConfigurationsApiImpl : public oai::nef::api::IPTVConfigurationsApi {
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~IPTVConfigurationsApiImpl() override = default;
 
-  void af_id_configurations_get(
-      const std::string& afId, Pistache::Http::ResponseWriter& response);
-  void af_id_configurations_post(
-      const std::string& afId, const IptvConfigData& iptvConfigData,
-      Pistache::Http::ResponseWriter& response);
+  void af_id_configurations_get(const std::string& afId,
+                                Pistache::Http::ResponseWriter& response);
+  void af_id_configurations_post(const std::string& afId,
+                                 const IptvConfigData& iptvConfigData,
+                                 Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

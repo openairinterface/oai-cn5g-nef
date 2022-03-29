@@ -28,27 +28,31 @@ void IndividualTrafficInfluenceSubscriptionApiImpl::
     af_id_subscriptions_subscription_id_delete(
         const std::string& afId, const std::string& subscriptionId,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 void IndividualTrafficInfluenceSubscriptionApiImpl::
     af_id_subscriptions_subscription_id_get(
         const std::string& afId, const std::string& subscriptionId,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 void IndividualTrafficInfluenceSubscriptionApiImpl::
     af_id_subscriptions_subscription_id_patch(
         const std::string& afId, const std::string& subscriptionId,
         const TrafficInfluSubPatch& trafficInfluSubPatch,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 void IndividualTrafficInfluenceSubscriptionApiImpl::
     af_id_subscriptions_subscription_id_put(
         const std::string& afId, const std::string& subscriptionId,
         const TrafficInfluSub& trafficInfluSub,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok, "Do some magic\n");
+  response.send(Pistache::Http::Code::Ok,
+                "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

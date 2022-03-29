@@ -20,18 +20,18 @@
 #ifndef INDIVIDUAL_TRAFFIC_INFLUENCE_SUBSCRIPTION_API_IMPL_H_
 #define INDIVIDUAL_TRAFFIC_INFLUENCE_SUBSCRIPTION_API_IMPL_H_
 
+#include <IndividualTrafficInfluenceSubscriptionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualTrafficInfluenceSubscriptionApi.h>
+#include <string>
 
 #include "ProblemDetails.h"
 #include "TrafficInfluSub.h"
 #include "TrafficInfluSubPatch.h"
-#include <string>
 
 namespace oai::nef::api {
 

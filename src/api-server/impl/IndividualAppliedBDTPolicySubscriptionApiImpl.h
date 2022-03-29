@@ -20,18 +20,18 @@
 #ifndef INDIVIDUAL_APPLIED_BDT_POLICY_SUBSCRIPTION_API_IMPL_H_
 #define INDIVIDUAL_APPLIED_BDT_POLICY_SUBSCRIPTION_API_IMPL_H_
 
+#include <IndividualAppliedBDTPolicySubscriptionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualAppliedBDTPolicySubscriptionApi.h>
+#include <string>
 
 #include "AppliedBdtPolicy.h"
 #include "AppliedBdtPolicyPatch.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 

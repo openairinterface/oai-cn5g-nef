@@ -20,18 +20,18 @@
 #ifndef SM_CONTEXTS_COLLECTION_COLLECTION_API_IMPL_H_
 #define SM_CONTEXTS_COLLECTION_COLLECTION_API_IMPL_H_
 
+#include <SMContextsCollectionCollectionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <SMContextsCollectionCollectionApi.h>
+#include <string>
 
 #include "ProblemDetails.h"
 #include "SmContextCreateData.h"
 #include "SmContextCreatedData.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -44,9 +44,8 @@ class SMContextsCollectionCollectionApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~SMContextsCollectionCollectionApiImpl() override = default;
 
-  void create(
-      const SmContextCreateData& smContextCreateData,
-      Pistache::Http::ResponseWriter& response);
+  void create(const SmContextCreateData& smContextCreateData,
+              Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

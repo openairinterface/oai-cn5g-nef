@@ -20,18 +20,18 @@
 #ifndef INDIVIDUAL_SERVICE_PARAMETER_SUBSCRIPTION_API_IMPL_H_
 #define INDIVIDUAL_SERVICE_PARAMETER_SUBSCRIPTION_API_IMPL_H_
 
+#include <IndividualServiceParameterSubscriptionApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualServiceParameterSubscriptionApi.h>
+#include <string>
 
 #include "ProblemDetails.h"
 #include "ServiceParameterData.h"
 #include "ServiceParameterDataPatch.h"
-#include <string>
 
 namespace oai::nef::api {
 

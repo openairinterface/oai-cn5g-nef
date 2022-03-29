@@ -20,18 +20,18 @@
 #ifndef INDIVIDUAL_SUBSCRIPTION_DOCUMENT_API_IMPL_H_
 #define INDIVIDUAL_SUBSCRIPTION_DOCUMENT_API_IMPL_H_
 
+#include <IndividualSubscriptionDocumentApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <IndividualSubscriptionDocumentApi.h>
+#include <string>
 
 #include "NefEventExposureSubsc.h"
 #include "ProblemDetails.h"
 #include "nef_app.hpp"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -45,13 +45,11 @@ class IndividualSubscriptionDocumentApiImpl
       oai::nef::app::nef_app* nef_app_inst, std::string address);
   ~IndividualSubscriptionDocumentApiImpl() override = default;
 
-  void delete_individual_subcription(
-      const std::string& subscriptionId,
-      Pistache::Http::ResponseWriter& response);
-  void get_individual_subcription(
-      const std::string& subscriptionId,
-      const std::optional<std::string>& suppFeat,
-      Pistache::Http::ResponseWriter& response);
+  void delete_individual_subcription(const std::string& subscriptionId,
+                                     Pistache::Http::ResponseWriter& response);
+  void get_individual_subcription(const std::string& subscriptionId,
+                                  const std::optional<std::string>& suppFeat,
+                                  Pistache::Http::ResponseWriter& response);
   void replace_individual_subcription(
       const std::string& subscriptionId,
       const NefEventExposureSubsc& nefEventExposureSubsc,

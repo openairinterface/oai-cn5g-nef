@@ -20,17 +20,17 @@
 #ifndef ANALYTICS_EXPOSURE_SUBSCRIPTIONS_API_IMPL_H_
 #define ANALYTICS_EXPOSURE_SUBSCRIPTIONS_API_IMPL_H_
 
+#include <AnalyticsExposureSubscriptionsApi.h>
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+
 #include <memory>
 #include <optional>
-
-#include <AnalyticsExposureSubscriptionsApi.h>
+#include <string>
 
 #include "AnalyticsExposureSubsc.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -43,9 +43,9 @@ class AnalyticsExposureSubscriptionsApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~AnalyticsExposureSubscriptionsApiImpl() override = default;
 
-  void af_id_subscriptions_get(
-      const std::string& afId, const std::optional<std::string>& suppFeat,
-      Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_get(const std::string& afId,
+                               const std::optional<std::string>& suppFeat,
+                               Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_post(
       const std::string& afId,
       const AnalyticsExposureSubsc& analyticsExposureSubsc,
