@@ -40,14 +40,12 @@
 #include "3gpp_conversions.hpp"
 #include "AmfCreateEventSubscription.h"
 #include "MonitoringType_anyOf.h"
-#include "api_conversions.hpp"
 #include "common_defs.h"
 #include "logger.hpp"
 #include "nef_client.hpp"
 #include "nef_config.hpp"
 
 using namespace oai::nef::app;
-// using namespace std::chrono;
 
 extern nef_app* nef_app_inst;
 extern nef_config nef_cfg;
@@ -66,8 +64,6 @@ nef_app::nef_app(const std::string& config_file) {
 
   // Generate NF instance Id
   generate_uuid();
-  // subscribe to NFs' events
-  // subscribe_nfs_events();
 
   Logger::nef_app().startup("Started");
 }
@@ -96,11 +92,6 @@ void nef_app::generate_ev_subscription_id(std::string& sub_id) {
 //------------------------------------------------------------------------------
 evsub_id_t nef_app::generate_ev_subscription_id() {
   return evsub_id_generator.get_uid();
-}
-
-//------------------------------------------------------------------------------
-void nef_app::subscribe_nfs_events() {
-  // TODO:
 }
 
 //------------------------------------------------------------------------------

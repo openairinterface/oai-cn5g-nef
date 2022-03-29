@@ -73,13 +73,6 @@ class nef_app {
   evsub_id_t generate_ev_subscription_id();
 
   /*
-   * Subscribe to events from other 5GC NFs (AMF/SMF/UDM,etc)
-   * @param [void]
-   * @return void
-   */
-  void subscribe_nfs_events();
-
-  /*
    * Handle a request to create a subscription (Event Exposure)
    * @param [std::string &] sub_id: ID of the created subscription
    * @param [const NefEventExposureSubsc &] ev_sub: Requested subscription's

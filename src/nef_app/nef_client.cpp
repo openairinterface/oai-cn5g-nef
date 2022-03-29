@@ -41,7 +41,6 @@
 #include "nef_config.hpp"
 
 using namespace oai::nef::app;
-using json = nlohmann::json;
 
 extern nef_client* nef_client_inst;
 extern nef_config nef_cfg;

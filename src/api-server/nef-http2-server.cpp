@@ -28,19 +28,19 @@
  */
 
 #include "nef-http2-server.h"
+
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/future.hpp>
-#include <regex>
-#include <nlohmann/json.hpp>
-#include <string>
 #include <iostream>
-#include "string.hpp"
+#include <nlohmann/json.hpp>
+#include <regex>
+#include <string>
 
+#include "3gpp_29.500.h"
 #include "logger.hpp"
 #include "nef_config.hpp"
-#include "3gpp_29.500.h"
-#include "mime_parser.hpp"
+#include "string.hpp"
 
 using namespace nghttp2::asio_http2;
 using namespace nghttp2::asio_http2::server;
@@ -62,6 +62,4 @@ void nef_http2_server::start() {
 }
 
 //------------------------------------------------------------------------------
-void nef_http2_server::stop() {
-  server.stop();
-}
+void nef_http2_server::stop() { server.stop(); }

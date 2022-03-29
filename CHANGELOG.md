@@ -1,6 +1,6 @@
 # RELEASE NOTES: #
 
-## vX.X.X -- YYY 2021 ##
+## vX.X.X -- YYY 2022 ##
 
 * Initial release
 

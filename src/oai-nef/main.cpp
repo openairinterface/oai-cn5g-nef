@@ -41,7 +41,7 @@ using namespace std;
 nef_app* nef_app_inst = nullptr;
 nef_config nef_cfg;
 NEFApiServer* api_server = nullptr;
-nef_http2_server* nef_api_server_2 = nullptr;
+nef_http2_server* nef_api_server_http2 = nullptr;
 
 //------------------------------------------------------------------------------
 void my_app_signal_handler(int s) {
@@ -91,13 +91,12 @@ int main(int argc, char** argv) {
   nef_cfg.display();
 
   // Event subsystem
-  // nef_event ev;
+  // TODO: nef_event ev;
 
   // NEF application layer
-  // nef_app_inst = new nef_app(Options::getlibconfigConfig(), ev);
   nef_app_inst = new nef_app(Options::getlibconfigConfig());
 
-  // Task Manager
+  // TODO: Task Manager
   // task_manager tm(ev);
   // std::thread task_manager_thread(&task_manager::run, &tm);
 
@@ -118,9 +117,9 @@ int main(int argc, char** argv) {
   std::thread nef_manager(&NEFApiServer::start, api_server);
 
   // NEF NGHTTP API server (HTTP2)
-  nef_api_server_2 = new nef_http2_server(conv::toString(nef_cfg.sbi.addr4),
-                                          nef_cfg.sbi.http2_port, nef_app_inst);
-  std::thread nef_http2_manager(&nef_http2_server::start, nef_api_server_2);
+  nef_api_server_http2 = new nef_http2_server(
+      conv::toString(nef_cfg.sbi.addr4), nef_cfg.sbi.http2_port, nef_app_inst);
+  std::thread nef_http2_manager(&nef_http2_server::start, nef_api_server_http2);
 
   nef_manager.join();
   nef_http2_manager.join();
