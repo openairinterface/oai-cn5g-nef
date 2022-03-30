@@ -22,6 +22,9 @@
 #ifndef FILE_NEF_SEEN
 #define FILE_NEF_SEEN
 
+#include <string>
+#include <vector>
+
 #define HEART_BEAT_TIMER 10
 
 #define _unused(x) ((void)(x))

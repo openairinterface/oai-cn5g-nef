@@ -390,7 +390,79 @@ void nef_app::handle_fetch_ind_monitoring_event_subscription(
 void nef_app::handle_modify_ind_monitoring_event_subscription(
     const std::string& consumer_nf_id, const std::string& sub_id,
     const std::vector<PatchItem>& patchItem, const uint8_t http_version,
-    int& http_code, ProblemDetails& problem_details) {}
+    int& http_code, ProblemDetails& problem_details) {
+  Logger::nef_app().info(
+      "Handle Update Monitoring Event Exposure subscription (HTTP version %d)",
+      http_version);
+
+  // Find the subscription
+  std::shared_ptr<MonitoringEventSubscription> mes = {};
+  if (!get_monitoring_ee_subscription(consumer_nf_id, sub_id, mes)) {
+    Logger::nef_app().debug(
+        "Subscription not found with Consumer NF ID %s, Subscription ID %s",
+        consumer_nf_id.c_str(), sub_id.c_str());
+    http_code = HTTP_STATUS_CODE_404_NOT_FOUND;
+    return;
+  }
+
+  bool op_success = true;
+
+  for (auto p : patchItem) {
+    patch_op_type_t op = xgpp_conv::string_to_patch_operation(p.getOp());
+    // Verify Path
+    if ((p.getPath().substr(0, 1).compare("/") != 0) or
+        (p.getPath().length() < 2)) {
+      Logger::nef_app().warn("Bad value for operation path: %s ",
+                             p.getPath().c_str());
+      http_code = HTTP_STATUS_CODE_400_BAD_REQUEST;
+      problem_details.setCause(
+          protocol_application_error_e2str[MANDATORY_IE_INCORRECT]);
+      return;
+    }
+
+    std::string path = p.getPath().substr(1);
+
+    switch (op) {
+      case PATCH_OP_REPLACE: {
+        if (replace_subscription_info(path, p.getValue(), mes)) {
+          update_subscription(consumer_nf_id, sub_id, mes);
+          http_code = HTTP_STATUS_CODE_200_OK;
+        } else {
+          op_success = false;
+        }
+      } break;
+
+      case PATCH_OP_ADD: {
+        if (add_subscription_info(path, p.getValue(), mes)) {
+          update_subscription(consumer_nf_id, sub_id, mes);
+          http_code = HTTP_STATUS_CODE_200_OK;
+        } else {
+          op_success = false;
+        }
+      } break;
+
+      case PATCH_OP_REMOVE: {
+        if (remove_subscription_info(path, mes)) {
+          update_subscription(consumer_nf_id, sub_id, mes);
+          // http_code = HTTP_STATUS_CODE_200_OK;
+        } else {
+          op_success = false;
+        }
+      } break;
+
+      default: {
+        Logger::nef_app().warn("Requested operation is not valid!");
+        op_success = false;
+      }
+    }
+
+    if (!op_success) {
+      http_code = HTTP_STATUS_CODE_400_BAD_REQUEST;
+      problem_details.setCause(
+          protocol_application_error_e2str[MANDATORY_IE_INCORRECT]);
+    }
+  }
+}
 
 //------------------------------------------------------------------------------
 void nef_app::handle_update_ind_monitoring_event_subscription(
@@ -533,6 +605,19 @@ bool nef_app::remove_monitoring_ee_subscription(
 
     // Finally remove the subscription
     subscrition_id2nef_monitoring_subscription.erase(sub_id);
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::get_monitoring_ee_subscription(
+    const std::string& consumer_nf_id, const std::string& sub_id,
+    std::shared_ptr<MonitoringEventSubscription>& mes) {
+  std::shared_lock lock(m_subscription_id2nef_monitoring_subscription);
+  if (subscrition_id2nef_monitoring_subscription.count(sub_id) > 0) {
+    mes = subscrition_id2nef_monitoring_subscription[sub_id];
+    if (mes.get() == nullptr) return false;
     return true;
   }
   return false;
@@ -696,5 +781,37 @@ bool nef_app::validate_monitoring_event_subscription(
   // TODO: Check monitoring event type and set the corresponding cause
   created_ev_sub = ev_sub;
   // TODO: update created subscription with corresponding info
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::replace_subscription_info(
+    const std::string& path, const std::string& value,
+    std::shared_ptr<MonitoringEventSubscription>& mes) {
+  // TODO:
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::add_subscription_info(
+    const std::string& path, const std::string& value,
+    std::shared_ptr<MonitoringEventSubscription>& mes) {
+  // TODO:
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::remove_subscription_info(
+    const std::string& path,
+    std::shared_ptr<MonitoringEventSubscription>& mes) {
+  // TODO:
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::update_subscription(
+    const std::string& consumer_nf_id, const std::string& sub_id,
+    std::shared_ptr<MonitoringEventSubscription>& mes) {
+  // TODO:
   return true;
 }

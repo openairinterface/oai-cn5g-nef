@@ -125,3 +125,15 @@ bool xgpp_conv::monitoring_event_to_amf_event(
 
   return true;
 }
+
+//------------------------------------------------------------------------------
+patch_op_type_t xgpp_conv::string_to_patch_operation(const std::string& str) {
+  if (str.compare("add") == 0) return PATCH_OP_ADD;
+  if (str.compare("copy") == 0) return PATCH_OP_COPY;
+  if (str.compare("move") == 0) return PATCH_OP_MOVE;
+  if (str.compare("remove") == 0) return PATCH_OP_REMOVE;
+  if (str.compare("replace") == 0) return PATCH_OP_REPLACE;
+  if (str.compare("test") == 0) return PATCH_OP_TEST;
+  // default
+  return PATCH_OP_UNKNOWN;
+}

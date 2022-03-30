@@ -31,12 +31,20 @@
 
 #include "AmfCreateEventSubscription.h"
 #include "MonitoringEventSubscription.h"
+#include "nef.h"
 
 namespace xgpp_conv {
 
 bool monitoring_event_to_amf_event(
     const oai::nef::model::MonitoringEventSubscription& monitoring_event_sub,
     oai::nef::model::AmfCreateEventSubscription& amf_event_sub);
+/*
+ * Convert a string to Patch operation
+ * @param [const std::string &] str: string input
+ * @return the corresponding Patch operation
+ */
+patch_op_type_t string_to_patch_operation(const std::string& str);
+
 }  // namespace xgpp_conv
 
 #endif /* FILE_3GPP_CONVERSIONS_HPP_SEEN */

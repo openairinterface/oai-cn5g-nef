@@ -358,6 +358,20 @@ class nef_app {
    * DB
    * @param [const std::string &] consumer_nf_id: ID of the Consumer NF (e.g.,
    * AF)
+   * @param [const std::string &] sub_id: ID of the subscription
+   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Store the
+   * pointer to the Event
+   * @return true if the subscription is existed, otherwise return false
+   */
+  bool get_monitoring_ee_subscription(
+      const std::string& consumer_nf_id, const std::string& sub_id,
+      std::shared_ptr<MonitoringEventSubscription>& mes);
+
+  /*
+   * Get info of an existing monitoring subscription (Event Exposure) from the
+   * DB
+   * @param [const std::string &] consumer_nf_id: ID of the Consumer NF (e.g.,
+   * AF)
    * @param [std::set<std::string> &] sub_ids: Set of sub IDs associated with
    * this consumer NF
    * @return true if the subscription is existed, otherwise return
@@ -457,6 +471,19 @@ class nef_app {
       const MonitoringEventSubscription& ev_sub,
       MonitoringEventSubscription& created_ev_sub,
       ProblemDetails& problem_details);
+
+  // TODO:
+  bool replace_subscription_info(
+      const std::string& path, const std::string& value,
+      std::shared_ptr<MonitoringEventSubscription>& mes);
+  bool add_subscription_info(const std::string& path, const std::string& value,
+                             std::shared_ptr<MonitoringEventSubscription>& mes);
+  bool remove_subscription_info(
+      const std::string& path,
+      std::shared_ptr<MonitoringEventSubscription>& mes);
+  bool update_subscription(const std::string& consumer_nf_id,
+                           const std::string& sub_id,
+                           std::shared_ptr<MonitoringEventSubscription>& mes);
 
  private:
   /*
