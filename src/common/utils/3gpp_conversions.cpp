@@ -53,8 +53,36 @@ bool xgpp_conv::monitoring_event_to_amf_event(
       amf_event_type.setEnumValue(
           AmfEventType_anyOf::eAmfEventType_anyOf::REACHABILITY_REPORT);
     } break;
+    case MonitoringType_anyOf::eMonitoringType_anyOf::LOCATION_REPORTING: {
+      amf_event_type.setEnumValue(
+          AmfEventType_anyOf::eAmfEventType_anyOf::LOCATION_REPORT);
+    } break;
+
+    case MonitoringType_anyOf::eMonitoringType_anyOf::LOSS_OF_CONNECTIVITY: {
+      amf_event_type.setEnumValue(
+          AmfEventType_anyOf::eAmfEventType_anyOf::LOSS_OF_CONNECTIVITY);
+    } break;
+
+    case MonitoringType_anyOf::eMonitoringType_anyOf::COMMUNICATION_FAILURE: {
+      amf_event_type.setEnumValue(AmfEventType_anyOf::eAmfEventType_anyOf::
+                                      COMMUNICATION_FAILURE_REPORT);
+    } break;
+
+    case MonitoringType_anyOf::eMonitoringType_anyOf::
+        AVAILABILITY_AFTER_DDN_FAILURE: {
+      // TODO:  amf_event_type.setEnumValue(
+      //  AmfEventType_anyOf::eAmfEventType_anyOf::INVALID_VALUE_OPENAPI_GENERATED);
+    } break;
+
+    case MonitoringType_anyOf::eMonitoringType_anyOf::
+        NUMBER_OF_UES_IN_AN_AREA: {
+      amf_event_type.setEnumValue(
+          AmfEventType_anyOf::eAmfEventType_anyOf::UES_IN_AREA_REPORT);
+    } break;
+
     default: {
-      // TODO:
+      amf_event_type.setEnumValue(AmfEventType_anyOf::eAmfEventType_anyOf::
+                                      INVALID_VALUE_OPENAPI_GENERATED);
       return false;
     } break;
   }
