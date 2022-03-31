@@ -58,7 +58,7 @@ class nef_client {
 
  public:
   //  nef_client(nef_event& ev);
-  nef_client(){};
+  nef_client();
   virtual ~nef_client();
 
   nef_client(nef_client const&) = delete;

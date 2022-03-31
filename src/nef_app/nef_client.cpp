@@ -53,19 +53,18 @@ static std::size_t callback(const char* in, std::size_t size, std::size_t num,
   out->append(in, totalBytes);
   return totalBytes;
 }
-/*
+
 //------------------------------------------------------------------------------
-nef_client::nef_client(nef_event& ev) : m_event_sub(ev) {
+nef_client::nef_client() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   curl_multi = curl_multi_init();
-  handles    = {};
-  headers    = NULL;
-  headers    = curl_slist_append(headers, "Accept: application/json");
-  headers    = curl_slist_append(headers, "Content-Type: application/json");
-  headers    = curl_slist_append(headers, "charsets: utf-8");
+  handles = {};
+  headers = NULL;
+  headers = curl_slist_append(headers, "Accept: application/json");
+  headers = curl_slist_append(headers, "Content-Type: application/json");
+  headers = curl_slist_append(headers, "charsets: utf-8");
   // subscribe_task_curl();
 }
-*/
 
 //------------------------------------------------------------------------------
 nef_client::~nef_client() {
