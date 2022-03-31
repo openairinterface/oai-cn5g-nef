@@ -20,10 +20,11 @@
 #define IndividualSMContextDocumentApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
+#include <pistache/router.h>
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "DeliverReqData.h"
@@ -31,7 +32,6 @@
 #include "SmContextReleaseData.h"
 #include "SmContextReleasedData.h"
 #include "SmContextUpdateData.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -47,15 +47,12 @@ class IndividualSMContextDocumentApi {
  private:
   void setupRoutes();
 
-  void deliver_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
-  void r_delete_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
-  void update_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
+  void deliver_handler(const Pistache::Rest::Request& request,
+                       Pistache::Http::ResponseWriter response);
+  void r_delete_handler(const Pistache::Rest::Request& request,
+                        Pistache::Http::ResponseWriter response);
+  void update_handler(const Pistache::Rest::Request& request,
+                      Pistache::Http::ResponseWriter response);
   void individual_sm_context_document_api_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);
@@ -86,9 +83,8 @@ class IndividualSMContextDocumentApi {
   /// <remarks>
   ///
   /// </remarks>
-  virtual void deliver(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter& response) = 0;
+  virtual void deliver(const Pistache::Rest::Request& request,
+                       Pistache::Http::ResponseWriter& response) = 0;
   /// <summary>
   /// Delete SM Context
   /// </summary>

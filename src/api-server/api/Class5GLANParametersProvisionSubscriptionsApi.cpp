@@ -12,6 +12,7 @@
  */
 
 #include "Class5GLANParametersProvisionSubscriptionsApi.h"
+
 #include "Helpers.h"
 
 namespace oai::nef::api {
@@ -27,25 +28,19 @@ Class5GLANParametersProvisionSubscriptionsApi::
         const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void Class5GLANParametersProvisionSubscriptionsApi::init() {
-  setupRoutes();
-}
+void Class5GLANParametersProvisionSubscriptionsApi::init() { setupRoutes(); }
 
 void Class5GLANParametersProvisionSubscriptionsApi::setupRoutes() {
   using namespace Pistache::Rest;
 
-  Routes::Get(
-      *router, base + "/:afId/subscriptions",
-      Routes::bind(
-          &Class5GLANParametersProvisionSubscriptionsApi::
-              af_id_subscriptions_get_handler,
-          this));
-  Routes::Post(
-      *router, base + "/:afId/subscriptions",
-      Routes::bind(
-          &Class5GLANParametersProvisionSubscriptionsApi::
-              af_id_subscriptions_post_handler,
-          this));
+  Routes::Get(*router, base + "/:afId/subscriptions",
+              Routes::bind(&Class5GLANParametersProvisionSubscriptionsApi::
+                               af_id_subscriptions_get_handler,
+                           this));
+  Routes::Post(*router, base + "/:afId/subscriptions",
+               Routes::bind(&Class5GLANParametersProvisionSubscriptionsApi::
+                                af_id_subscriptions_post_handler,
+                            this));
 
   // Default handler, called when a route is not found
   router->addCustomHandler(Routes::bind(
@@ -64,8 +59,8 @@ Class5GLANParametersProvisionSubscriptionsApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -76,9 +71,8 @@ Class5GLANParametersProvisionSubscriptionsApi::handleOperationException(
 }
 
 void Class5GLANParametersProvisionSubscriptionsApi::
-    af_id_subscriptions_get_handler(
-        const Pistache::Rest::Request& request,
-        Pistache::Http::ResponseWriter response) {
+    af_id_subscriptions_get_handler(const Pistache::Rest::Request& request,
+                                    Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
     auto afId = request.param(":afId").as<std::string>();
@@ -100,9 +94,8 @@ void Class5GLANParametersProvisionSubscriptionsApi::
   }
 }
 void Class5GLANParametersProvisionSubscriptionsApi::
-    af_id_subscriptions_post_handler(
-        const Pistache::Rest::Request& request,
-        Pistache::Http::ResponseWriter response) {
+    af_id_subscriptions_post_handler(const Pistache::Rest::Request& request,
+                                     Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
     auto afId = request.param(":afId").as<std::string>();
@@ -122,8 +115,8 @@ void Class5GLANParametersProvisionSubscriptionsApi::
     }
 
     try {
-      this->af_id_subscriptions_post(
-          afId, r_5GLanParametersProvision, response);
+      this->af_id_subscriptions_post(afId, r_5GLanParametersProvision,
+                                     response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -143,8 +136,8 @@ void Class5GLANParametersProvisionSubscriptionsApi::
     class5_glan_parameters_provision_subscriptions_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

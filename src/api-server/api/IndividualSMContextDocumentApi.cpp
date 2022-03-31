@@ -12,6 +12,7 @@
  */
 
 #include "IndividualSMContextDocumentApi.h"
+
 #include "Helpers.h"
 
 namespace oai::nef::api {
@@ -25,9 +26,7 @@ IndividualSMContextDocumentApi::IndividualSMContextDocumentApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void IndividualSMContextDocumentApi::init() {
-  setupRoutes();
-}
+void IndividualSMContextDocumentApi::init() { setupRoutes(); }
 
 void IndividualSMContextDocumentApi::setupRoutes() {
   using namespace Pistache::Rest;
@@ -43,10 +42,10 @@ void IndividualSMContextDocumentApi::setupRoutes() {
       Routes::bind(&IndividualSMContextDocumentApi::update_handler, this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(Routes::bind(
-      &IndividualSMContextDocumentApi::
-          individual_sm_context_document_api_default_handler,
-      this));
+  router->addCustomHandler(
+      Routes::bind(&IndividualSMContextDocumentApi::
+                       individual_sm_context_document_api_default_handler,
+                   this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -59,8 +58,8 @@ IndividualSMContextDocumentApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -169,8 +168,8 @@ void IndividualSMContextDocumentApi::
     individual_sm_context_document_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

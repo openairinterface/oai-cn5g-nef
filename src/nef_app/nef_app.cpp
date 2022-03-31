@@ -332,7 +332,7 @@ void nef_app::handle_create_monitoring_event_subscription(
 
   if (add_ee_subscription(consumer_nf_id, sub_id, nf_resource_location, ces)) {
     Logger::nef_app().debug(
-        "Created a new subscription with Subscription ID %s", sub_id);
+        "Created a new subscription with Subscription ID %s", sub_id.c_str());
 
     to_json(json_tmp, created_ev_sub);
     Logger::nef_app().debug("Created subscription info: %s",
@@ -533,7 +533,7 @@ void nef_app::handle_update_ind_monitoring_event_subscription(
 
   if (add_ee_subscription(consumer_nf_id, sub_id, nf_resource_location, ces)) {
     Logger::nef_app().debug(
-        "Created a new subscription with Subscription ID %s", sub_id);
+        "Created a new subscription with Subscription ID %s", sub_id.c_str());
 
     to_json(json_tmp, created_ev_sub);
     Logger::nef_app().debug("Created subscription info: %s",

@@ -20,16 +20,16 @@
 #define DefaultApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
+#include <pistache/router.h>
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "NiddConfigurationTrigger.h"
 #include "NiddConfigurationTriggerReply.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -44,12 +44,10 @@ class DefaultApi {
  private:
   void setupRoutes();
 
-  void root_post_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
-  void default_api_default_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
+  void root_post_handler(const Pistache::Rest::Request& request,
+                         Pistache::Http::ResponseWriter response);
+  void default_api_default_handler(const Pistache::Rest::Request& request,
+                                   Pistache::Http::ResponseWriter response);
 
   const std::shared_ptr<Pistache::Rest::Router> router;
 

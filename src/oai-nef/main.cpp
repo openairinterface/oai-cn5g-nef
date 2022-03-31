@@ -91,14 +91,11 @@ int main(int argc, char** argv) {
   nef_cfg.display();
 
   // Event subsystem
-  // TODO: nef_event ev;
 
   // NEF application layer
   nef_app_inst = new nef_app(Options::getlibconfigConfig());
 
   // TODO: Task Manager
-  // task_manager tm(ev);
-  // std::thread task_manager_thread(&task_manager::run, &tm);
 
   // PID file
   string pid_file_name =

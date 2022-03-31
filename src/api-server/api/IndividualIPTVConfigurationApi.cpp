@@ -12,6 +12,7 @@
  */
 
 #include "IndividualIPTVConfigurationApi.h"
+
 #include "Helpers.h"
 
 namespace oai::nef::api {
@@ -26,43 +27,37 @@ IndividualIPTVConfigurationApi::IndividualIPTVConfigurationApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void IndividualIPTVConfigurationApi::init() {
-  setupRoutes();
-}
+void IndividualIPTVConfigurationApi::init() { setupRoutes(); }
 
 void IndividualIPTVConfigurationApi::setupRoutes() {
   using namespace Pistache::Rest;
 
   Routes::Delete(
       *router, base + "/:afId/configurations/:configurationId",
-      Routes::bind(
-          &IndividualIPTVConfigurationApi::
-              af_id_configurations_configuration_id_delete_handler,
-          this));
+      Routes::bind(&IndividualIPTVConfigurationApi::
+                       af_id_configurations_configuration_id_delete_handler,
+                   this));
   Routes::Get(
       *router, base + "/:afId/configurations/:configurationId",
-      Routes::bind(
-          &IndividualIPTVConfigurationApi::
-              af_id_configurations_configuration_id_get_handler,
-          this));
+      Routes::bind(&IndividualIPTVConfigurationApi::
+                       af_id_configurations_configuration_id_get_handler,
+                   this));
   Routes::Patch(
       *router, base + "/:afId/configurations/:configurationId",
-      Routes::bind(
-          &IndividualIPTVConfigurationApi::
-              af_id_configurations_configuration_id_patch_handler,
-          this));
+      Routes::bind(&IndividualIPTVConfigurationApi::
+                       af_id_configurations_configuration_id_patch_handler,
+                   this));
   Routes::Put(
       *router, base + "/:afId/configurations/:configurationId",
-      Routes::bind(
-          &IndividualIPTVConfigurationApi::
-              af_id_configurations_configuration_id_put_handler,
-          this));
+      Routes::bind(&IndividualIPTVConfigurationApi::
+                       af_id_configurations_configuration_id_put_handler,
+                   this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(Routes::bind(
-      &IndividualIPTVConfigurationApi::
-          individual_iptv_configuration_api_default_handler,
-      this));
+  router->addCustomHandler(
+      Routes::bind(&IndividualIPTVConfigurationApi::
+                       individual_iptv_configuration_api_default_handler,
+                   this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -75,8 +70,8 @@ IndividualIPTVConfigurationApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -92,12 +87,12 @@ void IndividualIPTVConfigurationApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto afId            = request.param(":afId").as<std::string>();
+    auto afId = request.param(":afId").as<std::string>();
     auto configurationId = request.param(":configurationId").as<std::string>();
 
     try {
-      this->af_id_configurations_configuration_id_delete(
-          afId, configurationId, response);
+      this->af_id_configurations_configuration_id_delete(afId, configurationId,
+                                                         response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -118,12 +113,12 @@ void IndividualIPTVConfigurationApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto afId            = request.param(":afId").as<std::string>();
+    auto afId = request.param(":afId").as<std::string>();
     auto configurationId = request.param(":configurationId").as<std::string>();
 
     try {
-      this->af_id_configurations_configuration_id_get(
-          afId, configurationId, response);
+      this->af_id_configurations_configuration_id_get(afId, configurationId,
+                                                      response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -144,7 +139,7 @@ void IndividualIPTVConfigurationApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto afId            = request.param(":afId").as<std::string>();
+    auto afId = request.param(":afId").as<std::string>();
     auto configurationId = request.param(":configurationId").as<std::string>();
 
     // Getting the body param
@@ -184,7 +179,7 @@ void IndividualIPTVConfigurationApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto afId            = request.param(":afId").as<std::string>();
+    auto afId = request.param(":afId").as<std::string>();
     auto configurationId = request.param(":configurationId").as<std::string>();
 
     // Getting the body param
@@ -202,8 +197,8 @@ void IndividualIPTVConfigurationApi::
     }
 
     try {
-      this->af_id_configurations_configuration_id_put(
-          afId, configurationId, iptvConfigData, response);
+      this->af_id_configurations_configuration_id_put(afId, configurationId,
+                                                      iptvConfigData, response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -223,8 +218,8 @@ void IndividualIPTVConfigurationApi::
     individual_iptv_configuration_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

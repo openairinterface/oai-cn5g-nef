@@ -20,16 +20,16 @@
 #define IndividualServiceParameterSubscriptionApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
+#include <pistache/router.h>
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "ProblemDetails.h"
 #include "ServiceParameterData.h"
 #include "ServiceParameterDataPatch.h"
-#include <string>
 
 namespace oai::nef::api {
 

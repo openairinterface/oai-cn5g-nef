@@ -29,15 +29,15 @@
 #define NFEventNotifyApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
 #include <pistache/optional.h>
+#include <pistache/router.h>
 
-#include "NefEventExposureNotif.h"
-#include "ProblemDetails.h"
 #include "AmfEventNotification.h"
 #include "MonitoringReport.h"
+#include "NefEventExposureNotif.h"
 #include "NsmfEventExposureNotification.h"
+#include "ProblemDetails.h"
 
 namespace oai::nef::api {
 
@@ -53,19 +53,15 @@ class NFEventNotifyApi {
  private:
   void setupRoutes();
 
-  void notify_udm_event_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
-  void notify_amf_event_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
-  void notify_smf_event_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
+  void notify_udm_event_handler(const Pistache::Rest::Request& request,
+                                Pistache::Http::ResponseWriter response);
+  void notify_amf_event_handler(const Pistache::Rest::Request& request,
+                                Pistache::Http::ResponseWriter response);
+  void notify_smf_event_handler(const Pistache::Rest::Request& request,
+                                Pistache::Http::ResponseWriter response);
 
-  void notify_nf_event_default_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
+  void notify_nf_event_default_handler(const Pistache::Rest::Request& request,
+                                       Pistache::Http::ResponseWriter response);
 
   std::shared_ptr<Pistache::Rest::Router> router;
 

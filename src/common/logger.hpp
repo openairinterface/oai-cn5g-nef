@@ -23,7 +23,7 @@
 
 //#define SPDLOG_LEVEL_NAMES { "trace", "debug", "info",  "warning", "error",
 //"critical", "off" };
-#define SPDLOG_LEVEL_NAMES                                                     \
+#define SPDLOG_LEVEL_NAMES \
   {"trace", "debug", "info ", "start", "warn ", "error", "off  "};
 
 #define SPDLOG_ENABLE_SYSLOG
@@ -37,9 +37,8 @@ class LoggerException : public std::runtime_error {
 
 class _Logger {
  public:
-  _Logger(
-      const char* category, std::vector<spdlog::sink_ptr>& sinks,
-      const char* pattern);
+  _Logger(const char* category, std::vector<spdlog::sink_ptr>& sinks,
+          const char* pattern);
 
   void trace(const char* format, ...);
   void trace(const std::string& format, ...);
@@ -66,12 +65,12 @@ class _Logger {
 
 class Logger {
  public:
-  static void init(
-      const char* app, const bool log_stdout, const bool log_rot_file) {
+  static void init(const char* app, const bool log_stdout,
+                   const bool log_rot_file) {
     singleton()._init(app, log_stdout, log_rot_file);
   }
-  static void init(
-      const std::string& app, const bool log_stdout, const bool log_rot_file) {
+  static void init(const std::string& app, const bool log_stdout,
+                   const bool log_rot_file) {
     init(app.c_str(), log_stdout, log_rot_file);
   }
 

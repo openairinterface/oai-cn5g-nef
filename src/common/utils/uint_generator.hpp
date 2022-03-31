@@ -33,7 +33,7 @@
 
 namespace util {
 
-template<class UINT>
+template <class UINT>
 class uint_generator {
  private:
   UINT uid_generator;
@@ -74,7 +74,7 @@ class uint_generator {
   }
 };
 
-template<class UINT>
+template <class UINT>
 class uint_uid_generator {
  private:
   UINT uid_generator;

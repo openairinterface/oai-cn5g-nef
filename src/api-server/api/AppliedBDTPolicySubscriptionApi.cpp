@@ -12,6 +12,7 @@
  */
 
 #include "AppliedBDTPolicySubscriptionApi.h"
+
 #include "Helpers.h"
 
 namespace oai::nef::api {
@@ -26,9 +27,7 @@ AppliedBDTPolicySubscriptionApi::AppliedBDTPolicySubscriptionApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void AppliedBDTPolicySubscriptionApi::init() {
-  setupRoutes();
-}
+void AppliedBDTPolicySubscriptionApi::init() { setupRoutes(); }
 
 void AppliedBDTPolicySubscriptionApi::setupRoutes() {
   using namespace Pistache::Rest;
@@ -45,10 +44,10 @@ void AppliedBDTPolicySubscriptionApi::setupRoutes() {
           this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(Routes::bind(
-      &AppliedBDTPolicySubscriptionApi::
-          applied_bdt_policy_subscription_api_default_handler,
-      this));
+  router->addCustomHandler(
+      Routes::bind(&AppliedBDTPolicySubscriptionApi::
+                       applied_bdt_policy_subscription_api_default_handler,
+                   this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -61,8 +60,8 @@ AppliedBDTPolicySubscriptionApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -137,8 +136,8 @@ void AppliedBDTPolicySubscriptionApi::
     applied_bdt_policy_subscription_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

@@ -39,8 +39,8 @@ namespace util {
  *
  * @return a string for the exe absolute path.
  */
-std::string get_exe_absolute_path(
-    const std::string& base_path, const unsigned int instance);
+std::string get_exe_absolute_path(const std::string& base_path,
+                                  const unsigned int instance);
 
 bool is_pid_file_lock_success(const char* pid_file_name);
 

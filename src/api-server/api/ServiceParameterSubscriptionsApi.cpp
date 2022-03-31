@@ -12,6 +12,7 @@
  */
 
 #include "ServiceParameterSubscriptionsApi.h"
+
 #include "Helpers.h"
 
 namespace oai::nef::api {
@@ -26,9 +27,7 @@ ServiceParameterSubscriptionsApi::ServiceParameterSubscriptionsApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void ServiceParameterSubscriptionsApi::init() {
-  setupRoutes();
-}
+void ServiceParameterSubscriptionsApi::init() { setupRoutes(); }
 
 void ServiceParameterSubscriptionsApi::setupRoutes() {
   using namespace Pistache::Rest;
@@ -45,10 +44,10 @@ void ServiceParameterSubscriptionsApi::setupRoutes() {
           this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(Routes::bind(
-      &ServiceParameterSubscriptionsApi::
-          service_parameter_subscriptions_api_default_handler,
-      this));
+  router->addCustomHandler(
+      Routes::bind(&ServiceParameterSubscriptionsApi::
+                       service_parameter_subscriptions_api_default_handler,
+                   this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -61,8 +60,8 @@ ServiceParameterSubscriptionsApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(
-        Pistache::Http::Code::Internal_Server_Error, e.what());
+    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
+                          e.what());
   }
 }
 
@@ -137,8 +136,8 @@ void ServiceParameterSubscriptionsApi::
     service_parameter_subscriptions_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(
-      Pistache::Http::Code::Not_Found, "The requested method does not exist");
+  response.send(Pistache::Http::Code::Not_Found,
+                "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

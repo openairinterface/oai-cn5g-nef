@@ -15,17 +15,18 @@
  */
 
 #include "logger.hpp"
-#include "spdlog/sinks/syslog_sink.h"
 
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
-#include <memory>
+
+#include "spdlog/sinks/syslog_sink.h"
 
 Logger* Logger::m_singleton = NULL;
 //------------------------------------------------------------------------------
-void Logger::_init(
-    const char* app, const bool log_stdout, bool const log_rot_file) {
+void Logger::_init(const char* app, const bool log_stdout,
+                   bool const log_rot_file) {
   int num_sinks = 0;
   spdlog::set_async_mode(2048);
 #if TRACE_IS_ON
@@ -54,16 +55,15 @@ void Logger::_init(
   ss << "[%Y-%m-%dT%H:%M:%S.%f] [" << app << "] [%n] [%l] %v";
 
   m_async_cmd = new _Logger("async_c", m_sinks, ss.str().c_str());
-  m_itti      = new _Logger("itti   ", m_sinks, ss.str().c_str());
-  m_nef_app   = new _Logger("nef_app", m_sinks, ss.str().c_str());
-  m_system    = new _Logger("system ", m_sinks, ss.str().c_str());
-  m_nef_sbi   = new _Logger("sbi_srv", m_sinks, ss.str().c_str());
+  m_itti = new _Logger("itti   ", m_sinks, ss.str().c_str());
+  m_nef_app = new _Logger("nef_app", m_sinks, ss.str().c_str());
+  m_system = new _Logger("system ", m_sinks, ss.str().c_str());
+  m_nef_sbi = new _Logger("sbi_srv", m_sinks, ss.str().c_str());
 }
 
 //------------------------------------------------------------------------------
-_Logger::_Logger(
-    const char* category, std::vector<spdlog::sink_ptr>& sinks,
-    const char* pattern)
+_Logger::_Logger(const char* category, std::vector<spdlog::sink_ptr>& sinks,
+                 const char* pattern)
     : m_log(category, sinks.begin(), sinks.end()) {
   m_log.set_pattern(pattern);
 #if TRACE_IS_ON

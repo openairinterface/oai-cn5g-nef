@@ -20,16 +20,16 @@
 #define AnalyticsExposureAPIFetchAnalyticsInformationApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
+#include <pistache/router.h>
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "AnalyticsData.h"
 #include "AnalyticsRequest.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -45,9 +45,8 @@ class AnalyticsExposureAPIFetchAnalyticsInformationApi {
  private:
   void setupRoutes();
 
-  void af_id_fetch_post_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
+  void af_id_fetch_post_handler(const Pistache::Rest::Request& request,
+                                Pistache::Http::ResponseWriter response);
   void analytics_exposure_api_fetch_analytics_information_api_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);

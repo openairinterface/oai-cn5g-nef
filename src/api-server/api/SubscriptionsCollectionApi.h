@@ -20,15 +20,15 @@
 #define SubscriptionsCollectionApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
+#include <pistache/router.h>
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "NefEventExposureSubsc.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 

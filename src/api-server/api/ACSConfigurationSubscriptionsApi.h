@@ -20,15 +20,15 @@
 #define ACSConfigurationSubscriptionsApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
+#include <pistache/router.h>
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "AcsConfigurationData.h"
 #include "ProblemDetails.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -44,9 +44,8 @@ class ACSConfigurationSubscriptionsApi {
  private:
   void setupRoutes();
 
-  void af_id_subscriptions_get_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
+  void af_id_subscriptions_get_handler(const Pistache::Rest::Request& request,
+                                       Pistache::Http::ResponseWriter response);
   void af_id_subscriptions_post_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);

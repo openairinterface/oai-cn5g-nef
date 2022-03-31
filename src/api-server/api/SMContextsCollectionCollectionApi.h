@@ -20,16 +20,16 @@
 #define SMContextsCollectionCollectionApi_H_
 
 #include <pistache/http.h>
-#include <pistache/router.h>
 #include <pistache/http_headers.h>
+#include <pistache/router.h>
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "ProblemDetails.h"
 #include "SmContextCreateData.h"
 #include "SmContextCreatedData.h"
-#include <string>
 
 namespace oai::nef::api {
 
@@ -45,9 +45,8 @@ class SMContextsCollectionCollectionApi {
  private:
   void setupRoutes();
 
-  void create_handler(
-      const Pistache::Rest::Request& request,
-      Pistache::Http::ResponseWriter response);
+  void create_handler(const Pistache::Rest::Request& request,
+                      Pistache::Http::ResponseWriter response);
   void sm_contexts_collection_collection_api_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);
