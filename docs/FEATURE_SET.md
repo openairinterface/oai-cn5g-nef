@@ -38,7 +38,7 @@ Based on document **3GPP TS 23.501 v16.0.0 (Section 6.2.5)**.
 | 2      | Secure provision of information from external application to 3GPP network | :x:                |                                          |
 | 3      | Translation of internal-external information                              | :x:                |                                          |
 | 4      | Exposure of analytics                                                     | :x:                |                                          |
-| 5      | Retrieval of data from external party by NWDAF                            | :x:                | Partially implemented                    |
+| 5      | Retrieval of data from external party by NWDAF                            | :heavy_check_mark: | Partially implemented                    |
 | 6      | Support of Non-IP Data Delivery                                           | :x:                |                                          |
 | 7      | Support of UAS NF functionality                                           | :x:                |                                          |
 | 8      | Support of EAS deployment functionality                                   | :x:                |                                          |
