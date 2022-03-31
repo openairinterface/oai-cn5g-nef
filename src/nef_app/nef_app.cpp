@@ -118,7 +118,7 @@ void nef_app::handle_create_individual_subscription(
 
   if (add_ee_subscription(sub_id, ces)) {
     Logger::nef_app().debug(
-        "Created a new subscription with Subscription ID %s", sub_id);
+        "Created a new subscription with Subscription ID %s", sub_id.c_str());
 
     to_json(json_tmp, created_ev_sub);
     Logger::nef_app().debug("Created subscription info: %s",

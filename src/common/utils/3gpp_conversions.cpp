@@ -119,6 +119,9 @@ bool xgpp_conv::monitoring_event_to_amf_event(
   option.setMaxReports(monitoring_event_sub.getMaximumNumberOfReports());
   option.setExpiry(monitoring_event_sub.getMonitorExpireTime());
 
+  ev_subscription.setOptions(option);
+  amf_event_sub.setSubscription(ev_subscription);
+
   // SupportedFeatures
   amf_event_sub.setSupportedFeatures(
       monitoring_event_sub.getSupportedFeatures());
