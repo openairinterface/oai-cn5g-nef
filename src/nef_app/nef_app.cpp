@@ -699,7 +699,7 @@ void nef_app::subscribe_nf_events(const MonitoringEventSubscription& ev_sub,
   switch (event_type) {
     case oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf::
         UE_REACHABILITY: {  // AMF/UDM
-      subscribe_udm_events(sub_id, nf_resource_location, event_type, ev_sub,
+      subscribe_amf_events(sub_id, nf_resource_location, event_type, ev_sub,
                            http_code);
       // UDM??
     } break;
