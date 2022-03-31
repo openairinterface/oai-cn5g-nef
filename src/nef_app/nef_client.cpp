@@ -276,6 +276,9 @@ void nef_client::send_event_exposure_subscribe(const nlohmann::json& json_body,
   f = p->get_future();
   add_promise(promise_id, p);
 
+  Logger::nef_app().debug("NF URI %s", nf_uri.c_str());
+  Logger::nef_app().debug("Body %s", json_body.dump().c_str());
+
   std::string header_data = {};
   // Create a new curl easy handle and add to the multi handle
   if (!curl_create_handle(nf_uri, json_body.dump(), response_data, header_data,

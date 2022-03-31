@@ -363,3 +363,10 @@ std::string nef_config::get_event_exposure_subscription_url() {
 std::string nef_config::get_event_exposure_subscription_notify_url() {
   return get_event_exposure_url() + NNEF_EE_SUBSCRIPTION_NOTIFY_URL;
 }
+
+//------------------------------------------------------------------------------
+std::string nef_config::get_amf_event_exposure_url() {
+  return std::string(inet_ntoa(amf_addr.ipv4_addr)) + ":" +
+         std::to_string(amf_addr.port) + NAMF_EVENT_EXPOSURE_BASE +
+         amf_addr.api_version + "/subscriptions";
+}

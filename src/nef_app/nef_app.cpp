@@ -781,7 +781,7 @@ void nef_app::subscribe_amf_events(
   create_ev_subscription.setSubscription(ev_subscription);
   nlohmann::json json_body = {};
   to_json(json_body, create_ev_subscription);
-  std::string amf_uri = {};
+  std::string amf_uri = nef_cfg.get_amf_event_exposure_url();
   std::string response_data = {};
 
   nef_client_inst->send_event_exposure_subscribe(

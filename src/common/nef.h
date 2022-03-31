@@ -85,6 +85,8 @@ typedef uint32_t evsub_id_t;
 #define NNEF_EE_SUBSCRIPTION_URL "/subscriptions"
 #define NNEF_EE_SUBSCRIPTION_NOTIFY_URL "/subscriptions/notify"
 
+#define NAMF_EVENT_EXPOSURE_BASE "/namf-evts/"
+
 #define NF_CURL_TIMEOUT_MS 1000L
 #define FUTURE_STATUS_TIMEOUT_MS 100
 
