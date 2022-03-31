@@ -159,6 +159,15 @@ class nef_client {
   void send_event_exposure_unsubscribe(const std::string& resource_location,
                                        std::string& response_data,
                                        int& http_code);
+
+  /*
+   * Send an Event Exposure Notification data to the subscribed NF
+   * @param [const nlohmann::json&] json_body: message body
+   * @param [const std::string &] nf_uri: URI of the subscribed NF
+   * @return void
+   */
+  void send_event_exposure_notify(const nlohmann::json& json_body,
+                                  const std::string& uri);
 };
 }  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

@@ -86,6 +86,7 @@ typedef uint32_t evsub_id_t;
 #define NNEF_EE_SUBSCRIPTION_NOTIFY_URL "/subscriptions/notify"
 
 #define NF_CURL_TIMEOUT_MS 1000L
+#define FUTURE_STATUS_TIMEOUT_MS 100
 
 #define MAX_WAIT_MSECS 20000  // 1 second
 

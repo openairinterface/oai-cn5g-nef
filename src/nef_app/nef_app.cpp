@@ -39,6 +39,7 @@
 #include "3gpp_29.510.h"
 #include "3gpp_conversions.hpp"
 #include "AmfCreateEventSubscription.h"
+#include "MonitoringNotification.h"
 #include "MonitoringType_anyOf.h"
 #include "common_defs.h"
 #include "logger.hpp"
@@ -226,8 +227,47 @@ void nef_app::handle_amf_event_notification(
     const AmfEventNotification& amfEventNotification,
     nlohmann::json& response_data, const uint8_t http_version, int& http_code) {
   // Process the Notification data
+  std::string sub_id = {};
+  if (amfEventNotification.notifyCorrelationIdIsSet()) {
+    sub_id = amfEventNotification.getNotifyCorrelationId();
+  } else if (amfEventNotification.subsChangeNotifyCorrelationIdIsSet()) {
+    sub_id = amfEventNotification.getSubsChangeNotifyCorrelationId();
+  } else {
+    Logger::nef_app().warn("Couldn't get NotifyCorrelationID");
+    return;
+  }
+
+  // Get the subscription information
+  std::shared_ptr<MonitoringEventSubscription> mes = {};
+  // TODO: do we need consumer_nf_id
+  std::string consumer_nf_id = {};
+  if (!nef_app::get_monitoring_ee_subscription(consumer_nf_id, sub_id, mes)) {
+    Logger::nef_app().warn("Couldn't get corresponding subscription");
+    return;
+  }
+  std::string notification_uri = mes->getNotificationDestination();
 
   // Send Notification to the subscribed NFs
+  // create MonitoringNotification
+  MonitoringNotification monitoring_notification = {};
+  monitoring_notification.setSubscription(
+      nef_cfg.get_event_exposure_subscription_notify_url() + "/" + sub_id);
+  std::vector<MonitoringEventReport> monitoring_reports;
+  // monitoringEventReports MonitoringEventReport[]
+  for (auto amf_report : amfEventNotification.getReportList()) {
+    MonitoringEventReport monitoring_report = {};
+    xgpp_conv::amf_report_to_monitoring_report(amf_report, monitoring_report);
+    monitoring_reports.push_back(monitoring_report);
+  }
+  monitoring_notification.setMonitoringEventReports(monitoring_reports);
+
+  // TODO: store at UDR
+  // Send the report to the subscribed NF
+  nlohmann::json json_body = {};
+  to_json(json_body, monitoring_notification);
+
+  nef_client_inst->send_event_exposure_notify(json_body, notification_uri);
+  return;
 }
 
 //------------------------------------------------------------------------------
@@ -701,12 +741,12 @@ void nef_app::subscribe_nf_events(const MonitoringEventSubscription& ev_sub,
     } break;
 
     case oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf::
-        NUM_OF_REGD_UES: {
+        NUM_OF_REGD_UES: {  // NSACF
       // TODO:
     } break;
 
     case oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf::
-        NUM_OF_ESTD_PDU_SESSIONS: {
+        NUM_OF_ESTD_PDU_SESSIONS: {  // NSACF
       // TODO:
     } break;
 
@@ -733,6 +773,8 @@ void nef_app::subscribe_amf_events(
   // SubsChangeNotifyUri
   ev_subscription.setSubsChangeNotifyUri(
       nef_cfg.get_event_exposure_subscription_notify_url() + "/" + sub_id);
+  // subsChangeNotifyCorelationId
+  ev_subscription.setSubsChangeNotifyCorrelationId(sub_id);
   // NfId
   ev_subscription.setNfId(nef_instance_id);
 

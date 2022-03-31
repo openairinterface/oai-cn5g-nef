@@ -127,6 +127,13 @@ bool xgpp_conv::monitoring_event_to_amf_event(
 }
 
 //------------------------------------------------------------------------------
+bool xgpp_conv::amf_report_to_monitoring_report(
+    const oai::nef::model::AmfEventReport& amf_report,
+    oai::nef::model::MonitoringEventReport& monitoring_report) {
+  return true;
+}
+
+//------------------------------------------------------------------------------
 patch_op_type_t xgpp_conv::string_to_patch_operation(const std::string& str) {
   if (str.compare("add") == 0) return PATCH_OP_ADD;
   if (str.compare("copy") == 0) return PATCH_OP_COPY;

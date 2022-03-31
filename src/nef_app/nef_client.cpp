@@ -159,13 +159,18 @@ void nef_client::curl_release_handles() {
 
 //---------------------------------------------------------------------------------------------
 uint32_t nef_client::get_available_response(boost::shared_future<uint32_t>& f) {
-  f.wait();  // Wait for it to finish
-  assert(f.is_ready());
-  assert(f.has_value());
-  assert(!f.has_exception());
+  boost::future_status status;
+  status = f.wait_for(boost::chrono::milliseconds(
+      FUTURE_STATUS_TIMEOUT_MS));  // Wait for it to finish
+  if (status == boost::future_status::ready) {
+    assert(f.is_ready());
+    assert(f.has_value());
+    assert(!f.has_exception());
 
-  uint32_t response_code = f.get();
-  return response_code;
+    uint32_t response_code = f.get();
+    return response_code;
+  }
+  return 0;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -318,6 +323,37 @@ void nef_client::send_event_exposure_unsubscribe(
   // Wait for the response back
   uint32_t response_code = get_available_response(f);
   http_code = response_code;
+
+  Logger::nef_app().debug("Got result for promise ID %d", promise_id);
+  Logger::nef_app().debug("Response code %u", response_code);
+  Logger::nef_app().debug("Response data %s", response_data.c_str());
+}
+
+//------------------------------------------------------------------------------
+void nef_client::send_event_exposure_notify(const nlohmann::json& json_body,
+                                            const std::string& uri) {
+  // Generate a promise and associate this promise to the curl handle
+  uint32_t promise_id = generate_promise_id();
+  Logger::nef_app().debug("Promise ID generated %d", promise_id);
+  uint32_t* pid_ptr = &promise_id;
+  boost::shared_ptr<boost::promise<uint32_t>> p =
+      boost::make_shared<boost::promise<uint32_t>>();
+  boost::shared_future<uint32_t> f;
+  f = p->get_future();
+  add_promise(promise_id, p);
+
+  std::string header_data = {};
+  std::string response_data = {};
+  // Create a new curl easy handle and add to the multi handle
+  if (!curl_create_handle(uri, json_body.dump(), response_data, header_data,
+                          pid_ptr, "POST")) {
+    Logger::nef_app().warn("Could not create a new handle to send message");
+    remove_promise(promise_id);
+    return;
+  }
+
+  // Wait for the response back
+  uint32_t response_code = get_available_response(f);
 
   Logger::nef_app().debug("Got result for promise ID %d", promise_id);
   Logger::nef_app().debug("Response code %u", response_code);
