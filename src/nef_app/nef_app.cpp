@@ -72,10 +72,6 @@ nef_app::nef_app(const std::string& config_file) {
 //------------------------------------------------------------------------------
 nef_app::~nef_app() {
   Logger::nef_app().debug("Delete NEF_APP instance...");
-  // for (auto i : connections) {
-  //   if (i.connected()) i.disconnect();
-  // }
-
   if (nef_client_inst) delete nef_client_inst;
 }
 

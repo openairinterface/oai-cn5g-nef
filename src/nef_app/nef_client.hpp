@@ -53,9 +53,6 @@ class nef_client {
   std::map<uint32_t, boost::shared_ptr<boost::promise<uint32_t>>>
       curl_handle_promises;
 
-  //  bs2::connection
-  //      task_connection;  // connection for performing curl_multi every 1ms
-
  public:
   //  nef_client(nef_event& ev);
   nef_client();
@@ -131,6 +128,11 @@ class nef_client {
     return util::uint_uid_generator<uint64_t>::get_instance().get_uid();
   }
 
+  /*
+   * Get header location from the response from NFs
+   * @param [const std::string&] header_data: HTTP header
+   * @return header location
+   */
   std::string get_header_location(const std::string& header_data);
 
   /*
