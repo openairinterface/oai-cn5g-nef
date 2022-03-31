@@ -472,15 +472,49 @@ class nef_app {
       MonitoringEventSubscription& created_ev_sub,
       ProblemDetails& problem_details);
 
-  // TODO:
+  /*
+   * Update a new value for a member of MonitoringEventSubscription
+   * @param [const std::string &] path: member name
+   * @param [const std::string &] value: new value
+   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
+   * subscription to be updated
+   * @return true if success, otherwise false
+   */
   bool replace_subscription_info(
       const std::string& path, const std::string& value,
       std::shared_ptr<MonitoringEventSubscription>& mes);
+
+  /*
+   * Add a new member of MonitoringEventSubscription
+   * @param [const std::string &] path: member name
+   * @param [const std::string &] value: value
+   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
+   * subscription to be updated
+   * @return true if success, otherwise false
+   */
   bool add_subscription_info(const std::string& path, const std::string& value,
                              std::shared_ptr<MonitoringEventSubscription>& mes);
+
+  /*
+   * Remove a member of MonitoringEventSubscription
+   * @param [const std::string &] path: member name
+   * @param [const std::string &] value: value
+   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
+   * subscription to be updated
+   * @return true if success, otherwise false
+   */
   bool remove_subscription_info(
       const std::string& path,
       std::shared_ptr<MonitoringEventSubscription>& mes);
+
+  /*
+   * Update a MonitoringEventSubscription
+   * @param [std::string &] consumer_nf_id: ID of the Consumer NF (e.g., AF)
+   * @param [std::string &] sub_id: ID of the subscription
+   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
+   * subscription to be updated
+   * @return true if success, otherwise false
+   */
   bool update_monitoring_subscription(
       const std::string& consumer_nf_id, const std::string& sub_id,
       std::shared_ptr<MonitoringEventSubscription>& mes);
