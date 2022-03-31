@@ -132,10 +132,33 @@ class nef_client {
   }
 
   std::string get_header_location(const std::string& header_data);
-  void send_event_exposure_subscribe(nlohmann::json& json_body,
-                                     std::string& amf_uri,
+
+  /*
+   * Send a request to subscribe to Event Exposure service from a NF
+   * @param [const nlohmann::json&] json_body: Request body
+   * @param [const std::string &] nf_uri: URI of the subscribed NF
+   * @param [std::string &] response_data: response data
+   * @param [std::string&] location: Store the location of created resource for
+   * this Sub
+   * @param [int&] http_code: HTTP response code
+   * @return void
+   */
+  void send_event_exposure_subscribe(const nlohmann::json& json_body,
+                                     const std::string& uri,
                                      std::string& response_data,
                                      std::string& location, int& http_code);
+
+  /*
+   * Send a request to unsubscribe to Event Exposure service from a NF
+   * @param [const std::string &] resource_location: URI of the resource
+   * location (subscription)
+   * @param [std::string &] response_data: response data
+   * @param [int&] http_code: HTTP response code
+   * @return void
+   */
+  void send_event_exposure_unsubscribe(const std::string& resource_location,
+                                       std::string& response_data,
+                                       int& http_code);
 };
 }  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

@@ -257,8 +257,8 @@ bool nef_client::curl_create_handle(
 }
 
 //------------------------------------------------------------------------------
-void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
-                                               std::string& amf_uri,
+void nef_client::send_event_exposure_subscribe(const nlohmann::json& json_body,
+                                               const std::string& nf_uri,
                                                std::string& response_data,
                                                std::string& location,
                                                int& http_code) {
@@ -274,7 +274,7 @@ void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
 
   std::string header_data = {};
   // Create a new curl easy handle and add to the multi handle
-  if (!curl_create_handle(amf_uri, json_body.dump(), response_data, header_data,
+  if (!curl_create_handle(nf_uri, json_body.dump(), response_data, header_data,
                           pid_ptr, "POST")) {
     Logger::nef_app().warn("Could not create a new handle to send message");
     remove_promise(promise_id);
@@ -289,6 +289,38 @@ void nef_client::send_event_exposure_subscribe(nlohmann::json& json_body,
   Logger::nef_app().debug("Got result for promise ID %d", promise_id);
   Logger::nef_app().debug("Response code %u", response_code);
   Logger::nef_app().debug("Location %s", location.c_str());
+  Logger::nef_app().debug("Response data %s", response_data.c_str());
+}
+
+//------------------------------------------------------------------------------
+void nef_client::send_event_exposure_unsubscribe(
+    const std::string& resource_location, std::string& response_data,
+    int& http_code) {
+  // Generate a promise and associate this promise to the curl handle
+  uint32_t promise_id = generate_promise_id();
+  Logger::nef_app().debug("Promise ID generated %d", promise_id);
+  uint32_t* pid_ptr = &promise_id;
+  boost::shared_ptr<boost::promise<uint32_t>> p =
+      boost::make_shared<boost::promise<uint32_t>>();
+  boost::shared_future<uint32_t> f;
+  f = p->get_future();
+  add_promise(promise_id, p);
+
+  std::string header_data = {};
+  // Create a new curl easy handle and add to the multi handle
+  if (!curl_create_handle(resource_location, "", response_data, header_data,
+                          pid_ptr, "POST")) {
+    Logger::nef_app().warn("Could not create a new handle to send message");
+    remove_promise(promise_id);
+    return;
+  }
+
+  // Wait for the response back
+  uint32_t response_code = get_available_response(f);
+  http_code = response_code;
+
+  Logger::nef_app().debug("Got result for promise ID %d", promise_id);
+  Logger::nef_app().debug("Response code %u", response_code);
   Logger::nef_app().debug("Response data %s", response_data.c_str());
 }
 

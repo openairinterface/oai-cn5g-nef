@@ -481,9 +481,9 @@ class nef_app {
   bool remove_subscription_info(
       const std::string& path,
       std::shared_ptr<MonitoringEventSubscription>& mes);
-  bool update_subscription(const std::string& consumer_nf_id,
-                           const std::string& sub_id,
-                           std::shared_ptr<MonitoringEventSubscription>& mes);
+  bool update_monitoring_subscription(
+      const std::string& consumer_nf_id, const std::string& sub_id,
+      std::shared_ptr<MonitoringEventSubscription>& mes);
 
  private:
   /*

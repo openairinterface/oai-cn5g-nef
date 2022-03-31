@@ -285,6 +285,7 @@ void nef_app::handle_create_monitoring_event_subscription(
   }
 
   // Successfully subscribed to the corresponding NF
+  created_ev_sub.setSelf(sub_id);
   // Store resource location
   std::shared_ptr<MonitoringEventSubscription> ces =
       std::make_shared<MonitoringEventSubscription>(created_ev_sub);
@@ -425,7 +426,7 @@ void nef_app::handle_modify_ind_monitoring_event_subscription(
     switch (op) {
       case PATCH_OP_REPLACE: {
         if (replace_subscription_info(path, p.getValue(), mes)) {
-          update_subscription(consumer_nf_id, sub_id, mes);
+          update_monitoring_subscription(consumer_nf_id, sub_id, mes);
           http_code = HTTP_STATUS_CODE_200_OK;
         } else {
           op_success = false;
@@ -434,7 +435,7 @@ void nef_app::handle_modify_ind_monitoring_event_subscription(
 
       case PATCH_OP_ADD: {
         if (add_subscription_info(path, p.getValue(), mes)) {
-          update_subscription(consumer_nf_id, sub_id, mes);
+          update_monitoring_subscription(consumer_nf_id, sub_id, mes);
           http_code = HTTP_STATUS_CODE_200_OK;
         } else {
           op_success = false;
@@ -443,7 +444,7 @@ void nef_app::handle_modify_ind_monitoring_event_subscription(
 
       case PATCH_OP_REMOVE: {
         if (remove_subscription_info(path, mes)) {
-          update_subscription(consumer_nf_id, sub_id, mes);
+          update_monitoring_subscription(consumer_nf_id, sub_id, mes);
           // http_code = HTTP_STATUS_CODE_200_OK;
         } else {
           op_success = false;
@@ -768,7 +769,10 @@ void nef_app::subscribe_udm_events(
 //------------------------------------------------------------------------------
 void nef_app::unsubscribe_nf_event(const std::string& nf_resource_location,
                                    int& http_code) {
-  // TODO
+  std::string response_data = {};
+  nef_client_inst->send_event_exposure_unsubscribe(nf_resource_location,
+                                                   response_data, http_code);
+  // TODO: process the response data
   return;
 }
 
@@ -788,8 +792,12 @@ bool nef_app::validate_monitoring_event_subscription(
 bool nef_app::replace_subscription_info(
     const std::string& path, const std::string& value,
     std::shared_ptr<MonitoringEventSubscription>& mes) {
-  // TODO:
-  return true;
+  //(3GPP TS 29.122) only update of a notification destination URI is supported
+  if (path.compare("notificationDestination") == 0) {
+    mes->setNotificationDestination(value);
+    return true;
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -804,14 +812,23 @@ bool nef_app::add_subscription_info(
 bool nef_app::remove_subscription_info(
     const std::string& path,
     std::shared_ptr<MonitoringEventSubscription>& mes) {
+  //(3GPP TS 29.122) only partial cancellation within an active group initiated
+  // by the SCS/AS are supported
   // TODO:
   return true;
 }
 
 //------------------------------------------------------------------------------
-bool nef_app::update_subscription(
+bool nef_app::update_monitoring_subscription(
     const std::string& consumer_nf_id, const std::string& sub_id,
     std::shared_ptr<MonitoringEventSubscription>& mes) {
-  // TODO:
+  std::unique_lock lock(m_subscription_id2nef_monitoring_subscription);
+  subscrition_id2nef_monitoring_subscription[sub_id] = mes;
+
+  // TODO: Remove subscription per event (old value)
+  MonitoringType monitoring_type = mes->getMonitoringType();
+  MonitoringType_anyOf::eMonitoringType_anyOf value =
+      monitoring_type.getEnumValue();
+  event_sub2monitoring_subscriptions[value].insert(sub_id);
   return true;
 }
