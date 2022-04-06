@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 ServiceExperienceInfo::ServiceExperienceInfo() {
-  m_AppId = "";
+  m_AppId      = "";
   m_AppIdIsSet = false;
   m_SupisIsSet = false;
 }
@@ -36,15 +36,15 @@ bool ServiceExperienceInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ServiceExperienceInfo::validate(std::stringstream& msg,
-                                     const std::string& pathPrefix) const {
+bool ServiceExperienceInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ServiceExperienceInfo" : pathPrefix;
 
   if (supisIsSet()) {
     const std::vector<std::string>& value = m_Supis;
-    const std::string currentValuePath = _pathPrefix + ".supis";
+    const std::string currentValuePath    = _pathPrefix + ".supis";
 
     if (value.size() < 1) {
       success = false;
@@ -52,7 +52,7 @@ bool ServiceExperienceInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -72,7 +72,7 @@ bool ServiceExperienceInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const ServiceExperienceInfoPerFlow& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -125,22 +125,32 @@ void from_json(const nlohmann::json& j, ServiceExperienceInfo& o) {
   j.at("svcExpPerFlows").get_to(o.m_SvcExpPerFlows);
 }
 
-std::string ServiceExperienceInfo::getAppId() const { return m_AppId; }
+std::string ServiceExperienceInfo::getAppId() const {
+  return m_AppId;
+}
 void ServiceExperienceInfo::setAppId(std::string const& value) {
-  m_AppId = value;
+  m_AppId      = value;
   m_AppIdIsSet = true;
 }
-bool ServiceExperienceInfo::appIdIsSet() const { return m_AppIdIsSet; }
-void ServiceExperienceInfo::unsetAppId() { m_AppIdIsSet = false; }
+bool ServiceExperienceInfo::appIdIsSet() const {
+  return m_AppIdIsSet;
+}
+void ServiceExperienceInfo::unsetAppId() {
+  m_AppIdIsSet = false;
+}
 std::vector<std::string> ServiceExperienceInfo::getSupis() const {
   return m_Supis;
 }
 void ServiceExperienceInfo::setSupis(std::vector<std::string> const& value) {
-  m_Supis = value;
+  m_Supis      = value;
   m_SupisIsSet = true;
 }
-bool ServiceExperienceInfo::supisIsSet() const { return m_SupisIsSet; }
-void ServiceExperienceInfo::unsetSupis() { m_SupisIsSet = false; }
+bool ServiceExperienceInfo::supisIsSet() const {
+  return m_SupisIsSet;
+}
+void ServiceExperienceInfo::unsetSupis() {
+  m_SupisIsSet = false;
+}
 std::vector<ServiceExperienceInfoPerFlow>
 ServiceExperienceInfo::getSvcExpPerFlows() const {
   return m_SvcExpPerFlows;

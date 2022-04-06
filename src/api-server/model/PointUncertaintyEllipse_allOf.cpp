@@ -42,7 +42,7 @@ bool PointUncertaintyEllipse_allOf::validate(
       pathPrefix.empty() ? "PointUncertaintyEllipse_allOf" : pathPrefix;
 
   /* Confidence */ {
-    const int32_t& value = m_Confidence;
+    const int32_t& value               = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -77,10 +77,10 @@ bool PointUncertaintyEllipse_allOf::operator!=(
 }
 
 void to_json(nlohmann::json& j, const PointUncertaintyEllipse_allOf& o) {
-  j = nlohmann::json();
-  j["point"] = o.m_Point;
+  j                       = nlohmann::json();
+  j["point"]              = o.m_Point;
   j["uncertaintyEllipse"] = o.m_UncertaintyEllipse;
-  j["confidence"] = o.m_Confidence;
+  j["confidence"]         = o.m_Confidence;
 }
 
 void from_json(const nlohmann::json& j, PointUncertaintyEllipse_allOf& o) {

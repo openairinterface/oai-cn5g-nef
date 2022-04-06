@@ -20,11 +20,11 @@
 namespace oai::nef::model {
 
 SvcExperience::SvcExperience() {
-  m_Mos = 0.0f;
-  m_MosIsSet = false;
-  m_UpperRange = 0.0f;
+  m_Mos             = 0.0f;
+  m_MosIsSet        = false;
+  m_UpperRange      = 0.0f;
   m_UpperRangeIsSet = false;
-  m_LowerRange = 0.0f;
+  m_LowerRange      = 0.0f;
   m_LowerRangeIsSet = false;
 }
 
@@ -39,8 +39,8 @@ bool SvcExperience::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SvcExperience::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool SvcExperience::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SvcExperience" : pathPrefix;
@@ -91,26 +91,44 @@ void from_json(const nlohmann::json& j, SvcExperience& o) {
   }
 }
 
-float SvcExperience::getMos() const { return m_Mos; }
+float SvcExperience::getMos() const {
+  return m_Mos;
+}
 void SvcExperience::setMos(float const value) {
-  m_Mos = value;
+  m_Mos      = value;
   m_MosIsSet = true;
 }
-bool SvcExperience::mosIsSet() const { return m_MosIsSet; }
-void SvcExperience::unsetMos() { m_MosIsSet = false; }
-float SvcExperience::getUpperRange() const { return m_UpperRange; }
+bool SvcExperience::mosIsSet() const {
+  return m_MosIsSet;
+}
+void SvcExperience::unsetMos() {
+  m_MosIsSet = false;
+}
+float SvcExperience::getUpperRange() const {
+  return m_UpperRange;
+}
 void SvcExperience::setUpperRange(float const value) {
-  m_UpperRange = value;
+  m_UpperRange      = value;
   m_UpperRangeIsSet = true;
 }
-bool SvcExperience::upperRangeIsSet() const { return m_UpperRangeIsSet; }
-void SvcExperience::unsetUpperRange() { m_UpperRangeIsSet = false; }
-float SvcExperience::getLowerRange() const { return m_LowerRange; }
+bool SvcExperience::upperRangeIsSet() const {
+  return m_UpperRangeIsSet;
+}
+void SvcExperience::unsetUpperRange() {
+  m_UpperRangeIsSet = false;
+}
+float SvcExperience::getLowerRange() const {
+  return m_LowerRange;
+}
 void SvcExperience::setLowerRange(float const value) {
-  m_LowerRange = value;
+  m_LowerRange      = value;
   m_LowerRangeIsSet = true;
 }
-bool SvcExperience::lowerRangeIsSet() const { return m_LowerRangeIsSet; }
-void SvcExperience::unsetLowerRange() { m_LowerRangeIsSet = false; }
+bool SvcExperience::lowerRangeIsSet() const {
+  return m_LowerRangeIsSet;
+}
+void SvcExperience::unsetLowerRange() {
+  m_LowerRangeIsSet = false;
+}
 
 }  // namespace oai::nef::model

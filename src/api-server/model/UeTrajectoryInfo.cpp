@@ -19,7 +19,9 @@
 
 namespace oai::nef::model {
 
-UeTrajectoryInfo::UeTrajectoryInfo() { m_Ts = ""; }
+UeTrajectoryInfo::UeTrajectoryInfo() {
+  m_Ts = "";
+}
 
 void UeTrajectoryInfo::validate() const {
   std::stringstream msg;
@@ -32,8 +34,8 @@ bool UeTrajectoryInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UeTrajectoryInfo::validate(std::stringstream& msg,
-                                const std::string& pathPrefix) const {
+bool UeTrajectoryInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UeTrajectoryInfo" : pathPrefix;
@@ -56,8 +58,8 @@ bool UeTrajectoryInfo::operator!=(const UeTrajectoryInfo& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const UeTrajectoryInfo& o) {
-  j = nlohmann::json();
-  j["ts"] = o.m_Ts;
+  j             = nlohmann::json();
+  j["ts"]       = o.m_Ts;
   j["location"] = o.m_Location;
 }
 
@@ -66,9 +68,15 @@ void from_json(const nlohmann::json& j, UeTrajectoryInfo& o) {
   j.at("location").get_to(o.m_Location);
 }
 
-std::string UeTrajectoryInfo::getTs() const { return m_Ts; }
-void UeTrajectoryInfo::setTs(std::string const& value) { m_Ts = value; }
-UserLocation UeTrajectoryInfo::getLocation() const { return m_Location; }
+std::string UeTrajectoryInfo::getTs() const {
+  return m_Ts;
+}
+void UeTrajectoryInfo::setTs(std::string const& value) {
+  m_Ts = value;
+}
+UserLocation UeTrajectoryInfo::getLocation() const {
+  return m_Location;
+}
 void UeTrajectoryInfo::setLocation(UserLocation const& value) {
   m_Location = value;
 }

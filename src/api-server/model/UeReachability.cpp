@@ -32,8 +32,8 @@ bool UeReachability::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UeReachability::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool UeReachability::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UeReachability" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, UeReachability& o) {
   from_json(j, o.m_value);
 }
 
-UeReachability_anyOf UeReachability::getValue() const { return m_value; }
+UeReachability_anyOf UeReachability::getValue() const {
+  return m_value;
+}
 
-void UeReachability::setValue(UeReachability_anyOf value) { m_value = value; }
+void UeReachability::setValue(UeReachability_anyOf value) {
+  m_value = value;
+}
 
 UeReachability_anyOf::eUeReachability_anyOf UeReachability::getEnumValue()
     const {

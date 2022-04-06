@@ -20,9 +20,9 @@
 namespace oai::nef::model {
 
 AmfCreatedEventSubscription::AmfCreatedEventSubscription() {
-  m_SubscriptionId = "";
-  m_ReportListIsSet = false;
-  m_SupportedFeatures = "";
+  m_SubscriptionId         = "";
+  m_ReportListIsSet        = false;
+  m_SupportedFeatures      = "";
   m_SupportedFeaturesIsSet = false;
 }
 
@@ -45,7 +45,7 @@ bool AmfCreatedEventSubscription::validate(
 
   if (reportListIsSet()) {
     const std::vector<AmfEventReport>& value = m_ReportList;
-    const std::string currentValuePath = _pathPrefix + ".reportList";
+    const std::string currentValuePath       = _pathPrefix + ".reportList";
 
     if (value.size() < 1) {
       success = false;
@@ -53,7 +53,7 @@ bool AmfCreatedEventSubscription::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AmfEventReport& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -67,7 +67,7 @@ bool AmfCreatedEventSubscription::validate(
   }
 
   if (supportedFeaturesIsSet()) {
-    const std::string& value = m_SupportedFeatures;
+    const std::string& value           = m_SupportedFeatures;
     const std::string currentValuePath = _pathPrefix + ".supportedFeatures";
   }
 
@@ -99,8 +99,8 @@ bool AmfCreatedEventSubscription::operator!=(
 }
 
 void to_json(nlohmann::json& j, const AmfCreatedEventSubscription& o) {
-  j = nlohmann::json();
-  j["subscription"] = o.m_Subscription;
+  j                   = nlohmann::json();
+  j["subscription"]   = o.m_Subscription;
   j["subscriptionId"] = o.m_SubscriptionId;
   if (o.reportListIsSet() || !o.m_ReportList.empty())
     j["reportList"] = o.m_ReportList;
@@ -139,7 +139,7 @@ std::vector<AmfEventReport> AmfCreatedEventSubscription::getReportList() const {
 }
 void AmfCreatedEventSubscription::setReportList(
     std::vector<AmfEventReport> const& value) {
-  m_ReportList = value;
+  m_ReportList      = value;
   m_ReportListIsSet = true;
 }
 bool AmfCreatedEventSubscription::reportListIsSet() const {
@@ -153,7 +153,7 @@ std::string AmfCreatedEventSubscription::getSupportedFeatures() const {
 }
 void AmfCreatedEventSubscription::setSupportedFeatures(
     std::string const& value) {
-  m_SupportedFeatures = value;
+  m_SupportedFeatures      = value;
   m_SupportedFeaturesIsSet = true;
 }
 bool AmfCreatedEventSubscription::supportedFeaturesIsSet() const {

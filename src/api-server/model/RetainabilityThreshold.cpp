@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 RetainabilityThreshold::RetainabilityThreshold() {
-  m_RelFlowNum = 0;
-  m_RelFlowNumIsSet = false;
-  m_RelTimeUnitIsSet = false;
-  m_RelFlowRatio = 0;
+  m_RelFlowNum        = 0;
+  m_RelFlowNumIsSet   = false;
+  m_RelTimeUnitIsSet  = false;
+  m_RelFlowRatio      = 0;
   m_RelFlowRatioIsSet = false;
 }
 
@@ -38,14 +38,14 @@ bool RetainabilityThreshold::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool RetainabilityThreshold::validate(std::stringstream& msg,
-                                      const std::string& pathPrefix) const {
+bool RetainabilityThreshold::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "RetainabilityThreshold" : pathPrefix;
 
   if (relFlowNumIsSet()) {
-    const int32_t& value = m_RelFlowNum;
+    const int32_t& value               = m_RelFlowNum;
     const std::string currentValuePath = _pathPrefix + ".relFlowNum";
 
     if (value < 0) {
@@ -55,7 +55,7 @@ bool RetainabilityThreshold::validate(std::stringstream& msg,
   }
 
   if (relFlowRatioIsSet()) {
-    const int32_t& value = m_RelFlowRatio;
+    const int32_t& value               = m_RelFlowRatio;
     const std::string currentValuePath = _pathPrefix + ".relFlowRatio";
 
     if (value < 1) {
@@ -117,31 +117,37 @@ void from_json(const nlohmann::json& j, RetainabilityThreshold& o) {
   }
 }
 
-int32_t RetainabilityThreshold::getRelFlowNum() const { return m_RelFlowNum; }
+int32_t RetainabilityThreshold::getRelFlowNum() const {
+  return m_RelFlowNum;
+}
 void RetainabilityThreshold::setRelFlowNum(int32_t const value) {
-  m_RelFlowNum = value;
+  m_RelFlowNum      = value;
   m_RelFlowNumIsSet = true;
 }
 bool RetainabilityThreshold::relFlowNumIsSet() const {
   return m_RelFlowNumIsSet;
 }
-void RetainabilityThreshold::unsetRelFlowNum() { m_RelFlowNumIsSet = false; }
+void RetainabilityThreshold::unsetRelFlowNum() {
+  m_RelFlowNumIsSet = false;
+}
 TimeUnit RetainabilityThreshold::getRelTimeUnit() const {
   return m_RelTimeUnit;
 }
 void RetainabilityThreshold::setRelTimeUnit(TimeUnit const& value) {
-  m_RelTimeUnit = value;
+  m_RelTimeUnit      = value;
   m_RelTimeUnitIsSet = true;
 }
 bool RetainabilityThreshold::relTimeUnitIsSet() const {
   return m_RelTimeUnitIsSet;
 }
-void RetainabilityThreshold::unsetRelTimeUnit() { m_RelTimeUnitIsSet = false; }
+void RetainabilityThreshold::unsetRelTimeUnit() {
+  m_RelTimeUnitIsSet = false;
+}
 int32_t RetainabilityThreshold::getRelFlowRatio() const {
   return m_RelFlowRatio;
 }
 void RetainabilityThreshold::setRelFlowRatio(int32_t const value) {
-  m_RelFlowRatio = value;
+  m_RelFlowRatio      = value;
   m_RelFlowRatioIsSet = true;
 }
 bool RetainabilityThreshold::relFlowRatioIsSet() const {

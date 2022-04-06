@@ -34,8 +34,8 @@ class Options {
 
  private:
   enum OptionsSelected {
-    libconfigcfg = 0x01,
-    log_stdout = 0x02,
+    libconfigcfg     = 0x01,
+    log_stdout       = 0x02,
     log_rot_file_log = 0x04
   };
 

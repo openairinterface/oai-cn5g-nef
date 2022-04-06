@@ -20,37 +20,37 @@
 namespace oai::nef::model {
 
 MonitoringEventReport::MonitoringEventReport() {
-  m_ImeiChangeIsSet = false;
-  m_ExternalId = "";
-  m_ExternalIdIsSet = false;
-  m_IdleStatusInfoIsSet = false;
-  m_LocationInfoIsSet = false;
-  m_LocFailureCauseIsSet = false;
-  m_LossOfConnectReason = 0;
-  m_LossOfConnectReasonIsSet = false;
-  m_MaxUEAvailabilityTime = "";
+  m_ImeiChangeIsSet            = false;
+  m_ExternalId                 = "";
+  m_ExternalIdIsSet            = false;
+  m_IdleStatusInfoIsSet        = false;
+  m_LocationInfoIsSet          = false;
+  m_LocFailureCauseIsSet       = false;
+  m_LossOfConnectReason        = 0;
+  m_LossOfConnectReasonIsSet   = false;
+  m_MaxUEAvailabilityTime      = "";
   m_MaxUEAvailabilityTimeIsSet = false;
-  m_Msisdn = "";
-  m_MsisdnIsSet = false;
-  m_UePerLocationReportIsSet = false;
-  m_PlmnIdIsSet = false;
-  m_ReachabilityTypeIsSet = false;
-  m_RoamingStatus = false;
-  m_RoamingStatusIsSet = false;
-  m_FailureCauseIsSet = false;
-  m_EventTime = "";
-  m_EventTimeIsSet = false;
-  m_PdnConnInfoListIsSet = false;
-  m_DddStatusIsSet = false;
-  m_DddTrafDescriptorIsSet = false;
-  m_MaxWaitTime = "";
-  m_MaxWaitTimeIsSet = false;
-  m_ApiCapsIsSet = false;
-  m_NSStatusInfoIsSet = false;
-  m_ServLevelDevId = "";
-  m_ServLevelDevIdIsSet = false;
-  m_UavPresInd = false;
-  m_UavPresIndIsSet = false;
+  m_Msisdn                     = "";
+  m_MsisdnIsSet                = false;
+  m_UePerLocationReportIsSet   = false;
+  m_PlmnIdIsSet                = false;
+  m_ReachabilityTypeIsSet      = false;
+  m_RoamingStatus              = false;
+  m_RoamingStatusIsSet         = false;
+  m_FailureCauseIsSet          = false;
+  m_EventTime                  = "";
+  m_EventTimeIsSet             = false;
+  m_PdnConnInfoListIsSet       = false;
+  m_DddStatusIsSet             = false;
+  m_DddTrafDescriptorIsSet     = false;
+  m_MaxWaitTime                = "";
+  m_MaxWaitTimeIsSet           = false;
+  m_ApiCapsIsSet               = false;
+  m_NSStatusInfoIsSet          = false;
+  m_ServLevelDevId             = "";
+  m_ServLevelDevIdIsSet        = false;
+  m_UavPresInd                 = false;
+  m_UavPresIndIsSet            = false;
 }
 
 void MonitoringEventReport::validate() const {
@@ -64,8 +64,8 @@ bool MonitoringEventReport::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool MonitoringEventReport::validate(std::stringstream& msg,
-                                     const std::string& pathPrefix) const {
+bool MonitoringEventReport::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "MonitoringEventReport" : pathPrefix;
@@ -80,7 +80,7 @@ bool MonitoringEventReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const PdnConnectionInformation& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -95,7 +95,7 @@ bool MonitoringEventReport::validate(std::stringstream& msg,
 
   if (apiCapsIsSet()) {
     const std::vector<ApiCapabilityInfo>& value = m_ApiCaps;
-    const std::string currentValuePath = _pathPrefix + ".apiCaps";
+    const std::string currentValuePath          = _pathPrefix + ".apiCaps";
 
     if (value.size() < 0) {
       success = false;
@@ -103,7 +103,7 @@ bool MonitoringEventReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const ApiCapabilityInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -346,29 +346,33 @@ AssociationType MonitoringEventReport::getImeiChange() const {
   return m_ImeiChange;
 }
 void MonitoringEventReport::setImeiChange(AssociationType const& value) {
-  m_ImeiChange = value;
+  m_ImeiChange      = value;
   m_ImeiChangeIsSet = true;
 }
 bool MonitoringEventReport::imeiChangeIsSet() const {
   return m_ImeiChangeIsSet;
 }
-void MonitoringEventReport::unsetImeiChange() { m_ImeiChangeIsSet = false; }
+void MonitoringEventReport::unsetImeiChange() {
+  m_ImeiChangeIsSet = false;
+}
 std::string MonitoringEventReport::getExternalId() const {
   return m_ExternalId;
 }
 void MonitoringEventReport::setExternalId(std::string const& value) {
-  m_ExternalId = value;
+  m_ExternalId      = value;
   m_ExternalIdIsSet = true;
 }
 bool MonitoringEventReport::externalIdIsSet() const {
   return m_ExternalIdIsSet;
 }
-void MonitoringEventReport::unsetExternalId() { m_ExternalIdIsSet = false; }
+void MonitoringEventReport::unsetExternalId() {
+  m_ExternalIdIsSet = false;
+}
 IdleStatusInfo MonitoringEventReport::getIdleStatusInfo() const {
   return m_IdleStatusInfo;
 }
 void MonitoringEventReport::setIdleStatusInfo(IdleStatusInfo const& value) {
-  m_IdleStatusInfo = value;
+  m_IdleStatusInfo      = value;
   m_IdleStatusInfoIsSet = true;
 }
 bool MonitoringEventReport::idleStatusInfoIsSet() const {
@@ -381,19 +385,21 @@ LocationInfo MonitoringEventReport::getLocationInfo() const {
   return m_LocationInfo;
 }
 void MonitoringEventReport::setLocationInfo(LocationInfo const& value) {
-  m_LocationInfo = value;
+  m_LocationInfo      = value;
   m_LocationInfoIsSet = true;
 }
 bool MonitoringEventReport::locationInfoIsSet() const {
   return m_LocationInfoIsSet;
 }
-void MonitoringEventReport::unsetLocationInfo() { m_LocationInfoIsSet = false; }
+void MonitoringEventReport::unsetLocationInfo() {
+  m_LocationInfoIsSet = false;
+}
 LocationFailureCause MonitoringEventReport::getLocFailureCause() const {
   return m_LocFailureCause;
 }
 void MonitoringEventReport::setLocFailureCause(
     LocationFailureCause const& value) {
-  m_LocFailureCause = value;
+  m_LocFailureCause      = value;
   m_LocFailureCauseIsSet = true;
 }
 bool MonitoringEventReport::locFailureCauseIsSet() const {
@@ -406,7 +412,7 @@ int32_t MonitoringEventReport::getLossOfConnectReason() const {
   return m_LossOfConnectReason;
 }
 void MonitoringEventReport::setLossOfConnectReason(int32_t const value) {
-  m_LossOfConnectReason = value;
+  m_LossOfConnectReason      = value;
   m_LossOfConnectReasonIsSet = true;
 }
 bool MonitoringEventReport::lossOfConnectReasonIsSet() const {
@@ -419,7 +425,7 @@ std::string MonitoringEventReport::getMaxUEAvailabilityTime() const {
   return m_MaxUEAvailabilityTime;
 }
 void MonitoringEventReport::setMaxUEAvailabilityTime(std::string const& value) {
-  m_MaxUEAvailabilityTime = value;
+  m_MaxUEAvailabilityTime      = value;
   m_MaxUEAvailabilityTimeIsSet = true;
 }
 bool MonitoringEventReport::maxUEAvailabilityTimeIsSet() const {
@@ -428,13 +434,19 @@ bool MonitoringEventReport::maxUEAvailabilityTimeIsSet() const {
 void MonitoringEventReport::unsetMaxUEAvailabilityTime() {
   m_MaxUEAvailabilityTimeIsSet = false;
 }
-std::string MonitoringEventReport::getMsisdn() const { return m_Msisdn; }
+std::string MonitoringEventReport::getMsisdn() const {
+  return m_Msisdn;
+}
 void MonitoringEventReport::setMsisdn(std::string const& value) {
-  m_Msisdn = value;
+  m_Msisdn      = value;
   m_MsisdnIsSet = true;
 }
-bool MonitoringEventReport::msisdnIsSet() const { return m_MsisdnIsSet; }
-void MonitoringEventReport::unsetMsisdn() { m_MsisdnIsSet = false; }
+bool MonitoringEventReport::msisdnIsSet() const {
+  return m_MsisdnIsSet;
+}
+void MonitoringEventReport::unsetMsisdn() {
+  m_MsisdnIsSet = false;
+}
 MonitoringType MonitoringEventReport::getMonitoringType() const {
   return m_MonitoringType;
 }
@@ -446,7 +458,7 @@ UePerLocationReport MonitoringEventReport::getUePerLocationReport() const {
 }
 void MonitoringEventReport::setUePerLocationReport(
     UePerLocationReport const& value) {
-  m_UePerLocationReport = value;
+  m_UePerLocationReport      = value;
   m_UePerLocationReportIsSet = true;
 }
 bool MonitoringEventReport::uePerLocationReportIsSet() const {
@@ -455,18 +467,24 @@ bool MonitoringEventReport::uePerLocationReportIsSet() const {
 void MonitoringEventReport::unsetUePerLocationReport() {
   m_UePerLocationReportIsSet = false;
 }
-PlmnId MonitoringEventReport::getPlmnId() const { return m_PlmnId; }
+PlmnId MonitoringEventReport::getPlmnId() const {
+  return m_PlmnId;
+}
 void MonitoringEventReport::setPlmnId(PlmnId const& value) {
-  m_PlmnId = value;
+  m_PlmnId      = value;
   m_PlmnIdIsSet = true;
 }
-bool MonitoringEventReport::plmnIdIsSet() const { return m_PlmnIdIsSet; }
-void MonitoringEventReport::unsetPlmnId() { m_PlmnIdIsSet = false; }
+bool MonitoringEventReport::plmnIdIsSet() const {
+  return m_PlmnIdIsSet;
+}
+void MonitoringEventReport::unsetPlmnId() {
+  m_PlmnIdIsSet = false;
+}
 ReachabilityType MonitoringEventReport::getReachabilityType() const {
   return m_ReachabilityType;
 }
 void MonitoringEventReport::setReachabilityType(ReachabilityType const& value) {
-  m_ReachabilityType = value;
+  m_ReachabilityType      = value;
   m_ReachabilityTypeIsSet = true;
 }
 bool MonitoringEventReport::reachabilityTypeIsSet() const {
@@ -475,9 +493,11 @@ bool MonitoringEventReport::reachabilityTypeIsSet() const {
 void MonitoringEventReport::unsetReachabilityType() {
   m_ReachabilityTypeIsSet = false;
 }
-bool MonitoringEventReport::isRoamingStatus() const { return m_RoamingStatus; }
+bool MonitoringEventReport::isRoamingStatus() const {
+  return m_RoamingStatus;
+}
 void MonitoringEventReport::setRoamingStatus(bool const value) {
-  m_RoamingStatus = value;
+  m_RoamingStatus      = value;
   m_RoamingStatusIsSet = true;
 }
 bool MonitoringEventReport::roamingStatusIsSet() const {
@@ -490,27 +510,35 @@ FailureCause MonitoringEventReport::getFailureCause() const {
   return m_FailureCause;
 }
 void MonitoringEventReport::setFailureCause(FailureCause const& value) {
-  m_FailureCause = value;
+  m_FailureCause      = value;
   m_FailureCauseIsSet = true;
 }
 bool MonitoringEventReport::failureCauseIsSet() const {
   return m_FailureCauseIsSet;
 }
-void MonitoringEventReport::unsetFailureCause() { m_FailureCauseIsSet = false; }
-std::string MonitoringEventReport::getEventTime() const { return m_EventTime; }
+void MonitoringEventReport::unsetFailureCause() {
+  m_FailureCauseIsSet = false;
+}
+std::string MonitoringEventReport::getEventTime() const {
+  return m_EventTime;
+}
 void MonitoringEventReport::setEventTime(std::string const& value) {
-  m_EventTime = value;
+  m_EventTime      = value;
   m_EventTimeIsSet = true;
 }
-bool MonitoringEventReport::eventTimeIsSet() const { return m_EventTimeIsSet; }
-void MonitoringEventReport::unsetEventTime() { m_EventTimeIsSet = false; }
+bool MonitoringEventReport::eventTimeIsSet() const {
+  return m_EventTimeIsSet;
+}
+void MonitoringEventReport::unsetEventTime() {
+  m_EventTimeIsSet = false;
+}
 std::vector<PdnConnectionInformation>
 MonitoringEventReport::getPdnConnInfoList() const {
   return m_PdnConnInfoList;
 }
 void MonitoringEventReport::setPdnConnInfoList(
     std::vector<PdnConnectionInformation> const& value) {
-  m_PdnConnInfoList = value;
+  m_PdnConnInfoList      = value;
   m_PdnConnInfoListIsSet = true;
 }
 bool MonitoringEventReport::pdnConnInfoListIsSet() const {
@@ -523,17 +551,21 @@ DlDataDeliveryStatus MonitoringEventReport::getDddStatus() const {
   return m_DddStatus;
 }
 void MonitoringEventReport::setDddStatus(DlDataDeliveryStatus const& value) {
-  m_DddStatus = value;
+  m_DddStatus      = value;
   m_DddStatusIsSet = true;
 }
-bool MonitoringEventReport::dddStatusIsSet() const { return m_DddStatusIsSet; }
-void MonitoringEventReport::unsetDddStatus() { m_DddStatusIsSet = false; }
+bool MonitoringEventReport::dddStatusIsSet() const {
+  return m_DddStatusIsSet;
+}
+void MonitoringEventReport::unsetDddStatus() {
+  m_DddStatusIsSet = false;
+}
 DddTrafficDescriptor MonitoringEventReport::getDddTrafDescriptor() const {
   return m_DddTrafDescriptor;
 }
 void MonitoringEventReport::setDddTrafDescriptor(
     DddTrafficDescriptor const& value) {
-  m_DddTrafDescriptor = value;
+  m_DddTrafDescriptor      = value;
   m_DddTrafDescriptorIsSet = true;
 }
 bool MonitoringEventReport::dddTrafDescriptorIsSet() const {
@@ -546,39 +578,47 @@ std::string MonitoringEventReport::getMaxWaitTime() const {
   return m_MaxWaitTime;
 }
 void MonitoringEventReport::setMaxWaitTime(std::string const& value) {
-  m_MaxWaitTime = value;
+  m_MaxWaitTime      = value;
   m_MaxWaitTimeIsSet = true;
 }
 bool MonitoringEventReport::maxWaitTimeIsSet() const {
   return m_MaxWaitTimeIsSet;
 }
-void MonitoringEventReport::unsetMaxWaitTime() { m_MaxWaitTimeIsSet = false; }
+void MonitoringEventReport::unsetMaxWaitTime() {
+  m_MaxWaitTimeIsSet = false;
+}
 std::vector<ApiCapabilityInfo> MonitoringEventReport::getApiCaps() const {
   return m_ApiCaps;
 }
 void MonitoringEventReport::setApiCaps(
     std::vector<ApiCapabilityInfo> const& value) {
-  m_ApiCaps = value;
+  m_ApiCaps      = value;
   m_ApiCapsIsSet = true;
 }
-bool MonitoringEventReport::apiCapsIsSet() const { return m_ApiCapsIsSet; }
-void MonitoringEventReport::unsetApiCaps() { m_ApiCapsIsSet = false; }
+bool MonitoringEventReport::apiCapsIsSet() const {
+  return m_ApiCapsIsSet;
+}
+void MonitoringEventReport::unsetApiCaps() {
+  m_ApiCapsIsSet = false;
+}
 SACEventStatus MonitoringEventReport::getNSStatusInfo() const {
   return m_NSStatusInfo;
 }
 void MonitoringEventReport::setNSStatusInfo(SACEventStatus const& value) {
-  m_NSStatusInfo = value;
+  m_NSStatusInfo      = value;
   m_NSStatusInfoIsSet = true;
 }
 bool MonitoringEventReport::nSStatusInfoIsSet() const {
   return m_NSStatusInfoIsSet;
 }
-void MonitoringEventReport::unsetNSStatusInfo() { m_NSStatusInfoIsSet = false; }
+void MonitoringEventReport::unsetNSStatusInfo() {
+  m_NSStatusInfoIsSet = false;
+}
 std::string MonitoringEventReport::getServLevelDevId() const {
   return m_ServLevelDevId;
 }
 void MonitoringEventReport::setServLevelDevId(std::string const& value) {
-  m_ServLevelDevId = value;
+  m_ServLevelDevId      = value;
   m_ServLevelDevIdIsSet = true;
 }
 bool MonitoringEventReport::servLevelDevIdIsSet() const {
@@ -587,14 +627,18 @@ bool MonitoringEventReport::servLevelDevIdIsSet() const {
 void MonitoringEventReport::unsetServLevelDevId() {
   m_ServLevelDevIdIsSet = false;
 }
-bool MonitoringEventReport::isUavPresInd() const { return m_UavPresInd; }
+bool MonitoringEventReport::isUavPresInd() const {
+  return m_UavPresInd;
+}
 void MonitoringEventReport::setUavPresInd(bool const value) {
-  m_UavPresInd = value;
+  m_UavPresInd      = value;
   m_UavPresIndIsSet = true;
 }
 bool MonitoringEventReport::uavPresIndIsSet() const {
   return m_UavPresIndIsSet;
 }
-void MonitoringEventReport::unsetUavPresInd() { m_UavPresIndIsSet = false; }
+void MonitoringEventReport::unsetUavPresInd() {
+  m_UavPresIndIsSet = false;
+}
 
 }  // namespace oai::nef::model

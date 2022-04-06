@@ -66,10 +66,10 @@ class ScheduledCommunicationType {
           value);
   friend void to_json(nlohmann::json& j, const ScheduledCommunicationType& o);
   friend void from_json(const nlohmann::json& j, ScheduledCommunicationType& o);
-  friend void to_json(nlohmann::json& j,
-                      const ScheduledCommunicationType_anyOf& o);
-  friend void from_json(const nlohmann::json& j,
-                        ScheduledCommunicationType_anyOf& o);
+  friend void to_json(
+      nlohmann::json& j, const ScheduledCommunicationType_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, ScheduledCommunicationType_anyOf& o);
 
  protected:
   ScheduledCommunicationType_anyOf m_value;

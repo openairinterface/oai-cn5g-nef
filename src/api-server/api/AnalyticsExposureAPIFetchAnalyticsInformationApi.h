@@ -45,8 +45,9 @@ class AnalyticsExposureAPIFetchAnalyticsInformationApi {
  private:
   void setupRoutes();
 
-  void af_id_fetch_post_handler(const Pistache::Rest::Request& request,
-                                Pistache::Http::ResponseWriter response);
+  void af_id_fetch_post_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
   void analytics_exposure_api_fetch_analytics_information_api_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);

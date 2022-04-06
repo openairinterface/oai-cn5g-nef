@@ -27,7 +27,9 @@ AnalyticsExposureSubscriptionsApi::AnalyticsExposureSubscriptionsApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void AnalyticsExposureSubscriptionsApi::init() { setupRoutes(); }
+void AnalyticsExposureSubscriptionsApi::init() {
+  setupRoutes();
+}
 
 void AnalyticsExposureSubscriptionsApi::setupRoutes() {
   using namespace Pistache::Rest;
@@ -44,10 +46,10 @@ void AnalyticsExposureSubscriptionsApi::setupRoutes() {
           this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(
-      Routes::bind(&AnalyticsExposureSubscriptionsApi::
-                       analytics_exposure_subscriptions_api_default_handler,
-                   this));
+  router->addCustomHandler(Routes::bind(
+      &AnalyticsExposureSubscriptionsApi::
+          analytics_exposure_subscriptions_api_default_handler,
+      this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -60,8 +62,8 @@ AnalyticsExposureSubscriptionsApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
-                          e.what());
+    return std::make_pair(
+        Pistache::Http::Code::Internal_Server_Error, e.what());
   }
 }
 
@@ -146,8 +148,8 @@ void AnalyticsExposureSubscriptionsApi::
     analytics_exposure_subscriptions_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(Pistache::Http::Code::Not_Found,
-                "The requested method does not exist");
+  response.send(
+      Pistache::Http::Code::Not_Found, "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

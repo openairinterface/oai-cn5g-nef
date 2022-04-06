@@ -33,8 +33,8 @@ bool LocationFailureCause_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LocationFailureCause_anyOf::validate(std::stringstream& msg,
-                                          const std::string& pathPrefix) const {
+bool LocationFailureCause_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocationFailureCause_anyOf" : pathPrefix;

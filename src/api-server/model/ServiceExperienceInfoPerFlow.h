@@ -98,8 +98,8 @@ class ServiceExperienceInfoPerFlow {
   void unsetEthTrafficFilter();
 
   friend void to_json(nlohmann::json& j, const ServiceExperienceInfoPerFlow& o);
-  friend void from_json(const nlohmann::json& j,
-                        ServiceExperienceInfoPerFlow& o);
+  friend void from_json(
+      const nlohmann::json& j, ServiceExperienceInfoPerFlow& o);
 
  protected:
   SvcExperience m_SvcExprc;

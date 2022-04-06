@@ -44,8 +44,9 @@ class ACSConfigurationSubscriptionsApi {
  private:
   void setupRoutes();
 
-  void af_id_subscriptions_get_handler(const Pistache::Rest::Request& request,
-                                       Pistache::Http::ResponseWriter response);
+  void af_id_subscriptions_get_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
   void af_id_subscriptions_post_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);

@@ -78,7 +78,7 @@ _5GLanParametersPatch _5GLanParametersProvisionPatch::getR5gLanParamsPatch()
 }
 void _5GLanParametersProvisionPatch::setR5gLanParamsPatch(
     _5GLanParametersPatch const& value) {
-  m_r_5gLanParamsPatch = value;
+  m_r_5gLanParamsPatch      = value;
   m_r_5gLanParamsPatchIsSet = true;
 }
 bool _5GLanParametersProvisionPatch::r5gLanParamsPatchIsSet() const {

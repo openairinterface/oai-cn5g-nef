@@ -26,9 +26,9 @@
 
 #include "logger.hpp"
 
-bool fqdn::resolve(const std::string& host_name, std::string& address,
-                   uint32_t& port, uint8_t& addr_type,
-                   const std::string& protocol) {
+bool fqdn::resolve(
+    const std::string& host_name, std::string& address, uint32_t& port,
+    uint8_t& addr_type, const std::string& protocol) {
   try {
     boost::asio::io_context io_context = {};
 
@@ -40,8 +40,8 @@ bool fqdn::resolve(const std::string& host_name, std::string& address,
     for (auto it = endpoints.cbegin(); it != endpoints.cend(); it++) {
       // get the first Endpoint
       boost::asio::ip::tcp::endpoint endpoint = *it;
-      address = endpoint.address().to_string();
-      port = endpoint.port();
+      address                                 = endpoint.address().to_string();
+      port                                    = endpoint.port();
       Logger::nef_app().debug(
           "Resolve a DNS (name %s, protocol %s): Ip Addr %s, port %u",
           host_name.c_str(), protocol.c_str(), address.c_str(), port);
@@ -52,8 +52,8 @@ bool fqdn::resolve(const std::string& host_name, std::string& address,
       return true;
     }
   } catch (std::exception& e) {
-    throw std::runtime_error("Cannot resolve a DNS name " +
-                             std::string(e.what()));
+    throw std::runtime_error(
+        "Cannot resolve a DNS name " + std::string(e.what()));
     return false;
   }
 

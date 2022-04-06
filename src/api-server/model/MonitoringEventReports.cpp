@@ -32,8 +32,8 @@ bool MonitoringEventReports::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool MonitoringEventReports::validate(std::stringstream& msg,
-                                      const std::string& pathPrefix) const {
+bool MonitoringEventReports::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "MonitoringEventReports" : pathPrefix;
@@ -49,7 +49,7 @@ bool MonitoringEventReports::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const MonitoringEventReport& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -81,7 +81,7 @@ bool MonitoringEventReports::operator!=(
 }
 
 void to_json(nlohmann::json& j, const MonitoringEventReports& o) {
-  j = nlohmann::json();
+  j                           = nlohmann::json();
   j["monitoringEventReports"] = o.m_MonitoringEventReports;
 }
 

@@ -32,9 +32,9 @@ bool CnType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CnType::validate(std::stringstream& msg,
-                      const std::string& pathPrefix) const {
-  bool success = true;
+bool CnType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "CnType" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -49,18 +49,26 @@ bool CnType::operator==(const CnType& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool CnType::operator!=(const CnType& rhs) const { return !(*this == rhs); }
+bool CnType::operator!=(const CnType& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const CnType& o) {
   j = nlohmann::json();
   to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, CnType& o) { from_json(j, o.m_value); }
+void from_json(const nlohmann::json& j, CnType& o) {
+  from_json(j, o.m_value);
+}
 
-CnType_anyOf CnType::getValue() const { return m_value; }
+CnType_anyOf CnType::getValue() const {
+  return m_value;
+}
 
-void CnType::setValue(CnType_anyOf value) { m_value = value; }
+void CnType::setValue(CnType_anyOf value) {
+  m_value = value;
+}
 
 CnType_anyOf::eCnType_anyOf CnType::getEnumValue() const {
   return m_value.getValue();

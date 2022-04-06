@@ -46,8 +46,9 @@ class AFLevelUELocationUpdateNotificationOperationApi {
  private:
   void setupRoutes();
 
-  void root_post_handler(const Pistache::Rest::Request& request,
-                         Pistache::Http::ResponseWriter response);
+  void root_post_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
   void af_level_ue_location_update_notification_operation_api_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);
@@ -79,8 +80,9 @@ class AFLevelUELocationUpdateNotificationOperationApi {
   ///
   /// </remarks>
   /// <param name="locUpdateData"></param>
-  virtual void root_post(const oai::nef::model::LocUpdateData& locUpdateData,
-                         Pistache::Http::ResponseWriter& response) = 0;
+  virtual void root_post(
+      const oai::nef::model::LocUpdateData& locUpdateData,
+      Pistache::Http::ResponseWriter& response) = 0;
 };
 
 }  // namespace oai::nef::api

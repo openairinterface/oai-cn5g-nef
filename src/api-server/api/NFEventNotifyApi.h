@@ -53,15 +53,19 @@ class NFEventNotifyApi {
  private:
   void setupRoutes();
 
-  void notify_udm_event_handler(const Pistache::Rest::Request& request,
-                                Pistache::Http::ResponseWriter response);
-  void notify_amf_event_handler(const Pistache::Rest::Request& request,
-                                Pistache::Http::ResponseWriter response);
-  void notify_smf_event_handler(const Pistache::Rest::Request& request,
-                                Pistache::Http::ResponseWriter response);
+  void notify_udm_event_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
+  void notify_amf_event_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
+  void notify_smf_event_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
 
-  void notify_nf_event_default_handler(const Pistache::Rest::Request& request,
-                                       Pistache::Http::ResponseWriter response);
+  void notify_nf_event_default_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
 
   std::shared_ptr<Pistache::Rest::Router> router;
 

@@ -20,15 +20,15 @@
 namespace oai::nef::model {
 
 AcsConfigurationData::AcsConfigurationData() {
-  m_Self = "";
-  m_SelfIsSet = false;
-  m_ExterGroupId = "";
-  m_ExterGroupIdIsSet = false;
-  m_Gpsi = "";
-  m_GpsiIsSet = false;
-  m_MtcProviderId = "";
+  m_Self               = "";
+  m_SelfIsSet          = false;
+  m_ExterGroupId       = "";
+  m_ExterGroupIdIsSet  = false;
+  m_Gpsi               = "";
+  m_GpsiIsSet          = false;
+  m_MtcProviderId      = "";
   m_MtcProviderIdIsSet = false;
-  m_SuppFeat = "";
+  m_SuppFeat           = "";
 }
 
 void AcsConfigurationData::validate() const {
@@ -42,19 +42,19 @@ bool AcsConfigurationData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AcsConfigurationData::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool AcsConfigurationData::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AcsConfigurationData" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value = m_Gpsi;
+    const std::string& value           = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
   /* SuppFeat */ {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -120,32 +120,48 @@ void from_json(const nlohmann::json& j, AcsConfigurationData& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string AcsConfigurationData::getSelf() const { return m_Self; }
+std::string AcsConfigurationData::getSelf() const {
+  return m_Self;
+}
 void AcsConfigurationData::setSelf(std::string const& value) {
-  m_Self = value;
+  m_Self      = value;
   m_SelfIsSet = true;
 }
-bool AcsConfigurationData::selfIsSet() const { return m_SelfIsSet; }
-void AcsConfigurationData::unsetSelf() { m_SelfIsSet = false; }
+bool AcsConfigurationData::selfIsSet() const {
+  return m_SelfIsSet;
+}
+void AcsConfigurationData::unsetSelf() {
+  m_SelfIsSet = false;
+}
 std::string AcsConfigurationData::getExterGroupId() const {
   return m_ExterGroupId;
 }
 void AcsConfigurationData::setExterGroupId(std::string const& value) {
-  m_ExterGroupId = value;
+  m_ExterGroupId      = value;
   m_ExterGroupIdIsSet = true;
 }
 bool AcsConfigurationData::exterGroupIdIsSet() const {
   return m_ExterGroupIdIsSet;
 }
-void AcsConfigurationData::unsetExterGroupId() { m_ExterGroupIdIsSet = false; }
-std::string AcsConfigurationData::getGpsi() const { return m_Gpsi; }
+void AcsConfigurationData::unsetExterGroupId() {
+  m_ExterGroupIdIsSet = false;
+}
+std::string AcsConfigurationData::getGpsi() const {
+  return m_Gpsi;
+}
 void AcsConfigurationData::setGpsi(std::string const& value) {
-  m_Gpsi = value;
+  m_Gpsi      = value;
   m_GpsiIsSet = true;
 }
-bool AcsConfigurationData::gpsiIsSet() const { return m_GpsiIsSet; }
-void AcsConfigurationData::unsetGpsi() { m_GpsiIsSet = false; }
-AcsInfo AcsConfigurationData::getAcsInfo() const { return m_AcsInfo; }
+bool AcsConfigurationData::gpsiIsSet() const {
+  return m_GpsiIsSet;
+}
+void AcsConfigurationData::unsetGpsi() {
+  m_GpsiIsSet = false;
+}
+AcsInfo AcsConfigurationData::getAcsInfo() const {
+  return m_AcsInfo;
+}
 void AcsConfigurationData::setAcsInfo(AcsInfo const& value) {
   m_AcsInfo = value;
 }
@@ -153,7 +169,7 @@ std::string AcsConfigurationData::getMtcProviderId() const {
   return m_MtcProviderId;
 }
 void AcsConfigurationData::setMtcProviderId(std::string const& value) {
-  m_MtcProviderId = value;
+  m_MtcProviderId      = value;
   m_MtcProviderIdIsSet = true;
 }
 bool AcsConfigurationData::mtcProviderIdIsSet() const {
@@ -162,7 +178,9 @@ bool AcsConfigurationData::mtcProviderIdIsSet() const {
 void AcsConfigurationData::unsetMtcProviderId() {
   m_MtcProviderIdIsSet = false;
 }
-std::string AcsConfigurationData::getSuppFeat() const { return m_SuppFeat; }
+std::string AcsConfigurationData::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void AcsConfigurationData::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }

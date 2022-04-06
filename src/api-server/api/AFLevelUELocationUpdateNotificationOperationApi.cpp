@@ -29,7 +29,9 @@ AFLevelUELocationUpdateNotificationOperationApi::
         const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void AFLevelUELocationUpdateNotificationOperationApi::init() { setupRoutes(); }
+void AFLevelUELocationUpdateNotificationOperationApi::init() {
+  setupRoutes();
+}
 
 void AFLevelUELocationUpdateNotificationOperationApi::setupRoutes() {
   using namespace Pistache::Rest;
@@ -57,8 +59,8 @@ AFLevelUELocationUpdateNotificationOperationApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
-                          e.what());
+    return std::make_pair(
+        Pistache::Http::Code::Internal_Server_Error, e.what());
   }
 }
 
@@ -107,8 +109,8 @@ void AFLevelUELocationUpdateNotificationOperationApi::
     af_level_ue_location_update_notification_operation_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(Pistache::Http::Code::Not_Found,
-                "The requested method does not exist");
+  response.send(
+      Pistache::Http::Code::Not_Found, "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 MulticastAccessControl::MulticastAccessControl() {
-  m_SrcIpv4Addr = "";
-  m_SrcIpv4AddrIsSet = false;
-  m_SrcIpv6AddrIsSet = false;
-  m_MulticastV4Addr = "";
+  m_SrcIpv4Addr          = "";
+  m_SrcIpv4AddrIsSet     = false;
+  m_SrcIpv6AddrIsSet     = false;
+  m_MulticastV4Addr      = "";
   m_MulticastV4AddrIsSet = false;
   m_MulticastV6AddrIsSet = false;
 }
@@ -39,19 +39,19 @@ bool MulticastAccessControl::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool MulticastAccessControl::validate(std::stringstream& msg,
-                                      const std::string& pathPrefix) const {
+bool MulticastAccessControl::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "MulticastAccessControl" : pathPrefix;
 
   if (srcIpv4AddrIsSet()) {
-    const std::string& value = m_SrcIpv4Addr;
+    const std::string& value           = m_SrcIpv4Addr;
     const std::string currentValuePath = _pathPrefix + ".srcIpv4Addr";
   }
 
   if (multicastV4AddrIsSet()) {
-    const std::string& value = m_MulticastV4Addr;
+    const std::string& value           = m_MulticastV4Addr;
     const std::string currentValuePath = _pathPrefix + ".multicastV4Addr";
   }
 
@@ -121,29 +121,33 @@ std::string MulticastAccessControl::getSrcIpv4Addr() const {
   return m_SrcIpv4Addr;
 }
 void MulticastAccessControl::setSrcIpv4Addr(std::string const& value) {
-  m_SrcIpv4Addr = value;
+  m_SrcIpv4Addr      = value;
   m_SrcIpv4AddrIsSet = true;
 }
 bool MulticastAccessControl::srcIpv4AddrIsSet() const {
   return m_SrcIpv4AddrIsSet;
 }
-void MulticastAccessControl::unsetSrcIpv4Addr() { m_SrcIpv4AddrIsSet = false; }
+void MulticastAccessControl::unsetSrcIpv4Addr() {
+  m_SrcIpv4AddrIsSet = false;
+}
 Ipv6Addr MulticastAccessControl::getSrcIpv6Addr() const {
   return m_SrcIpv6Addr;
 }
 void MulticastAccessControl::setSrcIpv6Addr(Ipv6Addr const& value) {
-  m_SrcIpv6Addr = value;
+  m_SrcIpv6Addr      = value;
   m_SrcIpv6AddrIsSet = true;
 }
 bool MulticastAccessControl::srcIpv6AddrIsSet() const {
   return m_SrcIpv6AddrIsSet;
 }
-void MulticastAccessControl::unsetSrcIpv6Addr() { m_SrcIpv6AddrIsSet = false; }
+void MulticastAccessControl::unsetSrcIpv6Addr() {
+  m_SrcIpv6AddrIsSet = false;
+}
 std::string MulticastAccessControl::getMulticastV4Addr() const {
   return m_MulticastV4Addr;
 }
 void MulticastAccessControl::setMulticastV4Addr(std::string const& value) {
-  m_MulticastV4Addr = value;
+  m_MulticastV4Addr      = value;
   m_MulticastV4AddrIsSet = true;
 }
 bool MulticastAccessControl::multicastV4AddrIsSet() const {
@@ -156,7 +160,7 @@ Ipv6Addr MulticastAccessControl::getMulticastV6Addr() const {
   return m_MulticastV6Addr;
 }
 void MulticastAccessControl::setMulticastV6Addr(Ipv6Addr const& value) {
-  m_MulticastV6Addr = value;
+  m_MulticastV6Addr      = value;
   m_MulticastV6AddrIsSet = true;
 }
 bool MulticastAccessControl::multicastV6AddrIsSet() const {

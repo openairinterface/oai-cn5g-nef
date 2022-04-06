@@ -45,11 +45,13 @@ class IndividualSubscriptionDocumentApiImpl
       oai::nef::app::nef_app* nef_app_inst, std::string address);
   ~IndividualSubscriptionDocumentApiImpl() override = default;
 
-  void delete_individual_subcription(const std::string& subscriptionId,
-                                     Pistache::Http::ResponseWriter& response);
-  void get_individual_subcription(const std::string& subscriptionId,
-                                  const std::optional<std::string>& suppFeat,
-                                  Pistache::Http::ResponseWriter& response);
+  void delete_individual_subcription(
+      const std::string& subscriptionId,
+      Pistache::Http::ResponseWriter& response);
+  void get_individual_subcription(
+      const std::string& subscriptionId,
+      const std::optional<std::string>& suppFeat,
+      Pistache::Http::ResponseWriter& response);
   void replace_individual_subcription(
       const std::string& subscriptionId,
       const NefEventExposureSubsc& nefEventExposureSubsc,

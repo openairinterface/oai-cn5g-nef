@@ -32,8 +32,8 @@ bool ReachabilityType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ReachabilityType::validate(std::stringstream& msg,
-                                const std::string& pathPrefix) const {
+bool ReachabilityType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ReachabilityType" : pathPrefix;
@@ -63,7 +63,9 @@ void from_json(const nlohmann::json& j, ReachabilityType& o) {
   from_json(j, o.m_value);
 }
 
-ReachabilityType_anyOf ReachabilityType::getValue() const { return m_value; }
+ReachabilityType_anyOf ReachabilityType::getValue() const {
+  return m_value;
+}
 
 void ReachabilityType::setValue(ReachabilityType_anyOf value) {
   m_value = value;

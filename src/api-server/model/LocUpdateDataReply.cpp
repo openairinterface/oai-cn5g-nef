@@ -20,7 +20,9 @@
 
 namespace oai::nef::model {
 
-LocUpdateDataReply::LocUpdateDataReply() { m_SuppFeat = ""; }
+LocUpdateDataReply::LocUpdateDataReply() {
+  m_SuppFeat = "";
+}
 
 void LocUpdateDataReply::validate() const {
   std::stringstream msg;
@@ -33,14 +35,14 @@ bool LocUpdateDataReply::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LocUpdateDataReply::validate(std::stringstream& msg,
-                                  const std::string& pathPrefix) const {
+bool LocUpdateDataReply::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocUpdateDataReply" : pathPrefix;
 
   /* SuppFeat */ {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -60,7 +62,7 @@ bool LocUpdateDataReply::operator!=(const LocUpdateDataReply& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const LocUpdateDataReply& o) {
-  j = nlohmann::json();
+  j             = nlohmann::json();
   j["suppFeat"] = o.m_SuppFeat;
 }
 
@@ -68,7 +70,9 @@ void from_json(const nlohmann::json& j, LocUpdateDataReply& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string LocUpdateDataReply::getSuppFeat() const { return m_SuppFeat; }
+std::string LocUpdateDataReply::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void LocUpdateDataReply::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }

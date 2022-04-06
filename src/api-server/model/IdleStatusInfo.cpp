@@ -20,16 +20,16 @@
 namespace oai::nef::model {
 
 IdleStatusInfo::IdleStatusInfo() {
-  m_ActiveTime = 0;
-  m_ActiveTimeIsSet = false;
-  m_EdrxCycleLength = 0.0f;
-  m_EdrxCycleLengthIsSet = false;
-  m_SuggestedNumberOfDlPackets = 0;
+  m_ActiveTime                      = 0;
+  m_ActiveTimeIsSet                 = false;
+  m_EdrxCycleLength                 = 0.0f;
+  m_EdrxCycleLengthIsSet            = false;
+  m_SuggestedNumberOfDlPackets      = 0;
   m_SuggestedNumberOfDlPacketsIsSet = false;
-  m_IdleStatusTimestamp = "";
-  m_IdleStatusTimestampIsSet = false;
-  m_PeriodicAUTimer = 0;
-  m_PeriodicAUTimerIsSet = false;
+  m_IdleStatusTimestamp             = "";
+  m_IdleStatusTimestampIsSet        = false;
+  m_PeriodicAUTimer                 = 0;
+  m_PeriodicAUTimerIsSet            = false;
 }
 
 void IdleStatusInfo::validate() const {
@@ -43,14 +43,14 @@ bool IdleStatusInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool IdleStatusInfo::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool IdleStatusInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "IdleStatusInfo" : pathPrefix;
 
   if (activeTimeIsSet()) {
-    const int32_t& value = m_ActiveTime;
+    const int32_t& value               = m_ActiveTime;
     const std::string currentValuePath = _pathPrefix + ".activeTime";
 
     if (value < 0) {
@@ -60,7 +60,7 @@ bool IdleStatusInfo::validate(std::stringstream& msg,
   }
 
   if (edrxCycleLengthIsSet()) {
-    const float& value = m_EdrxCycleLength;
+    const float& value                 = m_EdrxCycleLength;
     const std::string currentValuePath = _pathPrefix + ".edrxCycleLength";
 
     if (value < static_cast<float>(0)) {
@@ -81,7 +81,7 @@ bool IdleStatusInfo::validate(std::stringstream& msg,
   }
 
   if (periodicAUTimerIsSet()) {
-    const int32_t& value = m_PeriodicAUTimer;
+    const int32_t& value               = m_PeriodicAUTimer;
     const std::string currentValuePath = _pathPrefix + ".periodicAUTimer";
 
     if (value < 0) {
@@ -160,27 +160,37 @@ void from_json(const nlohmann::json& j, IdleStatusInfo& o) {
   }
 }
 
-int32_t IdleStatusInfo::getActiveTime() const { return m_ActiveTime; }
+int32_t IdleStatusInfo::getActiveTime() const {
+  return m_ActiveTime;
+}
 void IdleStatusInfo::setActiveTime(int32_t const value) {
-  m_ActiveTime = value;
+  m_ActiveTime      = value;
   m_ActiveTimeIsSet = true;
 }
-bool IdleStatusInfo::activeTimeIsSet() const { return m_ActiveTimeIsSet; }
-void IdleStatusInfo::unsetActiveTime() { m_ActiveTimeIsSet = false; }
-float IdleStatusInfo::getEdrxCycleLength() const { return m_EdrxCycleLength; }
+bool IdleStatusInfo::activeTimeIsSet() const {
+  return m_ActiveTimeIsSet;
+}
+void IdleStatusInfo::unsetActiveTime() {
+  m_ActiveTimeIsSet = false;
+}
+float IdleStatusInfo::getEdrxCycleLength() const {
+  return m_EdrxCycleLength;
+}
 void IdleStatusInfo::setEdrxCycleLength(float const value) {
-  m_EdrxCycleLength = value;
+  m_EdrxCycleLength      = value;
   m_EdrxCycleLengthIsSet = true;
 }
 bool IdleStatusInfo::edrxCycleLengthIsSet() const {
   return m_EdrxCycleLengthIsSet;
 }
-void IdleStatusInfo::unsetEdrxCycleLength() { m_EdrxCycleLengthIsSet = false; }
+void IdleStatusInfo::unsetEdrxCycleLength() {
+  m_EdrxCycleLengthIsSet = false;
+}
 int32_t IdleStatusInfo::getSuggestedNumberOfDlPackets() const {
   return m_SuggestedNumberOfDlPackets;
 }
 void IdleStatusInfo::setSuggestedNumberOfDlPackets(int32_t const value) {
-  m_SuggestedNumberOfDlPackets = value;
+  m_SuggestedNumberOfDlPackets      = value;
   m_SuggestedNumberOfDlPacketsIsSet = true;
 }
 bool IdleStatusInfo::suggestedNumberOfDlPacketsIsSet() const {
@@ -193,7 +203,7 @@ std::string IdleStatusInfo::getIdleStatusTimestamp() const {
   return m_IdleStatusTimestamp;
 }
 void IdleStatusInfo::setIdleStatusTimestamp(std::string const& value) {
-  m_IdleStatusTimestamp = value;
+  m_IdleStatusTimestamp      = value;
   m_IdleStatusTimestampIsSet = true;
 }
 bool IdleStatusInfo::idleStatusTimestampIsSet() const {
@@ -202,14 +212,18 @@ bool IdleStatusInfo::idleStatusTimestampIsSet() const {
 void IdleStatusInfo::unsetIdleStatusTimestamp() {
   m_IdleStatusTimestampIsSet = false;
 }
-int32_t IdleStatusInfo::getPeriodicAUTimer() const { return m_PeriodicAUTimer; }
+int32_t IdleStatusInfo::getPeriodicAUTimer() const {
+  return m_PeriodicAUTimer;
+}
 void IdleStatusInfo::setPeriodicAUTimer(int32_t const value) {
-  m_PeriodicAUTimer = value;
+  m_PeriodicAUTimer      = value;
   m_PeriodicAUTimerIsSet = true;
 }
 bool IdleStatusInfo::periodicAUTimerIsSet() const {
   return m_PeriodicAUTimerIsSet;
 }
-void IdleStatusInfo::unsetPeriodicAUTimer() { m_PeriodicAUTimerIsSet = false; }
+void IdleStatusInfo::unsetPeriodicAUTimer() {
+  m_PeriodicAUTimerIsSet = false;
+}
 
 }  // namespace oai::nef::model

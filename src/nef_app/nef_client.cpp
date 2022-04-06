@@ -47,8 +47,8 @@ extern nef_config nef_cfg;
 
 //------------------------------------------------------------------------------
 // To read content of the response from NF
-static std::size_t callback(const char* in, std::size_t size, std::size_t num,
-                            std::string* out) {
+static std::size_t callback(
+    const char* in, std::size_t size, std::size_t num, std::string* out) {
   const std::size_t totalBytes(size * num);
   out->append(in, totalBytes);
   return totalBytes;
@@ -58,11 +58,11 @@ static std::size_t callback(const char* in, std::size_t size, std::size_t num,
 nef_client::nef_client() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   curl_multi = curl_multi_init();
-  handles = {};
-  headers = NULL;
-  headers = curl_slist_append(headers, "Accept: application/json");
-  headers = curl_slist_append(headers, "Content-Type: application/json");
-  headers = curl_slist_append(headers, "charsets: utf-8");
+  handles    = {};
+  headers    = NULL;
+  headers    = curl_slist_append(headers, "Accept: application/json");
+  headers    = curl_slist_append(headers, "Content-Type: application/json");
+  headers    = curl_slist_append(headers, "charsets: utf-8");
   // subscribe_task_curl();
 }
 
@@ -87,7 +87,7 @@ nef_client::~nef_client() {
 void nef_client::perform_curl_multi(uint64_t ms) {
   //_unused(ms);
   int still_running = 0;
-  int numfds = 0;
+  int numfds        = 0;
 
   CURLMcode code = curl_multi_perform(curl_multi, &still_running);
 
@@ -105,10 +105,10 @@ void nef_client::perform_curl_multi(uint64_t ms) {
 //------------------------------------------------------------------------------
 void nef_client::curl_release_handles() {
   CURLMsg* curl_msg = nullptr;
-  CURL* curl = nullptr;
-  CURLcode code = {};
-  int http_code = 0;
-  int msgs_left = 0;
+  CURL* curl        = nullptr;
+  CURLcode code     = {};
+  int http_code     = 0;
+  int msgs_left     = 0;
 
   while ((curl_msg = curl_multi_info_read(curl_multi, &msgs_left))) {
     if (curl_msg && curl_msg->msg == CURLMSG_DONE) {
@@ -125,8 +125,8 @@ void nef_client::curl_release_handles() {
       uint32_t* promise_id = nullptr;
       curl_easy_getinfo(curl, CURLINFO_PRIVATE, &promise_id);
       if (promise_id) {
-        Logger::nef_app().debug("Prepare to make promise id %d ready!",
-                                *promise_id);
+        Logger::nef_app().debug(
+            "Prepare to make promise id %d ready!", *promise_id);
         trigger_process_response(*promise_id, http_code);
       }
 
@@ -173,8 +173,8 @@ uint32_t nef_client::get_available_response(boost::shared_future<uint32_t>& f) {
 }
 
 //---------------------------------------------------------------------------------------------
-void nef_client::add_promise(uint32_t id,
-                             boost::shared_ptr<boost::promise<uint32_t>>& p) {
+void nef_client::add_promise(
+    uint32_t id, boost::shared_ptr<boost::promise<uint32_t>>& p) {
   std::unique_lock lock(m_curl_handle_promises);
   curl_handle_promises.emplace(id, p);
 }
@@ -234,8 +234,8 @@ bool nef_client::curl_create_handle(
     // We use a self-signed test server, skip verification during debugging
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION,
-                     CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE);
+    curl_easy_setopt(
+        curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE);
   }
 
   // Hook up data handling function.
@@ -261,11 +261,9 @@ bool nef_client::curl_create_handle(
 }
 
 //------------------------------------------------------------------------------
-void nef_client::send_event_exposure_subscribe(const nlohmann::json& json_body,
-                                               const std::string& nf_uri,
-                                               std::string& response_data,
-                                               std::string& location,
-                                               int& http_code) {
+void nef_client::send_event_exposure_subscribe(
+    const nlohmann::json& json_body, const std::string& nf_uri,
+    std::string& response_data, std::string& location, int& http_code) {
   // Generate a promise and associate this promise to the curl handle
   uint32_t promise_id = generate_promise_id();
   Logger::nef_app().debug("Promise ID generated %d", promise_id);
@@ -281,8 +279,9 @@ void nef_client::send_event_exposure_subscribe(const nlohmann::json& json_body,
 
   std::string header_data = {};
   // Create a new curl easy handle and add to the multi handle
-  if (!curl_create_handle(nf_uri, json_body.dump(), response_data, header_data,
-                          pid_ptr, "POST")) {
+  if (!curl_create_handle(
+          nf_uri, json_body.dump(), response_data, header_data, pid_ptr,
+          "POST")) {
     Logger::nef_app().warn("Could not create a new handle to send message");
     remove_promise(promise_id);
     return;
@@ -290,8 +289,8 @@ void nef_client::send_event_exposure_subscribe(const nlohmann::json& json_body,
 
   // Wait for the response back
   uint32_t response_code = get_available_response(f);
-  http_code = response_code;
-  location = get_header_location(header_data);
+  http_code              = response_code;
+  location               = get_header_location(header_data);
 
   Logger::nef_app().debug("Got result for promise ID %d", promise_id);
   Logger::nef_app().debug("Response code %u", response_code);
@@ -315,8 +314,8 @@ void nef_client::send_event_exposure_unsubscribe(
 
   std::string header_data = {};
   // Create a new curl easy handle and add to the multi handle
-  if (!curl_create_handle(resource_location, "", response_data, header_data,
-                          pid_ptr, "POST")) {
+  if (!curl_create_handle(
+          resource_location, "", response_data, header_data, pid_ptr, "POST")) {
     Logger::nef_app().warn("Could not create a new handle to send message");
     remove_promise(promise_id);
     return;
@@ -324,7 +323,7 @@ void nef_client::send_event_exposure_unsubscribe(
 
   // Wait for the response back
   uint32_t response_code = get_available_response(f);
-  http_code = response_code;
+  http_code              = response_code;
 
   Logger::nef_app().debug("Got result for promise ID %d", promise_id);
   Logger::nef_app().debug("Response code %u", response_code);
@@ -332,8 +331,8 @@ void nef_client::send_event_exposure_unsubscribe(
 }
 
 //------------------------------------------------------------------------------
-void nef_client::send_event_exposure_notify(const nlohmann::json& json_body,
-                                            const std::string& uri) {
+void nef_client::send_event_exposure_notify(
+    const nlohmann::json& json_body, const std::string& uri) {
   // Generate a promise and associate this promise to the curl handle
   uint32_t promise_id = generate_promise_id();
   Logger::nef_app().debug("Promise ID generated %d", promise_id);
@@ -344,11 +343,11 @@ void nef_client::send_event_exposure_notify(const nlohmann::json& json_body,
   f = p->get_future();
   add_promise(promise_id, p);
 
-  std::string header_data = {};
+  std::string header_data   = {};
   std::string response_data = {};
   // Create a new curl easy handle and add to the multi handle
-  if (!curl_create_handle(uri, json_body.dump(), response_data, header_data,
-                          pid_ptr, "POST")) {
+  if (!curl_create_handle(
+          uri, json_body.dump(), response_data, header_data, pid_ptr, "POST")) {
     Logger::nef_app().warn("Could not create a new handle to send message");
     remove_promise(promise_id);
     return;

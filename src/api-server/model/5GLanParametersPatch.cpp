@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 _5GLanParametersPatch::_5GLanParametersPatch() {
-  m_GpsisIsSet = false;
+  m_GpsisIsSet    = false;
   m_AppDespsIsSet = false;
 }
 
@@ -35,15 +35,15 @@ bool _5GLanParametersPatch::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool _5GLanParametersPatch::validate(std::stringstream& msg,
-                                     const std::string& pathPrefix) const {
+bool _5GLanParametersPatch::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "5GLanParametersPatch" : pathPrefix;
 
   if (gpsisIsSet()) {
     const std::map<std::string, std::string>& value = m_Gpsis;
-    const std::string currentValuePath = _pathPrefix + ".gpsis";
+    const std::string currentValuePath              = _pathPrefix + ".gpsis";
   }
 
   if (appDespsIsSet()) {
@@ -93,21 +93,29 @@ std::map<std::string, std::string> _5GLanParametersPatch::getGpsis() const {
 }
 void _5GLanParametersPatch::setGpsis(
     std::map<std::string, std::string> const& value) {
-  m_Gpsis = value;
+  m_Gpsis      = value;
   m_GpsisIsSet = true;
 }
-bool _5GLanParametersPatch::gpsisIsSet() const { return m_GpsisIsSet; }
-void _5GLanParametersPatch::unsetGpsis() { m_GpsisIsSet = false; }
+bool _5GLanParametersPatch::gpsisIsSet() const {
+  return m_GpsisIsSet;
+}
+void _5GLanParametersPatch::unsetGpsis() {
+  m_GpsisIsSet = false;
+}
 std::map<std::string, AppDescriptorRm> _5GLanParametersPatch::getAppDesps()
     const {
   return m_AppDesps;
 }
 void _5GLanParametersPatch::setAppDesps(
     std::map<std::string, AppDescriptorRm> const& value) {
-  m_AppDesps = value;
+  m_AppDesps      = value;
   m_AppDespsIsSet = true;
 }
-bool _5GLanParametersPatch::appDespsIsSet() const { return m_AppDespsIsSet; }
-void _5GLanParametersPatch::unsetAppDesps() { m_AppDespsIsSet = false; }
+bool _5GLanParametersPatch::appDespsIsSet() const {
+  return m_AppDespsIsSet;
+}
+void _5GLanParametersPatch::unsetAppDesps() {
+  m_AppDespsIsSet = false;
+}
 
 }  // namespace oai::nef::model

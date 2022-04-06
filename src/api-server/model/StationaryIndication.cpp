@@ -32,8 +32,8 @@ bool StationaryIndication::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool StationaryIndication::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool StationaryIndication::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "StationaryIndication" : pathPrefix;

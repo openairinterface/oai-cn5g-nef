@@ -36,14 +36,14 @@ bool GeographicalCoordinates::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool GeographicalCoordinates::validate(std::stringstream& msg,
-                                       const std::string& pathPrefix) const {
+bool GeographicalCoordinates::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "GeographicalCoordinates" : pathPrefix;
 
   /* Lon */ {
-    const double& value = m_Lon;
+    const double& value                = m_Lon;
     const std::string currentValuePath = _pathPrefix + ".lon";
 
     if (value < -180) {
@@ -57,7 +57,7 @@ bool GeographicalCoordinates::validate(std::stringstream& msg,
   }
 
   /* Lat */ {
-    const double& value = m_Lat;
+    const double& value                = m_Lat;
     const std::string currentValuePath = _pathPrefix + ".lat";
 
     if (value < -90) {
@@ -90,7 +90,7 @@ bool GeographicalCoordinates::operator!=(
 }
 
 void to_json(nlohmann::json& j, const GeographicalCoordinates& o) {
-  j = nlohmann::json();
+  j        = nlohmann::json();
   j["lon"] = o.m_Lon;
   j["lat"] = o.m_Lat;
 }
@@ -100,9 +100,17 @@ void from_json(const nlohmann::json& j, GeographicalCoordinates& o) {
   j.at("lat").get_to(o.m_Lat);
 }
 
-double GeographicalCoordinates::getLon() const { return m_Lon; }
-void GeographicalCoordinates::setLon(double const value) { m_Lon = value; }
-double GeographicalCoordinates::getLat() const { return m_Lat; }
-void GeographicalCoordinates::setLat(double const value) { m_Lat = value; }
+double GeographicalCoordinates::getLon() const {
+  return m_Lon;
+}
+void GeographicalCoordinates::setLon(double const value) {
+  m_Lon = value;
+}
+double GeographicalCoordinates::getLat() const {
+  return m_Lat;
+}
+void GeographicalCoordinates::setLat(double const value) {
+  m_Lat = value;
+}
 
 }  // namespace oai::nef::model

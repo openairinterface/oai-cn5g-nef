@@ -20,15 +20,15 @@
 namespace oai::nef::model {
 
 ThresholdLevel::ThresholdLevel() {
-  m_CongLevel = 0;
-  m_CongLevelIsSet = false;
-  m_NfLoadLevel = 0;
-  m_NfLoadLevelIsSet = false;
-  m_NfCpuUsage = 0;
-  m_NfCpuUsageIsSet = false;
-  m_NfMemoryUsage = 0;
-  m_NfMemoryUsageIsSet = false;
-  m_NfStorageUsage = 0;
+  m_CongLevel           = 0;
+  m_CongLevelIsSet      = false;
+  m_NfLoadLevel         = 0;
+  m_NfLoadLevelIsSet    = false;
+  m_NfCpuUsage          = 0;
+  m_NfCpuUsageIsSet     = false;
+  m_NfMemoryUsage       = 0;
+  m_NfMemoryUsageIsSet  = false;
+  m_NfStorageUsage      = 0;
   m_NfStorageUsageIsSet = false;
 }
 
@@ -43,8 +43,8 @@ bool ThresholdLevel::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ThresholdLevel::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool ThresholdLevel::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ThresholdLevel" : pathPrefix;
@@ -114,42 +114,70 @@ void from_json(const nlohmann::json& j, ThresholdLevel& o) {
   }
 }
 
-int32_t ThresholdLevel::getCongLevel() const { return m_CongLevel; }
+int32_t ThresholdLevel::getCongLevel() const {
+  return m_CongLevel;
+}
 void ThresholdLevel::setCongLevel(int32_t const value) {
-  m_CongLevel = value;
+  m_CongLevel      = value;
   m_CongLevelIsSet = true;
 }
-bool ThresholdLevel::congLevelIsSet() const { return m_CongLevelIsSet; }
-void ThresholdLevel::unsetCongLevel() { m_CongLevelIsSet = false; }
-int32_t ThresholdLevel::getNfLoadLevel() const { return m_NfLoadLevel; }
+bool ThresholdLevel::congLevelIsSet() const {
+  return m_CongLevelIsSet;
+}
+void ThresholdLevel::unsetCongLevel() {
+  m_CongLevelIsSet = false;
+}
+int32_t ThresholdLevel::getNfLoadLevel() const {
+  return m_NfLoadLevel;
+}
 void ThresholdLevel::setNfLoadLevel(int32_t const value) {
-  m_NfLoadLevel = value;
+  m_NfLoadLevel      = value;
   m_NfLoadLevelIsSet = true;
 }
-bool ThresholdLevel::nfLoadLevelIsSet() const { return m_NfLoadLevelIsSet; }
-void ThresholdLevel::unsetNfLoadLevel() { m_NfLoadLevelIsSet = false; }
-int32_t ThresholdLevel::getNfCpuUsage() const { return m_NfCpuUsage; }
+bool ThresholdLevel::nfLoadLevelIsSet() const {
+  return m_NfLoadLevelIsSet;
+}
+void ThresholdLevel::unsetNfLoadLevel() {
+  m_NfLoadLevelIsSet = false;
+}
+int32_t ThresholdLevel::getNfCpuUsage() const {
+  return m_NfCpuUsage;
+}
 void ThresholdLevel::setNfCpuUsage(int32_t const value) {
-  m_NfCpuUsage = value;
+  m_NfCpuUsage      = value;
   m_NfCpuUsageIsSet = true;
 }
-bool ThresholdLevel::nfCpuUsageIsSet() const { return m_NfCpuUsageIsSet; }
-void ThresholdLevel::unsetNfCpuUsage() { m_NfCpuUsageIsSet = false; }
-int32_t ThresholdLevel::getNfMemoryUsage() const { return m_NfMemoryUsage; }
+bool ThresholdLevel::nfCpuUsageIsSet() const {
+  return m_NfCpuUsageIsSet;
+}
+void ThresholdLevel::unsetNfCpuUsage() {
+  m_NfCpuUsageIsSet = false;
+}
+int32_t ThresholdLevel::getNfMemoryUsage() const {
+  return m_NfMemoryUsage;
+}
 void ThresholdLevel::setNfMemoryUsage(int32_t const value) {
-  m_NfMemoryUsage = value;
+  m_NfMemoryUsage      = value;
   m_NfMemoryUsageIsSet = true;
 }
-bool ThresholdLevel::nfMemoryUsageIsSet() const { return m_NfMemoryUsageIsSet; }
-void ThresholdLevel::unsetNfMemoryUsage() { m_NfMemoryUsageIsSet = false; }
-int32_t ThresholdLevel::getNfStorageUsage() const { return m_NfStorageUsage; }
+bool ThresholdLevel::nfMemoryUsageIsSet() const {
+  return m_NfMemoryUsageIsSet;
+}
+void ThresholdLevel::unsetNfMemoryUsage() {
+  m_NfMemoryUsageIsSet = false;
+}
+int32_t ThresholdLevel::getNfStorageUsage() const {
+  return m_NfStorageUsage;
+}
 void ThresholdLevel::setNfStorageUsage(int32_t const value) {
-  m_NfStorageUsage = value;
+  m_NfStorageUsage      = value;
   m_NfStorageUsageIsSet = true;
 }
 bool ThresholdLevel::nfStorageUsageIsSet() const {
   return m_NfStorageUsageIsSet;
 }
-void ThresholdLevel::unsetNfStorageUsage() { m_NfStorageUsageIsSet = false; }
+void ThresholdLevel::unsetNfStorageUsage() {
+  m_NfStorageUsageIsSet = false;
+}
 
 }  // namespace oai::nef::model

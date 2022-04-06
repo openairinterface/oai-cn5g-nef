@@ -19,7 +19,9 @@
 
 namespace oai::nef::model {
 
-NefEventExposureNotif::NefEventExposureNotif() { m_NotifId = ""; }
+NefEventExposureNotif::NefEventExposureNotif() {
+  m_NotifId = "";
+}
 
 void NefEventExposureNotif::validate() const {
   std::stringstream msg;
@@ -32,8 +34,8 @@ bool NefEventExposureNotif::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NefEventExposureNotif::validate(std::stringstream& msg,
-                                     const std::string& pathPrefix) const {
+bool NefEventExposureNotif::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NefEventExposureNotif" : pathPrefix;
@@ -48,7 +50,7 @@ bool NefEventExposureNotif::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const NefEventNotification& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -79,8 +81,8 @@ bool NefEventExposureNotif::operator!=(const NefEventExposureNotif& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const NefEventExposureNotif& o) {
-  j = nlohmann::json();
-  j["notifId"] = o.m_NotifId;
+  j                = nlohmann::json();
+  j["notifId"]     = o.m_NotifId;
   j["eventNotifs"] = o.m_EventNotifs;
 }
 
@@ -89,7 +91,9 @@ void from_json(const nlohmann::json& j, NefEventExposureNotif& o) {
   j.at("eventNotifs").get_to(o.m_EventNotifs);
 }
 
-std::string NefEventExposureNotif::getNotifId() const { return m_NotifId; }
+std::string NefEventExposureNotif::getNotifId() const {
+  return m_NotifId;
+}
 void NefEventExposureNotif::setNotifId(std::string const& value) {
   m_NotifId = value;
 }

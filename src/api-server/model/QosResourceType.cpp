@@ -32,8 +32,8 @@ bool QosResourceType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool QosResourceType::validate(std::stringstream& msg,
-                               const std::string& pathPrefix) const {
+bool QosResourceType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "QosResourceType" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, QosResourceType& o) {
   from_json(j, o.m_value);
 }
 
-QosResourceType_anyOf QosResourceType::getValue() const { return m_value; }
+QosResourceType_anyOf QosResourceType::getValue() const {
+  return m_value;
+}
 
-void QosResourceType::setValue(QosResourceType_anyOf value) { m_value = value; }
+void QosResourceType::setValue(QosResourceType_anyOf value) {
+  m_value = value;
+}
 
 QosResourceType_anyOf::eQosResourceType_anyOf QosResourceType::getEnumValue()
     const {

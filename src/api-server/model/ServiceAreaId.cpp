@@ -35,19 +35,19 @@ bool ServiceAreaId::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ServiceAreaId::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool ServiceAreaId::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ServiceAreaId" : pathPrefix;
 
   /* Lac */ {
-    const std::string& value = m_Lac;
+    const std::string& value           = m_Lac;
     const std::string currentValuePath = _pathPrefix + ".lac";
   }
 
   /* Sac */ {
-    const std::string& value = m_Sac;
+    const std::string& value           = m_Sac;
     const std::string currentValuePath = _pathPrefix + ".sac";
   }
 
@@ -71,10 +71,10 @@ bool ServiceAreaId::operator!=(const ServiceAreaId& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const ServiceAreaId& o) {
-  j = nlohmann::json();
+  j           = nlohmann::json();
   j["plmnId"] = o.m_PlmnId;
-  j["lac"] = o.m_Lac;
-  j["sac"] = o.m_Sac;
+  j["lac"]    = o.m_Lac;
+  j["sac"]    = o.m_Sac;
 }
 
 void from_json(const nlohmann::json& j, ServiceAreaId& o) {
@@ -83,11 +83,23 @@ void from_json(const nlohmann::json& j, ServiceAreaId& o) {
   j.at("sac").get_to(o.m_Sac);
 }
 
-PlmnId ServiceAreaId::getPlmnId() const { return m_PlmnId; }
-void ServiceAreaId::setPlmnId(PlmnId const& value) { m_PlmnId = value; }
-std::string ServiceAreaId::getLac() const { return m_Lac; }
-void ServiceAreaId::setLac(std::string const& value) { m_Lac = value; }
-std::string ServiceAreaId::getSac() const { return m_Sac; }
-void ServiceAreaId::setSac(std::string const& value) { m_Sac = value; }
+PlmnId ServiceAreaId::getPlmnId() const {
+  return m_PlmnId;
+}
+void ServiceAreaId::setPlmnId(PlmnId const& value) {
+  m_PlmnId = value;
+}
+std::string ServiceAreaId::getLac() const {
+  return m_Lac;
+}
+void ServiceAreaId::setLac(std::string const& value) {
+  m_Lac = value;
+}
+std::string ServiceAreaId::getSac() const {
+  return m_Sac;
+}
+void ServiceAreaId::setSac(std::string const& value) {
+  m_Sac = value;
+}
 
 }  // namespace oai::nef::model

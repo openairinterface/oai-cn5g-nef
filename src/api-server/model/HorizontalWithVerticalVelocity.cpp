@@ -21,9 +21,9 @@
 namespace oai::nef::model {
 
 HorizontalWithVerticalVelocity::HorizontalWithVerticalVelocity() {
-  m_HSpeed = 0.0f;
+  m_HSpeed  = 0.0f;
   m_Bearing = 0;
-  m_VSpeed = 0.0f;
+  m_VSpeed  = 0.0f;
 }
 
 void HorizontalWithVerticalVelocity::validate() const {
@@ -44,7 +44,7 @@ bool HorizontalWithVerticalVelocity::validate(
       pathPrefix.empty() ? "HorizontalWithVerticalVelocity" : pathPrefix;
 
   /* HSpeed */ {
-    const float& value = m_HSpeed;
+    const float& value                 = m_HSpeed;
     const std::string currentValuePath = _pathPrefix + ".hSpeed";
 
     if (value < static_cast<float>(0)) {
@@ -58,7 +58,7 @@ bool HorizontalWithVerticalVelocity::validate(
   }
 
   /* Bearing */ {
-    const int32_t& value = m_Bearing;
+    const int32_t& value               = m_Bearing;
     const std::string currentValuePath = _pathPrefix + ".bearing";
 
     if (value < 0) {
@@ -72,7 +72,7 @@ bool HorizontalWithVerticalVelocity::validate(
   }
 
   /* VSpeed */ {
-    const float& value = m_VSpeed;
+    const float& value                 = m_VSpeed;
     const std::string currentValuePath = _pathPrefix + ".vSpeed";
 
     if (value < static_cast<float>(0)) {
@@ -109,10 +109,10 @@ bool HorizontalWithVerticalVelocity::operator!=(
 }
 
 void to_json(nlohmann::json& j, const HorizontalWithVerticalVelocity& o) {
-  j = nlohmann::json();
-  j["hSpeed"] = o.m_HSpeed;
-  j["bearing"] = o.m_Bearing;
-  j["vSpeed"] = o.m_VSpeed;
+  j               = nlohmann::json();
+  j["hSpeed"]     = o.m_HSpeed;
+  j["bearing"]    = o.m_Bearing;
+  j["vSpeed"]     = o.m_VSpeed;
   j["vDirection"] = o.m_VDirection;
 }
 
@@ -123,15 +123,21 @@ void from_json(const nlohmann::json& j, HorizontalWithVerticalVelocity& o) {
   j.at("vDirection").get_to(o.m_VDirection);
 }
 
-float HorizontalWithVerticalVelocity::getHSpeed() const { return m_HSpeed; }
+float HorizontalWithVerticalVelocity::getHSpeed() const {
+  return m_HSpeed;
+}
 void HorizontalWithVerticalVelocity::setHSpeed(float const value) {
   m_HSpeed = value;
 }
-int32_t HorizontalWithVerticalVelocity::getBearing() const { return m_Bearing; }
+int32_t HorizontalWithVerticalVelocity::getBearing() const {
+  return m_Bearing;
+}
 void HorizontalWithVerticalVelocity::setBearing(int32_t const value) {
   m_Bearing = value;
 }
-float HorizontalWithVerticalVelocity::getVSpeed() const { return m_VSpeed; }
+float HorizontalWithVerticalVelocity::getVSpeed() const {
+  return m_VSpeed;
+}
 void HorizontalWithVerticalVelocity::setVSpeed(float const value) {
   m_VSpeed = value;
 }

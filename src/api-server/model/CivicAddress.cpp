@@ -21,73 +21,73 @@
 namespace oai::nef::model {
 
 CivicAddress::CivicAddress() {
-  m_Country = "";
-  m_CountryIsSet = false;
-  m_A1 = "";
-  m_A1IsSet = false;
-  m_A2 = "";
-  m_A2IsSet = false;
-  m_A3 = "";
-  m_A3IsSet = false;
-  m_A4 = "";
-  m_A4IsSet = false;
-  m_A5 = "";
-  m_A5IsSet = false;
-  m_A6 = "";
-  m_A6IsSet = false;
-  m_PRD = "";
-  m_PRDIsSet = false;
-  m_POD = "";
-  m_PODIsSet = false;
-  m_STS = "";
-  m_STSIsSet = false;
-  m_HNO = "";
-  m_HNOIsSet = false;
-  m_HNS = "";
-  m_HNSIsSet = false;
-  m_LMK = "";
-  m_LMKIsSet = false;
-  m_LOC = "";
-  m_LOCIsSet = false;
-  m_NAM = "";
-  m_NAMIsSet = false;
-  m_PC = "";
-  m_PCIsSet = false;
-  m_BLD = "";
-  m_BLDIsSet = false;
-  m_UNIT = "";
-  m_UNITIsSet = false;
-  m_FLR = "";
-  m_FLRIsSet = false;
-  m_ROOM = "";
-  m_ROOMIsSet = false;
-  m_PLC = "";
-  m_PLCIsSet = false;
-  m_PCN = "";
-  m_PCNIsSet = false;
-  m_POBOX = "";
-  m_POBOXIsSet = false;
-  m_ADDCODE = "";
-  m_ADDCODEIsSet = false;
-  m_SEAT = "";
-  m_SEATIsSet = false;
-  m_RD = "";
-  m_RDIsSet = false;
-  m_RDSEC = "";
-  m_RDSECIsSet = false;
-  m_RDBR = "";
-  m_RDBRIsSet = false;
-  m_RDSUBBR = "";
-  m_RDSUBBRIsSet = false;
-  m_PRM = "";
-  m_PRMIsSet = false;
-  m_POM = "";
-  m_POMIsSet = false;
-  m_UsageRules = "";
+  m_Country         = "";
+  m_CountryIsSet    = false;
+  m_A1              = "";
+  m_A1IsSet         = false;
+  m_A2              = "";
+  m_A2IsSet         = false;
+  m_A3              = "";
+  m_A3IsSet         = false;
+  m_A4              = "";
+  m_A4IsSet         = false;
+  m_A5              = "";
+  m_A5IsSet         = false;
+  m_A6              = "";
+  m_A6IsSet         = false;
+  m_PRD             = "";
+  m_PRDIsSet        = false;
+  m_POD             = "";
+  m_PODIsSet        = false;
+  m_STS             = "";
+  m_STSIsSet        = false;
+  m_HNO             = "";
+  m_HNOIsSet        = false;
+  m_HNS             = "";
+  m_HNSIsSet        = false;
+  m_LMK             = "";
+  m_LMKIsSet        = false;
+  m_LOC             = "";
+  m_LOCIsSet        = false;
+  m_NAM             = "";
+  m_NAMIsSet        = false;
+  m_PC              = "";
+  m_PCIsSet         = false;
+  m_BLD             = "";
+  m_BLDIsSet        = false;
+  m_UNIT            = "";
+  m_UNITIsSet       = false;
+  m_FLR             = "";
+  m_FLRIsSet        = false;
+  m_ROOM            = "";
+  m_ROOMIsSet       = false;
+  m_PLC             = "";
+  m_PLCIsSet        = false;
+  m_PCN             = "";
+  m_PCNIsSet        = false;
+  m_POBOX           = "";
+  m_POBOXIsSet      = false;
+  m_ADDCODE         = "";
+  m_ADDCODEIsSet    = false;
+  m_SEAT            = "";
+  m_SEATIsSet       = false;
+  m_RD              = "";
+  m_RDIsSet         = false;
+  m_RDSEC           = "";
+  m_RDSECIsSet      = false;
+  m_RDBR            = "";
+  m_RDBRIsSet       = false;
+  m_RDSUBBR         = "";
+  m_RDSUBBRIsSet    = false;
+  m_PRM             = "";
+  m_PRMIsSet        = false;
+  m_POM             = "";
+  m_POMIsSet        = false;
+  m_UsageRules      = "";
   m_UsageRulesIsSet = false;
-  m_Method = "";
-  m_MethodIsSet = false;
-  m_ProvidedBy = "";
+  m_Method          = "";
+  m_MethodIsSet     = false;
+  m_ProvidedBy      = "";
   m_ProvidedByIsSet = false;
 }
 
@@ -102,8 +102,8 @@ bool CivicAddress::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CivicAddress::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool CivicAddress::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CivicAddress" : pathPrefix;
@@ -406,243 +406,447 @@ void from_json(const nlohmann::json& j, CivicAddress& o) {
   }
 }
 
-std::string CivicAddress::getCountry() const { return m_Country; }
+std::string CivicAddress::getCountry() const {
+  return m_Country;
+}
 void CivicAddress::setCountry(std::string const& value) {
-  m_Country = value;
+  m_Country      = value;
   m_CountryIsSet = true;
 }
-bool CivicAddress::countryIsSet() const { return m_CountryIsSet; }
-void CivicAddress::unsetCountry() { m_CountryIsSet = false; }
-std::string CivicAddress::getA1() const { return m_A1; }
+bool CivicAddress::countryIsSet() const {
+  return m_CountryIsSet;
+}
+void CivicAddress::unsetCountry() {
+  m_CountryIsSet = false;
+}
+std::string CivicAddress::getA1() const {
+  return m_A1;
+}
 void CivicAddress::setA1(std::string const& value) {
-  m_A1 = value;
+  m_A1      = value;
   m_A1IsSet = true;
 }
-bool CivicAddress::a1IsSet() const { return m_A1IsSet; }
-void CivicAddress::unsetA1() { m_A1IsSet = false; }
-std::string CivicAddress::getA2() const { return m_A2; }
+bool CivicAddress::a1IsSet() const {
+  return m_A1IsSet;
+}
+void CivicAddress::unsetA1() {
+  m_A1IsSet = false;
+}
+std::string CivicAddress::getA2() const {
+  return m_A2;
+}
 void CivicAddress::setA2(std::string const& value) {
-  m_A2 = value;
+  m_A2      = value;
   m_A2IsSet = true;
 }
-bool CivicAddress::a2IsSet() const { return m_A2IsSet; }
-void CivicAddress::unsetA2() { m_A2IsSet = false; }
-std::string CivicAddress::getA3() const { return m_A3; }
+bool CivicAddress::a2IsSet() const {
+  return m_A2IsSet;
+}
+void CivicAddress::unsetA2() {
+  m_A2IsSet = false;
+}
+std::string CivicAddress::getA3() const {
+  return m_A3;
+}
 void CivicAddress::setA3(std::string const& value) {
-  m_A3 = value;
+  m_A3      = value;
   m_A3IsSet = true;
 }
-bool CivicAddress::a3IsSet() const { return m_A3IsSet; }
-void CivicAddress::unsetA3() { m_A3IsSet = false; }
-std::string CivicAddress::getA4() const { return m_A4; }
+bool CivicAddress::a3IsSet() const {
+  return m_A3IsSet;
+}
+void CivicAddress::unsetA3() {
+  m_A3IsSet = false;
+}
+std::string CivicAddress::getA4() const {
+  return m_A4;
+}
 void CivicAddress::setA4(std::string const& value) {
-  m_A4 = value;
+  m_A4      = value;
   m_A4IsSet = true;
 }
-bool CivicAddress::a4IsSet() const { return m_A4IsSet; }
-void CivicAddress::unsetA4() { m_A4IsSet = false; }
-std::string CivicAddress::getA5() const { return m_A5; }
+bool CivicAddress::a4IsSet() const {
+  return m_A4IsSet;
+}
+void CivicAddress::unsetA4() {
+  m_A4IsSet = false;
+}
+std::string CivicAddress::getA5() const {
+  return m_A5;
+}
 void CivicAddress::setA5(std::string const& value) {
-  m_A5 = value;
+  m_A5      = value;
   m_A5IsSet = true;
 }
-bool CivicAddress::a5IsSet() const { return m_A5IsSet; }
-void CivicAddress::unsetA5() { m_A5IsSet = false; }
-std::string CivicAddress::getA6() const { return m_A6; }
+bool CivicAddress::a5IsSet() const {
+  return m_A5IsSet;
+}
+void CivicAddress::unsetA5() {
+  m_A5IsSet = false;
+}
+std::string CivicAddress::getA6() const {
+  return m_A6;
+}
 void CivicAddress::setA6(std::string const& value) {
-  m_A6 = value;
+  m_A6      = value;
   m_A6IsSet = true;
 }
-bool CivicAddress::a6IsSet() const { return m_A6IsSet; }
-void CivicAddress::unsetA6() { m_A6IsSet = false; }
-std::string CivicAddress::getPRD() const { return m_PRD; }
+bool CivicAddress::a6IsSet() const {
+  return m_A6IsSet;
+}
+void CivicAddress::unsetA6() {
+  m_A6IsSet = false;
+}
+std::string CivicAddress::getPRD() const {
+  return m_PRD;
+}
 void CivicAddress::setPRD(std::string const& value) {
-  m_PRD = value;
+  m_PRD      = value;
   m_PRDIsSet = true;
 }
-bool CivicAddress::pRDIsSet() const { return m_PRDIsSet; }
-void CivicAddress::unsetPRD() { m_PRDIsSet = false; }
-std::string CivicAddress::getPOD() const { return m_POD; }
+bool CivicAddress::pRDIsSet() const {
+  return m_PRDIsSet;
+}
+void CivicAddress::unsetPRD() {
+  m_PRDIsSet = false;
+}
+std::string CivicAddress::getPOD() const {
+  return m_POD;
+}
 void CivicAddress::setPOD(std::string const& value) {
-  m_POD = value;
+  m_POD      = value;
   m_PODIsSet = true;
 }
-bool CivicAddress::pODIsSet() const { return m_PODIsSet; }
-void CivicAddress::unsetPOD() { m_PODIsSet = false; }
-std::string CivicAddress::getSTS() const { return m_STS; }
+bool CivicAddress::pODIsSet() const {
+  return m_PODIsSet;
+}
+void CivicAddress::unsetPOD() {
+  m_PODIsSet = false;
+}
+std::string CivicAddress::getSTS() const {
+  return m_STS;
+}
 void CivicAddress::setSTS(std::string const& value) {
-  m_STS = value;
+  m_STS      = value;
   m_STSIsSet = true;
 }
-bool CivicAddress::sTSIsSet() const { return m_STSIsSet; }
-void CivicAddress::unsetSTS() { m_STSIsSet = false; }
-std::string CivicAddress::getHNO() const { return m_HNO; }
+bool CivicAddress::sTSIsSet() const {
+  return m_STSIsSet;
+}
+void CivicAddress::unsetSTS() {
+  m_STSIsSet = false;
+}
+std::string CivicAddress::getHNO() const {
+  return m_HNO;
+}
 void CivicAddress::setHNO(std::string const& value) {
-  m_HNO = value;
+  m_HNO      = value;
   m_HNOIsSet = true;
 }
-bool CivicAddress::hNOIsSet() const { return m_HNOIsSet; }
-void CivicAddress::unsetHNO() { m_HNOIsSet = false; }
-std::string CivicAddress::getHNS() const { return m_HNS; }
+bool CivicAddress::hNOIsSet() const {
+  return m_HNOIsSet;
+}
+void CivicAddress::unsetHNO() {
+  m_HNOIsSet = false;
+}
+std::string CivicAddress::getHNS() const {
+  return m_HNS;
+}
 void CivicAddress::setHNS(std::string const& value) {
-  m_HNS = value;
+  m_HNS      = value;
   m_HNSIsSet = true;
 }
-bool CivicAddress::hNSIsSet() const { return m_HNSIsSet; }
-void CivicAddress::unsetHNS() { m_HNSIsSet = false; }
-std::string CivicAddress::getLMK() const { return m_LMK; }
+bool CivicAddress::hNSIsSet() const {
+  return m_HNSIsSet;
+}
+void CivicAddress::unsetHNS() {
+  m_HNSIsSet = false;
+}
+std::string CivicAddress::getLMK() const {
+  return m_LMK;
+}
 void CivicAddress::setLMK(std::string const& value) {
-  m_LMK = value;
+  m_LMK      = value;
   m_LMKIsSet = true;
 }
-bool CivicAddress::lMKIsSet() const { return m_LMKIsSet; }
-void CivicAddress::unsetLMK() { m_LMKIsSet = false; }
-std::string CivicAddress::getLOC() const { return m_LOC; }
+bool CivicAddress::lMKIsSet() const {
+  return m_LMKIsSet;
+}
+void CivicAddress::unsetLMK() {
+  m_LMKIsSet = false;
+}
+std::string CivicAddress::getLOC() const {
+  return m_LOC;
+}
 void CivicAddress::setLOC(std::string const& value) {
-  m_LOC = value;
+  m_LOC      = value;
   m_LOCIsSet = true;
 }
-bool CivicAddress::lOCIsSet() const { return m_LOCIsSet; }
-void CivicAddress::unsetLOC() { m_LOCIsSet = false; }
-std::string CivicAddress::getNAM() const { return m_NAM; }
+bool CivicAddress::lOCIsSet() const {
+  return m_LOCIsSet;
+}
+void CivicAddress::unsetLOC() {
+  m_LOCIsSet = false;
+}
+std::string CivicAddress::getNAM() const {
+  return m_NAM;
+}
 void CivicAddress::setNAM(std::string const& value) {
-  m_NAM = value;
+  m_NAM      = value;
   m_NAMIsSet = true;
 }
-bool CivicAddress::nAMIsSet() const { return m_NAMIsSet; }
-void CivicAddress::unsetNAM() { m_NAMIsSet = false; }
-std::string CivicAddress::getPC() const { return m_PC; }
+bool CivicAddress::nAMIsSet() const {
+  return m_NAMIsSet;
+}
+void CivicAddress::unsetNAM() {
+  m_NAMIsSet = false;
+}
+std::string CivicAddress::getPC() const {
+  return m_PC;
+}
 void CivicAddress::setPC(std::string const& value) {
-  m_PC = value;
+  m_PC      = value;
   m_PCIsSet = true;
 }
-bool CivicAddress::pCIsSet() const { return m_PCIsSet; }
-void CivicAddress::unsetPC() { m_PCIsSet = false; }
-std::string CivicAddress::getBLD() const { return m_BLD; }
+bool CivicAddress::pCIsSet() const {
+  return m_PCIsSet;
+}
+void CivicAddress::unsetPC() {
+  m_PCIsSet = false;
+}
+std::string CivicAddress::getBLD() const {
+  return m_BLD;
+}
 void CivicAddress::setBLD(std::string const& value) {
-  m_BLD = value;
+  m_BLD      = value;
   m_BLDIsSet = true;
 }
-bool CivicAddress::bLDIsSet() const { return m_BLDIsSet; }
-void CivicAddress::unsetBLD() { m_BLDIsSet = false; }
-std::string CivicAddress::getUNIT() const { return m_UNIT; }
+bool CivicAddress::bLDIsSet() const {
+  return m_BLDIsSet;
+}
+void CivicAddress::unsetBLD() {
+  m_BLDIsSet = false;
+}
+std::string CivicAddress::getUNIT() const {
+  return m_UNIT;
+}
 void CivicAddress::setUNIT(std::string const& value) {
-  m_UNIT = value;
+  m_UNIT      = value;
   m_UNITIsSet = true;
 }
-bool CivicAddress::uNITIsSet() const { return m_UNITIsSet; }
-void CivicAddress::unsetUNIT() { m_UNITIsSet = false; }
-std::string CivicAddress::getFLR() const { return m_FLR; }
+bool CivicAddress::uNITIsSet() const {
+  return m_UNITIsSet;
+}
+void CivicAddress::unsetUNIT() {
+  m_UNITIsSet = false;
+}
+std::string CivicAddress::getFLR() const {
+  return m_FLR;
+}
 void CivicAddress::setFLR(std::string const& value) {
-  m_FLR = value;
+  m_FLR      = value;
   m_FLRIsSet = true;
 }
-bool CivicAddress::fLRIsSet() const { return m_FLRIsSet; }
-void CivicAddress::unsetFLR() { m_FLRIsSet = false; }
-std::string CivicAddress::getROOM() const { return m_ROOM; }
+bool CivicAddress::fLRIsSet() const {
+  return m_FLRIsSet;
+}
+void CivicAddress::unsetFLR() {
+  m_FLRIsSet = false;
+}
+std::string CivicAddress::getROOM() const {
+  return m_ROOM;
+}
 void CivicAddress::setROOM(std::string const& value) {
-  m_ROOM = value;
+  m_ROOM      = value;
   m_ROOMIsSet = true;
 }
-bool CivicAddress::rOOMIsSet() const { return m_ROOMIsSet; }
-void CivicAddress::unsetROOM() { m_ROOMIsSet = false; }
-std::string CivicAddress::getPLC() const { return m_PLC; }
+bool CivicAddress::rOOMIsSet() const {
+  return m_ROOMIsSet;
+}
+void CivicAddress::unsetROOM() {
+  m_ROOMIsSet = false;
+}
+std::string CivicAddress::getPLC() const {
+  return m_PLC;
+}
 void CivicAddress::setPLC(std::string const& value) {
-  m_PLC = value;
+  m_PLC      = value;
   m_PLCIsSet = true;
 }
-bool CivicAddress::pLCIsSet() const { return m_PLCIsSet; }
-void CivicAddress::unsetPLC() { m_PLCIsSet = false; }
-std::string CivicAddress::getPCN() const { return m_PCN; }
+bool CivicAddress::pLCIsSet() const {
+  return m_PLCIsSet;
+}
+void CivicAddress::unsetPLC() {
+  m_PLCIsSet = false;
+}
+std::string CivicAddress::getPCN() const {
+  return m_PCN;
+}
 void CivicAddress::setPCN(std::string const& value) {
-  m_PCN = value;
+  m_PCN      = value;
   m_PCNIsSet = true;
 }
-bool CivicAddress::pCNIsSet() const { return m_PCNIsSet; }
-void CivicAddress::unsetPCN() { m_PCNIsSet = false; }
-std::string CivicAddress::getPOBOX() const { return m_POBOX; }
+bool CivicAddress::pCNIsSet() const {
+  return m_PCNIsSet;
+}
+void CivicAddress::unsetPCN() {
+  m_PCNIsSet = false;
+}
+std::string CivicAddress::getPOBOX() const {
+  return m_POBOX;
+}
 void CivicAddress::setPOBOX(std::string const& value) {
-  m_POBOX = value;
+  m_POBOX      = value;
   m_POBOXIsSet = true;
 }
-bool CivicAddress::pOBOXIsSet() const { return m_POBOXIsSet; }
-void CivicAddress::unsetPOBOX() { m_POBOXIsSet = false; }
-std::string CivicAddress::getADDCODE() const { return m_ADDCODE; }
+bool CivicAddress::pOBOXIsSet() const {
+  return m_POBOXIsSet;
+}
+void CivicAddress::unsetPOBOX() {
+  m_POBOXIsSet = false;
+}
+std::string CivicAddress::getADDCODE() const {
+  return m_ADDCODE;
+}
 void CivicAddress::setADDCODE(std::string const& value) {
-  m_ADDCODE = value;
+  m_ADDCODE      = value;
   m_ADDCODEIsSet = true;
 }
-bool CivicAddress::aDDCODEIsSet() const { return m_ADDCODEIsSet; }
-void CivicAddress::unsetADDCODE() { m_ADDCODEIsSet = false; }
-std::string CivicAddress::getSEAT() const { return m_SEAT; }
+bool CivicAddress::aDDCODEIsSet() const {
+  return m_ADDCODEIsSet;
+}
+void CivicAddress::unsetADDCODE() {
+  m_ADDCODEIsSet = false;
+}
+std::string CivicAddress::getSEAT() const {
+  return m_SEAT;
+}
 void CivicAddress::setSEAT(std::string const& value) {
-  m_SEAT = value;
+  m_SEAT      = value;
   m_SEATIsSet = true;
 }
-bool CivicAddress::sEATIsSet() const { return m_SEATIsSet; }
-void CivicAddress::unsetSEAT() { m_SEATIsSet = false; }
-std::string CivicAddress::getRD() const { return m_RD; }
+bool CivicAddress::sEATIsSet() const {
+  return m_SEATIsSet;
+}
+void CivicAddress::unsetSEAT() {
+  m_SEATIsSet = false;
+}
+std::string CivicAddress::getRD() const {
+  return m_RD;
+}
 void CivicAddress::setRD(std::string const& value) {
-  m_RD = value;
+  m_RD      = value;
   m_RDIsSet = true;
 }
-bool CivicAddress::rDIsSet() const { return m_RDIsSet; }
-void CivicAddress::unsetRD() { m_RDIsSet = false; }
-std::string CivicAddress::getRDSEC() const { return m_RDSEC; }
+bool CivicAddress::rDIsSet() const {
+  return m_RDIsSet;
+}
+void CivicAddress::unsetRD() {
+  m_RDIsSet = false;
+}
+std::string CivicAddress::getRDSEC() const {
+  return m_RDSEC;
+}
 void CivicAddress::setRDSEC(std::string const& value) {
-  m_RDSEC = value;
+  m_RDSEC      = value;
   m_RDSECIsSet = true;
 }
-bool CivicAddress::rDSECIsSet() const { return m_RDSECIsSet; }
-void CivicAddress::unsetRDSEC() { m_RDSECIsSet = false; }
-std::string CivicAddress::getRDBR() const { return m_RDBR; }
+bool CivicAddress::rDSECIsSet() const {
+  return m_RDSECIsSet;
+}
+void CivicAddress::unsetRDSEC() {
+  m_RDSECIsSet = false;
+}
+std::string CivicAddress::getRDBR() const {
+  return m_RDBR;
+}
 void CivicAddress::setRDBR(std::string const& value) {
-  m_RDBR = value;
+  m_RDBR      = value;
   m_RDBRIsSet = true;
 }
-bool CivicAddress::rDBRIsSet() const { return m_RDBRIsSet; }
-void CivicAddress::unsetRDBR() { m_RDBRIsSet = false; }
-std::string CivicAddress::getRDSUBBR() const { return m_RDSUBBR; }
+bool CivicAddress::rDBRIsSet() const {
+  return m_RDBRIsSet;
+}
+void CivicAddress::unsetRDBR() {
+  m_RDBRIsSet = false;
+}
+std::string CivicAddress::getRDSUBBR() const {
+  return m_RDSUBBR;
+}
 void CivicAddress::setRDSUBBR(std::string const& value) {
-  m_RDSUBBR = value;
+  m_RDSUBBR      = value;
   m_RDSUBBRIsSet = true;
 }
-bool CivicAddress::rDSUBBRIsSet() const { return m_RDSUBBRIsSet; }
-void CivicAddress::unsetRDSUBBR() { m_RDSUBBRIsSet = false; }
-std::string CivicAddress::getPRM() const { return m_PRM; }
+bool CivicAddress::rDSUBBRIsSet() const {
+  return m_RDSUBBRIsSet;
+}
+void CivicAddress::unsetRDSUBBR() {
+  m_RDSUBBRIsSet = false;
+}
+std::string CivicAddress::getPRM() const {
+  return m_PRM;
+}
 void CivicAddress::setPRM(std::string const& value) {
-  m_PRM = value;
+  m_PRM      = value;
   m_PRMIsSet = true;
 }
-bool CivicAddress::pRMIsSet() const { return m_PRMIsSet; }
-void CivicAddress::unsetPRM() { m_PRMIsSet = false; }
-std::string CivicAddress::getPOM() const { return m_POM; }
+bool CivicAddress::pRMIsSet() const {
+  return m_PRMIsSet;
+}
+void CivicAddress::unsetPRM() {
+  m_PRMIsSet = false;
+}
+std::string CivicAddress::getPOM() const {
+  return m_POM;
+}
 void CivicAddress::setPOM(std::string const& value) {
-  m_POM = value;
+  m_POM      = value;
   m_POMIsSet = true;
 }
-bool CivicAddress::pOMIsSet() const { return m_POMIsSet; }
-void CivicAddress::unsetPOM() { m_POMIsSet = false; }
-std::string CivicAddress::getUsageRules() const { return m_UsageRules; }
+bool CivicAddress::pOMIsSet() const {
+  return m_POMIsSet;
+}
+void CivicAddress::unsetPOM() {
+  m_POMIsSet = false;
+}
+std::string CivicAddress::getUsageRules() const {
+  return m_UsageRules;
+}
 void CivicAddress::setUsageRules(std::string const& value) {
-  m_UsageRules = value;
+  m_UsageRules      = value;
   m_UsageRulesIsSet = true;
 }
-bool CivicAddress::usageRulesIsSet() const { return m_UsageRulesIsSet; }
-void CivicAddress::unsetUsageRules() { m_UsageRulesIsSet = false; }
-std::string CivicAddress::getMethod() const { return m_Method; }
+bool CivicAddress::usageRulesIsSet() const {
+  return m_UsageRulesIsSet;
+}
+void CivicAddress::unsetUsageRules() {
+  m_UsageRulesIsSet = false;
+}
+std::string CivicAddress::getMethod() const {
+  return m_Method;
+}
 void CivicAddress::setMethod(std::string const& value) {
-  m_Method = value;
+  m_Method      = value;
   m_MethodIsSet = true;
 }
-bool CivicAddress::methodIsSet() const { return m_MethodIsSet; }
-void CivicAddress::unsetMethod() { m_MethodIsSet = false; }
-std::string CivicAddress::getProvidedBy() const { return m_ProvidedBy; }
+bool CivicAddress::methodIsSet() const {
+  return m_MethodIsSet;
+}
+void CivicAddress::unsetMethod() {
+  m_MethodIsSet = false;
+}
+std::string CivicAddress::getProvidedBy() const {
+  return m_ProvidedBy;
+}
 void CivicAddress::setProvidedBy(std::string const& value) {
-  m_ProvidedBy = value;
+  m_ProvidedBy      = value;
   m_ProvidedByIsSet = true;
 }
-bool CivicAddress::providedByIsSet() const { return m_ProvidedByIsSet; }
-void CivicAddress::unsetProvidedBy() { m_ProvidedByIsSet = false; }
+bool CivicAddress::providedByIsSet() const {
+  return m_ProvidedByIsSet;
+}
+void CivicAddress::unsetProvidedBy() {
+  m_ProvidedByIsSet = false;
+}
 
 }  // namespace oai::nef::model

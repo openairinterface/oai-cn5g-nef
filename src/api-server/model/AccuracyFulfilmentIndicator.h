@@ -66,12 +66,12 @@ class AccuracyFulfilmentIndicator {
       AccuracyFulfilmentIndicator_anyOf::eAccuracyFulfilmentIndicator_anyOf
           value);
   friend void to_json(nlohmann::json& j, const AccuracyFulfilmentIndicator& o);
-  friend void from_json(const nlohmann::json& j,
-                        AccuracyFulfilmentIndicator& o);
-  friend void to_json(nlohmann::json& j,
-                      const AccuracyFulfilmentIndicator_anyOf& o);
-  friend void from_json(const nlohmann::json& j,
-                        AccuracyFulfilmentIndicator_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, AccuracyFulfilmentIndicator& o);
+  friend void to_json(
+      nlohmann::json& j, const AccuracyFulfilmentIndicator_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, AccuracyFulfilmentIndicator_anyOf& o);
 
  protected:
   AccuracyFulfilmentIndicator_anyOf m_value;

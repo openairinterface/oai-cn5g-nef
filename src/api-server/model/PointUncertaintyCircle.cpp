@@ -20,7 +20,9 @@
 
 namespace oai::nef::model {
 
-PointUncertaintyCircle::PointUncertaintyCircle() { m_Uncertainty = 0.0f; }
+PointUncertaintyCircle::PointUncertaintyCircle() {
+  m_Uncertainty = 0.0f;
+}
 
 void PointUncertaintyCircle::validate() const {
   std::stringstream msg;
@@ -33,14 +35,14 @@ bool PointUncertaintyCircle::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PointUncertaintyCircle::validate(std::stringstream& msg,
-                                      const std::string& pathPrefix) const {
+bool PointUncertaintyCircle::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PointUncertaintyCircle" : pathPrefix;
 
   /* Uncertainty */ {
-    const float& value = m_Uncertainty;
+    const float& value                 = m_Uncertainty;
     const std::string currentValuePath = _pathPrefix + ".uncertainty";
 
     if (value < static_cast<float>(0)) {
@@ -71,9 +73,9 @@ bool PointUncertaintyCircle::operator!=(
 }
 
 void to_json(nlohmann::json& j, const PointUncertaintyCircle& o) {
-  j = nlohmann::json();
-  j["shape"] = o.m_Shape;
-  j["point"] = o.m_Point;
+  j                = nlohmann::json();
+  j["shape"]       = o.m_Shape;
+  j["point"]       = o.m_Point;
   j["uncertainty"] = o.m_Uncertainty;
 }
 
@@ -83,7 +85,9 @@ void from_json(const nlohmann::json& j, PointUncertaintyCircle& o) {
   j.at("uncertainty").get_to(o.m_Uncertainty);
 }
 
-SupportedGADShapes PointUncertaintyCircle::getShape() const { return m_Shape; }
+SupportedGADShapes PointUncertaintyCircle::getShape() const {
+  return m_Shape;
+}
 void PointUncertaintyCircle::setShape(SupportedGADShapes const& value) {
   m_Shape = value;
 }
@@ -93,7 +97,9 @@ GeographicalCoordinates PointUncertaintyCircle::getPoint() const {
 void PointUncertaintyCircle::setPoint(GeographicalCoordinates const& value) {
   m_Point = value;
 }
-float PointUncertaintyCircle::getUncertainty() const { return m_Uncertainty; }
+float PointUncertaintyCircle::getUncertainty() const {
+  return m_Uncertainty;
+}
 void PointUncertaintyCircle::setUncertainty(float const value) {
   m_Uncertainty = value;
 }

@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 ServiceParameterDataPatch::ServiceParameterDataPatch() {
-  m_ParamOverPc5 = "";
+  m_ParamOverPc5      = "";
   m_ParamOverPc5IsSet = false;
-  m_ParamOverUu = "";
-  m_ParamOverUuIsSet = false;
+  m_ParamOverUu       = "";
+  m_ParamOverUuIsSet  = false;
 }
 
 void ServiceParameterDataPatch::validate() const {
@@ -37,8 +37,8 @@ bool ServiceParameterDataPatch::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ServiceParameterDataPatch::validate(std::stringstream& msg,
-                                         const std::string& pathPrefix) const {
+bool ServiceParameterDataPatch::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ServiceParameterDataPatch" : pathPrefix;
@@ -87,7 +87,7 @@ std::string ServiceParameterDataPatch::getParamOverPc5() const {
   return m_ParamOverPc5;
 }
 void ServiceParameterDataPatch::setParamOverPc5(std::string const& value) {
-  m_ParamOverPc5 = value;
+  m_ParamOverPc5      = value;
   m_ParamOverPc5IsSet = true;
 }
 bool ServiceParameterDataPatch::paramOverPc5IsSet() const {
@@ -100,7 +100,7 @@ std::string ServiceParameterDataPatch::getParamOverUu() const {
   return m_ParamOverUu;
 }
 void ServiceParameterDataPatch::setParamOverUu(std::string const& value) {
-  m_ParamOverUu = value;
+  m_ParamOverUu      = value;
   m_ParamOverUuIsSet = true;
 }
 bool ServiceParameterDataPatch::paramOverUuIsSet() const {

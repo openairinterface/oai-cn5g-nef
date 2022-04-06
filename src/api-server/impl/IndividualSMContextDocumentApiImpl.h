@@ -46,14 +46,17 @@ class IndividualSMContextDocumentApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~IndividualSMContextDocumentApiImpl() override = default;
 
-  void deliver(const Pistache::Rest::Request& request,
-               Pistache::Http::ResponseWriter& response);
-  void r_delete(const std::string& smContextId,
-                const SmContextReleaseData& smContextReleaseData,
-                Pistache::Http::ResponseWriter& response);
-  void update(const std::string& smContextId,
-              const SmContextUpdateData& smContextUpdateData,
-              Pistache::Http::ResponseWriter& response);
+  void deliver(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter& response);
+  void r_delete(
+      const std::string& smContextId,
+      const SmContextReleaseData& smContextReleaseData,
+      Pistache::Http::ResponseWriter& response);
+  void update(
+      const std::string& smContextId,
+      const SmContextUpdateData& smContextUpdateData,
+      Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

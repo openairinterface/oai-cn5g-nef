@@ -65,10 +65,10 @@ class _5GLanParametersProvisionPatch {
   bool r5gLanParamsPatchIsSet() const;
   void unsetr_5gLanParamsPatch();
 
-  friend void to_json(nlohmann::json& j,
-                      const _5GLanParametersProvisionPatch& o);
-  friend void from_json(const nlohmann::json& j,
-                        _5GLanParametersProvisionPatch& o);
+  friend void to_json(
+      nlohmann::json& j, const _5GLanParametersProvisionPatch& o);
+  friend void from_json(
+      const nlohmann::json& j, _5GLanParametersProvisionPatch& o);
 
  protected:
   _5GLanParametersPatch m_r_5gLanParamsPatch;

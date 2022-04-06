@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 ReachabilityForSmsReport::ReachabilityForSmsReport() {
-  m_MaxAvailabilityTime = "";
+  m_MaxAvailabilityTime      = "";
   m_MaxAvailabilityTimeIsSet = false;
 }
 
@@ -35,8 +35,8 @@ bool ReachabilityForSmsReport::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ReachabilityForSmsReport::validate(std::stringstream& msg,
-                                        const std::string& pathPrefix) const {
+bool ReachabilityForSmsReport::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ReachabilityForSmsReport" : pathPrefix;
@@ -63,7 +63,7 @@ bool ReachabilityForSmsReport::operator!=(
 }
 
 void to_json(nlohmann::json& j, const ReachabilityForSmsReport& o) {
-  j = nlohmann::json();
+  j                   = nlohmann::json();
   j["smsfAccessType"] = o.m_SmsfAccessType;
   if (o.maxAvailabilityTimeIsSet())
     j["maxAvailabilityTime"] = o.m_MaxAvailabilityTime;
@@ -88,7 +88,7 @@ std::string ReachabilityForSmsReport::getMaxAvailabilityTime() const {
 }
 void ReachabilityForSmsReport::setMaxAvailabilityTime(
     std::string const& value) {
-  m_MaxAvailabilityTime = value;
+  m_MaxAvailabilityTime      = value;
   m_MaxAvailabilityTimeIsSet = true;
 }
 bool ReachabilityForSmsReport::maxAvailabilityTimeIsSet() const {

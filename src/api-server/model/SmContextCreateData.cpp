@@ -20,17 +20,17 @@
 namespace oai::nef::model {
 
 SmContextCreateData::SmContextCreateData() {
-  m_Supi = "";
-  m_PduSessionId = 0;
-  m_Dnn = "";
-  m_NefId = "";
-  m_DlNiddEndPoint = "";
-  m_NotificationUri = "";
-  m_NiddInfoIsSet = false;
-  m_RdsSupport = false;
-  m_RdsSupportIsSet = false;
-  m_SmContextConfigIsSet = false;
-  m_SupportedFeatures = "";
+  m_Supi                   = "";
+  m_PduSessionId           = 0;
+  m_Dnn                    = "";
+  m_NefId                  = "";
+  m_DlNiddEndPoint         = "";
+  m_NotificationUri        = "";
+  m_NiddInfoIsSet          = false;
+  m_RdsSupport             = false;
+  m_RdsSupportIsSet        = false;
+  m_SmContextConfigIsSet   = false;
+  m_SupportedFeatures      = "";
   m_SupportedFeaturesIsSet = false;
 }
 
@@ -45,19 +45,19 @@ bool SmContextCreateData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmContextCreateData::validate(std::stringstream& msg,
-                                   const std::string& pathPrefix) const {
+bool SmContextCreateData::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextCreateData" : pathPrefix;
 
   /* Supi */ {
-    const std::string& value = m_Supi;
+    const std::string& value           = m_Supi;
     const std::string currentValuePath = _pathPrefix + ".supi";
   }
 
   /* PduSessionId */ {
-    const int32_t& value = m_PduSessionId;
+    const int32_t& value               = m_PduSessionId;
     const std::string currentValuePath = _pathPrefix + ".pduSessionId";
 
     if (value < 0) {
@@ -71,7 +71,7 @@ bool SmContextCreateData::validate(std::stringstream& msg,
   }
 
   if (supportedFeaturesIsSet()) {
-    const std::string& value = m_SupportedFeatures;
+    const std::string& value           = m_SupportedFeatures;
     const std::string currentValuePath = _pathPrefix + ".supportedFeatures";
   }
 
@@ -119,13 +119,13 @@ bool SmContextCreateData::operator!=(const SmContextCreateData& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const SmContextCreateData& o) {
-  j = nlohmann::json();
-  j["supi"] = o.m_Supi;
-  j["pduSessionId"] = o.m_PduSessionId;
-  j["dnn"] = o.m_Dnn;
-  j["snssai"] = o.m_Snssai;
-  j["nefId"] = o.m_NefId;
-  j["dlNiddEndPoint"] = o.m_DlNiddEndPoint;
+  j                    = nlohmann::json();
+  j["supi"]            = o.m_Supi;
+  j["pduSessionId"]    = o.m_PduSessionId;
+  j["dnn"]             = o.m_Dnn;
+  j["snssai"]          = o.m_Snssai;
+  j["nefId"]           = o.m_NefId;
+  j["dlNiddEndPoint"]  = o.m_DlNiddEndPoint;
   j["notificationUri"] = o.m_NotificationUri;
   if (o.niddInfoIsSet()) j["niddInfo"] = o.m_NiddInfo;
   if (o.rdsSupportIsSet()) j["rdsSupport"] = o.m_RdsSupport;
@@ -160,17 +160,33 @@ void from_json(const nlohmann::json& j, SmContextCreateData& o) {
   }
 }
 
-std::string SmContextCreateData::getSupi() const { return m_Supi; }
-void SmContextCreateData::setSupi(std::string const& value) { m_Supi = value; }
-int32_t SmContextCreateData::getPduSessionId() const { return m_PduSessionId; }
+std::string SmContextCreateData::getSupi() const {
+  return m_Supi;
+}
+void SmContextCreateData::setSupi(std::string const& value) {
+  m_Supi = value;
+}
+int32_t SmContextCreateData::getPduSessionId() const {
+  return m_PduSessionId;
+}
 void SmContextCreateData::setPduSessionId(int32_t const value) {
   m_PduSessionId = value;
 }
-std::string SmContextCreateData::getDnn() const { return m_Dnn; }
-void SmContextCreateData::setDnn(std::string const& value) { m_Dnn = value; }
-Snssai SmContextCreateData::getSnssai() const { return m_Snssai; }
-void SmContextCreateData::setSnssai(Snssai const& value) { m_Snssai = value; }
-std::string SmContextCreateData::getNefId() const { return m_NefId; }
+std::string SmContextCreateData::getDnn() const {
+  return m_Dnn;
+}
+void SmContextCreateData::setDnn(std::string const& value) {
+  m_Dnn = value;
+}
+Snssai SmContextCreateData::getSnssai() const {
+  return m_Snssai;
+}
+void SmContextCreateData::setSnssai(Snssai const& value) {
+  m_Snssai = value;
+}
+std::string SmContextCreateData::getNefId() const {
+  return m_NefId;
+}
 void SmContextCreateData::setNefId(std::string const& value) {
   m_NefId = value;
 }
@@ -186,26 +202,38 @@ std::string SmContextCreateData::getNotificationUri() const {
 void SmContextCreateData::setNotificationUri(std::string const& value) {
   m_NotificationUri = value;
 }
-NiddInformation SmContextCreateData::getNiddInfo() const { return m_NiddInfo; }
+NiddInformation SmContextCreateData::getNiddInfo() const {
+  return m_NiddInfo;
+}
 void SmContextCreateData::setNiddInfo(NiddInformation const& value) {
-  m_NiddInfo = value;
+  m_NiddInfo      = value;
   m_NiddInfoIsSet = true;
 }
-bool SmContextCreateData::niddInfoIsSet() const { return m_NiddInfoIsSet; }
-void SmContextCreateData::unsetNiddInfo() { m_NiddInfoIsSet = false; }
-bool SmContextCreateData::isRdsSupport() const { return m_RdsSupport; }
+bool SmContextCreateData::niddInfoIsSet() const {
+  return m_NiddInfoIsSet;
+}
+void SmContextCreateData::unsetNiddInfo() {
+  m_NiddInfoIsSet = false;
+}
+bool SmContextCreateData::isRdsSupport() const {
+  return m_RdsSupport;
+}
 void SmContextCreateData::setRdsSupport(bool const value) {
-  m_RdsSupport = value;
+  m_RdsSupport      = value;
   m_RdsSupportIsSet = true;
 }
-bool SmContextCreateData::rdsSupportIsSet() const { return m_RdsSupportIsSet; }
-void SmContextCreateData::unsetRdsSupport() { m_RdsSupportIsSet = false; }
+bool SmContextCreateData::rdsSupportIsSet() const {
+  return m_RdsSupportIsSet;
+}
+void SmContextCreateData::unsetRdsSupport() {
+  m_RdsSupportIsSet = false;
+}
 SmContextConfiguration SmContextCreateData::getSmContextConfig() const {
   return m_SmContextConfig;
 }
 void SmContextCreateData::setSmContextConfig(
     SmContextConfiguration const& value) {
-  m_SmContextConfig = value;
+  m_SmContextConfig      = value;
   m_SmContextConfigIsSet = true;
 }
 bool SmContextCreateData::smContextConfigIsSet() const {
@@ -218,7 +246,7 @@ std::string SmContextCreateData::getSupportedFeatures() const {
   return m_SupportedFeatures;
 }
 void SmContextCreateData::setSupportedFeatures(std::string const& value) {
-  m_SupportedFeatures = value;
+  m_SupportedFeatures      = value;
   m_SupportedFeaturesIsSet = true;
 }
 bool SmContextCreateData::supportedFeaturesIsSet() const {

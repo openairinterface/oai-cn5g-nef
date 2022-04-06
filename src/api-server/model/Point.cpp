@@ -29,11 +29,13 @@ void Point::validate() const {
   }
 }
 
-bool Point::validate(std::stringstream& msg) const { return validate(msg, ""); }
+bool Point::validate(std::stringstream& msg) const {
+  return validate(msg, "");
+}
 
-bool Point::validate(std::stringstream& msg,
-                     const std::string& pathPrefix) const {
-  bool success = true;
+bool Point::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Point" : pathPrefix;
 
   return success;
@@ -49,10 +51,12 @@ bool Point::operator==(const Point& rhs) const {
           ;
 }
 
-bool Point::operator!=(const Point& rhs) const { return !(*this == rhs); }
+bool Point::operator!=(const Point& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const Point& o) {
-  j = nlohmann::json();
+  j          = nlohmann::json();
   j["shape"] = o.m_Shape;
   j["point"] = o.m_Point;
 }
@@ -62,9 +66,17 @@ void from_json(const nlohmann::json& j, Point& o) {
   j.at("point").get_to(o.m_Point);
 }
 
-SupportedGADShapes Point::getShape() const { return m_Shape; }
-void Point::setShape(SupportedGADShapes const& value) { m_Shape = value; }
-GeographicalCoordinates Point::getPoint() const { return m_Point; }
-void Point::setPoint(GeographicalCoordinates const& value) { m_Point = value; }
+SupportedGADShapes Point::getShape() const {
+  return m_Shape;
+}
+void Point::setShape(SupportedGADShapes const& value) {
+  m_Shape = value;
+}
+GeographicalCoordinates Point::getPoint() const {
+  return m_Point;
+}
+void Point::setPoint(GeographicalCoordinates const& value) {
+  m_Point = value;
+}
 
 }  // namespace oai::nef::model

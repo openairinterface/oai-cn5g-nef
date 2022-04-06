@@ -32,8 +32,8 @@ bool TransportProtocol::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TransportProtocol::validate(std::stringstream& msg,
-                                 const std::string& pathPrefix) const {
+bool TransportProtocol::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TransportProtocol" : pathPrefix;
@@ -63,7 +63,9 @@ void from_json(const nlohmann::json& j, TransportProtocol& o) {
   from_json(j, o.m_value);
 }
 
-TransportProtocol_anyOf TransportProtocol::getValue() const { return m_value; }
+TransportProtocol_anyOf TransportProtocol::getValue() const {
+  return m_value;
+}
 
 void TransportProtocol::setValue(TransportProtocol_anyOf value) {
   m_value = value;

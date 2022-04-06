@@ -40,12 +40,12 @@ void IndividualSubscriptionDocumentApiImpl::delete_individual_subcription(
       "Got a request to remove an existing subscription, subscription ID %s",
       subscriptionId.c_str());
 
-  int http_code = 0;
+  int http_code                  = 0;
   ProblemDetails problem_details = {};
-  uint8_t http_version = 1;
+  uint8_t http_version           = 1;
 
-  m_nef_app->handle_remove_individual_subscription(subscriptionId, http_version,
-                                                   http_code, problem_details);
+  m_nef_app->handle_remove_individual_subscription(
+      subscriptionId, http_version, http_code, problem_details);
 
   nlohmann::json json_data = {};
   std::string content_type = "application/json";
@@ -73,10 +73,10 @@ void IndividualSubscriptionDocumentApiImpl::get_individual_subcription(
       "Got a request to Get a subscription information, Sub Id: %s",
       subscriptionId.c_str());
 
-  int http_code = 0;
+  int http_code                  = 0;
   ProblemDetails problem_details = {};
-  uint8_t http_version = 1;
-  nlohmann::json json_data = {};
+  uint8_t http_version           = 1;
+  nlohmann::json json_data       = {};
 
   m_nef_app->handle_get_individual_subscription(
       subscriptionId, json_data, http_version, http_code, problem_details);
@@ -101,14 +101,15 @@ void IndividualSubscriptionDocumentApiImpl::replace_individual_subcription(
     const NefEventExposureSubsc& nefEventExposureSubsc,
     Pistache::Http::ResponseWriter& response) {
   Logger::nef_sbi().info("");
-  Logger::nef_sbi().info("Got a request to update a subscription, Sub Id: %s",
-                         subscriptionId.c_str());
+  Logger::nef_sbi().info(
+      "Got a request to update a subscription, Sub Id: %s",
+      subscriptionId.c_str());
 
-  int http_code = 0;
-  ProblemDetails problem_details = {};
-  uint8_t http_version = 1;
+  int http_code                        = 0;
+  ProblemDetails problem_details       = {};
+  uint8_t http_version                 = 1;
   NefEventExposureSubsc updated_ev_sub = {};
-  nlohmann::json json_data = {};
+  nlohmann::json json_data             = {};
 
   m_nef_app->handle_update_individual_subscription(
       subscriptionId, nefEventExposureSubsc, json_data, http_version,

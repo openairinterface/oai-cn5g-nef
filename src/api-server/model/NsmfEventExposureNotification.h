@@ -70,10 +70,10 @@ class NsmfEventExposureNotification {
   std::vector<EventNotification> getEventNotifs() const;
   void setEventNotifs(std::vector<EventNotification> const& value);
 
-  friend void to_json(nlohmann::json& j,
-                      const NsmfEventExposureNotification& o);
-  friend void from_json(const nlohmann::json& j,
-                        NsmfEventExposureNotification& o);
+  friend void to_json(
+      nlohmann::json& j, const NsmfEventExposureNotification& o);
+  friend void from_json(
+      const nlohmann::json& j, NsmfEventExposureNotification& o);
 
  protected:
   std::string m_NotifId;

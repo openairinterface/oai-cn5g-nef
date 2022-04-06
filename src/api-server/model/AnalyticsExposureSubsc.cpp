@@ -20,15 +20,15 @@
 namespace oai::nef::model {
 
 AnalyticsExposureSubsc::AnalyticsExposureSubsc() {
-  m_AnalyRepInfoIsSet = false;
-  m_NotifUri = "";
-  m_NotifId = "";
-  m_EventNotifisIsSet = false;
+  m_AnalyRepInfoIsSet     = false;
+  m_NotifUri              = "";
+  m_NotifId               = "";
+  m_EventNotifisIsSet     = false;
   m_FailEventReportsIsSet = false;
-  m_SuppFeat = "";
-  m_SuppFeatIsSet = false;
-  m_Self = "";
-  m_SelfIsSet = false;
+  m_SuppFeat              = "";
+  m_SuppFeatIsSet         = false;
+  m_Self                  = "";
+  m_SelfIsSet             = false;
 }
 
 void AnalyticsExposureSubsc::validate() const {
@@ -42,8 +42,8 @@ bool AnalyticsExposureSubsc::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsExposureSubsc::validate(std::stringstream& msg,
-                                      const std::string& pathPrefix) const {
+bool AnalyticsExposureSubsc::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsExposureSubsc" : pathPrefix;
@@ -58,7 +58,7 @@ bool AnalyticsExposureSubsc::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AnalyticsEventSubsc& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -81,7 +81,7 @@ bool AnalyticsExposureSubsc::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AnalyticsEventNotif& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -104,7 +104,7 @@ bool AnalyticsExposureSubsc::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AnalyticsFailureEventInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -118,7 +118,7 @@ bool AnalyticsExposureSubsc::validate(std::stringstream& msg,
   }
 
   if (suppFeatIsSet()) {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -163,11 +163,11 @@ bool AnalyticsExposureSubsc::operator!=(
 }
 
 void to_json(nlohmann::json& j, const AnalyticsExposureSubsc& o) {
-  j = nlohmann::json();
+  j                    = nlohmann::json();
   j["analyEventsSubs"] = o.m_AnalyEventsSubs;
   if (o.analyRepInfoIsSet()) j["analyRepInfo"] = o.m_AnalyRepInfo;
   j["notifUri"] = o.m_NotifUri;
-  j["notifId"] = o.m_NotifId;
+  j["notifId"]  = o.m_NotifId;
   if (o.eventNotifisIsSet() || !o.m_EventNotifis.empty())
     j["eventNotifis"] = o.m_EventNotifis;
   if (o.failEventReportsIsSet() || !o.m_FailEventReports.empty())
@@ -215,7 +215,7 @@ ReportingInformation AnalyticsExposureSubsc::getAnalyRepInfo() const {
 }
 void AnalyticsExposureSubsc::setAnalyRepInfo(
     ReportingInformation const& value) {
-  m_AnalyRepInfo = value;
+  m_AnalyRepInfo      = value;
   m_AnalyRepInfoIsSet = true;
 }
 bool AnalyticsExposureSubsc::analyRepInfoIsSet() const {
@@ -224,11 +224,15 @@ bool AnalyticsExposureSubsc::analyRepInfoIsSet() const {
 void AnalyticsExposureSubsc::unsetAnalyRepInfo() {
   m_AnalyRepInfoIsSet = false;
 }
-std::string AnalyticsExposureSubsc::getNotifUri() const { return m_NotifUri; }
+std::string AnalyticsExposureSubsc::getNotifUri() const {
+  return m_NotifUri;
+}
 void AnalyticsExposureSubsc::setNotifUri(std::string const& value) {
   m_NotifUri = value;
 }
-std::string AnalyticsExposureSubsc::getNotifId() const { return m_NotifId; }
+std::string AnalyticsExposureSubsc::getNotifId() const {
+  return m_NotifId;
+}
 void AnalyticsExposureSubsc::setNotifId(std::string const& value) {
   m_NotifId = value;
 }
@@ -238,7 +242,7 @@ std::vector<AnalyticsEventNotif> AnalyticsExposureSubsc::getEventNotifis()
 }
 void AnalyticsExposureSubsc::setEventNotifis(
     std::vector<AnalyticsEventNotif> const& value) {
-  m_EventNotifis = value;
+  m_EventNotifis      = value;
   m_EventNotifisIsSet = true;
 }
 bool AnalyticsExposureSubsc::eventNotifisIsSet() const {
@@ -253,7 +257,7 @@ AnalyticsExposureSubsc::getFailEventReports() const {
 }
 void AnalyticsExposureSubsc::setFailEventReports(
     std::vector<AnalyticsFailureEventInfo> const& value) {
-  m_FailEventReports = value;
+  m_FailEventReports      = value;
   m_FailEventReportsIsSet = true;
 }
 bool AnalyticsExposureSubsc::failEventReportsIsSet() const {
@@ -262,19 +266,31 @@ bool AnalyticsExposureSubsc::failEventReportsIsSet() const {
 void AnalyticsExposureSubsc::unsetFailEventReports() {
   m_FailEventReportsIsSet = false;
 }
-std::string AnalyticsExposureSubsc::getSuppFeat() const { return m_SuppFeat; }
+std::string AnalyticsExposureSubsc::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void AnalyticsExposureSubsc::setSuppFeat(std::string const& value) {
-  m_SuppFeat = value;
+  m_SuppFeat      = value;
   m_SuppFeatIsSet = true;
 }
-bool AnalyticsExposureSubsc::suppFeatIsSet() const { return m_SuppFeatIsSet; }
-void AnalyticsExposureSubsc::unsetSuppFeat() { m_SuppFeatIsSet = false; }
-std::string AnalyticsExposureSubsc::getSelf() const { return m_Self; }
+bool AnalyticsExposureSubsc::suppFeatIsSet() const {
+  return m_SuppFeatIsSet;
+}
+void AnalyticsExposureSubsc::unsetSuppFeat() {
+  m_SuppFeatIsSet = false;
+}
+std::string AnalyticsExposureSubsc::getSelf() const {
+  return m_Self;
+}
 void AnalyticsExposureSubsc::setSelf(std::string const& value) {
-  m_Self = value;
+  m_Self      = value;
   m_SelfIsSet = true;
 }
-bool AnalyticsExposureSubsc::selfIsSet() const { return m_SelfIsSet; }
-void AnalyticsExposureSubsc::unsetSelf() { m_SelfIsSet = false; }
+bool AnalyticsExposureSubsc::selfIsSet() const {
+  return m_SelfIsSet;
+}
+void AnalyticsExposureSubsc::unsetSelf() {
+  m_SelfIsSet = false;
+}
 
 }  // namespace oai::nef::model

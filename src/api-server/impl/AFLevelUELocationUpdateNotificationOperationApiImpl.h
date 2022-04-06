@@ -45,8 +45,9 @@ class AFLevelUELocationUpdateNotificationOperationApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~AFLevelUELocationUpdateNotificationOperationApiImpl() override = default;
 
-  void root_post(const LocUpdateData& locUpdateData,
-                 Pistache::Http::ResponseWriter& response);
+  void root_post(
+      const LocUpdateData& locUpdateData,
+      Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

@@ -20,11 +20,11 @@
 namespace oai::nef::model {
 
 ServiceExperienceInfoPerFlow::ServiceExperienceInfoPerFlow() {
-  m_SvcExprcIsSet = false;
-  m_TimeIntevIsSet = false;
-  m_Dnai = "";
-  m_DnaiIsSet = false;
-  m_IpTrafficFilterIsSet = false;
+  m_SvcExprcIsSet         = false;
+  m_TimeIntevIsSet        = false;
+  m_Dnai                  = "";
+  m_DnaiIsSet             = false;
+  m_IpTrafficFilterIsSet  = false;
   m_EthTrafficFilterIsSet = false;
 }
 
@@ -115,18 +115,20 @@ SvcExperience ServiceExperienceInfoPerFlow::getSvcExprc() const {
   return m_SvcExprc;
 }
 void ServiceExperienceInfoPerFlow::setSvcExprc(SvcExperience const& value) {
-  m_SvcExprc = value;
+  m_SvcExprc      = value;
   m_SvcExprcIsSet = true;
 }
 bool ServiceExperienceInfoPerFlow::svcExprcIsSet() const {
   return m_SvcExprcIsSet;
 }
-void ServiceExperienceInfoPerFlow::unsetSvcExprc() { m_SvcExprcIsSet = false; }
+void ServiceExperienceInfoPerFlow::unsetSvcExprc() {
+  m_SvcExprcIsSet = false;
+}
 TimeWindow ServiceExperienceInfoPerFlow::getTimeIntev() const {
   return m_TimeIntev;
 }
 void ServiceExperienceInfoPerFlow::setTimeIntev(TimeWindow const& value) {
-  m_TimeIntev = value;
+  m_TimeIntev      = value;
   m_TimeIntevIsSet = true;
 }
 bool ServiceExperienceInfoPerFlow::timeIntevIsSet() const {
@@ -135,18 +137,24 @@ bool ServiceExperienceInfoPerFlow::timeIntevIsSet() const {
 void ServiceExperienceInfoPerFlow::unsetTimeIntev() {
   m_TimeIntevIsSet = false;
 }
-std::string ServiceExperienceInfoPerFlow::getDnai() const { return m_Dnai; }
+std::string ServiceExperienceInfoPerFlow::getDnai() const {
+  return m_Dnai;
+}
 void ServiceExperienceInfoPerFlow::setDnai(std::string const& value) {
-  m_Dnai = value;
+  m_Dnai      = value;
   m_DnaiIsSet = true;
 }
-bool ServiceExperienceInfoPerFlow::dnaiIsSet() const { return m_DnaiIsSet; }
-void ServiceExperienceInfoPerFlow::unsetDnai() { m_DnaiIsSet = false; }
+bool ServiceExperienceInfoPerFlow::dnaiIsSet() const {
+  return m_DnaiIsSet;
+}
+void ServiceExperienceInfoPerFlow::unsetDnai() {
+  m_DnaiIsSet = false;
+}
 FlowInfo ServiceExperienceInfoPerFlow::getIpTrafficFilter() const {
   return m_IpTrafficFilter;
 }
 void ServiceExperienceInfoPerFlow::setIpTrafficFilter(FlowInfo const& value) {
-  m_IpTrafficFilter = value;
+  m_IpTrafficFilter      = value;
   m_IpTrafficFilterIsSet = true;
 }
 bool ServiceExperienceInfoPerFlow::ipTrafficFilterIsSet() const {
@@ -160,7 +168,7 @@ EthFlowDescription ServiceExperienceInfoPerFlow::getEthTrafficFilter() const {
 }
 void ServiceExperienceInfoPerFlow::setEthTrafficFilter(
     EthFlowDescription const& value) {
-  m_EthTrafficFilter = value;
+  m_EthTrafficFilter      = value;
   m_EthTrafficFilterIsSet = true;
 }
 bool ServiceExperienceInfoPerFlow::ethTrafficFilterIsSet() const {

@@ -21,7 +21,7 @@ namespace oai::nef::model {
 
 ConfigResult::ConfigResult() {
   m_ExternalIdsIsSet = false;
-  m_MsisdnsIsSet = false;
+  m_MsisdnsIsSet     = false;
 }
 
 void ConfigResult::validate() const {
@@ -35,15 +35,15 @@ bool ConfigResult::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ConfigResult::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool ConfigResult::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ConfigResult" : pathPrefix;
 
   if (externalIdsIsSet()) {
     const std::vector<std::string>& value = m_ExternalIds;
-    const std::string currentValuePath = _pathPrefix + ".externalIds";
+    const std::string currentValuePath    = _pathPrefix + ".externalIds";
 
     if (value.size() < 1) {
       success = false;
@@ -51,7 +51,7 @@ bool ConfigResult::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -63,7 +63,7 @@ bool ConfigResult::validate(std::stringstream& msg,
 
   if (msisdnsIsSet()) {
     const std::vector<std::string>& value = m_Msisdns;
-    const std::string currentValuePath = _pathPrefix + ".msisdns";
+    const std::string currentValuePath    = _pathPrefix + ".msisdns";
 
     if (value.size() < 1) {
       success = false;
@@ -71,7 +71,7 @@ bool ConfigResult::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -128,19 +128,31 @@ std::vector<std::string> ConfigResult::getExternalIds() const {
   return m_ExternalIds;
 }
 void ConfigResult::setExternalIds(std::vector<std::string> const& value) {
-  m_ExternalIds = value;
+  m_ExternalIds      = value;
   m_ExternalIdsIsSet = true;
 }
-bool ConfigResult::externalIdsIsSet() const { return m_ExternalIdsIsSet; }
-void ConfigResult::unsetExternalIds() { m_ExternalIdsIsSet = false; }
-std::vector<std::string> ConfigResult::getMsisdns() const { return m_Msisdns; }
+bool ConfigResult::externalIdsIsSet() const {
+  return m_ExternalIdsIsSet;
+}
+void ConfigResult::unsetExternalIds() {
+  m_ExternalIdsIsSet = false;
+}
+std::vector<std::string> ConfigResult::getMsisdns() const {
+  return m_Msisdns;
+}
 void ConfigResult::setMsisdns(std::vector<std::string> const& value) {
-  m_Msisdns = value;
+  m_Msisdns      = value;
   m_MsisdnsIsSet = true;
 }
-bool ConfigResult::msisdnsIsSet() const { return m_MsisdnsIsSet; }
-void ConfigResult::unsetMsisdns() { m_MsisdnsIsSet = false; }
-ResultReason ConfigResult::getResultReason() const { return m_ResultReason; }
+bool ConfigResult::msisdnsIsSet() const {
+  return m_MsisdnsIsSet;
+}
+void ConfigResult::unsetMsisdns() {
+  m_MsisdnsIsSet = false;
+}
+ResultReason ConfigResult::getResultReason() const {
+  return m_ResultReason;
+}
 void ConfigResult::setResultReason(ResultReason const& value) {
   m_ResultReason = value;
 }

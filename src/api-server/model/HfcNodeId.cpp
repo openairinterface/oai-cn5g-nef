@@ -19,7 +19,9 @@
 
 namespace oai::nef::model {
 
-HfcNodeId::HfcNodeId() { m_HfcNId = ""; }
+HfcNodeId::HfcNodeId() {
+  m_HfcNId = "";
+}
 
 void HfcNodeId::validate() const {
   std::stringstream msg;
@@ -32,13 +34,13 @@ bool HfcNodeId::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool HfcNodeId::validate(std::stringstream& msg,
-                         const std::string& pathPrefix) const {
-  bool success = true;
+bool HfcNodeId::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "HfcNodeId" : pathPrefix;
 
   /* HfcNId */ {
-    const std::string& value = m_HfcNId;
+    const std::string& value           = m_HfcNId;
     const std::string currentValuePath = _pathPrefix + ".hfcNId";
 
     if (value.length() > 6) {
@@ -63,7 +65,7 @@ bool HfcNodeId::operator!=(const HfcNodeId& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const HfcNodeId& o) {
-  j = nlohmann::json();
+  j           = nlohmann::json();
   j["hfcNId"] = o.m_HfcNId;
 }
 
@@ -71,7 +73,11 @@ void from_json(const nlohmann::json& j, HfcNodeId& o) {
   j.at("hfcNId").get_to(o.m_HfcNId);
 }
 
-std::string HfcNodeId::getHfcNId() const { return m_HfcNId; }
-void HfcNodeId::setHfcNId(std::string const& value) { m_HfcNId = value; }
+std::string HfcNodeId::getHfcNId() const {
+  return m_HfcNId;
+}
+void HfcNodeId::setHfcNId(std::string const& value) {
+  m_HfcNId = value;
+}
 
 }  // namespace oai::nef::model

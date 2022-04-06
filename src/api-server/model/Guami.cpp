@@ -19,7 +19,9 @@
 
 namespace oai::nef::model {
 
-Guami::Guami() { m_AmfId = ""; }
+Guami::Guami() {
+  m_AmfId = "";
+}
 
 void Guami::validate() const {
   std::stringstream msg;
@@ -28,15 +30,17 @@ void Guami::validate() const {
   }
 }
 
-bool Guami::validate(std::stringstream& msg) const { return validate(msg, ""); }
+bool Guami::validate(std::stringstream& msg) const {
+  return validate(msg, "");
+}
 
-bool Guami::validate(std::stringstream& msg,
-                     const std::string& pathPrefix) const {
-  bool success = true;
+bool Guami::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Guami" : pathPrefix;
 
   /* AmfId */ {
-    const std::string& value = m_AmfId;
+    const std::string& value           = m_AmfId;
     const std::string currentValuePath = _pathPrefix + ".amfId";
   }
 
@@ -53,12 +57,14 @@ bool Guami::operator==(const Guami& rhs) const {
           ;
 }
 
-bool Guami::operator!=(const Guami& rhs) const { return !(*this == rhs); }
+bool Guami::operator!=(const Guami& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const Guami& o) {
-  j = nlohmann::json();
+  j           = nlohmann::json();
   j["plmnId"] = o.m_PlmnId;
-  j["amfId"] = o.m_AmfId;
+  j["amfId"]  = o.m_AmfId;
 }
 
 void from_json(const nlohmann::json& j, Guami& o) {
@@ -66,9 +72,17 @@ void from_json(const nlohmann::json& j, Guami& o) {
   j.at("amfId").get_to(o.m_AmfId);
 }
 
-PlmnIdNid Guami::getPlmnId() const { return m_PlmnId; }
-void Guami::setPlmnId(PlmnIdNid const& value) { m_PlmnId = value; }
-std::string Guami::getAmfId() const { return m_AmfId; }
-void Guami::setAmfId(std::string const& value) { m_AmfId = value; }
+PlmnIdNid Guami::getPlmnId() const {
+  return m_PlmnId;
+}
+void Guami::setPlmnId(PlmnIdNid const& value) {
+  m_PlmnId = value;
+}
+std::string Guami::getAmfId() const {
+  return m_AmfId;
+}
+void Guami::setAmfId(std::string const& value) {
+  m_AmfId = value;
+}
 
 }  // namespace oai::nef::model

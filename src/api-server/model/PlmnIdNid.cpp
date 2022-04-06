@@ -20,9 +20,9 @@
 namespace oai::nef::model {
 
 PlmnIdNid::PlmnIdNid() {
-  m_Mcc = "";
-  m_Mnc = "";
-  m_Nid = "";
+  m_Mcc      = "";
+  m_Mnc      = "";
+  m_Nid      = "";
   m_NidIsSet = false;
 }
 
@@ -37,23 +37,23 @@ bool PlmnIdNid::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PlmnIdNid::validate(std::stringstream& msg,
-                         const std::string& pathPrefix) const {
-  bool success = true;
+bool PlmnIdNid::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "PlmnIdNid" : pathPrefix;
 
   /* Mcc */ {
-    const std::string& value = m_Mcc;
+    const std::string& value           = m_Mcc;
     const std::string currentValuePath = _pathPrefix + ".mcc";
   }
 
   /* Mnc */ {
-    const std::string& value = m_Mnc;
+    const std::string& value           = m_Mnc;
     const std::string currentValuePath = _pathPrefix + ".mnc";
   }
 
   if (nidIsSet()) {
-    const std::string& value = m_Nid;
+    const std::string& value           = m_Nid;
     const std::string currentValuePath = _pathPrefix + ".nid";
   }
 
@@ -78,7 +78,7 @@ bool PlmnIdNid::operator!=(const PlmnIdNid& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const PlmnIdNid& o) {
-  j = nlohmann::json();
+  j        = nlohmann::json();
   j["mcc"] = o.m_Mcc;
   j["mnc"] = o.m_Mnc;
   if (o.nidIsSet()) j["nid"] = o.m_Nid;
@@ -93,16 +93,30 @@ void from_json(const nlohmann::json& j, PlmnIdNid& o) {
   }
 }
 
-std::string PlmnIdNid::getMcc() const { return m_Mcc; }
-void PlmnIdNid::setMcc(std::string const& value) { m_Mcc = value; }
-std::string PlmnIdNid::getMnc() const { return m_Mnc; }
-void PlmnIdNid::setMnc(std::string const& value) { m_Mnc = value; }
-std::string PlmnIdNid::getNid() const { return m_Nid; }
+std::string PlmnIdNid::getMcc() const {
+  return m_Mcc;
+}
+void PlmnIdNid::setMcc(std::string const& value) {
+  m_Mcc = value;
+}
+std::string PlmnIdNid::getMnc() const {
+  return m_Mnc;
+}
+void PlmnIdNid::setMnc(std::string const& value) {
+  m_Mnc = value;
+}
+std::string PlmnIdNid::getNid() const {
+  return m_Nid;
+}
 void PlmnIdNid::setNid(std::string const& value) {
-  m_Nid = value;
+  m_Nid      = value;
   m_NidIsSet = true;
 }
-bool PlmnIdNid::nidIsSet() const { return m_NidIsSet; }
-void PlmnIdNid::unsetNid() { m_NidIsSet = false; }
+bool PlmnIdNid::nidIsSet() const {
+  return m_NidIsSet;
+}
+void PlmnIdNid::unsetNid() {
+  m_NidIsSet = false;
+}
 
 }  // namespace oai::nef::model

@@ -42,8 +42,9 @@ class DefaultApiImpl : public oai::nef::api::DefaultApi {
   explicit DefaultApiImpl(const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~DefaultApiImpl() override = default;
 
-  void root_post(const NiddConfigurationTrigger& niddConfigurationTrigger,
-                 Pistache::Http::ResponseWriter& response);
+  void root_post(
+      const NiddConfigurationTrigger& niddConfigurationTrigger,
+      Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

@@ -29,7 +29,9 @@ IndividualSubscriptionDocumentApi::IndividualSubscriptionDocumentApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void IndividualSubscriptionDocumentApi::init() { setupRoutes(); }
+void IndividualSubscriptionDocumentApi::init() {
+  setupRoutes();
+}
 
 void IndividualSubscriptionDocumentApi::setupRoutes() {
   using namespace Pistache::Rest;
@@ -37,25 +39,30 @@ void IndividualSubscriptionDocumentApi::setupRoutes() {
   Routes::Delete(
       *router,
       base + nef_cfg.sbi.api_version + "/subscriptions/:subscriptionId",
-      Routes::bind(&IndividualSubscriptionDocumentApi::
-                       delete_individual_subcription_handler,
-                   this));
-  Routes::Get(*router,
-              base + nef_cfg.sbi.api_version + "/subscriptions/:subscriptionId",
-              Routes::bind(&IndividualSubscriptionDocumentApi::
-                               get_individual_subcription_handler,
-                           this));
-  Routes::Put(*router,
-              base + nef_cfg.sbi.api_version + "/subscriptions/:subscriptionId",
-              Routes::bind(&IndividualSubscriptionDocumentApi::
-                               replace_individual_subcription_handler,
-                           this));
+      Routes::bind(
+          &IndividualSubscriptionDocumentApi::
+              delete_individual_subcription_handler,
+          this));
+  Routes::Get(
+      *router,
+      base + nef_cfg.sbi.api_version + "/subscriptions/:subscriptionId",
+      Routes::bind(
+          &IndividualSubscriptionDocumentApi::
+              get_individual_subcription_handler,
+          this));
+  Routes::Put(
+      *router,
+      base + nef_cfg.sbi.api_version + "/subscriptions/:subscriptionId",
+      Routes::bind(
+          &IndividualSubscriptionDocumentApi::
+              replace_individual_subcription_handler,
+          this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(
-      Routes::bind(&IndividualSubscriptionDocumentApi::
-                       individual_subscription_document_api_default_handler,
-                   this));
+  router->addCustomHandler(Routes::bind(
+      &IndividualSubscriptionDocumentApi::
+          individual_subscription_document_api_default_handler,
+      this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -68,8 +75,8 @@ IndividualSubscriptionDocumentApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
-                          e.what());
+    return std::make_pair(
+        Pistache::Http::Code::Internal_Server_Error, e.what());
   }
 }
 
@@ -157,8 +164,8 @@ void IndividualSubscriptionDocumentApi::replace_individual_subcription_handler(
     }
 
     try {
-      this->replace_individual_subcription(subscriptionId,
-                                           nefEventExposureSubsc, response);
+      this->replace_individual_subcription(
+          subscriptionId, nefEventExposureSubsc, response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -178,8 +185,8 @@ void IndividualSubscriptionDocumentApi::
     individual_subscription_document_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(Pistache::Http::Code::Not_Found,
-                "The requested method does not exist");
+  response.send(
+      Pistache::Http::Code::Not_Found, "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 CellGlobalId::CellGlobalId() {
-  m_Lac = "";
+  m_Lac    = "";
   m_CellId = "";
 }
 
@@ -35,19 +35,19 @@ bool CellGlobalId::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CellGlobalId::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool CellGlobalId::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CellGlobalId" : pathPrefix;
 
   /* Lac */ {
-    const std::string& value = m_Lac;
+    const std::string& value           = m_Lac;
     const std::string currentValuePath = _pathPrefix + ".lac";
   }
 
   /* CellId */ {
-    const std::string& value = m_CellId;
+    const std::string& value           = m_CellId;
     const std::string currentValuePath = _pathPrefix + ".cellId";
   }
 
@@ -71,9 +71,9 @@ bool CellGlobalId::operator!=(const CellGlobalId& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const CellGlobalId& o) {
-  j = nlohmann::json();
+  j           = nlohmann::json();
   j["plmnId"] = o.m_PlmnId;
-  j["lac"] = o.m_Lac;
+  j["lac"]    = o.m_Lac;
   j["cellId"] = o.m_CellId;
 }
 
@@ -83,11 +83,23 @@ void from_json(const nlohmann::json& j, CellGlobalId& o) {
   j.at("cellId").get_to(o.m_CellId);
 }
 
-PlmnId CellGlobalId::getPlmnId() const { return m_PlmnId; }
-void CellGlobalId::setPlmnId(PlmnId const& value) { m_PlmnId = value; }
-std::string CellGlobalId::getLac() const { return m_Lac; }
-void CellGlobalId::setLac(std::string const& value) { m_Lac = value; }
-std::string CellGlobalId::getCellId() const { return m_CellId; }
-void CellGlobalId::setCellId(std::string const& value) { m_CellId = value; }
+PlmnId CellGlobalId::getPlmnId() const {
+  return m_PlmnId;
+}
+void CellGlobalId::setPlmnId(PlmnId const& value) {
+  m_PlmnId = value;
+}
+std::string CellGlobalId::getLac() const {
+  return m_Lac;
+}
+void CellGlobalId::setLac(std::string const& value) {
+  m_Lac = value;
+}
+std::string CellGlobalId::getCellId() const {
+  return m_CellId;
+}
+void CellGlobalId::setCellId(std::string const& value) {
+  m_CellId = value;
+}
 
 }  // namespace oai::nef::model

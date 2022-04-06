@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 TemporalValidity::TemporalValidity() {
-  m_StartTime = "";
+  m_StartTime      = "";
   m_StartTimeIsSet = false;
-  m_StopTime = "";
-  m_StopTimeIsSet = false;
+  m_StopTime       = "";
+  m_StopTimeIsSet  = false;
 }
 
 void TemporalValidity::validate() const {
@@ -37,8 +37,8 @@ bool TemporalValidity::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TemporalValidity::validate(std::stringstream& msg,
-                                const std::string& pathPrefix) const {
+bool TemporalValidity::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TemporalValidity" : pathPrefix;
@@ -81,19 +81,31 @@ void from_json(const nlohmann::json& j, TemporalValidity& o) {
   }
 }
 
-std::string TemporalValidity::getStartTime() const { return m_StartTime; }
+std::string TemporalValidity::getStartTime() const {
+  return m_StartTime;
+}
 void TemporalValidity::setStartTime(std::string const& value) {
-  m_StartTime = value;
+  m_StartTime      = value;
   m_StartTimeIsSet = true;
 }
-bool TemporalValidity::startTimeIsSet() const { return m_StartTimeIsSet; }
-void TemporalValidity::unsetStartTime() { m_StartTimeIsSet = false; }
-std::string TemporalValidity::getStopTime() const { return m_StopTime; }
+bool TemporalValidity::startTimeIsSet() const {
+  return m_StartTimeIsSet;
+}
+void TemporalValidity::unsetStartTime() {
+  m_StartTimeIsSet = false;
+}
+std::string TemporalValidity::getStopTime() const {
+  return m_StopTime;
+}
 void TemporalValidity::setStopTime(std::string const& value) {
-  m_StopTime = value;
+  m_StopTime      = value;
   m_StopTimeIsSet = true;
 }
-bool TemporalValidity::stopTimeIsSet() const { return m_StopTimeIsSet; }
-void TemporalValidity::unsetStopTime() { m_StopTimeIsSet = false; }
+bool TemporalValidity::stopTimeIsSet() const {
+  return m_StopTimeIsSet;
+}
+void TemporalValidity::unsetStopTime() {
+  m_StopTimeIsSet = false;
+}
 
 }  // namespace oai::nef::model

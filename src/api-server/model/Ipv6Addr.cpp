@@ -32,9 +32,9 @@ bool Ipv6Addr::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Ipv6Addr::validate(std::stringstream& msg,
-                        const std::string& pathPrefix) const {
-  bool success = true;
+bool Ipv6Addr::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Ipv6Addr" : pathPrefix;
 
   return success;
@@ -46,9 +46,13 @@ bool Ipv6Addr::operator==(const Ipv6Addr& rhs) const {
       ;
 }
 
-bool Ipv6Addr::operator!=(const Ipv6Addr& rhs) const { return !(*this == rhs); }
+bool Ipv6Addr::operator!=(const Ipv6Addr& rhs) const {
+  return !(*this == rhs);
+}
 
-void to_json(nlohmann::json& j, const Ipv6Addr& o) { j = nlohmann::json(); }
+void to_json(nlohmann::json& j, const Ipv6Addr& o) {
+  j = nlohmann::json();
+}
 
 void from_json(const nlohmann::json& j, Ipv6Addr& o) {}
 

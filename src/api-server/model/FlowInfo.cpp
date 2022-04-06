@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 FlowInfo::FlowInfo() {
-  m_FlowId = 0;
+  m_FlowId                = 0;
   m_FlowDescriptionsIsSet = false;
 }
 
@@ -35,14 +35,14 @@ bool FlowInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool FlowInfo::validate(std::stringstream& msg,
-                        const std::string& pathPrefix) const {
-  bool success = true;
+bool FlowInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "FlowInfo" : pathPrefix;
 
   if (flowDescriptionsIsSet()) {
     const std::vector<std::string>& value = m_FlowDescriptions;
-    const std::string currentValuePath = _pathPrefix + ".flowDescriptions";
+    const std::string currentValuePath    = _pathPrefix + ".flowDescriptions";
 
     if (value.size() < 1) {
       success = false;
@@ -54,7 +54,7 @@ bool FlowInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -79,10 +79,12 @@ bool FlowInfo::operator==(const FlowInfo& rhs) const {
           ;
 }
 
-bool FlowInfo::operator!=(const FlowInfo& rhs) const { return !(*this == rhs); }
+bool FlowInfo::operator!=(const FlowInfo& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const FlowInfo& o) {
-  j = nlohmann::json();
+  j           = nlohmann::json();
   j["flowId"] = o.m_FlowId;
   if (o.flowDescriptionsIsSet() || !o.m_FlowDescriptions.empty())
     j["flowDescriptions"] = o.m_FlowDescriptions;
@@ -96,16 +98,24 @@ void from_json(const nlohmann::json& j, FlowInfo& o) {
   }
 }
 
-int32_t FlowInfo::getFlowId() const { return m_FlowId; }
-void FlowInfo::setFlowId(int32_t const value) { m_FlowId = value; }
+int32_t FlowInfo::getFlowId() const {
+  return m_FlowId;
+}
+void FlowInfo::setFlowId(int32_t const value) {
+  m_FlowId = value;
+}
 std::vector<std::string> FlowInfo::getFlowDescriptions() const {
   return m_FlowDescriptions;
 }
 void FlowInfo::setFlowDescriptions(std::vector<std::string> const& value) {
-  m_FlowDescriptions = value;
+  m_FlowDescriptions      = value;
   m_FlowDescriptionsIsSet = true;
 }
-bool FlowInfo::flowDescriptionsIsSet() const { return m_FlowDescriptionsIsSet; }
-void FlowInfo::unsetFlowDescriptions() { m_FlowDescriptionsIsSet = false; }
+bool FlowInfo::flowDescriptionsIsSet() const {
+  return m_FlowDescriptionsIsSet;
+}
+void FlowInfo::unsetFlowDescriptions() {
+  m_FlowDescriptionsIsSet = false;
+}
 
 }  // namespace oai::nef::model

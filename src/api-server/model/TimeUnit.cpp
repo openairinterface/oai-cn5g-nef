@@ -32,9 +32,9 @@ bool TimeUnit::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TimeUnit::validate(std::stringstream& msg,
-                        const std::string& pathPrefix) const {
-  bool success = true;
+bool TimeUnit::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "TimeUnit" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -49,7 +49,9 @@ bool TimeUnit::operator==(const TimeUnit& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool TimeUnit::operator!=(const TimeUnit& rhs) const { return !(*this == rhs); }
+bool TimeUnit::operator!=(const TimeUnit& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const TimeUnit& o) {
   j = nlohmann::json();
@@ -60,9 +62,13 @@ void from_json(const nlohmann::json& j, TimeUnit& o) {
   from_json(j, o.m_value);
 }
 
-TimeUnit_anyOf TimeUnit::getValue() const { return m_value; }
+TimeUnit_anyOf TimeUnit::getValue() const {
+  return m_value;
+}
 
-void TimeUnit::setValue(TimeUnit_anyOf value) { m_value = value; }
+void TimeUnit::setValue(TimeUnit_anyOf value) {
+  m_value = value;
+}
 
 TimeUnit_anyOf::eTimeUnit_anyOf TimeUnit::getEnumValue() const {
   return m_value.getValue();

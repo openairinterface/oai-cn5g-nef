@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 AmfEventMode::AmfEventMode() {
-  m_MaxReports = 0;
+  m_MaxReports      = 0;
   m_MaxReportsIsSet = false;
-  m_Expiry = "";
-  m_ExpiryIsSet = false;
+  m_Expiry          = "";
+  m_ExpiryIsSet     = false;
 }
 
 void AmfEventMode::validate() const {
@@ -37,8 +37,8 @@ bool AmfEventMode::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfEventMode::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool AmfEventMode::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfEventMode" : pathPrefix;
@@ -66,7 +66,7 @@ bool AmfEventMode::operator!=(const AmfEventMode& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AmfEventMode& o) {
-  j = nlohmann::json();
+  j            = nlohmann::json();
   j["trigger"] = o.m_Trigger;
   if (o.maxReportsIsSet()) j["maxReports"] = o.m_MaxReports;
   if (o.expiryIsSet()) j["expiry"] = o.m_Expiry;
@@ -84,23 +84,37 @@ void from_json(const nlohmann::json& j, AmfEventMode& o) {
   }
 }
 
-AmfEventTrigger AmfEventMode::getTrigger() const { return m_Trigger; }
+AmfEventTrigger AmfEventMode::getTrigger() const {
+  return m_Trigger;
+}
 void AmfEventMode::setTrigger(AmfEventTrigger const& value) {
   m_Trigger = value;
 }
-int32_t AmfEventMode::getMaxReports() const { return m_MaxReports; }
+int32_t AmfEventMode::getMaxReports() const {
+  return m_MaxReports;
+}
 void AmfEventMode::setMaxReports(int32_t const value) {
-  m_MaxReports = value;
+  m_MaxReports      = value;
   m_MaxReportsIsSet = true;
 }
-bool AmfEventMode::maxReportsIsSet() const { return m_MaxReportsIsSet; }
-void AmfEventMode::unsetMaxReports() { m_MaxReportsIsSet = false; }
-std::string AmfEventMode::getExpiry() const { return m_Expiry; }
+bool AmfEventMode::maxReportsIsSet() const {
+  return m_MaxReportsIsSet;
+}
+void AmfEventMode::unsetMaxReports() {
+  m_MaxReportsIsSet = false;
+}
+std::string AmfEventMode::getExpiry() const {
+  return m_Expiry;
+}
 void AmfEventMode::setExpiry(std::string const& value) {
-  m_Expiry = value;
+  m_Expiry      = value;
   m_ExpiryIsSet = true;
 }
-bool AmfEventMode::expiryIsSet() const { return m_ExpiryIsSet; }
-void AmfEventMode::unsetExpiry() { m_ExpiryIsSet = false; }
+bool AmfEventMode::expiryIsSet() const {
+  return m_ExpiryIsSet;
+}
+void AmfEventMode::unsetExpiry() {
+  m_ExpiryIsSet = false;
+}
 
 }  // namespace oai::nef::model

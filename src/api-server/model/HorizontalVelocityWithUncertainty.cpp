@@ -21,8 +21,8 @@
 namespace oai::nef::model {
 
 HorizontalVelocityWithUncertainty::HorizontalVelocityWithUncertainty() {
-  m_HSpeed = 0.0f;
-  m_Bearing = 0;
+  m_HSpeed       = 0.0f;
+  m_Bearing      = 0;
   m_HUncertainty = 0.0f;
 }
 
@@ -44,7 +44,7 @@ bool HorizontalVelocityWithUncertainty::validate(
       pathPrefix.empty() ? "HorizontalVelocityWithUncertainty" : pathPrefix;
 
   /* HSpeed */ {
-    const float& value = m_HSpeed;
+    const float& value                 = m_HSpeed;
     const std::string currentValuePath = _pathPrefix + ".hSpeed";
 
     if (value < static_cast<float>(0)) {
@@ -58,7 +58,7 @@ bool HorizontalVelocityWithUncertainty::validate(
   }
 
   /* Bearing */ {
-    const int32_t& value = m_Bearing;
+    const int32_t& value               = m_Bearing;
     const std::string currentValuePath = _pathPrefix + ".bearing";
 
     if (value < 0) {
@@ -72,7 +72,7 @@ bool HorizontalVelocityWithUncertainty::validate(
   }
 
   /* HUncertainty */ {
-    const float& value = m_HUncertainty;
+    const float& value                 = m_HUncertainty;
     const std::string currentValuePath = _pathPrefix + ".hUncertainty";
 
     if (value < static_cast<float>(0)) {
@@ -107,9 +107,9 @@ bool HorizontalVelocityWithUncertainty::operator!=(
 }
 
 void to_json(nlohmann::json& j, const HorizontalVelocityWithUncertainty& o) {
-  j = nlohmann::json();
-  j["hSpeed"] = o.m_HSpeed;
-  j["bearing"] = o.m_Bearing;
+  j                 = nlohmann::json();
+  j["hSpeed"]       = o.m_HSpeed;
+  j["bearing"]      = o.m_Bearing;
   j["hUncertainty"] = o.m_HUncertainty;
 }
 
@@ -119,7 +119,9 @@ void from_json(const nlohmann::json& j, HorizontalVelocityWithUncertainty& o) {
   j.at("hUncertainty").get_to(o.m_HUncertainty);
 }
 
-float HorizontalVelocityWithUncertainty::getHSpeed() const { return m_HSpeed; }
+float HorizontalVelocityWithUncertainty::getHSpeed() const {
+  return m_HSpeed;
+}
 void HorizontalVelocityWithUncertainty::setHSpeed(float const value) {
   m_HSpeed = value;
 }

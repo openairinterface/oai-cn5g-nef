@@ -49,15 +49,15 @@ bool validateRfc3339_date_time(const std::string& str);
 
 namespace sfinae_helpers {
 struct NoType {};
-template <typename T1, typename T2>
+template<typename T1, typename T2>
 NoType operator==(const T1&, const T2&);
 
-template <typename T1, typename T2>
+template<typename T1, typename T2>
 class EqualsOperatorAvailable {
  public:
   enum {
-    value = !std::is_same<decltype(std::declval<T1>() == std::declval<T2>()),
-                          NoType>::value
+    value = !std::is_same<
+        decltype(std::declval<T1>() == std::declval<T2>()), NoType>::value
   };
 };
 }  // namespace sfinae_helpers
@@ -66,7 +66,7 @@ class EqualsOperatorAvailable {
 /// Determine if the given vector<T> only has unique elements. T must provide
 /// the == operator.
 /// </summary>
-template <typename T>
+template<typename T>
 bool hasOnlyUniqueItems(const std::vector<T>& vec) {
   static_assert(
       sfinae_helpers::EqualsOperatorAvailable<T, T>::value,
@@ -103,13 +103,13 @@ bool fromStringValue(const std::string& inStr, int64_t& value);
 bool fromStringValue(const std::string& inStr, bool& value);
 bool fromStringValue(const std::string& inStr, float& value);
 bool fromStringValue(const std::string& inStr, double& value);
-bool fromStringValue(const std::string& inStr,
-                     oai::nef::model::Ipv6Addr& value);
+bool fromStringValue(
+    const std::string& inStr, oai::nef::model::Ipv6Addr& value);
 bool fromStringValue(const std::string& inStr, oai::nef::model::IpAddr& value);
 
-template <typename T>
-bool fromStringValue(const std::vector<std::string>& inStr,
-                     std::vector<T>& value) {
+template<typename T>
+bool fromStringValue(
+    const std::vector<std::string>& inStr, std::vector<T>& value) {
   try {
     for (auto& item : inStr) {
       T itemValue;
@@ -122,9 +122,9 @@ bool fromStringValue(const std::vector<std::string>& inStr,
   }
   return value.size() > 0;
 }
-template <typename T>
-bool fromStringValue(const std::string& inStr, std::vector<T>& value,
-                     char separator = ',') {
+template<typename T>
+bool fromStringValue(
+    const std::string& inStr, std::vector<T>& value, char separator = ',') {
   std::vector<std::string> inStrings;
   std::istringstream f(inStr);
   std::string s;

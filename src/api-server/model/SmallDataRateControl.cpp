@@ -20,13 +20,13 @@
 namespace oai::nef::model {
 
 SmallDataRateControl::SmallDataRateControl() {
-  m_MaxPacketRateUl = 0;
-  m_MaxPacketRateUlIsSet = false;
-  m_MaxPacketRateDl = 0;
-  m_MaxPacketRateDlIsSet = false;
-  m_MaxAdditionalPacketRateUl = 0;
+  m_MaxPacketRateUl                = 0;
+  m_MaxPacketRateUlIsSet           = false;
+  m_MaxPacketRateDl                = 0;
+  m_MaxPacketRateDlIsSet           = false;
+  m_MaxAdditionalPacketRateUl      = 0;
   m_MaxAdditionalPacketRateUlIsSet = false;
-  m_MaxAdditionalPacketRateDl = 0;
+  m_MaxAdditionalPacketRateDl      = 0;
   m_MaxAdditionalPacketRateDlIsSet = false;
 }
 
@@ -41,8 +41,8 @@ bool SmallDataRateControl::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmallDataRateControl::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool SmallDataRateControl::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmallDataRateControl" : pathPrefix;
@@ -84,7 +84,7 @@ bool SmallDataRateControl::operator!=(const SmallDataRateControl& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const SmallDataRateControl& o) {
-  j = nlohmann::json();
+  j             = nlohmann::json();
   j["timeUnit"] = o.m_TimeUnit;
   if (o.maxPacketRateUlIsSet()) j["maxPacketRateUl"] = o.m_MaxPacketRateUl;
   if (o.maxPacketRateDlIsSet()) j["maxPacketRateDl"] = o.m_MaxPacketRateDl;
@@ -125,7 +125,7 @@ int32_t SmallDataRateControl::getMaxPacketRateUl() const {
   return m_MaxPacketRateUl;
 }
 void SmallDataRateControl::setMaxPacketRateUl(int32_t const value) {
-  m_MaxPacketRateUl = value;
+  m_MaxPacketRateUl      = value;
   m_MaxPacketRateUlIsSet = true;
 }
 bool SmallDataRateControl::maxPacketRateUlIsSet() const {
@@ -138,7 +138,7 @@ int32_t SmallDataRateControl::getMaxPacketRateDl() const {
   return m_MaxPacketRateDl;
 }
 void SmallDataRateControl::setMaxPacketRateDl(int32_t const value) {
-  m_MaxPacketRateDl = value;
+  m_MaxPacketRateDl      = value;
   m_MaxPacketRateDlIsSet = true;
 }
 bool SmallDataRateControl::maxPacketRateDlIsSet() const {
@@ -151,7 +151,7 @@ int32_t SmallDataRateControl::getMaxAdditionalPacketRateUl() const {
   return m_MaxAdditionalPacketRateUl;
 }
 void SmallDataRateControl::setMaxAdditionalPacketRateUl(int32_t const value) {
-  m_MaxAdditionalPacketRateUl = value;
+  m_MaxAdditionalPacketRateUl      = value;
   m_MaxAdditionalPacketRateUlIsSet = true;
 }
 bool SmallDataRateControl::maxAdditionalPacketRateUlIsSet() const {
@@ -164,7 +164,7 @@ int32_t SmallDataRateControl::getMaxAdditionalPacketRateDl() const {
   return m_MaxAdditionalPacketRateDl;
 }
 void SmallDataRateControl::setMaxAdditionalPacketRateDl(int32_t const value) {
-  m_MaxAdditionalPacketRateDl = value;
+  m_MaxAdditionalPacketRateDl      = value;
   m_MaxAdditionalPacketRateDlIsSet = true;
 }
 bool SmallDataRateControl::maxAdditionalPacketRateDlIsSet() const {

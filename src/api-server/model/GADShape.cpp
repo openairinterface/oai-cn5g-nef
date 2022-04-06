@@ -33,9 +33,9 @@ bool GADShape::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool GADShape::validate(std::stringstream& msg,
-                        const std::string& pathPrefix) const {
-  bool success = true;
+bool GADShape::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "GADShape" : pathPrefix;
 
   return success;
@@ -49,10 +49,12 @@ bool GADShape::operator==(const GADShape& rhs) const {
           ;
 }
 
-bool GADShape::operator!=(const GADShape& rhs) const { return !(*this == rhs); }
+bool GADShape::operator!=(const GADShape& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const GADShape& o) {
-  j = nlohmann::json();
+  j          = nlohmann::json();
   j["shape"] = o.m_Shape;
 }
 
@@ -60,7 +62,11 @@ void from_json(const nlohmann::json& j, GADShape& o) {
   j.at("shape").get_to(o.m_Shape);
 }
 
-SupportedGADShapes GADShape::getShape() const { return m_Shape; }
-void GADShape::setShape(SupportedGADShapes const& value) { m_Shape = value; }
+SupportedGADShapes GADShape::getShape() const {
+  return m_Shape;
+}
+void GADShape::setShape(SupportedGADShapes const& value) {
+  m_Shape = value;
+}
 
 }  // namespace oai::nef::model

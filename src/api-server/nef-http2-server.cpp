@@ -62,4 +62,6 @@ void nef_http2_server::start() {
 }
 
 //------------------------------------------------------------------------------
-void nef_http2_server::stop() { server.stop(); }
+void nef_http2_server::stop() {
+  server.stop();
+}

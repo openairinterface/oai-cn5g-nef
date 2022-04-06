@@ -42,11 +42,11 @@ class IPTVConfigurationsApiImpl : public oai::nef::api::IPTVConfigurationsApi {
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~IPTVConfigurationsApiImpl() override = default;
 
-  void af_id_configurations_get(const std::string& afId,
-                                Pistache::Http::ResponseWriter& response);
-  void af_id_configurations_post(const std::string& afId,
-                                 const IptvConfigData& iptvConfigData,
-                                 Pistache::Http::ResponseWriter& response);
+  void af_id_configurations_get(
+      const std::string& afId, Pistache::Http::ResponseWriter& response);
+  void af_id_configurations_post(
+      const std::string& afId, const IptvConfigData& iptvConfigData,
+      Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

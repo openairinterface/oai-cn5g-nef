@@ -44,9 +44,9 @@ class AnalyticsExposureAPIFetchAnalyticsInformationApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~AnalyticsExposureAPIFetchAnalyticsInformationApiImpl() override = default;
 
-  void af_id_fetch_post(const std::string& afId,
-                        const AnalyticsRequest& analyticsRequest,
-                        Pistache::Http::ResponseWriter& response);
+  void af_id_fetch_post(
+      const std::string& afId, const AnalyticsRequest& analyticsRequest,
+      Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

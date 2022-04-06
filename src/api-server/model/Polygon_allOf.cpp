@@ -33,8 +33,8 @@ bool Polygon_allOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Polygon_allOf::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool Polygon_allOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "Polygon_allOf" : pathPrefix;
@@ -53,7 +53,7 @@ bool Polygon_allOf::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const GeographicalCoordinates& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -82,7 +82,7 @@ bool Polygon_allOf::operator!=(const Polygon_allOf& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const Polygon_allOf& o) {
-  j = nlohmann::json();
+  j              = nlohmann::json();
   j["pointList"] = o.m_PointList;
 }
 

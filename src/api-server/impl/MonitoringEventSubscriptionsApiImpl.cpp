@@ -40,10 +40,10 @@ void MonitoringEventSubscriptionsApiImpl::create_monitoring_event_subscription(
   Logger::nef_sbi().info(
       "Got a request to create Monitoring Event Subscription");
 
-  int http_code = 0;
+  int http_code                  = 0;
   ProblemDetails problem_details = {};
-  std::string sub_id = {};
-  uint8_t http_version = 1;
+  std::string sub_id             = {};
+  uint8_t http_version           = 1;
 
   MonitoringEventSubscription created_ev_sub = {};
   m_nef_app->handle_create_monitoring_event_subscription(
@@ -82,9 +82,9 @@ void MonitoringEventSubscriptionsApiImpl::
       "with NF ID %s",
       scsAsId.c_str());
 
-  int http_code = 0;
+  int http_code         = 0;
   nlohmann::json result = {};
-  uint8_t http_version = 1;
+  uint8_t http_version  = 1;
 
   m_nef_app->handle_fetch_all_monitoring_event_subscriptions(
       scsAsId, ipAddrs, ipDomain, macAddrs, http_version, result, http_code);

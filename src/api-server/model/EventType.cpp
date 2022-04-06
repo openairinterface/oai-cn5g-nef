@@ -32,9 +32,9 @@ bool EventType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool EventType::validate(std::stringstream& msg,
-                         const std::string& pathPrefix) const {
-  bool success = true;
+bool EventType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "EventType" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -62,9 +62,13 @@ void from_json(const nlohmann::json& j, EventType& o) {
   from_json(j, o.m_value);
 }
 
-EventType_anyOf EventType::getValue() const { return m_value; }
+EventType_anyOf EventType::getValue() const {
+  return m_value;
+}
 
-void EventType::setValue(EventType_anyOf value) { m_value = value; }
+void EventType::setValue(EventType_anyOf value) {
+  m_value = value;
+}
 
 EventType_anyOf::eEventType_anyOf EventType::getEnumValue() const {
   return m_value.getValue();

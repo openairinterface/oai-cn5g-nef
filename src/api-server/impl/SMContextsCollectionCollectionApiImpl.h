@@ -44,8 +44,9 @@ class SMContextsCollectionCollectionApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~SMContextsCollectionCollectionApiImpl() override = default;
 
-  void create(const SmContextCreateData& smContextCreateData,
-              Pistache::Http::ResponseWriter& response);
+  void create(
+      const SmContextCreateData& smContextCreateData,
+      Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

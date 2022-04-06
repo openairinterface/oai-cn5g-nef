@@ -58,7 +58,7 @@ class NEFApiServer {
  public:
   NEFApiServer(Pistache::Address address, nef_app* nef_app_inst)
       : m_httpEndpoint(std::make_shared<Pistache::Http::Endpoint>(address)) {
-    m_router = std::make_shared<Pistache::Rest::Router>();
+    m_router  = std::make_shared<Pistache::Rest::Router>();
     m_address = address.host() + ":" + (address.port()).toString();
 
     m_individualSubscriptionDocumentApiImpl =
@@ -68,8 +68,8 @@ class NEFApiServer {
     m_nfEventNotifyApiImpl = std::make_shared<NFEventNotifyApiImpl>(
         m_router, nef_app_inst, m_address);
     m_subscriptionsCollectionApiImpl =
-        std::make_shared<SubscriptionsCollectionApiImpl>(m_router, nef_app_inst,
-                                                         m_address);
+        std::make_shared<SubscriptionsCollectionApiImpl>(
+            m_router, nef_app_inst, m_address);
 
     m_individualMonitoringEventSubscriptionApiImpl =
         std::make_shared<IndividualMonitoringEventSubscriptionApiImpl>(

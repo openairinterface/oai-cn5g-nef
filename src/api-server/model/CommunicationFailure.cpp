@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 CommunicationFailure::CommunicationFailure() {
-  m_NasReleaseCode = "";
+  m_NasReleaseCode      = "";
   m_NasReleaseCodeIsSet = false;
   m_RanReleaseCodeIsSet = false;
 }
@@ -36,8 +36,8 @@ bool CommunicationFailure::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CommunicationFailure::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool CommunicationFailure::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CommunicationFailure" : pathPrefix;
@@ -84,7 +84,7 @@ std::string CommunicationFailure::getNasReleaseCode() const {
   return m_NasReleaseCode;
 }
 void CommunicationFailure::setNasReleaseCode(std::string const& value) {
-  m_NasReleaseCode = value;
+  m_NasReleaseCode      = value;
   m_NasReleaseCodeIsSet = true;
 }
 bool CommunicationFailure::nasReleaseCodeIsSet() const {
@@ -97,7 +97,7 @@ NgApCause CommunicationFailure::getRanReleaseCode() const {
   return m_RanReleaseCode;
 }
 void CommunicationFailure::setRanReleaseCode(NgApCause const& value) {
-  m_RanReleaseCode = value;
+  m_RanReleaseCode      = value;
   m_RanReleaseCodeIsSet = true;
 }
 bool CommunicationFailure::ranReleaseCodeIsSet() const {

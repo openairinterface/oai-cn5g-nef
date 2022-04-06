@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 LadnInfo::LadnInfo() {
-  m_Ladn = "";
+  m_Ladn          = "";
   m_PresenceIsSet = false;
 }
 
@@ -35,9 +35,9 @@ bool LadnInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LadnInfo::validate(std::stringstream& msg,
-                        const std::string& pathPrefix) const {
-  bool success = true;
+bool LadnInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "LadnInfo" : pathPrefix;
 
   return success;
@@ -55,10 +55,12 @@ bool LadnInfo::operator==(const LadnInfo& rhs) const {
           ;
 }
 
-bool LadnInfo::operator!=(const LadnInfo& rhs) const { return !(*this == rhs); }
+bool LadnInfo::operator!=(const LadnInfo& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const LadnInfo& o) {
-  j = nlohmann::json();
+  j         = nlohmann::json();
   j["ladn"] = o.m_Ladn;
   if (o.presenceIsSet()) j["presence"] = o.m_Presence;
 }
@@ -71,14 +73,24 @@ void from_json(const nlohmann::json& j, LadnInfo& o) {
   }
 }
 
-std::string LadnInfo::getLadn() const { return m_Ladn; }
-void LadnInfo::setLadn(std::string const& value) { m_Ladn = value; }
-PresenceState LadnInfo::getPresence() const { return m_Presence; }
+std::string LadnInfo::getLadn() const {
+  return m_Ladn;
+}
+void LadnInfo::setLadn(std::string const& value) {
+  m_Ladn = value;
+}
+PresenceState LadnInfo::getPresence() const {
+  return m_Presence;
+}
 void LadnInfo::setPresence(PresenceState const& value) {
-  m_Presence = value;
+  m_Presence      = value;
   m_PresenceIsSet = true;
 }
-bool LadnInfo::presenceIsSet() const { return m_PresenceIsSet; }
-void LadnInfo::unsetPresence() { m_PresenceIsSet = false; }
+bool LadnInfo::presenceIsSet() const {
+  return m_PresenceIsSet;
+}
+void LadnInfo::unsetPresence() {
+  m_PresenceIsSet = false;
+}
 
 }  // namespace oai::nef::model

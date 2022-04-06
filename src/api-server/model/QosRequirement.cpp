@@ -20,17 +20,17 @@
 namespace oai::nef::model {
 
 QosRequirement::QosRequirement() {
-  m_r_5qi = 0;
-  m_r_5qiIsSet = false;
-  m_GfbrUl = "";
-  m_GfbrUlIsSet = false;
-  m_GfbrDl = "";
-  m_GfbrDlIsSet = false;
+  m_r_5qi        = 0;
+  m_r_5qiIsSet   = false;
+  m_GfbrUl       = "";
+  m_GfbrUlIsSet  = false;
+  m_GfbrDl       = "";
+  m_GfbrDlIsSet  = false;
   m_ResTypeIsSet = false;
-  m_Pdb = 0;
-  m_PdbIsSet = false;
-  m_Per = "";
-  m_PerIsSet = false;
+  m_Pdb          = 0;
+  m_PdbIsSet     = false;
+  m_Per          = "";
+  m_PerIsSet     = false;
 }
 
 void QosRequirement::validate() const {
@@ -44,14 +44,14 @@ bool QosRequirement::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool QosRequirement::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool QosRequirement::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "QosRequirement" : pathPrefix;
 
   if (r5qiIsSet()) {
-    const int32_t& value = m_r_5qi;
+    const int32_t& value               = m_r_5qi;
     const std::string currentValuePath = _pathPrefix + ".r5qi";
 
     if (value < 0) {
@@ -65,17 +65,17 @@ bool QosRequirement::validate(std::stringstream& msg,
   }
 
   if (gfbrUlIsSet()) {
-    const std::string& value = m_GfbrUl;
+    const std::string& value           = m_GfbrUl;
     const std::string currentValuePath = _pathPrefix + ".gfbrUl";
   }
 
   if (gfbrDlIsSet()) {
-    const std::string& value = m_GfbrDl;
+    const std::string& value           = m_GfbrDl;
     const std::string currentValuePath = _pathPrefix + ".gfbrDl";
   }
 
   if (pdbIsSet()) {
-    const int32_t& value = m_Pdb;
+    const int32_t& value               = m_Pdb;
     const std::string currentValuePath = _pathPrefix + ".pdb";
 
     if (value < 1) {
@@ -85,7 +85,7 @@ bool QosRequirement::validate(std::stringstream& msg,
   }
 
   if (perIsSet()) {
-    const std::string& value = m_Per;
+    const std::string& value           = m_Per;
     const std::string currentValuePath = _pathPrefix + ".per";
   }
 
@@ -160,47 +160,83 @@ void from_json(const nlohmann::json& j, QosRequirement& o) {
   }
 }
 
-int32_t QosRequirement::getR5qi() const { return m_r_5qi; }
+int32_t QosRequirement::getR5qi() const {
+  return m_r_5qi;
+}
 void QosRequirement::setR5qi(int32_t const value) {
-  m_r_5qi = value;
+  m_r_5qi      = value;
   m_r_5qiIsSet = true;
 }
-bool QosRequirement::r5qiIsSet() const { return m_r_5qiIsSet; }
-void QosRequirement::unsetr_5qi() { m_r_5qiIsSet = false; }
-std::string QosRequirement::getGfbrUl() const { return m_GfbrUl; }
+bool QosRequirement::r5qiIsSet() const {
+  return m_r_5qiIsSet;
+}
+void QosRequirement::unsetr_5qi() {
+  m_r_5qiIsSet = false;
+}
+std::string QosRequirement::getGfbrUl() const {
+  return m_GfbrUl;
+}
 void QosRequirement::setGfbrUl(std::string const& value) {
-  m_GfbrUl = value;
+  m_GfbrUl      = value;
   m_GfbrUlIsSet = true;
 }
-bool QosRequirement::gfbrUlIsSet() const { return m_GfbrUlIsSet; }
-void QosRequirement::unsetGfbrUl() { m_GfbrUlIsSet = false; }
-std::string QosRequirement::getGfbrDl() const { return m_GfbrDl; }
+bool QosRequirement::gfbrUlIsSet() const {
+  return m_GfbrUlIsSet;
+}
+void QosRequirement::unsetGfbrUl() {
+  m_GfbrUlIsSet = false;
+}
+std::string QosRequirement::getGfbrDl() const {
+  return m_GfbrDl;
+}
 void QosRequirement::setGfbrDl(std::string const& value) {
-  m_GfbrDl = value;
+  m_GfbrDl      = value;
   m_GfbrDlIsSet = true;
 }
-bool QosRequirement::gfbrDlIsSet() const { return m_GfbrDlIsSet; }
-void QosRequirement::unsetGfbrDl() { m_GfbrDlIsSet = false; }
-QosResourceType QosRequirement::getResType() const { return m_ResType; }
+bool QosRequirement::gfbrDlIsSet() const {
+  return m_GfbrDlIsSet;
+}
+void QosRequirement::unsetGfbrDl() {
+  m_GfbrDlIsSet = false;
+}
+QosResourceType QosRequirement::getResType() const {
+  return m_ResType;
+}
 void QosRequirement::setResType(QosResourceType const& value) {
-  m_ResType = value;
+  m_ResType      = value;
   m_ResTypeIsSet = true;
 }
-bool QosRequirement::resTypeIsSet() const { return m_ResTypeIsSet; }
-void QosRequirement::unsetResType() { m_ResTypeIsSet = false; }
-int32_t QosRequirement::getPdb() const { return m_Pdb; }
+bool QosRequirement::resTypeIsSet() const {
+  return m_ResTypeIsSet;
+}
+void QosRequirement::unsetResType() {
+  m_ResTypeIsSet = false;
+}
+int32_t QosRequirement::getPdb() const {
+  return m_Pdb;
+}
 void QosRequirement::setPdb(int32_t const value) {
-  m_Pdb = value;
+  m_Pdb      = value;
   m_PdbIsSet = true;
 }
-bool QosRequirement::pdbIsSet() const { return m_PdbIsSet; }
-void QosRequirement::unsetPdb() { m_PdbIsSet = false; }
-std::string QosRequirement::getPer() const { return m_Per; }
+bool QosRequirement::pdbIsSet() const {
+  return m_PdbIsSet;
+}
+void QosRequirement::unsetPdb() {
+  m_PdbIsSet = false;
+}
+std::string QosRequirement::getPer() const {
+  return m_Per;
+}
 void QosRequirement::setPer(std::string const& value) {
-  m_Per = value;
+  m_Per      = value;
   m_PerIsSet = true;
 }
-bool QosRequirement::perIsSet() const { return m_PerIsSet; }
-void QosRequirement::unsetPer() { m_PerIsSet = false; }
+bool QosRequirement::perIsSet() const {
+  return m_PerIsSet;
+}
+void QosRequirement::unsetPer() {
+  m_PerIsSet = false;
+}
 
 }  // namespace oai::nef::model

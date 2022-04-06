@@ -34,8 +34,8 @@ bool LcsQosClass_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LcsQosClass_anyOf::validate(std::stringstream& msg,
-                                 const std::string& pathPrefix) const {
+bool LcsQosClass_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LcsQosClass_anyOf" : pathPrefix;

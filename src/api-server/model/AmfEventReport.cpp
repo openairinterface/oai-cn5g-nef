@@ -20,30 +20,30 @@
 namespace oai::nef::model {
 
 AmfEventReport::AmfEventReport() {
-  m_TimeStamp = "";
-  m_SubscriptionId = "";
-  m_SubscriptionIdIsSet = false;
-  m_AnyUe = false;
-  m_AnyUeIsSet = false;
-  m_Supi = "";
-  m_SupiIsSet = false;
-  m_AreaListIsSet = false;
-  m_RefId = 0;
-  m_RefIdIsSet = false;
-  m_Gpsi = "";
-  m_GpsiIsSet = false;
-  m_Pei = "";
-  m_PeiIsSet = false;
-  m_LocationIsSet = false;
-  m_Timezone = "";
-  m_TimezoneIsSet = false;
-  m_AccessTypeListIsSet = false;
-  m_RmInfoListIsSet = false;
-  m_CmInfoListIsSet = false;
-  m_ReachabilityIsSet = false;
-  m_CommFailureIsSet = false;
-  m_NumberOfUes = 0;
-  m_NumberOfUesIsSet = false;
+  m_TimeStamp               = "";
+  m_SubscriptionId          = "";
+  m_SubscriptionIdIsSet     = false;
+  m_AnyUe                   = false;
+  m_AnyUeIsSet              = false;
+  m_Supi                    = "";
+  m_SupiIsSet               = false;
+  m_AreaListIsSet           = false;
+  m_RefId                   = 0;
+  m_RefIdIsSet              = false;
+  m_Gpsi                    = "";
+  m_GpsiIsSet               = false;
+  m_Pei                     = "";
+  m_PeiIsSet                = false;
+  m_LocationIsSet           = false;
+  m_Timezone                = "";
+  m_TimezoneIsSet           = false;
+  m_AccessTypeListIsSet     = false;
+  m_RmInfoListIsSet         = false;
+  m_CmInfoListIsSet         = false;
+  m_ReachabilityIsSet       = false;
+  m_CommFailureIsSet        = false;
+  m_NumberOfUes             = 0;
+  m_NumberOfUesIsSet        = false;
   m_r_5gsUserStateListIsSet = false;
 }
 
@@ -58,20 +58,20 @@ bool AmfEventReport::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfEventReport::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool AmfEventReport::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfEventReport" : pathPrefix;
 
   if (supiIsSet()) {
-    const std::string& value = m_Supi;
+    const std::string& value           = m_Supi;
     const std::string currentValuePath = _pathPrefix + ".supi";
   }
 
   if (areaListIsSet()) {
     const std::vector<AmfEventArea>& value = m_AreaList;
-    const std::string currentValuePath = _pathPrefix + ".areaList";
+    const std::string currentValuePath     = _pathPrefix + ".areaList";
 
     if (value.size() < 1) {
       success = false;
@@ -79,7 +79,7 @@ bool AmfEventReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AmfEventArea& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -93,18 +93,18 @@ bool AmfEventReport::validate(std::stringstream& msg,
   }
 
   if (gpsiIsSet()) {
-    const std::string& value = m_Gpsi;
+    const std::string& value           = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
   if (peiIsSet()) {
-    const std::string& value = m_Pei;
+    const std::string& value           = m_Pei;
     const std::string currentValuePath = _pathPrefix + ".pei";
   }
 
   if (accessTypeListIsSet()) {
     const std::vector<AccessType>& value = m_AccessTypeList;
-    const std::string currentValuePath = _pathPrefix + ".accessTypeList";
+    const std::string currentValuePath   = _pathPrefix + ".accessTypeList";
 
     if (value.size() < 1) {
       success = false;
@@ -112,7 +112,7 @@ bool AmfEventReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AccessType& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -125,7 +125,7 @@ bool AmfEventReport::validate(std::stringstream& msg,
   }
 
   if (rmInfoListIsSet()) {
-    const std::vector<RmInfo>& value = m_RmInfoList;
+    const std::vector<RmInfo>& value   = m_RmInfoList;
     const std::string currentValuePath = _pathPrefix + ".rmInfoList";
 
     if (value.size() < 1) {
@@ -134,7 +134,7 @@ bool AmfEventReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const RmInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -148,7 +148,7 @@ bool AmfEventReport::validate(std::stringstream& msg,
   }
 
   if (cmInfoListIsSet()) {
-    const std::vector<CmInfo>& value = m_CmInfoList;
+    const std::vector<CmInfo>& value   = m_CmInfoList;
     const std::string currentValuePath = _pathPrefix + ".cmInfoList";
 
     if (value.size() < 1) {
@@ -157,7 +157,7 @@ bool AmfEventReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const CmInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -180,7 +180,7 @@ bool AmfEventReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const _5GsUserStateInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -273,9 +273,9 @@ bool AmfEventReport::operator!=(const AmfEventReport& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AmfEventReport& o) {
-  j = nlohmann::json();
-  j["type"] = o.m_Type;
-  j["state"] = o.m_State;
+  j              = nlohmann::json();
+  j["type"]      = o.m_Type;
+  j["state"]     = o.m_State;
   j["timeStamp"] = o.m_TimeStamp;
   if (o.subscriptionIdIsSet()) j["subscriptionId"] = o.m_SubscriptionId;
   if (o.anyUeIsSet()) j["anyUe"] = o.m_AnyUe;
@@ -369,11 +369,21 @@ void from_json(const nlohmann::json& j, AmfEventReport& o) {
   }
 }
 
-AmfEventType AmfEventReport::getType() const { return m_Type; }
-void AmfEventReport::setType(AmfEventType const& value) { m_Type = value; }
-AmfEventState AmfEventReport::getState() const { return m_State; }
-void AmfEventReport::setState(AmfEventState const& value) { m_State = value; }
-std::string AmfEventReport::getTimeStamp() const { return m_TimeStamp; }
+AmfEventType AmfEventReport::getType() const {
+  return m_Type;
+}
+void AmfEventReport::setType(AmfEventType const& value) {
+  m_Type = value;
+}
+AmfEventState AmfEventReport::getState() const {
+  return m_State;
+}
+void AmfEventReport::setState(AmfEventState const& value) {
+  m_State = value;
+}
+std::string AmfEventReport::getTimeStamp() const {
+  return m_TimeStamp;
+}
 void AmfEventReport::setTimeStamp(std::string const& value) {
   m_TimeStamp = value;
 }
@@ -381,131 +391,203 @@ std::string AmfEventReport::getSubscriptionId() const {
   return m_SubscriptionId;
 }
 void AmfEventReport::setSubscriptionId(std::string const& value) {
-  m_SubscriptionId = value;
+  m_SubscriptionId      = value;
   m_SubscriptionIdIsSet = true;
 }
 bool AmfEventReport::subscriptionIdIsSet() const {
   return m_SubscriptionIdIsSet;
 }
-void AmfEventReport::unsetSubscriptionId() { m_SubscriptionIdIsSet = false; }
-bool AmfEventReport::isAnyUe() const { return m_AnyUe; }
+void AmfEventReport::unsetSubscriptionId() {
+  m_SubscriptionIdIsSet = false;
+}
+bool AmfEventReport::isAnyUe() const {
+  return m_AnyUe;
+}
 void AmfEventReport::setAnyUe(bool const value) {
-  m_AnyUe = value;
+  m_AnyUe      = value;
   m_AnyUeIsSet = true;
 }
-bool AmfEventReport::anyUeIsSet() const { return m_AnyUeIsSet; }
-void AmfEventReport::unsetAnyUe() { m_AnyUeIsSet = false; }
-std::string AmfEventReport::getSupi() const { return m_Supi; }
+bool AmfEventReport::anyUeIsSet() const {
+  return m_AnyUeIsSet;
+}
+void AmfEventReport::unsetAnyUe() {
+  m_AnyUeIsSet = false;
+}
+std::string AmfEventReport::getSupi() const {
+  return m_Supi;
+}
 void AmfEventReport::setSupi(std::string const& value) {
-  m_Supi = value;
+  m_Supi      = value;
   m_SupiIsSet = true;
 }
-bool AmfEventReport::supiIsSet() const { return m_SupiIsSet; }
-void AmfEventReport::unsetSupi() { m_SupiIsSet = false; }
+bool AmfEventReport::supiIsSet() const {
+  return m_SupiIsSet;
+}
+void AmfEventReport::unsetSupi() {
+  m_SupiIsSet = false;
+}
 std::vector<AmfEventArea> AmfEventReport::getAreaList() const {
   return m_AreaList;
 }
 void AmfEventReport::setAreaList(std::vector<AmfEventArea> const& value) {
-  m_AreaList = value;
+  m_AreaList      = value;
   m_AreaListIsSet = true;
 }
-bool AmfEventReport::areaListIsSet() const { return m_AreaListIsSet; }
-void AmfEventReport::unsetAreaList() { m_AreaListIsSet = false; }
-int32_t AmfEventReport::getRefId() const { return m_RefId; }
+bool AmfEventReport::areaListIsSet() const {
+  return m_AreaListIsSet;
+}
+void AmfEventReport::unsetAreaList() {
+  m_AreaListIsSet = false;
+}
+int32_t AmfEventReport::getRefId() const {
+  return m_RefId;
+}
 void AmfEventReport::setRefId(int32_t const value) {
-  m_RefId = value;
+  m_RefId      = value;
   m_RefIdIsSet = true;
 }
-bool AmfEventReport::refIdIsSet() const { return m_RefIdIsSet; }
-void AmfEventReport::unsetRefId() { m_RefIdIsSet = false; }
-std::string AmfEventReport::getGpsi() const { return m_Gpsi; }
+bool AmfEventReport::refIdIsSet() const {
+  return m_RefIdIsSet;
+}
+void AmfEventReport::unsetRefId() {
+  m_RefIdIsSet = false;
+}
+std::string AmfEventReport::getGpsi() const {
+  return m_Gpsi;
+}
 void AmfEventReport::setGpsi(std::string const& value) {
-  m_Gpsi = value;
+  m_Gpsi      = value;
   m_GpsiIsSet = true;
 }
-bool AmfEventReport::gpsiIsSet() const { return m_GpsiIsSet; }
-void AmfEventReport::unsetGpsi() { m_GpsiIsSet = false; }
-std::string AmfEventReport::getPei() const { return m_Pei; }
+bool AmfEventReport::gpsiIsSet() const {
+  return m_GpsiIsSet;
+}
+void AmfEventReport::unsetGpsi() {
+  m_GpsiIsSet = false;
+}
+std::string AmfEventReport::getPei() const {
+  return m_Pei;
+}
 void AmfEventReport::setPei(std::string const& value) {
-  m_Pei = value;
+  m_Pei      = value;
   m_PeiIsSet = true;
 }
-bool AmfEventReport::peiIsSet() const { return m_PeiIsSet; }
-void AmfEventReport::unsetPei() { m_PeiIsSet = false; }
-UserLocation AmfEventReport::getLocation() const { return m_Location; }
+bool AmfEventReport::peiIsSet() const {
+  return m_PeiIsSet;
+}
+void AmfEventReport::unsetPei() {
+  m_PeiIsSet = false;
+}
+UserLocation AmfEventReport::getLocation() const {
+  return m_Location;
+}
 void AmfEventReport::setLocation(UserLocation const& value) {
-  m_Location = value;
+  m_Location      = value;
   m_LocationIsSet = true;
 }
-bool AmfEventReport::locationIsSet() const { return m_LocationIsSet; }
-void AmfEventReport::unsetLocation() { m_LocationIsSet = false; }
-std::string AmfEventReport::getTimezone() const { return m_Timezone; }
+bool AmfEventReport::locationIsSet() const {
+  return m_LocationIsSet;
+}
+void AmfEventReport::unsetLocation() {
+  m_LocationIsSet = false;
+}
+std::string AmfEventReport::getTimezone() const {
+  return m_Timezone;
+}
 void AmfEventReport::setTimezone(std::string const& value) {
-  m_Timezone = value;
+  m_Timezone      = value;
   m_TimezoneIsSet = true;
 }
-bool AmfEventReport::timezoneIsSet() const { return m_TimezoneIsSet; }
-void AmfEventReport::unsetTimezone() { m_TimezoneIsSet = false; }
+bool AmfEventReport::timezoneIsSet() const {
+  return m_TimezoneIsSet;
+}
+void AmfEventReport::unsetTimezone() {
+  m_TimezoneIsSet = false;
+}
 std::vector<AccessType> AmfEventReport::getAccessTypeList() const {
   return m_AccessTypeList;
 }
 void AmfEventReport::setAccessTypeList(std::vector<AccessType> const& value) {
-  m_AccessTypeList = value;
+  m_AccessTypeList      = value;
   m_AccessTypeListIsSet = true;
 }
 bool AmfEventReport::accessTypeListIsSet() const {
   return m_AccessTypeListIsSet;
 }
-void AmfEventReport::unsetAccessTypeList() { m_AccessTypeListIsSet = false; }
+void AmfEventReport::unsetAccessTypeList() {
+  m_AccessTypeListIsSet = false;
+}
 std::vector<RmInfo> AmfEventReport::getRmInfoList() const {
   return m_RmInfoList;
 }
 void AmfEventReport::setRmInfoList(std::vector<RmInfo> const& value) {
-  m_RmInfoList = value;
+  m_RmInfoList      = value;
   m_RmInfoListIsSet = true;
 }
-bool AmfEventReport::rmInfoListIsSet() const { return m_RmInfoListIsSet; }
-void AmfEventReport::unsetRmInfoList() { m_RmInfoListIsSet = false; }
+bool AmfEventReport::rmInfoListIsSet() const {
+  return m_RmInfoListIsSet;
+}
+void AmfEventReport::unsetRmInfoList() {
+  m_RmInfoListIsSet = false;
+}
 std::vector<CmInfo> AmfEventReport::getCmInfoList() const {
   return m_CmInfoList;
 }
 void AmfEventReport::setCmInfoList(std::vector<CmInfo> const& value) {
-  m_CmInfoList = value;
+  m_CmInfoList      = value;
   m_CmInfoListIsSet = true;
 }
-bool AmfEventReport::cmInfoListIsSet() const { return m_CmInfoListIsSet; }
-void AmfEventReport::unsetCmInfoList() { m_CmInfoListIsSet = false; }
+bool AmfEventReport::cmInfoListIsSet() const {
+  return m_CmInfoListIsSet;
+}
+void AmfEventReport::unsetCmInfoList() {
+  m_CmInfoListIsSet = false;
+}
 UeReachability AmfEventReport::getReachability() const {
   return m_Reachability;
 }
 void AmfEventReport::setReachability(UeReachability const& value) {
-  m_Reachability = value;
+  m_Reachability      = value;
   m_ReachabilityIsSet = true;
 }
-bool AmfEventReport::reachabilityIsSet() const { return m_ReachabilityIsSet; }
-void AmfEventReport::unsetReachability() { m_ReachabilityIsSet = false; }
+bool AmfEventReport::reachabilityIsSet() const {
+  return m_ReachabilityIsSet;
+}
+void AmfEventReport::unsetReachability() {
+  m_ReachabilityIsSet = false;
+}
 CommunicationFailure AmfEventReport::getCommFailure() const {
   return m_CommFailure;
 }
 void AmfEventReport::setCommFailure(CommunicationFailure const& value) {
-  m_CommFailure = value;
+  m_CommFailure      = value;
   m_CommFailureIsSet = true;
 }
-bool AmfEventReport::commFailureIsSet() const { return m_CommFailureIsSet; }
-void AmfEventReport::unsetCommFailure() { m_CommFailureIsSet = false; }
-int32_t AmfEventReport::getNumberOfUes() const { return m_NumberOfUes; }
+bool AmfEventReport::commFailureIsSet() const {
+  return m_CommFailureIsSet;
+}
+void AmfEventReport::unsetCommFailure() {
+  m_CommFailureIsSet = false;
+}
+int32_t AmfEventReport::getNumberOfUes() const {
+  return m_NumberOfUes;
+}
 void AmfEventReport::setNumberOfUes(int32_t const value) {
-  m_NumberOfUes = value;
+  m_NumberOfUes      = value;
   m_NumberOfUesIsSet = true;
 }
-bool AmfEventReport::numberOfUesIsSet() const { return m_NumberOfUesIsSet; }
-void AmfEventReport::unsetNumberOfUes() { m_NumberOfUesIsSet = false; }
+bool AmfEventReport::numberOfUesIsSet() const {
+  return m_NumberOfUesIsSet;
+}
+void AmfEventReport::unsetNumberOfUes() {
+  m_NumberOfUesIsSet = false;
+}
 std::vector<_5GsUserStateInfo> AmfEventReport::getR5gsUserStateList() const {
   return m_r_5gsUserStateList;
 }
 void AmfEventReport::setR5gsUserStateList(
     std::vector<_5GsUserStateInfo> const& value) {
-  m_r_5gsUserStateList = value;
+  m_r_5gsUserStateList      = value;
   m_r_5gsUserStateListIsSet = true;
 }
 bool AmfEventReport::r5gsUserStateListIsSet() const {

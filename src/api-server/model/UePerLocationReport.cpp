@@ -20,9 +20,9 @@
 namespace oai::nef::model {
 
 UePerLocationReport::UePerLocationReport() {
-  m_UeCount = 0;
-  m_ExternalIdsIsSet = false;
-  m_MsisdnsIsSet = false;
+  m_UeCount              = 0;
+  m_ExternalIdsIsSet     = false;
+  m_MsisdnsIsSet         = false;
   m_ServLevelDevIdsIsSet = false;
 }
 
@@ -37,14 +37,14 @@ bool UePerLocationReport::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UePerLocationReport::validate(std::stringstream& msg,
-                                   const std::string& pathPrefix) const {
+bool UePerLocationReport::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UePerLocationReport" : pathPrefix;
 
   /* UeCount */ {
-    const int32_t& value = m_UeCount;
+    const int32_t& value               = m_UeCount;
     const std::string currentValuePath = _pathPrefix + ".ueCount";
 
     if (value < 0) {
@@ -55,7 +55,7 @@ bool UePerLocationReport::validate(std::stringstream& msg,
 
   if (externalIdsIsSet()) {
     const std::vector<std::string>& value = m_ExternalIds;
-    const std::string currentValuePath = _pathPrefix + ".externalIds";
+    const std::string currentValuePath    = _pathPrefix + ".externalIds";
 
     if (value.size() < 1) {
       success = false;
@@ -63,7 +63,7 @@ bool UePerLocationReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -75,7 +75,7 @@ bool UePerLocationReport::validate(std::stringstream& msg,
 
   if (msisdnsIsSet()) {
     const std::vector<std::string>& value = m_Msisdns;
-    const std::string currentValuePath = _pathPrefix + ".msisdns";
+    const std::string currentValuePath    = _pathPrefix + ".msisdns";
 
     if (value.size() < 1) {
       success = false;
@@ -83,7 +83,7 @@ bool UePerLocationReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -95,7 +95,7 @@ bool UePerLocationReport::validate(std::stringstream& msg,
 
   if (servLevelDevIdsIsSet()) {
     const std::vector<std::string>& value = m_ServLevelDevIds;
-    const std::string currentValuePath = _pathPrefix + ".servLevelDevIds";
+    const std::string currentValuePath    = _pathPrefix + ".servLevelDevIds";
 
     if (value.size() < 1) {
       success = false;
@@ -103,7 +103,7 @@ bool UePerLocationReport::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -141,7 +141,7 @@ bool UePerLocationReport::operator!=(const UePerLocationReport& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const UePerLocationReport& o) {
-  j = nlohmann::json();
+  j            = nlohmann::json();
   j["ueCount"] = o.m_UeCount;
   if (o.externalIdsIsSet() || !o.m_ExternalIds.empty())
     j["externalIds"] = o.m_ExternalIds;
@@ -166,35 +166,45 @@ void from_json(const nlohmann::json& j, UePerLocationReport& o) {
   }
 }
 
-int32_t UePerLocationReport::getUeCount() const { return m_UeCount; }
-void UePerLocationReport::setUeCount(int32_t const value) { m_UeCount = value; }
+int32_t UePerLocationReport::getUeCount() const {
+  return m_UeCount;
+}
+void UePerLocationReport::setUeCount(int32_t const value) {
+  m_UeCount = value;
+}
 std::vector<std::string> UePerLocationReport::getExternalIds() const {
   return m_ExternalIds;
 }
 void UePerLocationReport::setExternalIds(
     std::vector<std::string> const& value) {
-  m_ExternalIds = value;
+  m_ExternalIds      = value;
   m_ExternalIdsIsSet = true;
 }
 bool UePerLocationReport::externalIdsIsSet() const {
   return m_ExternalIdsIsSet;
 }
-void UePerLocationReport::unsetExternalIds() { m_ExternalIdsIsSet = false; }
+void UePerLocationReport::unsetExternalIds() {
+  m_ExternalIdsIsSet = false;
+}
 std::vector<std::string> UePerLocationReport::getMsisdns() const {
   return m_Msisdns;
 }
 void UePerLocationReport::setMsisdns(std::vector<std::string> const& value) {
-  m_Msisdns = value;
+  m_Msisdns      = value;
   m_MsisdnsIsSet = true;
 }
-bool UePerLocationReport::msisdnsIsSet() const { return m_MsisdnsIsSet; }
-void UePerLocationReport::unsetMsisdns() { m_MsisdnsIsSet = false; }
+bool UePerLocationReport::msisdnsIsSet() const {
+  return m_MsisdnsIsSet;
+}
+void UePerLocationReport::unsetMsisdns() {
+  m_MsisdnsIsSet = false;
+}
 std::vector<std::string> UePerLocationReport::getServLevelDevIds() const {
   return m_ServLevelDevIds;
 }
 void UePerLocationReport::setServLevelDevIds(
     std::vector<std::string> const& value) {
-  m_ServLevelDevIds = value;
+  m_ServLevelDevIds      = value;
   m_ServLevelDevIdsIsSet = true;
 }
 bool UePerLocationReport::servLevelDevIdsIsSet() const {

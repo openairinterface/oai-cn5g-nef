@@ -99,8 +99,8 @@ class AmfCreatedEventSubscription {
   void unsetSupportedFeatures();
 
   friend void to_json(nlohmann::json& j, const AmfCreatedEventSubscription& o);
-  friend void from_json(const nlohmann::json& j,
-                        AmfCreatedEventSubscription& o);
+  friend void from_json(
+      const nlohmann::json& j, AmfCreatedEventSubscription& o);
 
  protected:
   AmfEventSubscription m_Subscription;

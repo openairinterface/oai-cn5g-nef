@@ -33,8 +33,8 @@ bool CmState_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CmState_anyOf::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool CmState_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CmState_anyOf" : pathPrefix;

@@ -20,14 +20,14 @@
 namespace oai::nef::model {
 
 AnalyticsEventNotif::AnalyticsEventNotif() {
-  m_Expiry = "";
-  m_ExpiryIsSet = false;
-  m_TimeStamp = "";
+  m_Expiry               = "";
+  m_ExpiryIsSet          = false;
+  m_TimeStamp            = "";
   m_UeMobilityInfosIsSet = false;
-  m_UeCommInfosIsSet = false;
-  m_AbnormalInfosIsSet = false;
-  m_CongestInfosIsSet = false;
-  m_NwPerfInfosIsSet = false;
+  m_UeCommInfosIsSet     = false;
+  m_AbnormalInfosIsSet   = false;
+  m_CongestInfosIsSet    = false;
+  m_NwPerfInfosIsSet     = false;
   m_QosSustainInfosIsSet = false;
 }
 
@@ -42,8 +42,8 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsEventNotif::validate(std::stringstream& msg,
-                                   const std::string& pathPrefix) const {
+bool AnalyticsEventNotif::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsEventNotif" : pathPrefix;
@@ -58,7 +58,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const UeMobilityExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -73,7 +73,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
 
   if (ueCommInfosIsSet()) {
     const std::vector<UeCommunication>& value = m_UeCommInfos;
-    const std::string currentValuePath = _pathPrefix + ".ueCommInfos";
+    const std::string currentValuePath        = _pathPrefix + ".ueCommInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -81,7 +81,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const UeCommunication& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -96,7 +96,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
 
   if (abnormalInfosIsSet()) {
     const std::vector<AbnormalExposure>& value = m_AbnormalInfos;
-    const std::string currentValuePath = _pathPrefix + ".abnormalInfos";
+    const std::string currentValuePath         = _pathPrefix + ".abnormalInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -104,7 +104,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AbnormalExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -119,7 +119,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
 
   if (congestInfosIsSet()) {
     const std::vector<CongestInfo>& value = m_CongestInfos;
-    const std::string currentValuePath = _pathPrefix + ".congestInfos";
+    const std::string currentValuePath    = _pathPrefix + ".congestInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -127,7 +127,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const CongestInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -150,7 +150,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const NetworkPerfExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -173,7 +173,7 @@ bool AnalyticsEventNotif::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const QosSustainabilityExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -232,7 +232,7 @@ bool AnalyticsEventNotif::operator!=(const AnalyticsEventNotif& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AnalyticsEventNotif& o) {
-  j = nlohmann::json();
+  j               = nlohmann::json();
   j["analyEvent"] = o.m_AnalyEvent;
   if (o.expiryIsSet()) j["expiry"] = o.m_Expiry;
   j["timeStamp"] = o.m_TimeStamp;
@@ -289,14 +289,22 @@ AnalyticsEvent AnalyticsEventNotif::getAnalyEvent() const {
 void AnalyticsEventNotif::setAnalyEvent(AnalyticsEvent const& value) {
   m_AnalyEvent = value;
 }
-std::string AnalyticsEventNotif::getExpiry() const { return m_Expiry; }
+std::string AnalyticsEventNotif::getExpiry() const {
+  return m_Expiry;
+}
 void AnalyticsEventNotif::setExpiry(std::string const& value) {
-  m_Expiry = value;
+  m_Expiry      = value;
   m_ExpiryIsSet = true;
 }
-bool AnalyticsEventNotif::expiryIsSet() const { return m_ExpiryIsSet; }
-void AnalyticsEventNotif::unsetExpiry() { m_ExpiryIsSet = false; }
-std::string AnalyticsEventNotif::getTimeStamp() const { return m_TimeStamp; }
+bool AnalyticsEventNotif::expiryIsSet() const {
+  return m_ExpiryIsSet;
+}
+void AnalyticsEventNotif::unsetExpiry() {
+  m_ExpiryIsSet = false;
+}
+std::string AnalyticsEventNotif::getTimeStamp() const {
+  return m_TimeStamp;
+}
 void AnalyticsEventNotif::setTimeStamp(std::string const& value) {
   m_TimeStamp = value;
 }
@@ -306,7 +314,7 @@ std::vector<UeMobilityExposure> AnalyticsEventNotif::getUeMobilityInfos()
 }
 void AnalyticsEventNotif::setUeMobilityInfos(
     std::vector<UeMobilityExposure> const& value) {
-  m_UeMobilityInfos = value;
+  m_UeMobilityInfos      = value;
   m_UeMobilityInfosIsSet = true;
 }
 bool AnalyticsEventNotif::ueMobilityInfosIsSet() const {
@@ -320,56 +328,64 @@ std::vector<UeCommunication> AnalyticsEventNotif::getUeCommInfos() const {
 }
 void AnalyticsEventNotif::setUeCommInfos(
     std::vector<UeCommunication> const& value) {
-  m_UeCommInfos = value;
+  m_UeCommInfos      = value;
   m_UeCommInfosIsSet = true;
 }
 bool AnalyticsEventNotif::ueCommInfosIsSet() const {
   return m_UeCommInfosIsSet;
 }
-void AnalyticsEventNotif::unsetUeCommInfos() { m_UeCommInfosIsSet = false; }
+void AnalyticsEventNotif::unsetUeCommInfos() {
+  m_UeCommInfosIsSet = false;
+}
 std::vector<AbnormalExposure> AnalyticsEventNotif::getAbnormalInfos() const {
   return m_AbnormalInfos;
 }
 void AnalyticsEventNotif::setAbnormalInfos(
     std::vector<AbnormalExposure> const& value) {
-  m_AbnormalInfos = value;
+  m_AbnormalInfos      = value;
   m_AbnormalInfosIsSet = true;
 }
 bool AnalyticsEventNotif::abnormalInfosIsSet() const {
   return m_AbnormalInfosIsSet;
 }
-void AnalyticsEventNotif::unsetAbnormalInfos() { m_AbnormalInfosIsSet = false; }
+void AnalyticsEventNotif::unsetAbnormalInfos() {
+  m_AbnormalInfosIsSet = false;
+}
 std::vector<CongestInfo> AnalyticsEventNotif::getCongestInfos() const {
   return m_CongestInfos;
 }
 void AnalyticsEventNotif::setCongestInfos(
     std::vector<CongestInfo> const& value) {
-  m_CongestInfos = value;
+  m_CongestInfos      = value;
   m_CongestInfosIsSet = true;
 }
 bool AnalyticsEventNotif::congestInfosIsSet() const {
   return m_CongestInfosIsSet;
 }
-void AnalyticsEventNotif::unsetCongestInfos() { m_CongestInfosIsSet = false; }
+void AnalyticsEventNotif::unsetCongestInfos() {
+  m_CongestInfosIsSet = false;
+}
 std::vector<NetworkPerfExposure> AnalyticsEventNotif::getNwPerfInfos() const {
   return m_NwPerfInfos;
 }
 void AnalyticsEventNotif::setNwPerfInfos(
     std::vector<NetworkPerfExposure> const& value) {
-  m_NwPerfInfos = value;
+  m_NwPerfInfos      = value;
   m_NwPerfInfosIsSet = true;
 }
 bool AnalyticsEventNotif::nwPerfInfosIsSet() const {
   return m_NwPerfInfosIsSet;
 }
-void AnalyticsEventNotif::unsetNwPerfInfos() { m_NwPerfInfosIsSet = false; }
+void AnalyticsEventNotif::unsetNwPerfInfos() {
+  m_NwPerfInfosIsSet = false;
+}
 std::vector<QosSustainabilityExposure> AnalyticsEventNotif::getQosSustainInfos()
     const {
   return m_QosSustainInfos;
 }
 void AnalyticsEventNotif::setQosSustainInfos(
     std::vector<QosSustainabilityExposure> const& value) {
-  m_QosSustainInfos = value;
+  m_QosSustainInfos      = value;
   m_QosSustainInfosIsSet = true;
 }
 bool AnalyticsEventNotif::qosSustainInfosIsSet() const {

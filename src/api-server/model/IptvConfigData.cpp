@@ -20,19 +20,19 @@
 namespace oai::nef::model {
 
 IptvConfigData::IptvConfigData() {
-  m_Self = "";
-  m_SelfIsSet = false;
-  m_Gpsi = "";
-  m_GpsiIsSet = false;
-  m_ExterGroupId = "";
-  m_ExterGroupIdIsSet = false;
-  m_AfAppId = "";
-  m_Dnn = "";
-  m_DnnIsSet = false;
-  m_SnssaiIsSet = false;
-  m_MtcProviderId = "";
+  m_Self               = "";
+  m_SelfIsSet          = false;
+  m_Gpsi               = "";
+  m_GpsiIsSet          = false;
+  m_ExterGroupId       = "";
+  m_ExterGroupIdIsSet  = false;
+  m_AfAppId            = "";
+  m_Dnn                = "";
+  m_DnnIsSet           = false;
+  m_SnssaiIsSet        = false;
+  m_MtcProviderId      = "";
   m_MtcProviderIdIsSet = false;
-  m_SuppFeat = "";
+  m_SuppFeat           = "";
 }
 
 void IptvConfigData::validate() const {
@@ -46,14 +46,14 @@ bool IptvConfigData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool IptvConfigData::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool IptvConfigData::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "IptvConfigData" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value = m_Gpsi;
+    const std::string& value           = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
@@ -64,7 +64,7 @@ bool IptvConfigData::validate(std::stringstream& msg,
   }
 
   /* SuppFeat */ {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -151,43 +151,77 @@ void from_json(const nlohmann::json& j, IptvConfigData& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string IptvConfigData::getSelf() const { return m_Self; }
+std::string IptvConfigData::getSelf() const {
+  return m_Self;
+}
 void IptvConfigData::setSelf(std::string const& value) {
-  m_Self = value;
+  m_Self      = value;
   m_SelfIsSet = true;
 }
-bool IptvConfigData::selfIsSet() const { return m_SelfIsSet; }
-void IptvConfigData::unsetSelf() { m_SelfIsSet = false; }
-std::string IptvConfigData::getGpsi() const { return m_Gpsi; }
+bool IptvConfigData::selfIsSet() const {
+  return m_SelfIsSet;
+}
+void IptvConfigData::unsetSelf() {
+  m_SelfIsSet = false;
+}
+std::string IptvConfigData::getGpsi() const {
+  return m_Gpsi;
+}
 void IptvConfigData::setGpsi(std::string const& value) {
-  m_Gpsi = value;
+  m_Gpsi      = value;
   m_GpsiIsSet = true;
 }
-bool IptvConfigData::gpsiIsSet() const { return m_GpsiIsSet; }
-void IptvConfigData::unsetGpsi() { m_GpsiIsSet = false; }
-std::string IptvConfigData::getExterGroupId() const { return m_ExterGroupId; }
+bool IptvConfigData::gpsiIsSet() const {
+  return m_GpsiIsSet;
+}
+void IptvConfigData::unsetGpsi() {
+  m_GpsiIsSet = false;
+}
+std::string IptvConfigData::getExterGroupId() const {
+  return m_ExterGroupId;
+}
 void IptvConfigData::setExterGroupId(std::string const& value) {
-  m_ExterGroupId = value;
+  m_ExterGroupId      = value;
   m_ExterGroupIdIsSet = true;
 }
-bool IptvConfigData::exterGroupIdIsSet() const { return m_ExterGroupIdIsSet; }
-void IptvConfigData::unsetExterGroupId() { m_ExterGroupIdIsSet = false; }
-std::string IptvConfigData::getAfAppId() const { return m_AfAppId; }
-void IptvConfigData::setAfAppId(std::string const& value) { m_AfAppId = value; }
-std::string IptvConfigData::getDnn() const { return m_Dnn; }
+bool IptvConfigData::exterGroupIdIsSet() const {
+  return m_ExterGroupIdIsSet;
+}
+void IptvConfigData::unsetExterGroupId() {
+  m_ExterGroupIdIsSet = false;
+}
+std::string IptvConfigData::getAfAppId() const {
+  return m_AfAppId;
+}
+void IptvConfigData::setAfAppId(std::string const& value) {
+  m_AfAppId = value;
+}
+std::string IptvConfigData::getDnn() const {
+  return m_Dnn;
+}
 void IptvConfigData::setDnn(std::string const& value) {
-  m_Dnn = value;
+  m_Dnn      = value;
   m_DnnIsSet = true;
 }
-bool IptvConfigData::dnnIsSet() const { return m_DnnIsSet; }
-void IptvConfigData::unsetDnn() { m_DnnIsSet = false; }
-Snssai IptvConfigData::getSnssai() const { return m_Snssai; }
+bool IptvConfigData::dnnIsSet() const {
+  return m_DnnIsSet;
+}
+void IptvConfigData::unsetDnn() {
+  m_DnnIsSet = false;
+}
+Snssai IptvConfigData::getSnssai() const {
+  return m_Snssai;
+}
 void IptvConfigData::setSnssai(Snssai const& value) {
-  m_Snssai = value;
+  m_Snssai      = value;
   m_SnssaiIsSet = true;
 }
-bool IptvConfigData::snssaiIsSet() const { return m_SnssaiIsSet; }
-void IptvConfigData::unsetSnssai() { m_SnssaiIsSet = false; }
+bool IptvConfigData::snssaiIsSet() const {
+  return m_SnssaiIsSet;
+}
+void IptvConfigData::unsetSnssai() {
+  m_SnssaiIsSet = false;
+}
 std::map<std::string, MulticastAccessControl> IptvConfigData::getMultiAccCtrls()
     const {
   return m_MultiAccCtrls;
@@ -196,14 +230,22 @@ void IptvConfigData::setMultiAccCtrls(
     std::map<std::string, MulticastAccessControl> const& value) {
   m_MultiAccCtrls = value;
 }
-std::string IptvConfigData::getMtcProviderId() const { return m_MtcProviderId; }
+std::string IptvConfigData::getMtcProviderId() const {
+  return m_MtcProviderId;
+}
 void IptvConfigData::setMtcProviderId(std::string const& value) {
-  m_MtcProviderId = value;
+  m_MtcProviderId      = value;
   m_MtcProviderIdIsSet = true;
 }
-bool IptvConfigData::mtcProviderIdIsSet() const { return m_MtcProviderIdIsSet; }
-void IptvConfigData::unsetMtcProviderId() { m_MtcProviderIdIsSet = false; }
-std::string IptvConfigData::getSuppFeat() const { return m_SuppFeat; }
+bool IptvConfigData::mtcProviderIdIsSet() const {
+  return m_MtcProviderIdIsSet;
+}
+void IptvConfigData::unsetMtcProviderId() {
+  m_MtcProviderIdIsSet = false;
+}
+std::string IptvConfigData::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void IptvConfigData::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }

@@ -21,7 +21,7 @@ namespace oai::nef::model {
 
 UavPolicy::UavPolicy() {
   m_UavMoveInd = false;
-  m_RevokeInd = false;
+  m_RevokeInd  = false;
 }
 
 void UavPolicy::validate() const {
@@ -35,9 +35,9 @@ bool UavPolicy::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UavPolicy::validate(std::stringstream& msg,
-                         const std::string& pathPrefix) const {
-  bool success = true;
+bool UavPolicy::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "UavPolicy" : pathPrefix;
 
   return success;
@@ -58,9 +58,9 @@ bool UavPolicy::operator!=(const UavPolicy& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const UavPolicy& o) {
-  j = nlohmann::json();
+  j               = nlohmann::json();
   j["uavMoveInd"] = o.m_UavMoveInd;
-  j["revokeInd"] = o.m_RevokeInd;
+  j["revokeInd"]  = o.m_RevokeInd;
 }
 
 void from_json(const nlohmann::json& j, UavPolicy& o) {
@@ -68,9 +68,17 @@ void from_json(const nlohmann::json& j, UavPolicy& o) {
   j.at("revokeInd").get_to(o.m_RevokeInd);
 }
 
-bool UavPolicy::isUavMoveInd() const { return m_UavMoveInd; }
-void UavPolicy::setUavMoveInd(bool const value) { m_UavMoveInd = value; }
-bool UavPolicy::isRevokeInd() const { return m_RevokeInd; }
-void UavPolicy::setRevokeInd(bool const value) { m_RevokeInd = value; }
+bool UavPolicy::isUavMoveInd() const {
+  return m_UavMoveInd;
+}
+void UavPolicy::setUavMoveInd(bool const value) {
+  m_UavMoveInd = value;
+}
+bool UavPolicy::isRevokeInd() const {
+  return m_RevokeInd;
+}
+void UavPolicy::setRevokeInd(bool const value) {
+  m_RevokeInd = value;
+}
 
 }  // namespace oai::nef::model

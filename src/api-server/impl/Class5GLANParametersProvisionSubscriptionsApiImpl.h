@@ -43,8 +43,8 @@ class Class5GLANParametersProvisionSubscriptionsApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~Class5GLANParametersProvisionSubscriptionsApiImpl() override = default;
 
-  void af_id_subscriptions_get(const std::string& afId,
-                               Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_get(
+      const std::string& afId, Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_post(
       const std::string& afId,
       const _5GLanParametersProvision& r_5GLanParametersProvision,

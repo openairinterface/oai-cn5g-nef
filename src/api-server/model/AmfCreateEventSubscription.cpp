@@ -20,9 +20,9 @@
 namespace oai::nef::model {
 
 AmfCreateEventSubscription::AmfCreateEventSubscription() {
-  m_SupportedFeatures = "";
+  m_SupportedFeatures      = "";
   m_SupportedFeaturesIsSet = false;
-  m_OldGuamiIsSet = false;
+  m_OldGuamiIsSet          = false;
 }
 
 void AmfCreateEventSubscription::validate() const {
@@ -36,14 +36,14 @@ bool AmfCreateEventSubscription::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfCreateEventSubscription::validate(std::stringstream& msg,
-                                          const std::string& pathPrefix) const {
+bool AmfCreateEventSubscription::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfCreateEventSubscription" : pathPrefix;
 
   if (supportedFeaturesIsSet()) {
-    const std::string& value = m_SupportedFeatures;
+    const std::string& value           = m_SupportedFeatures;
     const std::string currentValuePath = _pathPrefix + ".supportedFeatures";
   }
 
@@ -73,7 +73,7 @@ bool AmfCreateEventSubscription::operator!=(
 }
 
 void to_json(nlohmann::json& j, const AmfCreateEventSubscription& o) {
-  j = nlohmann::json();
+  j                 = nlohmann::json();
   j["subscription"] = o.m_Subscription;
   if (o.supportedFeaturesIsSet())
     j["supportedFeatures"] = o.m_SupportedFeatures;
@@ -104,7 +104,7 @@ std::string AmfCreateEventSubscription::getSupportedFeatures() const {
 }
 void AmfCreateEventSubscription::setSupportedFeatures(
     std::string const& value) {
-  m_SupportedFeatures = value;
+  m_SupportedFeatures      = value;
   m_SupportedFeaturesIsSet = true;
 }
 bool AmfCreateEventSubscription::supportedFeaturesIsSet() const {
@@ -113,14 +113,18 @@ bool AmfCreateEventSubscription::supportedFeaturesIsSet() const {
 void AmfCreateEventSubscription::unsetSupportedFeatures() {
   m_SupportedFeaturesIsSet = false;
 }
-Guami AmfCreateEventSubscription::getOldGuami() const { return m_OldGuami; }
+Guami AmfCreateEventSubscription::getOldGuami() const {
+  return m_OldGuami;
+}
 void AmfCreateEventSubscription::setOldGuami(Guami const& value) {
-  m_OldGuami = value;
+  m_OldGuami      = value;
   m_OldGuamiIsSet = true;
 }
 bool AmfCreateEventSubscription::oldGuamiIsSet() const {
   return m_OldGuamiIsSet;
 }
-void AmfCreateEventSubscription::unsetOldGuami() { m_OldGuamiIsSet = false; }
+void AmfCreateEventSubscription::unsetOldGuami() {
+  m_OldGuamiIsSet = false;
+}
 
 }  // namespace oai::nef::model

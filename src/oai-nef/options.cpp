@@ -51,12 +51,14 @@ bool Options::parse(int argc, char** argv) {
   return ret;
 }
 
-bool Options::validateOptions() { return ((options & libconfigcfg)); }
+bool Options::validateOptions() {
+  return ((options & libconfigcfg));
+}
 
 bool Options::parseInputOptions(int argc, char** argv) {
   int c;
   int option_index = 0;
-  bool result = true;
+  bool result      = true;
 
   struct option long_options[] = {
       {"help", no_argument, NULL, 'h'},

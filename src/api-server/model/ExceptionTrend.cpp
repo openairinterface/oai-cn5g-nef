@@ -32,8 +32,8 @@ bool ExceptionTrend::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ExceptionTrend::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool ExceptionTrend::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExceptionTrend" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, ExceptionTrend& o) {
   from_json(j, o.m_value);
 }
 
-ExceptionTrend_anyOf ExceptionTrend::getValue() const { return m_value; }
+ExceptionTrend_anyOf ExceptionTrend::getValue() const {
+  return m_value;
+}
 
-void ExceptionTrend::setValue(ExceptionTrend_anyOf value) { m_value = value; }
+void ExceptionTrend::setValue(ExceptionTrend_anyOf value) {
+  m_value = value;
+}
 
 ExceptionTrend_anyOf::eExceptionTrend_anyOf ExceptionTrend::getEnumValue()
     const {

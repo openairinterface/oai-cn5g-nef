@@ -20,16 +20,16 @@
 namespace oai::nef::model {
 
 AnalyticsEventFilter::AnalyticsEventFilter() {
-  m_LocAreaIsSet = false;
-  m_Dnn = "";
-  m_DnnIsSet = false;
+  m_LocAreaIsSet     = false;
+  m_Dnn              = "";
+  m_DnnIsSet         = false;
   m_NwPerfTypesIsSet = false;
-  m_AppIdsIsSet = false;
-  m_ExcepIdsIsSet = false;
+  m_AppIdsIsSet      = false;
+  m_ExcepIdsIsSet    = false;
   m_ExptAnaTypeIsSet = false;
   m_ExptUeBehavIsSet = false;
-  m_SnssaiIsSet = false;
-  m_QosReqIsSet = false;
+  m_SnssaiIsSet      = false;
+  m_QosReqIsSet      = false;
 }
 
 void AnalyticsEventFilter::validate() const {
@@ -43,15 +43,15 @@ bool AnalyticsEventFilter::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsEventFilter::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool AnalyticsEventFilter::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsEventFilter" : pathPrefix;
 
   if (nwPerfTypesIsSet()) {
     const std::vector<NetworkPerfType>& value = m_NwPerfTypes;
-    const std::string currentValuePath = _pathPrefix + ".nwPerfTypes";
+    const std::string currentValuePath        = _pathPrefix + ".nwPerfTypes";
 
     if (value.size() < 1) {
       success = false;
@@ -59,7 +59,7 @@ bool AnalyticsEventFilter::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const NetworkPerfType& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -74,7 +74,7 @@ bool AnalyticsEventFilter::validate(std::stringstream& msg,
 
   if (appIdsIsSet()) {
     const std::vector<std::string>& value = m_AppIds;
-    const std::string currentValuePath = _pathPrefix + ".appIds";
+    const std::string currentValuePath    = _pathPrefix + ".appIds";
 
     if (value.size() < 1) {
       success = false;
@@ -82,7 +82,7 @@ bool AnalyticsEventFilter::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -94,7 +94,7 @@ bool AnalyticsEventFilter::validate(std::stringstream& msg,
 
   if (excepIdsIsSet()) {
     const std::vector<ExceptionId>& value = m_ExcepIds;
-    const std::string currentValuePath = _pathPrefix + ".excepIds";
+    const std::string currentValuePath    = _pathPrefix + ".excepIds";
 
     if (value.size() < 1) {
       success = false;
@@ -102,7 +102,7 @@ bool AnalyticsEventFilter::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const ExceptionId& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -215,86 +215,124 @@ void from_json(const nlohmann::json& j, AnalyticsEventFilter& o) {
   }
 }
 
-LocationArea5G AnalyticsEventFilter::getLocArea() const { return m_LocArea; }
+LocationArea5G AnalyticsEventFilter::getLocArea() const {
+  return m_LocArea;
+}
 void AnalyticsEventFilter::setLocArea(LocationArea5G const& value) {
-  m_LocArea = value;
+  m_LocArea      = value;
   m_LocAreaIsSet = true;
 }
-bool AnalyticsEventFilter::locAreaIsSet() const { return m_LocAreaIsSet; }
-void AnalyticsEventFilter::unsetLocArea() { m_LocAreaIsSet = false; }
-std::string AnalyticsEventFilter::getDnn() const { return m_Dnn; }
+bool AnalyticsEventFilter::locAreaIsSet() const {
+  return m_LocAreaIsSet;
+}
+void AnalyticsEventFilter::unsetLocArea() {
+  m_LocAreaIsSet = false;
+}
+std::string AnalyticsEventFilter::getDnn() const {
+  return m_Dnn;
+}
 void AnalyticsEventFilter::setDnn(std::string const& value) {
-  m_Dnn = value;
+  m_Dnn      = value;
   m_DnnIsSet = true;
 }
-bool AnalyticsEventFilter::dnnIsSet() const { return m_DnnIsSet; }
-void AnalyticsEventFilter::unsetDnn() { m_DnnIsSet = false; }
+bool AnalyticsEventFilter::dnnIsSet() const {
+  return m_DnnIsSet;
+}
+void AnalyticsEventFilter::unsetDnn() {
+  m_DnnIsSet = false;
+}
 std::vector<NetworkPerfType> AnalyticsEventFilter::getNwPerfTypes() const {
   return m_NwPerfTypes;
 }
 void AnalyticsEventFilter::setNwPerfTypes(
     std::vector<NetworkPerfType> const& value) {
-  m_NwPerfTypes = value;
+  m_NwPerfTypes      = value;
   m_NwPerfTypesIsSet = true;
 }
 bool AnalyticsEventFilter::nwPerfTypesIsSet() const {
   return m_NwPerfTypesIsSet;
 }
-void AnalyticsEventFilter::unsetNwPerfTypes() { m_NwPerfTypesIsSet = false; }
+void AnalyticsEventFilter::unsetNwPerfTypes() {
+  m_NwPerfTypesIsSet = false;
+}
 std::vector<std::string> AnalyticsEventFilter::getAppIds() const {
   return m_AppIds;
 }
 void AnalyticsEventFilter::setAppIds(std::vector<std::string> const& value) {
-  m_AppIds = value;
+  m_AppIds      = value;
   m_AppIdsIsSet = true;
 }
-bool AnalyticsEventFilter::appIdsIsSet() const { return m_AppIdsIsSet; }
-void AnalyticsEventFilter::unsetAppIds() { m_AppIdsIsSet = false; }
+bool AnalyticsEventFilter::appIdsIsSet() const {
+  return m_AppIdsIsSet;
+}
+void AnalyticsEventFilter::unsetAppIds() {
+  m_AppIdsIsSet = false;
+}
 std::vector<ExceptionId> AnalyticsEventFilter::getExcepIds() const {
   return m_ExcepIds;
 }
 void AnalyticsEventFilter::setExcepIds(std::vector<ExceptionId> const& value) {
-  m_ExcepIds = value;
+  m_ExcepIds      = value;
   m_ExcepIdsIsSet = true;
 }
-bool AnalyticsEventFilter::excepIdsIsSet() const { return m_ExcepIdsIsSet; }
-void AnalyticsEventFilter::unsetExcepIds() { m_ExcepIdsIsSet = false; }
+bool AnalyticsEventFilter::excepIdsIsSet() const {
+  return m_ExcepIdsIsSet;
+}
+void AnalyticsEventFilter::unsetExcepIds() {
+  m_ExcepIdsIsSet = false;
+}
 ExpectedAnalyticsType AnalyticsEventFilter::getExptAnaType() const {
   return m_ExptAnaType;
 }
 void AnalyticsEventFilter::setExptAnaType(ExpectedAnalyticsType const& value) {
-  m_ExptAnaType = value;
+  m_ExptAnaType      = value;
   m_ExptAnaTypeIsSet = true;
 }
 bool AnalyticsEventFilter::exptAnaTypeIsSet() const {
   return m_ExptAnaTypeIsSet;
 }
-void AnalyticsEventFilter::unsetExptAnaType() { m_ExptAnaTypeIsSet = false; }
+void AnalyticsEventFilter::unsetExptAnaType() {
+  m_ExptAnaTypeIsSet = false;
+}
 ExpectedUeBehaviourData AnalyticsEventFilter::getExptUeBehav() const {
   return m_ExptUeBehav;
 }
 void AnalyticsEventFilter::setExptUeBehav(
     ExpectedUeBehaviourData const& value) {
-  m_ExptUeBehav = value;
+  m_ExptUeBehav      = value;
   m_ExptUeBehavIsSet = true;
 }
 bool AnalyticsEventFilter::exptUeBehavIsSet() const {
   return m_ExptUeBehavIsSet;
 }
-void AnalyticsEventFilter::unsetExptUeBehav() { m_ExptUeBehavIsSet = false; }
-Snssai AnalyticsEventFilter::getSnssai() const { return m_Snssai; }
+void AnalyticsEventFilter::unsetExptUeBehav() {
+  m_ExptUeBehavIsSet = false;
+}
+Snssai AnalyticsEventFilter::getSnssai() const {
+  return m_Snssai;
+}
 void AnalyticsEventFilter::setSnssai(Snssai const& value) {
-  m_Snssai = value;
+  m_Snssai      = value;
   m_SnssaiIsSet = true;
 }
-bool AnalyticsEventFilter::snssaiIsSet() const { return m_SnssaiIsSet; }
-void AnalyticsEventFilter::unsetSnssai() { m_SnssaiIsSet = false; }
-QosRequirement AnalyticsEventFilter::getQosReq() const { return m_QosReq; }
+bool AnalyticsEventFilter::snssaiIsSet() const {
+  return m_SnssaiIsSet;
+}
+void AnalyticsEventFilter::unsetSnssai() {
+  m_SnssaiIsSet = false;
+}
+QosRequirement AnalyticsEventFilter::getQosReq() const {
+  return m_QosReq;
+}
 void AnalyticsEventFilter::setQosReq(QosRequirement const& value) {
-  m_QosReq = value;
+  m_QosReq      = value;
   m_QosReqIsSet = true;
 }
-bool AnalyticsEventFilter::qosReqIsSet() const { return m_QosReqIsSet; }
-void AnalyticsEventFilter::unsetQosReq() { m_QosReqIsSet = false; }
+bool AnalyticsEventFilter::qosReqIsSet() const {
+  return m_QosReqIsSet;
+}
+void AnalyticsEventFilter::unsetQosReq() {
+  m_QosReqIsSet = false;
+}
 
 }  // namespace oai::nef::model

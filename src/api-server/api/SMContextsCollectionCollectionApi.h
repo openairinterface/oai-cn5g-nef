@@ -45,8 +45,9 @@ class SMContextsCollectionCollectionApi {
  private:
   void setupRoutes();
 
-  void create_handler(const Pistache::Rest::Request& request,
-                      Pistache::Http::ResponseWriter response);
+  void create_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
   void sm_contexts_collection_collection_api_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);

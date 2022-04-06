@@ -19,7 +19,9 @@
 
 namespace oai::nef::model {
 
-AppliedBdtPolicyPatch::AppliedBdtPolicyPatch() { m_BdtRefId = ""; }
+AppliedBdtPolicyPatch::AppliedBdtPolicyPatch() {
+  m_BdtRefId = "";
+}
 
 void AppliedBdtPolicyPatch::validate() const {
   std::stringstream msg;
@@ -32,8 +34,8 @@ bool AppliedBdtPolicyPatch::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AppliedBdtPolicyPatch::validate(std::stringstream& msg,
-                                     const std::string& pathPrefix) const {
+bool AppliedBdtPolicyPatch::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AppliedBdtPolicyPatch" : pathPrefix;
@@ -54,7 +56,7 @@ bool AppliedBdtPolicyPatch::operator!=(const AppliedBdtPolicyPatch& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AppliedBdtPolicyPatch& o) {
-  j = nlohmann::json();
+  j             = nlohmann::json();
   j["bdtRefId"] = o.m_BdtRefId;
 }
 
@@ -62,7 +64,9 @@ void from_json(const nlohmann::json& j, AppliedBdtPolicyPatch& o) {
   j.at("bdtRefId").get_to(o.m_BdtRefId);
 }
 
-std::string AppliedBdtPolicyPatch::getBdtRefId() const { return m_BdtRefId; }
+std::string AppliedBdtPolicyPatch::getBdtRefId() const {
+  return m_BdtRefId;
+}
 void AppliedBdtPolicyPatch::setBdtRefId(std::string const& value) {
   m_BdtRefId = value;
 }

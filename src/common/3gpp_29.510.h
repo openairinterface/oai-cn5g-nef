@@ -35,11 +35,11 @@ static const std::vector<std::string> nf_status_e2str = {
     "REGISTERED", "SUSPENDED", "UNDISCOVERABLE"};
 
 typedef enum nf_up_interface_type_s {
-  N3 = 0,
-  N6 = 1,
-  N9 = 2,
+  N3              = 0,
+  N6              = 1,
+  N9              = 2,
   DATA_FORWARDING = 3,
-  TYPE_UNKNOWN = 4
+  TYPE_UNKNOWN    = 4
 } nf_up_interface_type_t;
 
 static const std::vector<std::string> up_interface_type_e2str = {
@@ -100,14 +100,14 @@ typedef struct ausf_info_s {
 } ausf_info_t;
 
 enum subscr_condition_type_e {  // TODO: use enum class
-  UNKNOWN_CONDITION = 0,
+  UNKNOWN_CONDITION   = 0,
   NF_INSTANCE_ID_COND = 1,
-  NF_TYPE_COND = 2,
-  SERVICE_NAME_COND = 3,
-  AMF_COND = 4,
-  GUAMI_LIST_COND = 5,
-  NETWOTK_SLICE_COND = 6,
-  NF_GROUP_COND = 7
+  NF_TYPE_COND        = 2,
+  SERVICE_NAME_COND   = 3,
+  AMF_COND            = 4,
+  GUAMI_LIST_COND     = 5,
+  NETWOTK_SLICE_COND  = 6,
+  NF_GROUP_COND       = 7
 };
 
 static const std::vector<std::string> subscription_condition_type_e2str = {
@@ -163,7 +163,7 @@ typedef struct subscription_condition_s {
         service_name = s.service_name;
       } break;
       case AMF_COND: {
-        amf_info.amf_set_id = s.amf_info.amf_set_id;
+        amf_info.amf_set_id    = s.amf_info.amf_set_id;
         amf_info.amf_region_id = s.amf_info.amf_region_id;
       } break;
 
@@ -205,7 +205,7 @@ typedef struct subscription_condition_s {
         service_name = s.service_name;
       } break;
       case AMF_COND: {
-        amf_info.amf_set_id = s.amf_info.amf_set_id;
+        amf_info.amf_set_id    = s.amf_info.amf_set_id;
         amf_info.amf_region_id = s.amf_info.amf_region_id;
       } break;
 
@@ -277,9 +277,9 @@ typedef struct subscription_condition_s {
 } subscription_condition_t;
 
 enum notification_event_type_t {
-  NOTIFICATION_TYPE_UNKNOWN_EVENT = 0,
-  NOTIFICATION_TYPE_NF_REGISTERED = 1,
-  NOTIFICATION_TYPE_NF_DEREGISTERED = 2,
+  NOTIFICATION_TYPE_UNKNOWN_EVENT      = 0,
+  NOTIFICATION_TYPE_NF_REGISTERED      = 1,
+  NOTIFICATION_TYPE_NF_DEREGISTERED    = 2,
   NOTIFICATION_TYPE_NF_PROFILE_CHANGED = 3
 };
 
@@ -292,7 +292,7 @@ typedef struct nf_service_version_s {
 
   nf_service_version_s& operator=(const nf_service_version_s& s) {
     api_version_in_uri = s.api_version_in_uri;
-    api_full_version = s.api_full_version;
+    api_full_version   = s.api_full_version;
     return *this;
   }
 

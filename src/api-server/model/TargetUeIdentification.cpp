@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 TargetUeIdentification::TargetUeIdentification() {
-  m_SupisIsSet = false;
+  m_SupisIsSet         = false;
   m_InterGroupIdsIsSet = false;
-  m_AnyUeId = false;
-  m_AnyUeIdIsSet = false;
+  m_AnyUeId            = false;
+  m_AnyUeIdIsSet       = false;
 }
 
 void TargetUeIdentification::validate() const {
@@ -37,15 +37,15 @@ bool TargetUeIdentification::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TargetUeIdentification::validate(std::stringstream& msg,
-                                      const std::string& pathPrefix) const {
+bool TargetUeIdentification::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TargetUeIdentification" : pathPrefix;
 
   if (supisIsSet()) {
     const std::vector<std::string>& value = m_Supis;
-    const std::string currentValuePath = _pathPrefix + ".supis";
+    const std::string currentValuePath    = _pathPrefix + ".supis";
 
     if (value.size() < 1) {
       success = false;
@@ -53,7 +53,7 @@ bool TargetUeIdentification::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -65,7 +65,7 @@ bool TargetUeIdentification::validate(std::stringstream& msg,
 
   if (interGroupIdsIsSet()) {
     const std::vector<std::string>& value = m_InterGroupIds;
-    const std::string currentValuePath = _pathPrefix + ".interGroupIds";
+    const std::string currentValuePath    = _pathPrefix + ".interGroupIds";
 
     if (value.size() < 1) {
       success = false;
@@ -73,7 +73,7 @@ bool TargetUeIdentification::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -135,17 +135,21 @@ std::vector<std::string> TargetUeIdentification::getSupis() const {
   return m_Supis;
 }
 void TargetUeIdentification::setSupis(std::vector<std::string> const& value) {
-  m_Supis = value;
+  m_Supis      = value;
   m_SupisIsSet = true;
 }
-bool TargetUeIdentification::supisIsSet() const { return m_SupisIsSet; }
-void TargetUeIdentification::unsetSupis() { m_SupisIsSet = false; }
+bool TargetUeIdentification::supisIsSet() const {
+  return m_SupisIsSet;
+}
+void TargetUeIdentification::unsetSupis() {
+  m_SupisIsSet = false;
+}
 std::vector<std::string> TargetUeIdentification::getInterGroupIds() const {
   return m_InterGroupIds;
 }
 void TargetUeIdentification::setInterGroupIds(
     std::vector<std::string> const& value) {
-  m_InterGroupIds = value;
+  m_InterGroupIds      = value;
   m_InterGroupIdsIsSet = true;
 }
 bool TargetUeIdentification::interGroupIdsIsSet() const {
@@ -154,12 +158,18 @@ bool TargetUeIdentification::interGroupIdsIsSet() const {
 void TargetUeIdentification::unsetInterGroupIds() {
   m_InterGroupIdsIsSet = false;
 }
-bool TargetUeIdentification::isAnyUeId() const { return m_AnyUeId; }
+bool TargetUeIdentification::isAnyUeId() const {
+  return m_AnyUeId;
+}
 void TargetUeIdentification::setAnyUeId(bool const value) {
-  m_AnyUeId = value;
+  m_AnyUeId      = value;
   m_AnyUeIdIsSet = true;
 }
-bool TargetUeIdentification::anyUeIdIsSet() const { return m_AnyUeIdIsSet; }
-void TargetUeIdentification::unsetAnyUeId() { m_AnyUeIdIsSet = false; }
+bool TargetUeIdentification::anyUeIdIsSet() const {
+  return m_AnyUeIdIsSet;
+}
+void TargetUeIdentification::unsetAnyUeId() {
+  m_AnyUeIdIsSet = false;
+}
 
 }  // namespace oai::nef::model
