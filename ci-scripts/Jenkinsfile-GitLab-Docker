@@ -131,7 +131,7 @@ pipeline {
             echo "MR TITLE    is ${env.gitlabMergeRequestTitle}"
             gitCommitAuthorEmailAddr = env.gitlabUserEmail
             echo "GitLab Usermail is ${gitCommitAuthorEmailAddr}"
-            sh "git fetch --prune --unshallow"
+            sh "git fetch --prune --unshallow || true"
             shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h" ' + env.gitlabMergeRequestLastCommit
             shortenShaOne = shortenShaOne.trim()
             sh "./ci-scripts/doGitLabMerge.sh --src-branch ${env.gitlabSourceBranch} --src-commit ${env.gitlabMergeRequestLastCommit} --target-branch ${env.gitlabTargetBranch} --target-commit ${GIT_COMMIT}"
