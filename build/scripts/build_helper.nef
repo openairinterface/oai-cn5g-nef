@@ -247,6 +247,7 @@ install_nghttp2_from_git() {
       binutils-devel \
       autoconf \
       automake \
+      boost-devel \
       $CMAKE \
       make \
       libtool \
@@ -332,6 +333,7 @@ check_install_nef_deps() {
   # Compilers, generators, ...
   if [[ $OS_DISTRO == "ubuntu" ]]; then
     PACKAGE_LIST="apt-utils \
+      software-properties-common \
       autoconf \
       automake \
       bison \
