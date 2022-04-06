@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 Exception::Exception() {
-  m_ExcepLevel = 0;
+  m_ExcepLevel      = 0;
   m_ExcepLevelIsSet = false;
   m_ExcepTrendIsSet = false;
 }
@@ -36,9 +36,9 @@ bool Exception::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Exception::validate(std::stringstream& msg,
-                         const std::string& pathPrefix) const {
-  bool success = true;
+bool Exception::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Exception" : pathPrefix;
 
   return success;
@@ -65,7 +65,7 @@ bool Exception::operator!=(const Exception& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const Exception& o) {
-  j = nlohmann::json();
+  j            = nlohmann::json();
   j["excepId"] = o.m_ExcepId;
   if (o.excepLevelIsSet()) j["excepLevel"] = o.m_ExcepLevel;
   if (o.excepTrendIsSet()) j["excepTrend"] = o.m_ExcepTrend;
@@ -83,21 +83,37 @@ void from_json(const nlohmann::json& j, Exception& o) {
   }
 }
 
-ExceptionId Exception::getExcepId() const { return m_ExcepId; }
-void Exception::setExcepId(ExceptionId const& value) { m_ExcepId = value; }
-int32_t Exception::getExcepLevel() const { return m_ExcepLevel; }
+ExceptionId Exception::getExcepId() const {
+  return m_ExcepId;
+}
+void Exception::setExcepId(ExceptionId const& value) {
+  m_ExcepId = value;
+}
+int32_t Exception::getExcepLevel() const {
+  return m_ExcepLevel;
+}
 void Exception::setExcepLevel(int32_t const value) {
-  m_ExcepLevel = value;
+  m_ExcepLevel      = value;
   m_ExcepLevelIsSet = true;
 }
-bool Exception::excepLevelIsSet() const { return m_ExcepLevelIsSet; }
-void Exception::unsetExcepLevel() { m_ExcepLevelIsSet = false; }
-ExceptionTrend Exception::getExcepTrend() const { return m_ExcepTrend; }
+bool Exception::excepLevelIsSet() const {
+  return m_ExcepLevelIsSet;
+}
+void Exception::unsetExcepLevel() {
+  m_ExcepLevelIsSet = false;
+}
+ExceptionTrend Exception::getExcepTrend() const {
+  return m_ExcepTrend;
+}
 void Exception::setExcepTrend(ExceptionTrend const& value) {
-  m_ExcepTrend = value;
+  m_ExcepTrend      = value;
   m_ExcepTrendIsSet = true;
 }
-bool Exception::excepTrendIsSet() const { return m_ExcepTrendIsSet; }
-void Exception::unsetExcepTrend() { m_ExcepTrendIsSet = false; }
+bool Exception::excepTrendIsSet() const {
+  return m_ExcepTrendIsSet;
+}
+void Exception::unsetExcepTrend() {
+  m_ExcepTrendIsSet = false;
+}
 
 }  // namespace oai::nef::model

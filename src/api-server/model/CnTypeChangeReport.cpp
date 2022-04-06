@@ -19,7 +19,9 @@
 
 namespace oai::nef::model {
 
-CnTypeChangeReport::CnTypeChangeReport() { m_OldCnTypeIsSet = false; }
+CnTypeChangeReport::CnTypeChangeReport() {
+  m_OldCnTypeIsSet = false;
+}
 
 void CnTypeChangeReport::validate() const {
   std::stringstream msg;
@@ -32,8 +34,8 @@ bool CnTypeChangeReport::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CnTypeChangeReport::validate(std::stringstream& msg,
-                                  const std::string& pathPrefix) const {
+bool CnTypeChangeReport::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CnTypeChangeReport" : pathPrefix;
@@ -58,7 +60,7 @@ bool CnTypeChangeReport::operator!=(const CnTypeChangeReport& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const CnTypeChangeReport& o) {
-  j = nlohmann::json();
+  j              = nlohmann::json();
   j["newCnType"] = o.m_NewCnType;
   if (o.oldCnTypeIsSet()) j["oldCnType"] = o.m_OldCnType;
 }
@@ -71,16 +73,24 @@ void from_json(const nlohmann::json& j, CnTypeChangeReport& o) {
   }
 }
 
-CnType CnTypeChangeReport::getNewCnType() const { return m_NewCnType; }
+CnType CnTypeChangeReport::getNewCnType() const {
+  return m_NewCnType;
+}
 void CnTypeChangeReport::setNewCnType(CnType const& value) {
   m_NewCnType = value;
 }
-CnType CnTypeChangeReport::getOldCnType() const { return m_OldCnType; }
+CnType CnTypeChangeReport::getOldCnType() const {
+  return m_OldCnType;
+}
 void CnTypeChangeReport::setOldCnType(CnType const& value) {
-  m_OldCnType = value;
+  m_OldCnType      = value;
   m_OldCnTypeIsSet = true;
 }
-bool CnTypeChangeReport::oldCnTypeIsSet() const { return m_OldCnTypeIsSet; }
-void CnTypeChangeReport::unsetOldCnType() { m_OldCnTypeIsSet = false; }
+bool CnTypeChangeReport::oldCnTypeIsSet() const {
+  return m_OldCnTypeIsSet;
+}
+void CnTypeChangeReport::unsetOldCnType() {
+  m_OldCnTypeIsSet = false;
+}
 
 }  // namespace oai::nef::model

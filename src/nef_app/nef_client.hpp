@@ -69,10 +69,11 @@ class nef_client {
    * @param [const std::string&] method: HTTP method
    * @return true if a handle was created successfully, otherwise return false
    */
-  bool curl_create_handle(const std::string& uri, const std::string& data,
-                          std::string& response_data, std::string& header_data,
-                          uint32_t* promise_id, const std::string& method,
-                          uint8_t http_version = 1);
+  bool curl_create_handle(
+      const std::string& uri, const std::string& data,
+      std::string& response_data, std::string& header_data,
+      uint32_t* promise_id, const std::string& method,
+      uint8_t http_version = 1);
 
   /*
    * Perform curl multi to actually process the available data
@@ -101,8 +102,8 @@ class nef_client {
    * @param [boost::shared_ptr<boost::promise<uint32_t>>&] p: promise
    * @return void
    */
-  void add_promise(uint32_t pid,
-                   boost::shared_ptr<boost::promise<uint32_t>>& p);
+  void add_promise(
+      uint32_t pid, boost::shared_ptr<boost::promise<uint32_t>>& p);
 
   /*
    * Remove the promise
@@ -145,10 +146,9 @@ class nef_client {
    * @param [int&] http_code: HTTP response code
    * @return void
    */
-  void send_event_exposure_subscribe(const nlohmann::json& json_body,
-                                     const std::string& uri,
-                                     std::string& response_data,
-                                     std::string& location, int& http_code);
+  void send_event_exposure_subscribe(
+      const nlohmann::json& json_body, const std::string& uri,
+      std::string& response_data, std::string& location, int& http_code);
 
   /*
    * Send a request to unsubscribe to Event Exposure service from a NF
@@ -158,9 +158,9 @@ class nef_client {
    * @param [int&] http_code: HTTP response code
    * @return void
    */
-  void send_event_exposure_unsubscribe(const std::string& resource_location,
-                                       std::string& response_data,
-                                       int& http_code);
+  void send_event_exposure_unsubscribe(
+      const std::string& resource_location, std::string& response_data,
+      int& http_code);
 
   /*
    * Send an Event Exposure Notification data to the subscribed NF
@@ -168,8 +168,8 @@ class nef_client {
    * @param [const std::string &] nf_uri: URI of the subscribed NF
    * @return void
    */
-  void send_event_exposure_notify(const nlohmann::json& json_body,
-                                  const std::string& uri);
+  void send_event_exposure_notify(
+      const nlohmann::json& json_body, const std::string& uri);
 };
 }  // namespace oai::nef::app
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

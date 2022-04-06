@@ -47,12 +47,15 @@ class IndividualSMContextDocumentApi {
  private:
   void setupRoutes();
 
-  void deliver_handler(const Pistache::Rest::Request& request,
-                       Pistache::Http::ResponseWriter response);
-  void r_delete_handler(const Pistache::Rest::Request& request,
-                        Pistache::Http::ResponseWriter response);
-  void update_handler(const Pistache::Rest::Request& request,
-                      Pistache::Http::ResponseWriter response);
+  void deliver_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
+  void r_delete_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
+  void update_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
   void individual_sm_context_document_api_default_handler(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);
@@ -83,8 +86,9 @@ class IndividualSMContextDocumentApi {
   /// <remarks>
   ///
   /// </remarks>
-  virtual void deliver(const Pistache::Rest::Request& request,
-                       Pistache::Http::ResponseWriter& response) = 0;
+  virtual void deliver(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter& response) = 0;
   /// <summary>
   /// Delete SM Context
   /// </summary>

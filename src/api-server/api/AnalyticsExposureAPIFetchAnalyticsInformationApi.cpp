@@ -28,15 +28,19 @@ AnalyticsExposureAPIFetchAnalyticsInformationApi::
         const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void AnalyticsExposureAPIFetchAnalyticsInformationApi::init() { setupRoutes(); }
+void AnalyticsExposureAPIFetchAnalyticsInformationApi::init() {
+  setupRoutes();
+}
 
 void AnalyticsExposureAPIFetchAnalyticsInformationApi::setupRoutes() {
   using namespace Pistache::Rest;
 
-  Routes::Post(*router, base + "/:afId/fetch",
-               Routes::bind(&AnalyticsExposureAPIFetchAnalyticsInformationApi::
-                                af_id_fetch_post_handler,
-                            this));
+  Routes::Post(
+      *router, base + "/:afId/fetch",
+      Routes::bind(
+          &AnalyticsExposureAPIFetchAnalyticsInformationApi::
+              af_id_fetch_post_handler,
+          this));
 
   // Default handler, called when a route is not found
   router->addCustomHandler(Routes::bind(
@@ -55,8 +59,8 @@ AnalyticsExposureAPIFetchAnalyticsInformationApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
-                          e.what());
+    return std::make_pair(
+        Pistache::Http::Code::Internal_Server_Error, e.what());
   }
 }
 
@@ -108,8 +112,8 @@ void AnalyticsExposureAPIFetchAnalyticsInformationApi::
     analytics_exposure_api_fetch_analytics_information_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(Pistache::Http::Code::Not_Found,
-                "The requested method does not exist");
+  response.send(
+      Pistache::Http::Code::Not_Found, "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

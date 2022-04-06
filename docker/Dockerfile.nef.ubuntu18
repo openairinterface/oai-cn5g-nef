@@ -76,6 +76,8 @@ RUN apt-get update && \
       libasan4 \
       libconfig++9v5 \
       libldap-2.4-2 \
+      libkrb5-3 \
+      libgssapi-krb5-2 \
       librtmp1 \
       libpsl5 \
   && rm -rf /var/lib/apt/lists/*
@@ -88,6 +90,7 @@ COPY --from=oai-nef-builder \
     ./
 COPY --from=oai-nef-builder \
     /usr/local/lib/libpistache.so \
+    /usr/local/lib/libnghttp2.so.14 \
     /usr/local/lib/libnghttp2_asio.so.1 \
     /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4 \
     /usr/lib/libboost_system.so.1.67.0 \
@@ -99,6 +102,7 @@ RUN ldconfig && \
     ldd /openair-nef/bin/oai_nef
 
 # Copying template configuration files
+WORKDIR /openair-nef/etc
 COPY --from=oai-nef-builder /openair-nef/etc/nef.conf /openair-nef/etc/
 
 WORKDIR /openair-nef

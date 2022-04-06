@@ -20,19 +20,19 @@
 namespace oai::nef::model {
 
 ReportingInformation::ReportingInformation() {
-  m_ImmRep = false;
-  m_ImmRepIsSet = false;
-  m_NotifMethodIsSet = false;
-  m_MaxReportNbr = 0;
+  m_ImmRep            = false;
+  m_ImmRepIsSet       = false;
+  m_NotifMethodIsSet  = false;
+  m_MaxReportNbr      = 0;
   m_MaxReportNbrIsSet = false;
-  m_MonDur = "";
-  m_MonDurIsSet = false;
-  m_RepPeriod = 0;
-  m_RepPeriodIsSet = false;
-  m_SampRatio = 0;
-  m_SampRatioIsSet = false;
-  m_GrpRepTime = 0;
-  m_GrpRepTimeIsSet = false;
+  m_MonDur            = "";
+  m_MonDurIsSet       = false;
+  m_RepPeriod         = 0;
+  m_RepPeriodIsSet    = false;
+  m_SampRatio         = 0;
+  m_SampRatioIsSet    = false;
+  m_GrpRepTime        = 0;
+  m_GrpRepTimeIsSet   = false;
 }
 
 void ReportingInformation::validate() const {
@@ -46,14 +46,14 @@ bool ReportingInformation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ReportingInformation::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool ReportingInformation::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ReportingInformation" : pathPrefix;
 
   if (maxReportNbrIsSet()) {
-    const int32_t& value = m_MaxReportNbr;
+    const int32_t& value               = m_MaxReportNbr;
     const std::string currentValuePath = _pathPrefix + ".maxReportNbr";
 
     if (value < 0) {
@@ -63,7 +63,7 @@ bool ReportingInformation::validate(std::stringstream& msg,
   }
 
   if (sampRatioIsSet()) {
-    const int32_t& value = m_SampRatio;
+    const int32_t& value               = m_SampRatio;
     const std::string currentValuePath = _pathPrefix + ".sampRatio";
 
     if (value < 1) {
@@ -158,60 +158,96 @@ void from_json(const nlohmann::json& j, ReportingInformation& o) {
   }
 }
 
-bool ReportingInformation::isImmRep() const { return m_ImmRep; }
+bool ReportingInformation::isImmRep() const {
+  return m_ImmRep;
+}
 void ReportingInformation::setImmRep(bool const value) {
-  m_ImmRep = value;
+  m_ImmRep      = value;
   m_ImmRepIsSet = true;
 }
-bool ReportingInformation::immRepIsSet() const { return m_ImmRepIsSet; }
-void ReportingInformation::unsetImmRep() { m_ImmRepIsSet = false; }
+bool ReportingInformation::immRepIsSet() const {
+  return m_ImmRepIsSet;
+}
+void ReportingInformation::unsetImmRep() {
+  m_ImmRepIsSet = false;
+}
 NotificationMethod ReportingInformation::getNotifMethod() const {
   return m_NotifMethod;
 }
 void ReportingInformation::setNotifMethod(NotificationMethod const& value) {
-  m_NotifMethod = value;
+  m_NotifMethod      = value;
   m_NotifMethodIsSet = true;
 }
 bool ReportingInformation::notifMethodIsSet() const {
   return m_NotifMethodIsSet;
 }
-void ReportingInformation::unsetNotifMethod() { m_NotifMethodIsSet = false; }
-int32_t ReportingInformation::getMaxReportNbr() const { return m_MaxReportNbr; }
+void ReportingInformation::unsetNotifMethod() {
+  m_NotifMethodIsSet = false;
+}
+int32_t ReportingInformation::getMaxReportNbr() const {
+  return m_MaxReportNbr;
+}
 void ReportingInformation::setMaxReportNbr(int32_t const value) {
-  m_MaxReportNbr = value;
+  m_MaxReportNbr      = value;
   m_MaxReportNbrIsSet = true;
 }
 bool ReportingInformation::maxReportNbrIsSet() const {
   return m_MaxReportNbrIsSet;
 }
-void ReportingInformation::unsetMaxReportNbr() { m_MaxReportNbrIsSet = false; }
-std::string ReportingInformation::getMonDur() const { return m_MonDur; }
+void ReportingInformation::unsetMaxReportNbr() {
+  m_MaxReportNbrIsSet = false;
+}
+std::string ReportingInformation::getMonDur() const {
+  return m_MonDur;
+}
 void ReportingInformation::setMonDur(std::string const& value) {
-  m_MonDur = value;
+  m_MonDur      = value;
   m_MonDurIsSet = true;
 }
-bool ReportingInformation::monDurIsSet() const { return m_MonDurIsSet; }
-void ReportingInformation::unsetMonDur() { m_MonDurIsSet = false; }
-int32_t ReportingInformation::getRepPeriod() const { return m_RepPeriod; }
+bool ReportingInformation::monDurIsSet() const {
+  return m_MonDurIsSet;
+}
+void ReportingInformation::unsetMonDur() {
+  m_MonDurIsSet = false;
+}
+int32_t ReportingInformation::getRepPeriod() const {
+  return m_RepPeriod;
+}
 void ReportingInformation::setRepPeriod(int32_t const value) {
-  m_RepPeriod = value;
+  m_RepPeriod      = value;
   m_RepPeriodIsSet = true;
 }
-bool ReportingInformation::repPeriodIsSet() const { return m_RepPeriodIsSet; }
-void ReportingInformation::unsetRepPeriod() { m_RepPeriodIsSet = false; }
-int32_t ReportingInformation::getSampRatio() const { return m_SampRatio; }
+bool ReportingInformation::repPeriodIsSet() const {
+  return m_RepPeriodIsSet;
+}
+void ReportingInformation::unsetRepPeriod() {
+  m_RepPeriodIsSet = false;
+}
+int32_t ReportingInformation::getSampRatio() const {
+  return m_SampRatio;
+}
 void ReportingInformation::setSampRatio(int32_t const value) {
-  m_SampRatio = value;
+  m_SampRatio      = value;
   m_SampRatioIsSet = true;
 }
-bool ReportingInformation::sampRatioIsSet() const { return m_SampRatioIsSet; }
-void ReportingInformation::unsetSampRatio() { m_SampRatioIsSet = false; }
-int32_t ReportingInformation::getGrpRepTime() const { return m_GrpRepTime; }
+bool ReportingInformation::sampRatioIsSet() const {
+  return m_SampRatioIsSet;
+}
+void ReportingInformation::unsetSampRatio() {
+  m_SampRatioIsSet = false;
+}
+int32_t ReportingInformation::getGrpRepTime() const {
+  return m_GrpRepTime;
+}
 void ReportingInformation::setGrpRepTime(int32_t const value) {
-  m_GrpRepTime = value;
+  m_GrpRepTime      = value;
   m_GrpRepTimeIsSet = true;
 }
-bool ReportingInformation::grpRepTimeIsSet() const { return m_GrpRepTimeIsSet; }
-void ReportingInformation::unsetGrpRepTime() { m_GrpRepTimeIsSet = false; }
+bool ReportingInformation::grpRepTimeIsSet() const {
+  return m_GrpRepTimeIsSet;
+}
+void ReportingInformation::unsetGrpRepTime() {
+  m_GrpRepTimeIsSet = false;
+}
 
 }  // namespace oai::nef::model

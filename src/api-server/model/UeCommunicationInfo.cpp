@@ -20,12 +20,12 @@
 namespace oai::nef::model {
 
 UeCommunicationInfo::UeCommunicationInfo() {
-  m_Supi = "";
-  m_SupiIsSet = false;
-  m_InterGroupId = "";
+  m_Supi              = "";
+  m_SupiIsSet         = false;
+  m_InterGroupId      = "";
   m_InterGroupIdIsSet = false;
-  m_AppId = "";
-  m_AppIdIsSet = false;
+  m_AppId             = "";
+  m_AppIdIsSet        = false;
 }
 
 void UeCommunicationInfo::validate() const {
@@ -39,25 +39,25 @@ bool UeCommunicationInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UeCommunicationInfo::validate(std::stringstream& msg,
-                                   const std::string& pathPrefix) const {
+bool UeCommunicationInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UeCommunicationInfo" : pathPrefix;
 
   if (supiIsSet()) {
-    const std::string& value = m_Supi;
+    const std::string& value           = m_Supi;
     const std::string currentValuePath = _pathPrefix + ".supi";
   }
 
   if (interGroupIdIsSet()) {
-    const std::string& value = m_InterGroupId;
+    const std::string& value           = m_InterGroupId;
     const std::string currentValuePath = _pathPrefix + ".interGroupId";
   }
 
   /* Comms */ {
     const std::vector<CommunicationCollection>& value = m_Comms;
-    const std::string currentValuePath = _pathPrefix + ".comms";
+    const std::string currentValuePath                = _pathPrefix + ".comms";
 
     if (value.size() < 1) {
       success = false;
@@ -65,7 +65,7 @@ bool UeCommunicationInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const CommunicationCollection& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -126,31 +126,45 @@ void from_json(const nlohmann::json& j, UeCommunicationInfo& o) {
   j.at("comms").get_to(o.m_Comms);
 }
 
-std::string UeCommunicationInfo::getSupi() const { return m_Supi; }
+std::string UeCommunicationInfo::getSupi() const {
+  return m_Supi;
+}
 void UeCommunicationInfo::setSupi(std::string const& value) {
-  m_Supi = value;
+  m_Supi      = value;
   m_SupiIsSet = true;
 }
-bool UeCommunicationInfo::supiIsSet() const { return m_SupiIsSet; }
-void UeCommunicationInfo::unsetSupi() { m_SupiIsSet = false; }
+bool UeCommunicationInfo::supiIsSet() const {
+  return m_SupiIsSet;
+}
+void UeCommunicationInfo::unsetSupi() {
+  m_SupiIsSet = false;
+}
 std::string UeCommunicationInfo::getInterGroupId() const {
   return m_InterGroupId;
 }
 void UeCommunicationInfo::setInterGroupId(std::string const& value) {
-  m_InterGroupId = value;
+  m_InterGroupId      = value;
   m_InterGroupIdIsSet = true;
 }
 bool UeCommunicationInfo::interGroupIdIsSet() const {
   return m_InterGroupIdIsSet;
 }
-void UeCommunicationInfo::unsetInterGroupId() { m_InterGroupIdIsSet = false; }
-std::string UeCommunicationInfo::getAppId() const { return m_AppId; }
+void UeCommunicationInfo::unsetInterGroupId() {
+  m_InterGroupIdIsSet = false;
+}
+std::string UeCommunicationInfo::getAppId() const {
+  return m_AppId;
+}
 void UeCommunicationInfo::setAppId(std::string const& value) {
-  m_AppId = value;
+  m_AppId      = value;
   m_AppIdIsSet = true;
 }
-bool UeCommunicationInfo::appIdIsSet() const { return m_AppIdIsSet; }
-void UeCommunicationInfo::unsetAppId() { m_AppIdIsSet = false; }
+bool UeCommunicationInfo::appIdIsSet() const {
+  return m_AppIdIsSet;
+}
+void UeCommunicationInfo::unsetAppId() {
+  m_AppIdIsSet = false;
+}
 std::vector<CommunicationCollection> UeCommunicationInfo::getComms() const {
   return m_Comms;
 }

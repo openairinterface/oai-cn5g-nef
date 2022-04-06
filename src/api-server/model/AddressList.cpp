@@ -35,15 +35,15 @@ bool AddressList::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AddressList::validate(std::stringstream& msg,
-                           const std::string& pathPrefix) const {
+bool AddressList::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AddressList" : pathPrefix;
 
   if (ipv4AddrsIsSet()) {
     const std::vector<std::string>& value = m_Ipv4Addrs;
-    const std::string currentValuePath = _pathPrefix + ".ipv4Addrs";
+    const std::string currentValuePath    = _pathPrefix + ".ipv4Addrs";
 
     if (value.size() < 1) {
       success = false;
@@ -51,7 +51,7 @@ bool AddressList::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -71,7 +71,7 @@ bool AddressList::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const Ipv6Addr& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -128,17 +128,27 @@ std::vector<std::string> AddressList::getIpv4Addrs() const {
   return m_Ipv4Addrs;
 }
 void AddressList::setIpv4Addrs(std::vector<std::string> const& value) {
-  m_Ipv4Addrs = value;
+  m_Ipv4Addrs      = value;
   m_Ipv4AddrsIsSet = true;
 }
-bool AddressList::ipv4AddrsIsSet() const { return m_Ipv4AddrsIsSet; }
-void AddressList::unsetIpv4Addrs() { m_Ipv4AddrsIsSet = false; }
-std::vector<Ipv6Addr> AddressList::getIpv6Addrs() const { return m_Ipv6Addrs; }
+bool AddressList::ipv4AddrsIsSet() const {
+  return m_Ipv4AddrsIsSet;
+}
+void AddressList::unsetIpv4Addrs() {
+  m_Ipv4AddrsIsSet = false;
+}
+std::vector<Ipv6Addr> AddressList::getIpv6Addrs() const {
+  return m_Ipv6Addrs;
+}
 void AddressList::setIpv6Addrs(std::vector<Ipv6Addr> const& value) {
-  m_Ipv6Addrs = value;
+  m_Ipv6Addrs      = value;
   m_Ipv6AddrsIsSet = true;
 }
-bool AddressList::ipv6AddrsIsSet() const { return m_Ipv6AddrsIsSet; }
-void AddressList::unsetIpv6Addrs() { m_Ipv6AddrsIsSet = false; }
+bool AddressList::ipv6AddrsIsSet() const {
+  return m_Ipv6AddrsIsSet;
+}
+void AddressList::unsetIpv6Addrs() {
+  m_Ipv6AddrsIsSet = false;
+}
 
 }  // namespace oai::nef::model

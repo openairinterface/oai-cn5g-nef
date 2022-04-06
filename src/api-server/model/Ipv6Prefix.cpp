@@ -32,8 +32,8 @@ bool Ipv6Prefix::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Ipv6Prefix::validate(std::stringstream& msg,
-                          const std::string& pathPrefix) const {
+bool Ipv6Prefix::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "Ipv6Prefix" : pathPrefix;
@@ -51,7 +51,9 @@ bool Ipv6Prefix::operator!=(const Ipv6Prefix& rhs) const {
   return !(*this == rhs);
 }
 
-void to_json(nlohmann::json& j, const Ipv6Prefix& o) { j = nlohmann::json(); }
+void to_json(nlohmann::json& j, const Ipv6Prefix& o) {
+  j = nlohmann::json();
+}
 
 void from_json(const nlohmann::json& j, Ipv6Prefix& o) {}
 

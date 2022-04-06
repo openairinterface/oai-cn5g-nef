@@ -32,8 +32,8 @@ bool TrafficProfile::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TrafficProfile::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool TrafficProfile::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TrafficProfile" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, TrafficProfile& o) {
   from_json(j, o.m_value);
 }
 
-TrafficProfile_anyOf TrafficProfile::getValue() const { return m_value; }
+TrafficProfile_anyOf TrafficProfile::getValue() const {
+  return m_value;
+}
 
-void TrafficProfile::setValue(TrafficProfile_anyOf value) { m_value = value; }
+void TrafficProfile::setValue(TrafficProfile_anyOf value) {
+  m_value = value;
+}
 
 TrafficProfile_anyOf::eTrafficProfile_anyOf TrafficProfile::getEnumValue()
     const {

@@ -34,8 +34,8 @@ bool LocationPrivacyInd_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LocationPrivacyInd_anyOf::validate(std::stringstream& msg,
-                                        const std::string& pathPrefix) const {
+bool LocationPrivacyInd_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocationPrivacyInd_anyOf" : pathPrefix;

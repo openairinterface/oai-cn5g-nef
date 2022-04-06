@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 AkmaAfKeyRequest::AkmaAfKeyRequest() {
-  m_SuppFeat = "";
+  m_SuppFeat      = "";
   m_SuppFeatIsSet = false;
-  m_AfId = "";
-  m_AKId = "";
+  m_AfId          = "";
+  m_AKId          = "";
 }
 
 void AkmaAfKeyRequest::validate() const {
@@ -37,14 +37,14 @@ bool AkmaAfKeyRequest::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AkmaAfKeyRequest::validate(std::stringstream& msg,
-                                const std::string& pathPrefix) const {
+bool AkmaAfKeyRequest::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AkmaAfKeyRequest" : pathPrefix;
 
   if (suppFeatIsSet()) {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -85,16 +85,30 @@ void from_json(const nlohmann::json& j, AkmaAfKeyRequest& o) {
   j.at("aKId").get_to(o.m_AKId);
 }
 
-std::string AkmaAfKeyRequest::getSuppFeat() const { return m_SuppFeat; }
+std::string AkmaAfKeyRequest::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void AkmaAfKeyRequest::setSuppFeat(std::string const& value) {
-  m_SuppFeat = value;
+  m_SuppFeat      = value;
   m_SuppFeatIsSet = true;
 }
-bool AkmaAfKeyRequest::suppFeatIsSet() const { return m_SuppFeatIsSet; }
-void AkmaAfKeyRequest::unsetSuppFeat() { m_SuppFeatIsSet = false; }
-std::string AkmaAfKeyRequest::getAfId() const { return m_AfId; }
-void AkmaAfKeyRequest::setAfId(std::string const& value) { m_AfId = value; }
-std::string AkmaAfKeyRequest::getAKId() const { return m_AKId; }
-void AkmaAfKeyRequest::setAKId(std::string const& value) { m_AKId = value; }
+bool AkmaAfKeyRequest::suppFeatIsSet() const {
+  return m_SuppFeatIsSet;
+}
+void AkmaAfKeyRequest::unsetSuppFeat() {
+  m_SuppFeatIsSet = false;
+}
+std::string AkmaAfKeyRequest::getAfId() const {
+  return m_AfId;
+}
+void AkmaAfKeyRequest::setAfId(std::string const& value) {
+  m_AfId = value;
+}
+std::string AkmaAfKeyRequest::getAKId() const {
+  return m_AKId;
+}
+void AkmaAfKeyRequest::setAKId(std::string const& value) {
+  m_AKId = value;
+}
 
 }  // namespace oai::nef::model

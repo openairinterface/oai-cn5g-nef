@@ -20,18 +20,18 @@
 namespace oai::nef::model {
 
 ExpectedUeBehaviourData::ExpectedUeBehaviourData() {
-  m_StationaryIndicationIsSet = false;
-  m_CommunicationDurationTime = 0;
-  m_CommunicationDurationTimeIsSet = false;
-  m_PeriodicTime = 0;
-  m_PeriodicTimeIsSet = false;
+  m_StationaryIndicationIsSet       = false;
+  m_CommunicationDurationTime       = 0;
+  m_CommunicationDurationTimeIsSet  = false;
+  m_PeriodicTime                    = 0;
+  m_PeriodicTimeIsSet               = false;
   m_ScheduledCommunicationTimeIsSet = false;
   m_ScheduledCommunicationTypeIsSet = false;
-  m_ExpectedUmtsIsSet = false;
-  m_TrafficProfileIsSet = false;
-  m_BatteryIndicationIsSet = false;
-  m_ValidityTime = "";
-  m_ValidityTimeIsSet = false;
+  m_ExpectedUmtsIsSet               = false;
+  m_TrafficProfileIsSet             = false;
+  m_BatteryIndicationIsSet          = false;
+  m_ValidityTime                    = "";
+  m_ValidityTimeIsSet               = false;
 }
 
 void ExpectedUeBehaviourData::validate() const {
@@ -45,15 +45,15 @@ bool ExpectedUeBehaviourData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ExpectedUeBehaviourData::validate(std::stringstream& msg,
-                                       const std::string& pathPrefix) const {
+bool ExpectedUeBehaviourData::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExpectedUeBehaviourData" : pathPrefix;
 
   if (expectedUmtsIsSet()) {
     const std::vector<LocationArea>& value = m_ExpectedUmts;
-    const std::string currentValuePath = _pathPrefix + ".expectedUmts";
+    const std::string currentValuePath     = _pathPrefix + ".expectedUmts";
 
     if (value.size() < 1) {
       success = false;
@@ -61,7 +61,7 @@ bool ExpectedUeBehaviourData::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const LocationArea& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -197,7 +197,7 @@ StationaryIndication ExpectedUeBehaviourData::getStationaryIndication() const {
 }
 void ExpectedUeBehaviourData::setStationaryIndication(
     StationaryIndication const& value) {
-  m_StationaryIndication = value;
+  m_StationaryIndication      = value;
   m_StationaryIndicationIsSet = true;
 }
 bool ExpectedUeBehaviourData::stationaryIndicationIsSet() const {
@@ -211,7 +211,7 @@ int32_t ExpectedUeBehaviourData::getCommunicationDurationTime() const {
 }
 void ExpectedUeBehaviourData::setCommunicationDurationTime(
     int32_t const value) {
-  m_CommunicationDurationTime = value;
+  m_CommunicationDurationTime      = value;
   m_CommunicationDurationTimeIsSet = true;
 }
 bool ExpectedUeBehaviourData::communicationDurationTimeIsSet() const {
@@ -224,7 +224,7 @@ int32_t ExpectedUeBehaviourData::getPeriodicTime() const {
   return m_PeriodicTime;
 }
 void ExpectedUeBehaviourData::setPeriodicTime(int32_t const value) {
-  m_PeriodicTime = value;
+  m_PeriodicTime      = value;
   m_PeriodicTimeIsSet = true;
 }
 bool ExpectedUeBehaviourData::periodicTimeIsSet() const {
@@ -239,7 +239,7 @@ ExpectedUeBehaviourData::getScheduledCommunicationTime() const {
 }
 void ExpectedUeBehaviourData::setScheduledCommunicationTime(
     ScheduledCommunicationTime_1 const& value) {
-  m_ScheduledCommunicationTime = value;
+  m_ScheduledCommunicationTime      = value;
   m_ScheduledCommunicationTimeIsSet = true;
 }
 bool ExpectedUeBehaviourData::scheduledCommunicationTimeIsSet() const {
@@ -254,7 +254,7 @@ ExpectedUeBehaviourData::getScheduledCommunicationType() const {
 }
 void ExpectedUeBehaviourData::setScheduledCommunicationType(
     ScheduledCommunicationType const& value) {
-  m_ScheduledCommunicationType = value;
+  m_ScheduledCommunicationType      = value;
   m_ScheduledCommunicationTypeIsSet = true;
 }
 bool ExpectedUeBehaviourData::scheduledCommunicationTypeIsSet() const {
@@ -268,7 +268,7 @@ std::vector<LocationArea> ExpectedUeBehaviourData::getExpectedUmts() const {
 }
 void ExpectedUeBehaviourData::setExpectedUmts(
     std::vector<LocationArea> const& value) {
-  m_ExpectedUmts = value;
+  m_ExpectedUmts      = value;
   m_ExpectedUmtsIsSet = true;
 }
 bool ExpectedUeBehaviourData::expectedUmtsIsSet() const {
@@ -281,7 +281,7 @@ TrafficProfile ExpectedUeBehaviourData::getTrafficProfile() const {
   return m_TrafficProfile;
 }
 void ExpectedUeBehaviourData::setTrafficProfile(TrafficProfile const& value) {
-  m_TrafficProfile = value;
+  m_TrafficProfile      = value;
   m_TrafficProfileIsSet = true;
 }
 bool ExpectedUeBehaviourData::trafficProfileIsSet() const {
@@ -295,7 +295,7 @@ BatteryIndication ExpectedUeBehaviourData::getBatteryIndication() const {
 }
 void ExpectedUeBehaviourData::setBatteryIndication(
     BatteryIndication const& value) {
-  m_BatteryIndication = value;
+  m_BatteryIndication      = value;
   m_BatteryIndicationIsSet = true;
 }
 bool ExpectedUeBehaviourData::batteryIndicationIsSet() const {
@@ -308,7 +308,7 @@ std::string ExpectedUeBehaviourData::getValidityTime() const {
   return m_ValidityTime;
 }
 void ExpectedUeBehaviourData::setValidityTime(std::string const& value) {
-  m_ValidityTime = value;
+  m_ValidityTime      = value;
   m_ValidityTimeIsSet = true;
 }
 bool ExpectedUeBehaviourData::validityTimeIsSet() const {

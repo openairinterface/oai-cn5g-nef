@@ -44,8 +44,8 @@ class LPIParametersProvisioningsApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~LPIParametersProvisioningsApiImpl() override = default;
 
-  void af_id_provisioned_lpis_get(const std::string& afId,
-                                  Pistache::Http::ResponseWriter& response);
+  void af_id_provisioned_lpis_get(
+      const std::string& afId, Pistache::Http::ResponseWriter& response);
   void af_id_provisioned_lpis_post(
       const std::string& afId,
       const LpiParametersProvision& lpiParametersProvision,

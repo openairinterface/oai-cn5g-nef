@@ -33,8 +33,8 @@ bool AmfEventType_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfEventType_anyOf::validate(std::stringstream& msg,
-                                  const std::string& pathPrefix) const {
+bool AmfEventType_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfEventType_anyOf" : pathPrefix;

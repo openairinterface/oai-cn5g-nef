@@ -43,8 +43,8 @@ class ServiceParameterSubscriptionsApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~ServiceParameterSubscriptionsApiImpl() override = default;
 
-  void af_id_subscriptions_get(const std::string& afId,
-                               Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_get(
+      const std::string& afId, Pistache::Http::ResponseWriter& response);
   void af_id_subscriptions_post(
       const std::string& afId, const ServiceParameterData& serviceParameterData,
       Pistache::Http::ResponseWriter& response);

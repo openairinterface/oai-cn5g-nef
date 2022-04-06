@@ -61,14 +61,14 @@ void conv::hexa_to_ascii(uint8_t* from, char* to, size_t length) {
     uint8_t upper = (from[i] & 0xf0) >> 4;
     uint8_t lower = from[i] & 0x0f;
 
-    to[2 * i] = hex_to_ascii_table[upper];
+    to[2 * i]     = hex_to_ascii_table[upper];
     to[2 * i + 1] = hex_to_ascii_table[lower];
   }
 }
 
 int conv::ascii_to_hex(uint8_t* dst, const char* h) {
-  const unsigned char* hex = (const unsigned char*)h;
-  unsigned i = 0;
+  const unsigned char* hex = (const unsigned char*) h;
+  unsigned i               = 0;
 
   for (;;) {
     int high, low;
@@ -94,9 +94,10 @@ int conv::ascii_to_hex(uint8_t* dst, const char* h) {
 }
 
 std::string conv::toString(const struct in_addr& inaddr) {
-  std::string s = {};
+  std::string s              = {};
   char str[INET6_ADDRSTRLEN] = {};
-  if (inet_ntop(AF_INET, (const void*)&inaddr, str, INET6_ADDRSTRLEN) == NULL) {
+  if (inet_ntop(AF_INET, (const void*) &inaddr, str, INET6_ADDRSTRLEN) ==
+      NULL) {
     s.append("Error in_addr");
   } else {
     s.append(str);

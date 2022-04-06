@@ -62,10 +62,10 @@ class NiddConfigurationTriggerReply {
   std::string getSuppFeat() const;
   void setSuppFeat(std::string const& value);
 
-  friend void to_json(nlohmann::json& j,
-                      const NiddConfigurationTriggerReply& o);
-  friend void from_json(const nlohmann::json& j,
-                        NiddConfigurationTriggerReply& o);
+  friend void to_json(
+      nlohmann::json& j, const NiddConfigurationTriggerReply& o);
+  friend void from_json(
+      const nlohmann::json& j, NiddConfigurationTriggerReply& o);
 
  protected:
   std::string m_SuppFeat;

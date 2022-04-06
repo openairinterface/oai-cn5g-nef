@@ -26,8 +26,8 @@ DefaultApiImpl::DefaultApiImpl(
 void DefaultApiImpl::root_post(
     const NiddConfigurationTrigger& niddConfigurationTrigger,
     Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

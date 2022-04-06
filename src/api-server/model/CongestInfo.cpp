@@ -32,15 +32,15 @@ bool CongestInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CongestInfo::validate(std::stringstream& msg,
-                           const std::string& pathPrefix) const {
+bool CongestInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CongestInfo" : pathPrefix;
 
   /* CngAnas */ {
     const std::vector<CongestionAnalytics>& value = m_CngAnas;
-    const std::string currentValuePath = _pathPrefix + ".cngAnas";
+    const std::string currentValuePath            = _pathPrefix + ".cngAnas";
 
     if (value.size() < 1) {
       success = false;
@@ -48,7 +48,7 @@ bool CongestInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const CongestionAnalytics& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -78,7 +78,7 @@ bool CongestInfo::operator!=(const CongestInfo& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const CongestInfo& o) {
-  j = nlohmann::json();
+  j            = nlohmann::json();
   j["locArea"] = o.m_LocArea;
   j["cngAnas"] = o.m_CngAnas;
 }
@@ -88,8 +88,12 @@ void from_json(const nlohmann::json& j, CongestInfo& o) {
   j.at("cngAnas").get_to(o.m_CngAnas);
 }
 
-LocationArea5G CongestInfo::getLocArea() const { return m_LocArea; }
-void CongestInfo::setLocArea(LocationArea5G const& value) { m_LocArea = value; }
+LocationArea5G CongestInfo::getLocArea() const {
+  return m_LocArea;
+}
+void CongestInfo::setLocArea(LocationArea5G const& value) {
+  m_LocArea = value;
+}
 std::vector<CongestionAnalytics> CongestInfo::getCngAnas() const {
   return m_CngAnas;
 }

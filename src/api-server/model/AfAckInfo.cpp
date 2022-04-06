@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 AfAckInfo::AfAckInfo() {
-  m_AfTransId = "";
+  m_AfTransId      = "";
   m_AfTransIdIsSet = false;
-  m_Gpsi = "";
-  m_GpsiIsSet = false;
+  m_Gpsi           = "";
+  m_GpsiIsSet      = false;
 }
 
 void AfAckInfo::validate() const {
@@ -37,13 +37,13 @@ bool AfAckInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AfAckInfo::validate(std::stringstream& msg,
-                         const std::string& pathPrefix) const {
-  bool success = true;
+bool AfAckInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "AfAckInfo" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value = m_Gpsi;
+    const std::string& value           = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
@@ -88,21 +88,37 @@ void from_json(const nlohmann::json& j, AfAckInfo& o) {
   }
 }
 
-std::string AfAckInfo::getAfTransId() const { return m_AfTransId; }
+std::string AfAckInfo::getAfTransId() const {
+  return m_AfTransId;
+}
 void AfAckInfo::setAfTransId(std::string const& value) {
-  m_AfTransId = value;
+  m_AfTransId      = value;
   m_AfTransIdIsSet = true;
 }
-bool AfAckInfo::afTransIdIsSet() const { return m_AfTransIdIsSet; }
-void AfAckInfo::unsetAfTransId() { m_AfTransIdIsSet = false; }
-AfResultInfo AfAckInfo::getAckResult() const { return m_AckResult; }
-void AfAckInfo::setAckResult(AfResultInfo const& value) { m_AckResult = value; }
-std::string AfAckInfo::getGpsi() const { return m_Gpsi; }
+bool AfAckInfo::afTransIdIsSet() const {
+  return m_AfTransIdIsSet;
+}
+void AfAckInfo::unsetAfTransId() {
+  m_AfTransIdIsSet = false;
+}
+AfResultInfo AfAckInfo::getAckResult() const {
+  return m_AckResult;
+}
+void AfAckInfo::setAckResult(AfResultInfo const& value) {
+  m_AckResult = value;
+}
+std::string AfAckInfo::getGpsi() const {
+  return m_Gpsi;
+}
 void AfAckInfo::setGpsi(std::string const& value) {
-  m_Gpsi = value;
+  m_Gpsi      = value;
   m_GpsiIsSet = true;
 }
-bool AfAckInfo::gpsiIsSet() const { return m_GpsiIsSet; }
-void AfAckInfo::unsetGpsi() { m_GpsiIsSet = false; }
+bool AfAckInfo::gpsiIsSet() const {
+  return m_GpsiIsSet;
+}
+void AfAckInfo::unsetGpsi() {
+  m_GpsiIsSet = false;
+}
 
 }  // namespace oai::nef::model

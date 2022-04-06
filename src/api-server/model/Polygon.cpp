@@ -33,9 +33,9 @@ bool Polygon::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Polygon::validate(std::stringstream& msg,
-                       const std::string& pathPrefix) const {
-  bool success = true;
+bool Polygon::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "Polygon" : pathPrefix;
 
   /* PointList */ {
@@ -52,7 +52,7 @@ bool Polygon::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const GeographicalCoordinates& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -78,11 +78,13 @@ bool Polygon::operator==(const Polygon& rhs) const {
           ;
 }
 
-bool Polygon::operator!=(const Polygon& rhs) const { return !(*this == rhs); }
+bool Polygon::operator!=(const Polygon& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const Polygon& o) {
-  j = nlohmann::json();
-  j["shape"] = o.m_Shape;
+  j              = nlohmann::json();
+  j["shape"]     = o.m_Shape;
   j["pointList"] = o.m_PointList;
 }
 
@@ -91,8 +93,12 @@ void from_json(const nlohmann::json& j, Polygon& o) {
   j.at("pointList").get_to(o.m_PointList);
 }
 
-SupportedGADShapes Polygon::getShape() const { return m_Shape; }
-void Polygon::setShape(SupportedGADShapes const& value) { m_Shape = value; }
+SupportedGADShapes Polygon::getShape() const {
+  return m_Shape;
+}
+void Polygon::setShape(SupportedGADShapes const& value) {
+  m_Shape = value;
+}
 std::vector<GeographicalCoordinates> Polygon::getPointList() const {
   return m_PointList;
 }

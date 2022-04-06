@@ -73,12 +73,12 @@ class SmallDataRateControlTimeUnit {
       SmallDataRateControlTimeUnit_anyOf::eSmallDataRateControlTimeUnit_anyOf
           value);
   friend void to_json(nlohmann::json& j, const SmallDataRateControlTimeUnit& o);
-  friend void from_json(const nlohmann::json& j,
-                        SmallDataRateControlTimeUnit& o);
-  friend void to_json(nlohmann::json& j,
-                      const SmallDataRateControlTimeUnit_anyOf& o);
-  friend void from_json(const nlohmann::json& j,
-                        SmallDataRateControlTimeUnit_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, SmallDataRateControlTimeUnit& o);
+  friend void to_json(
+      nlohmann::json& j, const SmallDataRateControlTimeUnit_anyOf& o);
+  friend void from_json(
+      const nlohmann::json& j, SmallDataRateControlTimeUnit_anyOf& o);
 
  protected:
   SmallDataRateControlTimeUnit_anyOf m_value;

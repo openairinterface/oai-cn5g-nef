@@ -39,10 +39,10 @@ void SubscriptionsCollectionApiImpl::create_individual_subcription(
     Pistache::Http::ResponseWriter& response) {
   Logger::nef_sbi().info("Got a request to create an individual subscription");
 
-  int http_code = 0;
+  int http_code                  = 0;
   ProblemDetails problem_details = {};
-  std::string sub_id = {};
-  uint8_t http_version = 1;
+  std::string sub_id             = {};
+  uint8_t http_version           = 1;
 
   NefEventExposureSubsc created_ev_sub = {};
   m_nef_app->handle_create_individual_subscription(

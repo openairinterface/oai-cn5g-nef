@@ -20,11 +20,11 @@
 namespace oai::nef::model {
 
 AmfEventNotification::AmfEventNotification() {
-  m_NotifyCorrelationId = "";
-  m_NotifyCorrelationIdIsSet = false;
-  m_SubsChangeNotifyCorrelationId = "";
+  m_NotifyCorrelationId                = "";
+  m_NotifyCorrelationIdIsSet           = false;
+  m_SubsChangeNotifyCorrelationId      = "";
   m_SubsChangeNotifyCorrelationIdIsSet = false;
-  m_ReportListIsSet = false;
+  m_ReportListIsSet                    = false;
 }
 
 void AmfEventNotification::validate() const {
@@ -38,15 +38,15 @@ bool AmfEventNotification::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfEventNotification::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool AmfEventNotification::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfEventNotification" : pathPrefix;
 
   if (reportListIsSet()) {
     const std::vector<AmfEventReport>& value = m_ReportList;
-    const std::string currentValuePath = _pathPrefix + ".reportList";
+    const std::string currentValuePath       = _pathPrefix + ".reportList";
 
     if (value.size() < 1) {
       success = false;
@@ -54,7 +54,7 @@ bool AmfEventNotification::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AmfEventReport& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -125,7 +125,7 @@ std::string AmfEventNotification::getNotifyCorrelationId() const {
   return m_NotifyCorrelationId;
 }
 void AmfEventNotification::setNotifyCorrelationId(std::string const& value) {
-  m_NotifyCorrelationId = value;
+  m_NotifyCorrelationId      = value;
   m_NotifyCorrelationIdIsSet = true;
 }
 bool AmfEventNotification::notifyCorrelationIdIsSet() const {
@@ -139,7 +139,7 @@ std::string AmfEventNotification::getSubsChangeNotifyCorrelationId() const {
 }
 void AmfEventNotification::setSubsChangeNotifyCorrelationId(
     std::string const& value) {
-  m_SubsChangeNotifyCorrelationId = value;
+  m_SubsChangeNotifyCorrelationId      = value;
   m_SubsChangeNotifyCorrelationIdIsSet = true;
 }
 bool AmfEventNotification::subsChangeNotifyCorrelationIdIsSet() const {
@@ -153,10 +153,14 @@ std::vector<AmfEventReport> AmfEventNotification::getReportList() const {
 }
 void AmfEventNotification::setReportList(
     std::vector<AmfEventReport> const& value) {
-  m_ReportList = value;
+  m_ReportList      = value;
   m_ReportListIsSet = true;
 }
-bool AmfEventNotification::reportListIsSet() const { return m_ReportListIsSet; }
-void AmfEventNotification::unsetReportList() { m_ReportListIsSet = false; }
+bool AmfEventNotification::reportListIsSet() const {
+  return m_ReportListIsSet;
+}
+void AmfEventNotification::unsetReportList() {
+  m_ReportListIsSet = false;
+}
 
 }  // namespace oai::nef::model

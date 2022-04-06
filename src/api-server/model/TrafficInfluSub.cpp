@@ -20,53 +20,53 @@
 namespace oai::nef::model {
 
 TrafficInfluSub::TrafficInfluSub() {
-  m_AfServiceId = "";
-  m_AfServiceIdIsSet = false;
-  m_AfAppId = "";
-  m_AfAppIdIsSet = false;
-  m_AfTransId = "";
-  m_AfTransIdIsSet = false;
-  m_AppReloInd = false;
-  m_AppReloIndIsSet = false;
-  m_Dnn = "";
-  m_DnnIsSet = false;
-  m_SnssaiIsSet = false;
-  m_ExternalGroupId = "";
-  m_ExternalGroupIdIsSet = false;
-  m_AnyUeInd = false;
-  m_AnyUeIndIsSet = false;
-  m_SubscribedEventsIsSet = false;
-  m_Gpsi = "";
-  m_GpsiIsSet = false;
-  m_Ipv4Addr = "";
-  m_Ipv4AddrIsSet = false;
-  m_IpDomain = "";
-  m_IpDomainIsSet = false;
-  m_Ipv6Addr = "";
-  m_Ipv6AddrIsSet = false;
-  m_MacAddr = "";
-  m_MacAddrIsSet = false;
-  m_DnaiChgTypeIsSet = false;
-  m_NotificationDestination = "";
+  m_AfServiceId                  = "";
+  m_AfServiceIdIsSet             = false;
+  m_AfAppId                      = "";
+  m_AfAppIdIsSet                 = false;
+  m_AfTransId                    = "";
+  m_AfTransIdIsSet               = false;
+  m_AppReloInd                   = false;
+  m_AppReloIndIsSet              = false;
+  m_Dnn                          = "";
+  m_DnnIsSet                     = false;
+  m_SnssaiIsSet                  = false;
+  m_ExternalGroupId              = "";
+  m_ExternalGroupIdIsSet         = false;
+  m_AnyUeInd                     = false;
+  m_AnyUeIndIsSet                = false;
+  m_SubscribedEventsIsSet        = false;
+  m_Gpsi                         = "";
+  m_GpsiIsSet                    = false;
+  m_Ipv4Addr                     = "";
+  m_Ipv4AddrIsSet                = false;
+  m_IpDomain                     = "";
+  m_IpDomainIsSet                = false;
+  m_Ipv6Addr                     = "";
+  m_Ipv6AddrIsSet                = false;
+  m_MacAddr                      = "";
+  m_MacAddrIsSet                 = false;
+  m_DnaiChgTypeIsSet             = false;
+  m_NotificationDestination      = "";
   m_NotificationDestinationIsSet = false;
-  m_RequestTestNotification = false;
+  m_RequestTestNotification      = false;
   m_RequestTestNotificationIsSet = false;
-  m_WebsockNotifConfigIsSet = false;
-  m_Self = "";
-  m_SelfIsSet = false;
-  m_TrafficFiltersIsSet = false;
-  m_EthTrafficFiltersIsSet = false;
-  m_TrafficRoutesIsSet = false;
-  m_TfcCorrInd = false;
-  m_TfcCorrIndIsSet = false;
-  m_TempValiditiesIsSet = false;
-  m_ValidGeoZoneIdsIsSet = false;
-  m_AfAckInd = false;
-  m_AfAckIndIsSet = false;
-  m_AddrPreserInd = false;
-  m_AddrPreserIndIsSet = false;
-  m_SuppFeat = "";
-  m_SuppFeatIsSet = false;
+  m_WebsockNotifConfigIsSet      = false;
+  m_Self                         = "";
+  m_SelfIsSet                    = false;
+  m_TrafficFiltersIsSet          = false;
+  m_EthTrafficFiltersIsSet       = false;
+  m_TrafficRoutesIsSet           = false;
+  m_TfcCorrInd                   = false;
+  m_TfcCorrIndIsSet              = false;
+  m_TempValiditiesIsSet          = false;
+  m_ValidGeoZoneIdsIsSet         = false;
+  m_AfAckInd                     = false;
+  m_AfAckIndIsSet                = false;
+  m_AddrPreserInd                = false;
+  m_AddrPreserIndIsSet           = false;
+  m_SuppFeat                     = "";
+  m_SuppFeatIsSet                = false;
 }
 
 void TrafficInfluSub::validate() const {
@@ -80,8 +80,8 @@ bool TrafficInfluSub::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TrafficInfluSub::validate(std::stringstream& msg,
-                               const std::string& pathPrefix) const {
+bool TrafficInfluSub::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TrafficInfluSub" : pathPrefix;
@@ -96,7 +96,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const SubscribedEvent& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -110,12 +110,12 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
   }
 
   if (gpsiIsSet()) {
-    const std::string& value = m_Gpsi;
+    const std::string& value           = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
   if (macAddrIsSet()) {
-    const std::string& value = m_MacAddr;
+    const std::string& value           = m_MacAddr;
     const std::string currentValuePath = _pathPrefix + ".macAddr";
   }
 
@@ -129,7 +129,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const FlowInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -152,7 +152,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const EthFlowDescription& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -168,7 +168,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
 
   if (trafficRoutesIsSet()) {
     const std::vector<RouteToLocation>& value = m_TrafficRoutes;
-    const std::string currentValuePath = _pathPrefix + ".trafficRoutes";
+    const std::string currentValuePath        = _pathPrefix + ".trafficRoutes";
 
     if (value.size() < 1) {
       success = false;
@@ -176,7 +176,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const RouteToLocation& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -195,7 +195,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
 
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const TemporalValidity& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -210,7 +210,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
 
   if (validGeoZoneIdsIsSet()) {
     const std::vector<std::string>& value = m_ValidGeoZoneIds;
-    const std::string currentValuePath = _pathPrefix + ".validGeoZoneIds";
+    const std::string currentValuePath    = _pathPrefix + ".validGeoZoneIds";
 
     if (value.size() < 1) {
       success = false;
@@ -218,7 +218,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -229,7 +229,7 @@ bool TrafficInfluSub::validate(std::stringstream& msg,
   }
 
   if (suppFeatIsSet()) {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -513,72 +513,116 @@ void from_json(const nlohmann::json& j, TrafficInfluSub& o) {
   }
 }
 
-std::string TrafficInfluSub::getAfServiceId() const { return m_AfServiceId; }
+std::string TrafficInfluSub::getAfServiceId() const {
+  return m_AfServiceId;
+}
 void TrafficInfluSub::setAfServiceId(std::string const& value) {
-  m_AfServiceId = value;
+  m_AfServiceId      = value;
   m_AfServiceIdIsSet = true;
 }
-bool TrafficInfluSub::afServiceIdIsSet() const { return m_AfServiceIdIsSet; }
-void TrafficInfluSub::unsetAfServiceId() { m_AfServiceIdIsSet = false; }
-std::string TrafficInfluSub::getAfAppId() const { return m_AfAppId; }
+bool TrafficInfluSub::afServiceIdIsSet() const {
+  return m_AfServiceIdIsSet;
+}
+void TrafficInfluSub::unsetAfServiceId() {
+  m_AfServiceIdIsSet = false;
+}
+std::string TrafficInfluSub::getAfAppId() const {
+  return m_AfAppId;
+}
 void TrafficInfluSub::setAfAppId(std::string const& value) {
-  m_AfAppId = value;
+  m_AfAppId      = value;
   m_AfAppIdIsSet = true;
 }
-bool TrafficInfluSub::afAppIdIsSet() const { return m_AfAppIdIsSet; }
-void TrafficInfluSub::unsetAfAppId() { m_AfAppIdIsSet = false; }
-std::string TrafficInfluSub::getAfTransId() const { return m_AfTransId; }
+bool TrafficInfluSub::afAppIdIsSet() const {
+  return m_AfAppIdIsSet;
+}
+void TrafficInfluSub::unsetAfAppId() {
+  m_AfAppIdIsSet = false;
+}
+std::string TrafficInfluSub::getAfTransId() const {
+  return m_AfTransId;
+}
 void TrafficInfluSub::setAfTransId(std::string const& value) {
-  m_AfTransId = value;
+  m_AfTransId      = value;
   m_AfTransIdIsSet = true;
 }
-bool TrafficInfluSub::afTransIdIsSet() const { return m_AfTransIdIsSet; }
-void TrafficInfluSub::unsetAfTransId() { m_AfTransIdIsSet = false; }
-bool TrafficInfluSub::isAppReloInd() const { return m_AppReloInd; }
+bool TrafficInfluSub::afTransIdIsSet() const {
+  return m_AfTransIdIsSet;
+}
+void TrafficInfluSub::unsetAfTransId() {
+  m_AfTransIdIsSet = false;
+}
+bool TrafficInfluSub::isAppReloInd() const {
+  return m_AppReloInd;
+}
 void TrafficInfluSub::setAppReloInd(bool const value) {
-  m_AppReloInd = value;
+  m_AppReloInd      = value;
   m_AppReloIndIsSet = true;
 }
-bool TrafficInfluSub::appReloIndIsSet() const { return m_AppReloIndIsSet; }
-void TrafficInfluSub::unsetAppReloInd() { m_AppReloIndIsSet = false; }
-std::string TrafficInfluSub::getDnn() const { return m_Dnn; }
+bool TrafficInfluSub::appReloIndIsSet() const {
+  return m_AppReloIndIsSet;
+}
+void TrafficInfluSub::unsetAppReloInd() {
+  m_AppReloIndIsSet = false;
+}
+std::string TrafficInfluSub::getDnn() const {
+  return m_Dnn;
+}
 void TrafficInfluSub::setDnn(std::string const& value) {
-  m_Dnn = value;
+  m_Dnn      = value;
   m_DnnIsSet = true;
 }
-bool TrafficInfluSub::dnnIsSet() const { return m_DnnIsSet; }
-void TrafficInfluSub::unsetDnn() { m_DnnIsSet = false; }
-Snssai TrafficInfluSub::getSnssai() const { return m_Snssai; }
+bool TrafficInfluSub::dnnIsSet() const {
+  return m_DnnIsSet;
+}
+void TrafficInfluSub::unsetDnn() {
+  m_DnnIsSet = false;
+}
+Snssai TrafficInfluSub::getSnssai() const {
+  return m_Snssai;
+}
 void TrafficInfluSub::setSnssai(Snssai const& value) {
-  m_Snssai = value;
+  m_Snssai      = value;
   m_SnssaiIsSet = true;
 }
-bool TrafficInfluSub::snssaiIsSet() const { return m_SnssaiIsSet; }
-void TrafficInfluSub::unsetSnssai() { m_SnssaiIsSet = false; }
+bool TrafficInfluSub::snssaiIsSet() const {
+  return m_SnssaiIsSet;
+}
+void TrafficInfluSub::unsetSnssai() {
+  m_SnssaiIsSet = false;
+}
 std::string TrafficInfluSub::getExternalGroupId() const {
   return m_ExternalGroupId;
 }
 void TrafficInfluSub::setExternalGroupId(std::string const& value) {
-  m_ExternalGroupId = value;
+  m_ExternalGroupId      = value;
   m_ExternalGroupIdIsSet = true;
 }
 bool TrafficInfluSub::externalGroupIdIsSet() const {
   return m_ExternalGroupIdIsSet;
 }
-void TrafficInfluSub::unsetExternalGroupId() { m_ExternalGroupIdIsSet = false; }
-bool TrafficInfluSub::isAnyUeInd() const { return m_AnyUeInd; }
+void TrafficInfluSub::unsetExternalGroupId() {
+  m_ExternalGroupIdIsSet = false;
+}
+bool TrafficInfluSub::isAnyUeInd() const {
+  return m_AnyUeInd;
+}
 void TrafficInfluSub::setAnyUeInd(bool const value) {
-  m_AnyUeInd = value;
+  m_AnyUeInd      = value;
   m_AnyUeIndIsSet = true;
 }
-bool TrafficInfluSub::anyUeIndIsSet() const { return m_AnyUeIndIsSet; }
-void TrafficInfluSub::unsetAnyUeInd() { m_AnyUeIndIsSet = false; }
+bool TrafficInfluSub::anyUeIndIsSet() const {
+  return m_AnyUeIndIsSet;
+}
+void TrafficInfluSub::unsetAnyUeInd() {
+  m_AnyUeIndIsSet = false;
+}
 std::vector<SubscribedEvent> TrafficInfluSub::getSubscribedEvents() const {
   return m_SubscribedEvents;
 }
 void TrafficInfluSub::setSubscribedEvents(
     std::vector<SubscribedEvent> const& value) {
-  m_SubscribedEvents = value;
+  m_SubscribedEvents      = value;
   m_SubscribedEventsIsSet = true;
 }
 bool TrafficInfluSub::subscribedEventsIsSet() const {
@@ -587,53 +631,89 @@ bool TrafficInfluSub::subscribedEventsIsSet() const {
 void TrafficInfluSub::unsetSubscribedEvents() {
   m_SubscribedEventsIsSet = false;
 }
-std::string TrafficInfluSub::getGpsi() const { return m_Gpsi; }
+std::string TrafficInfluSub::getGpsi() const {
+  return m_Gpsi;
+}
 void TrafficInfluSub::setGpsi(std::string const& value) {
-  m_Gpsi = value;
+  m_Gpsi      = value;
   m_GpsiIsSet = true;
 }
-bool TrafficInfluSub::gpsiIsSet() const { return m_GpsiIsSet; }
-void TrafficInfluSub::unsetGpsi() { m_GpsiIsSet = false; }
-std::string TrafficInfluSub::getIpv4Addr() const { return m_Ipv4Addr; }
+bool TrafficInfluSub::gpsiIsSet() const {
+  return m_GpsiIsSet;
+}
+void TrafficInfluSub::unsetGpsi() {
+  m_GpsiIsSet = false;
+}
+std::string TrafficInfluSub::getIpv4Addr() const {
+  return m_Ipv4Addr;
+}
 void TrafficInfluSub::setIpv4Addr(std::string const& value) {
-  m_Ipv4Addr = value;
+  m_Ipv4Addr      = value;
   m_Ipv4AddrIsSet = true;
 }
-bool TrafficInfluSub::ipv4AddrIsSet() const { return m_Ipv4AddrIsSet; }
-void TrafficInfluSub::unsetIpv4Addr() { m_Ipv4AddrIsSet = false; }
-std::string TrafficInfluSub::getIpDomain() const { return m_IpDomain; }
+bool TrafficInfluSub::ipv4AddrIsSet() const {
+  return m_Ipv4AddrIsSet;
+}
+void TrafficInfluSub::unsetIpv4Addr() {
+  m_Ipv4AddrIsSet = false;
+}
+std::string TrafficInfluSub::getIpDomain() const {
+  return m_IpDomain;
+}
 void TrafficInfluSub::setIpDomain(std::string const& value) {
-  m_IpDomain = value;
+  m_IpDomain      = value;
   m_IpDomainIsSet = true;
 }
-bool TrafficInfluSub::ipDomainIsSet() const { return m_IpDomainIsSet; }
-void TrafficInfluSub::unsetIpDomain() { m_IpDomainIsSet = false; }
-std::string TrafficInfluSub::getIpv6Addr() const { return m_Ipv6Addr; }
+bool TrafficInfluSub::ipDomainIsSet() const {
+  return m_IpDomainIsSet;
+}
+void TrafficInfluSub::unsetIpDomain() {
+  m_IpDomainIsSet = false;
+}
+std::string TrafficInfluSub::getIpv6Addr() const {
+  return m_Ipv6Addr;
+}
 void TrafficInfluSub::setIpv6Addr(std::string const& value) {
-  m_Ipv6Addr = value;
+  m_Ipv6Addr      = value;
   m_Ipv6AddrIsSet = true;
 }
-bool TrafficInfluSub::ipv6AddrIsSet() const { return m_Ipv6AddrIsSet; }
-void TrafficInfluSub::unsetIpv6Addr() { m_Ipv6AddrIsSet = false; }
-std::string TrafficInfluSub::getMacAddr() const { return m_MacAddr; }
+bool TrafficInfluSub::ipv6AddrIsSet() const {
+  return m_Ipv6AddrIsSet;
+}
+void TrafficInfluSub::unsetIpv6Addr() {
+  m_Ipv6AddrIsSet = false;
+}
+std::string TrafficInfluSub::getMacAddr() const {
+  return m_MacAddr;
+}
 void TrafficInfluSub::setMacAddr(std::string const& value) {
-  m_MacAddr = value;
+  m_MacAddr      = value;
   m_MacAddrIsSet = true;
 }
-bool TrafficInfluSub::macAddrIsSet() const { return m_MacAddrIsSet; }
-void TrafficInfluSub::unsetMacAddr() { m_MacAddrIsSet = false; }
-DnaiChangeType TrafficInfluSub::getDnaiChgType() const { return m_DnaiChgType; }
+bool TrafficInfluSub::macAddrIsSet() const {
+  return m_MacAddrIsSet;
+}
+void TrafficInfluSub::unsetMacAddr() {
+  m_MacAddrIsSet = false;
+}
+DnaiChangeType TrafficInfluSub::getDnaiChgType() const {
+  return m_DnaiChgType;
+}
 void TrafficInfluSub::setDnaiChgType(DnaiChangeType const& value) {
-  m_DnaiChgType = value;
+  m_DnaiChgType      = value;
   m_DnaiChgTypeIsSet = true;
 }
-bool TrafficInfluSub::dnaiChgTypeIsSet() const { return m_DnaiChgTypeIsSet; }
-void TrafficInfluSub::unsetDnaiChgType() { m_DnaiChgTypeIsSet = false; }
+bool TrafficInfluSub::dnaiChgTypeIsSet() const {
+  return m_DnaiChgTypeIsSet;
+}
+void TrafficInfluSub::unsetDnaiChgType() {
+  m_DnaiChgTypeIsSet = false;
+}
 std::string TrafficInfluSub::getNotificationDestination() const {
   return m_NotificationDestination;
 }
 void TrafficInfluSub::setNotificationDestination(std::string const& value) {
-  m_NotificationDestination = value;
+  m_NotificationDestination      = value;
   m_NotificationDestinationIsSet = true;
 }
 bool TrafficInfluSub::notificationDestinationIsSet() const {
@@ -646,7 +726,7 @@ bool TrafficInfluSub::isRequestTestNotification() const {
   return m_RequestTestNotification;
 }
 void TrafficInfluSub::setRequestTestNotification(bool const value) {
-  m_RequestTestNotification = value;
+  m_RequestTestNotification      = value;
   m_RequestTestNotificationIsSet = true;
 }
 bool TrafficInfluSub::requestTestNotificationIsSet() const {
@@ -659,7 +739,7 @@ WebsockNotifConfig TrafficInfluSub::getWebsockNotifConfig() const {
   return m_WebsockNotifConfig;
 }
 void TrafficInfluSub::setWebsockNotifConfig(WebsockNotifConfig const& value) {
-  m_WebsockNotifConfig = value;
+  m_WebsockNotifConfig      = value;
   m_WebsockNotifConfigIsSet = true;
 }
 bool TrafficInfluSub::websockNotifConfigIsSet() const {
@@ -668,30 +748,38 @@ bool TrafficInfluSub::websockNotifConfigIsSet() const {
 void TrafficInfluSub::unsetWebsockNotifConfig() {
   m_WebsockNotifConfigIsSet = false;
 }
-std::string TrafficInfluSub::getSelf() const { return m_Self; }
+std::string TrafficInfluSub::getSelf() const {
+  return m_Self;
+}
 void TrafficInfluSub::setSelf(std::string const& value) {
-  m_Self = value;
+  m_Self      = value;
   m_SelfIsSet = true;
 }
-bool TrafficInfluSub::selfIsSet() const { return m_SelfIsSet; }
-void TrafficInfluSub::unsetSelf() { m_SelfIsSet = false; }
+bool TrafficInfluSub::selfIsSet() const {
+  return m_SelfIsSet;
+}
+void TrafficInfluSub::unsetSelf() {
+  m_SelfIsSet = false;
+}
 std::vector<FlowInfo> TrafficInfluSub::getTrafficFilters() const {
   return m_TrafficFilters;
 }
 void TrafficInfluSub::setTrafficFilters(std::vector<FlowInfo> const& value) {
-  m_TrafficFilters = value;
+  m_TrafficFilters      = value;
   m_TrafficFiltersIsSet = true;
 }
 bool TrafficInfluSub::trafficFiltersIsSet() const {
   return m_TrafficFiltersIsSet;
 }
-void TrafficInfluSub::unsetTrafficFilters() { m_TrafficFiltersIsSet = false; }
+void TrafficInfluSub::unsetTrafficFilters() {
+  m_TrafficFiltersIsSet = false;
+}
 std::vector<EthFlowDescription> TrafficInfluSub::getEthTrafficFilters() const {
   return m_EthTrafficFilters;
 }
 void TrafficInfluSub::setEthTrafficFilters(
     std::vector<EthFlowDescription> const& value) {
-  m_EthTrafficFilters = value;
+  m_EthTrafficFilters      = value;
   m_EthTrafficFiltersIsSet = true;
 }
 bool TrafficInfluSub::ethTrafficFiltersIsSet() const {
@@ -705,66 +793,94 @@ std::vector<RouteToLocation> TrafficInfluSub::getTrafficRoutes() const {
 }
 void TrafficInfluSub::setTrafficRoutes(
     std::vector<RouteToLocation> const& value) {
-  m_TrafficRoutes = value;
+  m_TrafficRoutes      = value;
   m_TrafficRoutesIsSet = true;
 }
 bool TrafficInfluSub::trafficRoutesIsSet() const {
   return m_TrafficRoutesIsSet;
 }
-void TrafficInfluSub::unsetTrafficRoutes() { m_TrafficRoutesIsSet = false; }
-bool TrafficInfluSub::isTfcCorrInd() const { return m_TfcCorrInd; }
+void TrafficInfluSub::unsetTrafficRoutes() {
+  m_TrafficRoutesIsSet = false;
+}
+bool TrafficInfluSub::isTfcCorrInd() const {
+  return m_TfcCorrInd;
+}
 void TrafficInfluSub::setTfcCorrInd(bool const value) {
-  m_TfcCorrInd = value;
+  m_TfcCorrInd      = value;
   m_TfcCorrIndIsSet = true;
 }
-bool TrafficInfluSub::tfcCorrIndIsSet() const { return m_TfcCorrIndIsSet; }
-void TrafficInfluSub::unsetTfcCorrInd() { m_TfcCorrIndIsSet = false; }
+bool TrafficInfluSub::tfcCorrIndIsSet() const {
+  return m_TfcCorrIndIsSet;
+}
+void TrafficInfluSub::unsetTfcCorrInd() {
+  m_TfcCorrIndIsSet = false;
+}
 std::vector<TemporalValidity> TrafficInfluSub::getTempValidities() const {
   return m_TempValidities;
 }
 void TrafficInfluSub::setTempValidities(
     std::vector<TemporalValidity> const& value) {
-  m_TempValidities = value;
+  m_TempValidities      = value;
   m_TempValiditiesIsSet = true;
 }
 bool TrafficInfluSub::tempValiditiesIsSet() const {
   return m_TempValiditiesIsSet;
 }
-void TrafficInfluSub::unsetTempValidities() { m_TempValiditiesIsSet = false; }
+void TrafficInfluSub::unsetTempValidities() {
+  m_TempValiditiesIsSet = false;
+}
 std::vector<std::string> TrafficInfluSub::getValidGeoZoneIds() const {
   return m_ValidGeoZoneIds;
 }
 void TrafficInfluSub::setValidGeoZoneIds(
     std::vector<std::string> const& value) {
-  m_ValidGeoZoneIds = value;
+  m_ValidGeoZoneIds      = value;
   m_ValidGeoZoneIdsIsSet = true;
 }
 bool TrafficInfluSub::validGeoZoneIdsIsSet() const {
   return m_ValidGeoZoneIdsIsSet;
 }
-void TrafficInfluSub::unsetValidGeoZoneIds() { m_ValidGeoZoneIdsIsSet = false; }
-bool TrafficInfluSub::isAfAckInd() const { return m_AfAckInd; }
+void TrafficInfluSub::unsetValidGeoZoneIds() {
+  m_ValidGeoZoneIdsIsSet = false;
+}
+bool TrafficInfluSub::isAfAckInd() const {
+  return m_AfAckInd;
+}
 void TrafficInfluSub::setAfAckInd(bool const value) {
-  m_AfAckInd = value;
+  m_AfAckInd      = value;
   m_AfAckIndIsSet = true;
 }
-bool TrafficInfluSub::afAckIndIsSet() const { return m_AfAckIndIsSet; }
-void TrafficInfluSub::unsetAfAckInd() { m_AfAckIndIsSet = false; }
-bool TrafficInfluSub::isAddrPreserInd() const { return m_AddrPreserInd; }
+bool TrafficInfluSub::afAckIndIsSet() const {
+  return m_AfAckIndIsSet;
+}
+void TrafficInfluSub::unsetAfAckInd() {
+  m_AfAckIndIsSet = false;
+}
+bool TrafficInfluSub::isAddrPreserInd() const {
+  return m_AddrPreserInd;
+}
 void TrafficInfluSub::setAddrPreserInd(bool const value) {
-  m_AddrPreserInd = value;
+  m_AddrPreserInd      = value;
   m_AddrPreserIndIsSet = true;
 }
 bool TrafficInfluSub::addrPreserIndIsSet() const {
   return m_AddrPreserIndIsSet;
 }
-void TrafficInfluSub::unsetAddrPreserInd() { m_AddrPreserIndIsSet = false; }
-std::string TrafficInfluSub::getSuppFeat() const { return m_SuppFeat; }
+void TrafficInfluSub::unsetAddrPreserInd() {
+  m_AddrPreserIndIsSet = false;
+}
+std::string TrafficInfluSub::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void TrafficInfluSub::setSuppFeat(std::string const& value) {
-  m_SuppFeat = value;
+  m_SuppFeat      = value;
   m_SuppFeatIsSet = true;
 }
-bool TrafficInfluSub::suppFeatIsSet() const { return m_SuppFeatIsSet; }
-void TrafficInfluSub::unsetSuppFeat() { m_SuppFeatIsSet = false; }
+bool TrafficInfluSub::suppFeatIsSet() const {
+  return m_SuppFeatIsSet;
+}
+void TrafficInfluSub::unsetSuppFeat() {
+  m_SuppFeatIsSet = false;
+}
 
 }  // namespace oai::nef::model

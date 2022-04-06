@@ -20,15 +20,15 @@
 namespace oai::nef::model {
 
 AnalyticsData::AnalyticsData() {
-  m_Expiry = "";
-  m_ExpiryIsSet = false;
+  m_Expiry               = "";
+  m_ExpiryIsSet          = false;
   m_UeMobilityInfosIsSet = false;
-  m_UeCommInfosIsSet = false;
-  m_NwPerfInfosIsSet = false;
-  m_AbnormalInfosIsSet = false;
-  m_CongestInfosIsSet = false;
+  m_UeCommInfosIsSet     = false;
+  m_NwPerfInfosIsSet     = false;
+  m_AbnormalInfosIsSet   = false;
+  m_CongestInfosIsSet    = false;
   m_QosSustainInfosIsSet = false;
-  m_SuppFeat = "";
+  m_SuppFeat             = "";
 }
 
 void AnalyticsData::validate() const {
@@ -42,8 +42,8 @@ bool AnalyticsData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AnalyticsData::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool AnalyticsData::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AnalyticsData" : pathPrefix;
@@ -58,7 +58,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const UeMobilityExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -73,7 +73,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
 
   if (ueCommInfosIsSet()) {
     const std::vector<UeCommunication>& value = m_UeCommInfos;
-    const std::string currentValuePath = _pathPrefix + ".ueCommInfos";
+    const std::string currentValuePath        = _pathPrefix + ".ueCommInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -81,7 +81,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const UeCommunication& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -104,7 +104,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const NetworkPerfExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -119,7 +119,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
 
   if (abnormalInfosIsSet()) {
     const std::vector<AbnormalExposure>& value = m_AbnormalInfos;
-    const std::string currentValuePath = _pathPrefix + ".abnormalInfos";
+    const std::string currentValuePath         = _pathPrefix + ".abnormalInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -127,7 +127,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AbnormalExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -142,7 +142,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
 
   if (congestInfosIsSet()) {
     const std::vector<CongestInfo>& value = m_CongestInfos;
-    const std::string currentValuePath = _pathPrefix + ".congestInfos";
+    const std::string currentValuePath    = _pathPrefix + ".congestInfos";
 
     if (value.size() < 1) {
       success = false;
@@ -150,7 +150,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const CongestInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -173,7 +173,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const QosSustainabilityExposure& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -187,7 +187,7 @@ bool AnalyticsData::validate(std::stringstream& msg,
   }
 
   /* SuppFeat */ {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -284,77 +284,105 @@ void from_json(const nlohmann::json& j, AnalyticsData& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string AnalyticsData::getExpiry() const { return m_Expiry; }
+std::string AnalyticsData::getExpiry() const {
+  return m_Expiry;
+}
 void AnalyticsData::setExpiry(std::string const& value) {
-  m_Expiry = value;
+  m_Expiry      = value;
   m_ExpiryIsSet = true;
 }
-bool AnalyticsData::expiryIsSet() const { return m_ExpiryIsSet; }
-void AnalyticsData::unsetExpiry() { m_ExpiryIsSet = false; }
+bool AnalyticsData::expiryIsSet() const {
+  return m_ExpiryIsSet;
+}
+void AnalyticsData::unsetExpiry() {
+  m_ExpiryIsSet = false;
+}
 std::vector<UeMobilityExposure> AnalyticsData::getUeMobilityInfos() const {
   return m_UeMobilityInfos;
 }
 void AnalyticsData::setUeMobilityInfos(
     std::vector<UeMobilityExposure> const& value) {
-  m_UeMobilityInfos = value;
+  m_UeMobilityInfos      = value;
   m_UeMobilityInfosIsSet = true;
 }
 bool AnalyticsData::ueMobilityInfosIsSet() const {
   return m_UeMobilityInfosIsSet;
 }
-void AnalyticsData::unsetUeMobilityInfos() { m_UeMobilityInfosIsSet = false; }
+void AnalyticsData::unsetUeMobilityInfos() {
+  m_UeMobilityInfosIsSet = false;
+}
 std::vector<UeCommunication> AnalyticsData::getUeCommInfos() const {
   return m_UeCommInfos;
 }
 void AnalyticsData::setUeCommInfos(std::vector<UeCommunication> const& value) {
-  m_UeCommInfos = value;
+  m_UeCommInfos      = value;
   m_UeCommInfosIsSet = true;
 }
-bool AnalyticsData::ueCommInfosIsSet() const { return m_UeCommInfosIsSet; }
-void AnalyticsData::unsetUeCommInfos() { m_UeCommInfosIsSet = false; }
+bool AnalyticsData::ueCommInfosIsSet() const {
+  return m_UeCommInfosIsSet;
+}
+void AnalyticsData::unsetUeCommInfos() {
+  m_UeCommInfosIsSet = false;
+}
 std::vector<NetworkPerfExposure> AnalyticsData::getNwPerfInfos() const {
   return m_NwPerfInfos;
 }
 void AnalyticsData::setNwPerfInfos(
     std::vector<NetworkPerfExposure> const& value) {
-  m_NwPerfInfos = value;
+  m_NwPerfInfos      = value;
   m_NwPerfInfosIsSet = true;
 }
-bool AnalyticsData::nwPerfInfosIsSet() const { return m_NwPerfInfosIsSet; }
-void AnalyticsData::unsetNwPerfInfos() { m_NwPerfInfosIsSet = false; }
+bool AnalyticsData::nwPerfInfosIsSet() const {
+  return m_NwPerfInfosIsSet;
+}
+void AnalyticsData::unsetNwPerfInfos() {
+  m_NwPerfInfosIsSet = false;
+}
 std::vector<AbnormalExposure> AnalyticsData::getAbnormalInfos() const {
   return m_AbnormalInfos;
 }
 void AnalyticsData::setAbnormalInfos(
     std::vector<AbnormalExposure> const& value) {
-  m_AbnormalInfos = value;
+  m_AbnormalInfos      = value;
   m_AbnormalInfosIsSet = true;
 }
-bool AnalyticsData::abnormalInfosIsSet() const { return m_AbnormalInfosIsSet; }
-void AnalyticsData::unsetAbnormalInfos() { m_AbnormalInfosIsSet = false; }
+bool AnalyticsData::abnormalInfosIsSet() const {
+  return m_AbnormalInfosIsSet;
+}
+void AnalyticsData::unsetAbnormalInfos() {
+  m_AbnormalInfosIsSet = false;
+}
 std::vector<CongestInfo> AnalyticsData::getCongestInfos() const {
   return m_CongestInfos;
 }
 void AnalyticsData::setCongestInfos(std::vector<CongestInfo> const& value) {
-  m_CongestInfos = value;
+  m_CongestInfos      = value;
   m_CongestInfosIsSet = true;
 }
-bool AnalyticsData::congestInfosIsSet() const { return m_CongestInfosIsSet; }
-void AnalyticsData::unsetCongestInfos() { m_CongestInfosIsSet = false; }
+bool AnalyticsData::congestInfosIsSet() const {
+  return m_CongestInfosIsSet;
+}
+void AnalyticsData::unsetCongestInfos() {
+  m_CongestInfosIsSet = false;
+}
 std::vector<QosSustainabilityExposure> AnalyticsData::getQosSustainInfos()
     const {
   return m_QosSustainInfos;
 }
 void AnalyticsData::setQosSustainInfos(
     std::vector<QosSustainabilityExposure> const& value) {
-  m_QosSustainInfos = value;
+  m_QosSustainInfos      = value;
   m_QosSustainInfosIsSet = true;
 }
 bool AnalyticsData::qosSustainInfosIsSet() const {
   return m_QosSustainInfosIsSet;
 }
-void AnalyticsData::unsetQosSustainInfos() { m_QosSustainInfosIsSet = false; }
-std::string AnalyticsData::getSuppFeat() const { return m_SuppFeat; }
+void AnalyticsData::unsetQosSustainInfos() {
+  m_QosSustainInfosIsSet = false;
+}
+std::string AnalyticsData::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void AnalyticsData::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }

@@ -464,8 +464,6 @@ class HtmlReport():
 				section_end_pattern = 'build_nef --clean --Verbose --build-type Release --jobs'
 				section_status = False
 				package_install = False
-				folly_build_start = False
-				folly_build_status = False
 				spdlog_build_start = False
 				spdlog_build_status = False
 				pistache_build_start = False
@@ -474,8 +472,6 @@ class HtmlReport():
 				json_build_status = False
 				nghttp2_build_start = False
 				nghttp2_build_status = False
-				cpp_jwt_build_start = False
-				cpp_jwt_build_status = False
 				base_image = False
 				with open(cwd + '/archives/' + logFileName, 'r') as logfile:
 					for line in logfile:
@@ -501,12 +497,6 @@ class HtmlReport():
 							result = re.search('spdlog installation complete', line)
 							if result is not None and spdlog_build_start:
 								spdlog_build_status = True
-							result = re.search('Starting to install folly', line)
-							if result is not None:
-								folly_build_start = True
-							result = re.search('folly installation complete', line)
-							if result is not None and folly_build_start:
-								folly_build_status = True
 							result = re.search('Starting to install pistache', line)
 							if result is not None:
 								pistache_build_start = True
@@ -525,12 +515,6 @@ class HtmlReport():
 							result = re.search('nghttp2 installation complete', line)
 							if result is not None and nghttp2_build_start:
 								nghttp2_build_status = True
-							result = re.search('Starting to install cpp_jwt', line)
-							if result is not None:
-								cpp_jwt_build_start = True
-							result = re.search('cpp_jwt installation complete', line)
-							if result is not None and cpp_jwt_build_start:
-								cpp_jwt_build_status = True
 					logfile.close()
 				if base_image:
 					cell_msg = '      <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
@@ -555,12 +539,6 @@ class HtmlReport():
 				else:
 					cell_msg += '   ** spdlog Installation: KO\n'
 				if base_image:
-					cell_msg += '   ** folly Installation: N/A\n'
-				elif folly_build_status:
-					cell_msg += '   ** folly Installation: OK\n'
-				else:
-					cell_msg += '   ** folly Installation: KO\n'
-				if base_image:
 					cell_msg += '   ** pistache Installation: N/A\n'
 				elif pistache_build_status:
 					cell_msg += '   ** pistache Installation: OK\n'
@@ -578,12 +556,6 @@ class HtmlReport():
 					cell_msg += '   ** nghttp2 Installation: OK\n'
 				else:
 					cell_msg += '   ** nghttp2 Installation: KO\n'
-				if base_image:
-					cell_msg += '   ** cpp_jwt Installation: N/A\n'
-				elif cpp_jwt_build_status:
-					cell_msg += '   ** cpp_jwt Installation: OK\n'
-				else:
-					cell_msg += '   ** cpp_jwt Installation: KO\n'
 				cell_msg += '</b></pre></td>\n'
 			else:
 				cell_msg = '	  <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
@@ -727,23 +699,31 @@ class HtmlReport():
 		for variant in variants:
 			logFileName = 'nef_' + variant + '_image_build.log'
 			if os.path.isfile(cwd + '/archives/' + logFileName):
-				section_start_pattern = 'FROM ubuntu:bionic as oai-nef$'
-				section_end_pattern = 'COPY --from=oai-nef-builder /openair-nef/scripts/entrypoint.sh entrypoint.sh'
+				section_start_pattern = 'FROM .* as oai-nef$'
+				section_end_pattern = 'WORKDIR /openair-nef/etc'
 				section_status = False
 				status = False
+				noPbInLDD = True
 				with open(cwd + '/archives/' + logFileName, 'r') as logfile:
 					for line in logfile:
 						result = re.search(section_start_pattern, line)
 						if result is not None:
 							section_status = True
+						result = re.search('not found', line)
+						if result is not None and section_status:
+							noPbInLDD = False
 						result = re.search(section_end_pattern, line)
 						if result is not None:
 							section_status = False
 							status = True
 					logfile.close()
-				if status:
+				if status and noPbInLDD:
 					cell_msg = '	   <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
 					cell_msg += 'OK:\n'
+				elif not noPbInLDD:
+					cell_msg = '	   <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+					cell_msg += 'KO:\n'
+					cell_msg += '  Some libraries were not copied from builder image\n'
 				else:
 					cell_msg = '	   <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
 					cell_msg += 'KO:\n'

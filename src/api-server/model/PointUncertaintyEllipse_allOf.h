@@ -75,10 +75,10 @@ class PointUncertaintyEllipse_allOf {
   int32_t getConfidence() const;
   void setConfidence(int32_t const value);
 
-  friend void to_json(nlohmann::json& j,
-                      const PointUncertaintyEllipse_allOf& o);
-  friend void from_json(const nlohmann::json& j,
-                        PointUncertaintyEllipse_allOf& o);
+  friend void to_json(
+      nlohmann::json& j, const PointUncertaintyEllipse_allOf& o);
+  friend void from_json(
+      const nlohmann::json& j, PointUncertaintyEllipse_allOf& o);
 
  protected:
   GeographicalCoordinates m_Point;

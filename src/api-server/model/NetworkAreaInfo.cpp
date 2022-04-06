@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 NetworkAreaInfo::NetworkAreaInfo() {
-  m_EcgisIsSet = false;
-  m_NcgisIsSet = false;
+  m_EcgisIsSet       = false;
+  m_NcgisIsSet       = false;
   m_GRanNodeIdsIsSet = false;
-  m_TaisIsSet = false;
+  m_TaisIsSet        = false;
 }
 
 void NetworkAreaInfo::validate() const {
@@ -37,14 +37,14 @@ bool NetworkAreaInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NetworkAreaInfo::validate(std::stringstream& msg,
-                               const std::string& pathPrefix) const {
+bool NetworkAreaInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NetworkAreaInfo" : pathPrefix;
 
   if (ecgisIsSet()) {
-    const std::vector<Ecgi>& value = m_Ecgis;
+    const std::vector<Ecgi>& value     = m_Ecgis;
     const std::string currentValuePath = _pathPrefix + ".ecgis";
 
     if (value.size() < 1) {
@@ -53,7 +53,7 @@ bool NetworkAreaInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const Ecgi& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -66,7 +66,7 @@ bool NetworkAreaInfo::validate(std::stringstream& msg,
   }
 
   if (ncgisIsSet()) {
-    const std::vector<Ncgi>& value = m_Ncgis;
+    const std::vector<Ncgi>& value     = m_Ncgis;
     const std::string currentValuePath = _pathPrefix + ".ncgis";
 
     if (value.size() < 1) {
@@ -75,7 +75,7 @@ bool NetworkAreaInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const Ncgi& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -89,7 +89,7 @@ bool NetworkAreaInfo::validate(std::stringstream& msg,
 
   if (gRanNodeIdsIsSet()) {
     const std::vector<GlobalRanNodeId>& value = m_GRanNodeIds;
-    const std::string currentValuePath = _pathPrefix + ".gRanNodeIds";
+    const std::string currentValuePath        = _pathPrefix + ".gRanNodeIds";
 
     if (value.size() < 1) {
       success = false;
@@ -97,7 +97,7 @@ bool NetworkAreaInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const GlobalRanNodeId& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -111,7 +111,7 @@ bool NetworkAreaInfo::validate(std::stringstream& msg,
   }
 
   if (taisIsSet()) {
-    const std::vector<Tai>& value = m_Tais;
+    const std::vector<Tai>& value      = m_Tais;
     const std::string currentValuePath = _pathPrefix + ".tais";
 
     if (value.size() < 1) {
@@ -120,7 +120,7 @@ bool NetworkAreaInfo::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const Tai& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -186,36 +186,58 @@ void from_json(const nlohmann::json& j, NetworkAreaInfo& o) {
   }
 }
 
-std::vector<Ecgi> NetworkAreaInfo::getEcgis() const { return m_Ecgis; }
+std::vector<Ecgi> NetworkAreaInfo::getEcgis() const {
+  return m_Ecgis;
+}
 void NetworkAreaInfo::setEcgis(std::vector<Ecgi> const& value) {
-  m_Ecgis = value;
+  m_Ecgis      = value;
   m_EcgisIsSet = true;
 }
-bool NetworkAreaInfo::ecgisIsSet() const { return m_EcgisIsSet; }
-void NetworkAreaInfo::unsetEcgis() { m_EcgisIsSet = false; }
-std::vector<Ncgi> NetworkAreaInfo::getNcgis() const { return m_Ncgis; }
+bool NetworkAreaInfo::ecgisIsSet() const {
+  return m_EcgisIsSet;
+}
+void NetworkAreaInfo::unsetEcgis() {
+  m_EcgisIsSet = false;
+}
+std::vector<Ncgi> NetworkAreaInfo::getNcgis() const {
+  return m_Ncgis;
+}
 void NetworkAreaInfo::setNcgis(std::vector<Ncgi> const& value) {
-  m_Ncgis = value;
+  m_Ncgis      = value;
   m_NcgisIsSet = true;
 }
-bool NetworkAreaInfo::ncgisIsSet() const { return m_NcgisIsSet; }
-void NetworkAreaInfo::unsetNcgis() { m_NcgisIsSet = false; }
+bool NetworkAreaInfo::ncgisIsSet() const {
+  return m_NcgisIsSet;
+}
+void NetworkAreaInfo::unsetNcgis() {
+  m_NcgisIsSet = false;
+}
 std::vector<GlobalRanNodeId> NetworkAreaInfo::getGRanNodeIds() const {
   return m_GRanNodeIds;
 }
 void NetworkAreaInfo::setGRanNodeIds(
     std::vector<GlobalRanNodeId> const& value) {
-  m_GRanNodeIds = value;
+  m_GRanNodeIds      = value;
   m_GRanNodeIdsIsSet = true;
 }
-bool NetworkAreaInfo::gRanNodeIdsIsSet() const { return m_GRanNodeIdsIsSet; }
-void NetworkAreaInfo::unsetGRanNodeIds() { m_GRanNodeIdsIsSet = false; }
-std::vector<Tai> NetworkAreaInfo::getTais() const { return m_Tais; }
+bool NetworkAreaInfo::gRanNodeIdsIsSet() const {
+  return m_GRanNodeIdsIsSet;
+}
+void NetworkAreaInfo::unsetGRanNodeIds() {
+  m_GRanNodeIdsIsSet = false;
+}
+std::vector<Tai> NetworkAreaInfo::getTais() const {
+  return m_Tais;
+}
 void NetworkAreaInfo::setTais(std::vector<Tai> const& value) {
-  m_Tais = value;
+  m_Tais      = value;
   m_TaisIsSet = true;
 }
-bool NetworkAreaInfo::taisIsSet() const { return m_TaisIsSet; }
-void NetworkAreaInfo::unsetTais() { m_TaisIsSet = false; }
+bool NetworkAreaInfo::taisIsSet() const {
+  return m_TaisIsSet;
+}
+void NetworkAreaInfo::unsetTais() {
+  m_TaisIsSet = false;
+}
 
 }  // namespace oai::nef::model

@@ -32,8 +32,8 @@ bool PduSessionType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PduSessionType::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool PduSessionType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PduSessionType" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, PduSessionType& o) {
   from_json(j, o.m_value);
 }
 
-PduSessionType_anyOf PduSessionType::getValue() const { return m_value; }
+PduSessionType_anyOf PduSessionType::getValue() const {
+  return m_value;
+}
 
-void PduSessionType::setValue(PduSessionType_anyOf value) { m_value = value; }
+void PduSessionType::setValue(PduSessionType_anyOf value) {
+  m_value = value;
+}
 
 PduSessionType_anyOf::ePduSessionType_anyOf PduSessionType::getEnumValue()
     const {

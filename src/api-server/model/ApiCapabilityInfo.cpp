@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 ApiCapabilityInfo::ApiCapabilityInfo() {
-  m_ApiName = "";
+  m_ApiName  = "";
   m_SuppFeat = "";
 }
 
@@ -35,14 +35,14 @@ bool ApiCapabilityInfo::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ApiCapabilityInfo::validate(std::stringstream& msg,
-                                 const std::string& pathPrefix) const {
+bool ApiCapabilityInfo::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ApiCapabilityInfo" : pathPrefix;
 
   /* SuppFeat */ {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -64,8 +64,8 @@ bool ApiCapabilityInfo::operator!=(const ApiCapabilityInfo& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const ApiCapabilityInfo& o) {
-  j = nlohmann::json();
-  j["apiName"] = o.m_ApiName;
+  j             = nlohmann::json();
+  j["apiName"]  = o.m_ApiName;
   j["suppFeat"] = o.m_SuppFeat;
 }
 
@@ -74,11 +74,15 @@ void from_json(const nlohmann::json& j, ApiCapabilityInfo& o) {
   j.at("suppFeat").get_to(o.m_SuppFeat);
 }
 
-std::string ApiCapabilityInfo::getApiName() const { return m_ApiName; }
+std::string ApiCapabilityInfo::getApiName() const {
+  return m_ApiName;
+}
 void ApiCapabilityInfo::setApiName(std::string const& value) {
   m_ApiName = value;
 }
-std::string ApiCapabilityInfo::getSuppFeat() const { return m_SuppFeat; }
+std::string ApiCapabilityInfo::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void ApiCapabilityInfo::setSuppFeat(std::string const& value) {
   m_SuppFeat = value;
 }

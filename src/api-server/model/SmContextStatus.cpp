@@ -32,8 +32,8 @@ bool SmContextStatus::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmContextStatus::validate(std::stringstream& msg,
-                               const std::string& pathPrefix) const {
+bool SmContextStatus::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextStatus" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, SmContextStatus& o) {
   from_json(j, o.m_value);
 }
 
-SmContextStatus_anyOf SmContextStatus::getValue() const { return m_value; }
+SmContextStatus_anyOf SmContextStatus::getValue() const {
+  return m_value;
+}
 
-void SmContextStatus::setValue(SmContextStatus_anyOf value) { m_value = value; }
+void SmContextStatus::setValue(SmContextStatus_anyOf value) {
+  m_value = value;
+}
 
 SmContextStatus_anyOf::eSmContextStatus_anyOf SmContextStatus::getEnumValue()
     const {

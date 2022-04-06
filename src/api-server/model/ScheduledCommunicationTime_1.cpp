@@ -20,11 +20,11 @@
 namespace oai::nef::model {
 
 ScheduledCommunicationTime_1::ScheduledCommunicationTime_1() {
-  m_DaysOfWeekIsSet = false;
-  m_TimeOfDayStart = "";
+  m_DaysOfWeekIsSet     = false;
+  m_TimeOfDayStart      = "";
   m_TimeOfDayStartIsSet = false;
-  m_TimeOfDayEnd = "";
-  m_TimeOfDayEndIsSet = false;
+  m_TimeOfDayEnd        = "";
+  m_TimeOfDayEndIsSet   = false;
 }
 
 void ScheduledCommunicationTime_1::validate() const {
@@ -45,7 +45,7 @@ bool ScheduledCommunicationTime_1::validate(
       pathPrefix.empty() ? "ScheduledCommunicationTime_1" : pathPrefix;
 
   if (daysOfWeekIsSet()) {
-    const std::vector<int32_t>& value = m_DaysOfWeek;
+    const std::vector<int32_t>& value  = m_DaysOfWeek;
     const std::string currentValuePath = _pathPrefix + ".daysOfWeek";
 
     if (value.size() < 1) {
@@ -58,7 +58,7 @@ bool ScheduledCommunicationTime_1::validate(
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const int32_t& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -132,7 +132,7 @@ std::vector<int32_t> ScheduledCommunicationTime_1::getDaysOfWeek() const {
 }
 void ScheduledCommunicationTime_1::setDaysOfWeek(
     std::vector<int32_t> const value) {
-  m_DaysOfWeek = value;
+  m_DaysOfWeek      = value;
   m_DaysOfWeekIsSet = true;
 }
 bool ScheduledCommunicationTime_1::daysOfWeekIsSet() const {
@@ -145,7 +145,7 @@ std::string ScheduledCommunicationTime_1::getTimeOfDayStart() const {
   return m_TimeOfDayStart;
 }
 void ScheduledCommunicationTime_1::setTimeOfDayStart(std::string const& value) {
-  m_TimeOfDayStart = value;
+  m_TimeOfDayStart      = value;
   m_TimeOfDayStartIsSet = true;
 }
 bool ScheduledCommunicationTime_1::timeOfDayStartIsSet() const {
@@ -158,7 +158,7 @@ std::string ScheduledCommunicationTime_1::getTimeOfDayEnd() const {
   return m_TimeOfDayEnd;
 }
 void ScheduledCommunicationTime_1::setTimeOfDayEnd(std::string const& value) {
-  m_TimeOfDayEnd = value;
+  m_TimeOfDayEnd      = value;
   m_TimeOfDayEndIsSet = true;
 }
 bool ScheduledCommunicationTime_1::timeOfDayEndIsSet() const {

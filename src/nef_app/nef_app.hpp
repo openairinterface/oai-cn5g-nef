@@ -97,10 +97,9 @@ class nef_app {
    * @param [ProblemDetails &] problem_details: Store details of the error
    * @return void
    */
-  void handle_remove_individual_subscription(const std::string& sub_id,
-                                             const uint8_t http_version,
-                                             int& http_code,
-                                             ProblemDetails& problem_details);
+  void handle_remove_individual_subscription(
+      const std::string& sub_id, const uint8_t http_version, int& http_code,
+      ProblemDetails& problem_details);
 
   /*
    * Handle a request to get a subscription information (Event Exposure)
@@ -111,11 +110,10 @@ class nef_app {
    * @param [ProblemDetails &] problem_details: Store details of the error
    * @return void
    */
-  void handle_get_individual_subscription(const std::string& sub_id,
-                                          nlohmann::json& ev_sub,
-                                          const uint8_t http_version,
-                                          int& http_code,
-                                          ProblemDetails& problem_details);
+  void handle_get_individual_subscription(
+      const std::string& sub_id, nlohmann::json& ev_sub,
+      const uint8_t http_version, int& http_code,
+      ProblemDetails& problem_details);
 
   /*
    * Handle a request to update a subscription information (Event Exposure)
@@ -141,9 +139,9 @@ class nef_app {
    * @param [int &] http_code: HTTP code used to return to the service consumer
    * @return void
    */
-  void handle_nf_event_notification(const NefEventExposureNotif& eventNotif,
-                                    nlohmann::json& response_data,
-                                    const uint8_t http_version, int& http_code);
+  void handle_nf_event_notification(
+      const NefEventExposureNotif& eventNotif, nlohmann::json& response_data,
+      const uint8_t http_version, int& http_code);
 
   /*
    * Handle an event notification from AMF
@@ -294,8 +292,8 @@ class nef_app {
    * @return true if the subscription is created successfully, otherwise return
    * false
    */
-  bool add_ee_subscription(const std::string& sub_id,
-                           std::shared_ptr<NefEventExposureSubsc>& ces);
+  bool add_ee_subscription(
+      const std::string& sub_id, std::shared_ptr<NefEventExposureSubsc>& ces);
 
   /*
    * Add/Create a subscription (Event Exposure) and store to the DB
@@ -308,10 +306,10 @@ class nef_app {
    * @return true if the subscription is created/added successfully, otherwise
    * return false
    */
-  bool add_ee_subscription(const std::string& consumer_nf_id,
-                           const std::string& sub_id,
-                           const std::string& nf_resource_location,
-                           std::shared_ptr<MonitoringEventSubscription>& ces);
+  bool add_ee_subscription(
+      const std::string& consumer_nf_id, const std::string& sub_id,
+      const std::string& nf_resource_location,
+      std::shared_ptr<MonitoringEventSubscription>& ces);
 
   /*
    * Remove an existing subscription (Event Exposure) from the DB
@@ -337,8 +335,8 @@ class nef_app {
    * @return true if the subscription is removed successfully, otherwise return
    * false
    */
-  bool remove_monitoring_ee_subscription(const std::string& consumer_nf_id,
-                                         const std::string& sub_id);
+  bool remove_monitoring_ee_subscription(
+      const std::string& consumer_nf_id, const std::string& sub_id);
 
   /*
    * Get info of an existing monitoring subscription (Event Exposure) from the
@@ -349,9 +347,9 @@ class nef_app {
    * @return true if the subscription is existed, otherwise return
    * false
    */
-  bool get_monitoring_ee_subscription(const std::string& consumer_nf_id,
-                                      const std::string& sub_id,
-                                      nlohmann::json& ev_sub);
+  bool get_monitoring_ee_subscription(
+      const std::string& consumer_nf_id, const std::string& sub_id,
+      nlohmann::json& ev_sub);
 
   /*
    * Get info of an existing monitoring subscription (Event Exposure) from the
@@ -377,8 +375,8 @@ class nef_app {
    * @return true if the subscription is existed, otherwise return
    * false
    */
-  bool get_sub_ids(const std::string& consumer_nf_id,
-                   std::set<std::string>& sub_ids);
+  bool get_sub_ids(
+      const std::string& consumer_nf_id, std::set<std::string>& sub_ids);
 
   /*
    * Subscribe NF (AMF/SMF/UDM, etc) events
@@ -390,9 +388,9 @@ class nef_app {
    * @param [int&] http_code: HTTP response code from NF
    * @return void
    */
-  void subscribe_nf_events(const MonitoringEventSubscription& ev_sub,
-                           const std::string& sub_id,
-                           std::string& nf_resource_location, int& http_code);
+  void subscribe_nf_events(
+      const MonitoringEventSubscription& ev_sub, const std::string& sub_id,
+      std::string& nf_resource_location, int& http_code);
 
   /*
    * Subscribe to AMF events
@@ -455,8 +453,8 @@ class nef_app {
    * @param [int&] http_code: HTTP response code from NF
    * @return void
    */
-  void unsubscribe_nf_event(const std::string& nf_resource_location,
-                            int& http_code);
+  void unsubscribe_nf_event(
+      const std::string& nf_resource_location, int& http_code);
 
   /*
    * Validate the monitoring event subscription request (e.g., whether the
@@ -492,8 +490,9 @@ class nef_app {
    * subscription to be updated
    * @return true if success, otherwise false
    */
-  bool add_subscription_info(const std::string& path, const std::string& value,
-                             std::shared_ptr<MonitoringEventSubscription>& mes);
+  bool add_subscription_info(
+      const std::string& path, const std::string& value,
+      std::shared_ptr<MonitoringEventSubscription>& mes);
 
   /*
    * Remove a member of MonitoringEventSubscription

@@ -20,19 +20,19 @@
 namespace oai::nef::model {
 
 TrafficCharacterization::TrafficCharacterization() {
-  m_Dnn = "";
-  m_DnnIsSet = false;
-  m_SnssaiIsSet = false;
-  m_AppId = "";
-  m_AppIdIsSet = false;
-  m_FDescsIsSet = false;
-  m_UlVol = 0L;
-  m_UlVolIsSet = false;
-  m_UlVolVariance = 0.0f;
+  m_Dnn                = "";
+  m_DnnIsSet           = false;
+  m_SnssaiIsSet        = false;
+  m_AppId              = "";
+  m_AppIdIsSet         = false;
+  m_FDescsIsSet        = false;
+  m_UlVol              = 0L;
+  m_UlVolIsSet         = false;
+  m_UlVolVariance      = 0.0f;
   m_UlVolVarianceIsSet = false;
-  m_DlVol = 0L;
-  m_DlVolIsSet = false;
-  m_DlVolVariance = 0.0f;
+  m_DlVol              = 0L;
+  m_DlVolIsSet         = false;
+  m_DlVolVariance      = 0.0f;
   m_DlVolVarianceIsSet = false;
 }
 
@@ -47,15 +47,15 @@ bool TrafficCharacterization::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TrafficCharacterization::validate(std::stringstream& msg,
-                                       const std::string& pathPrefix) const {
+bool TrafficCharacterization::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TrafficCharacterization" : pathPrefix;
 
   if (fDescsIsSet()) {
     const std::vector<IpEthFlowDescription>& value = m_FDescs;
-    const std::string currentValuePath = _pathPrefix + ".fDescs";
+    const std::string currentValuePath             = _pathPrefix + ".fDescs";
 
     if (value.size() < 1) {
       success = false;
@@ -67,7 +67,7 @@ bool TrafficCharacterization::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const IpEthFlowDescription& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -80,7 +80,7 @@ bool TrafficCharacterization::validate(std::stringstream& msg,
   }
 
   if (ulVolIsSet()) {
-    const int64_t& value = m_UlVol;
+    const int64_t& value               = m_UlVol;
     const std::string currentValuePath = _pathPrefix + ".ulVol";
 
     if (value < 0ll) {
@@ -90,7 +90,7 @@ bool TrafficCharacterization::validate(std::stringstream& msg,
   }
 
   if (dlVolIsSet()) {
-    const int64_t& value = m_DlVol;
+    const int64_t& value               = m_DlVol;
     const std::string currentValuePath = _pathPrefix + ".dlVol";
 
     if (value < 0ll) {
@@ -189,49 +189,77 @@ void from_json(const nlohmann::json& j, TrafficCharacterization& o) {
   }
 }
 
-std::string TrafficCharacterization::getDnn() const { return m_Dnn; }
+std::string TrafficCharacterization::getDnn() const {
+  return m_Dnn;
+}
 void TrafficCharacterization::setDnn(std::string const& value) {
-  m_Dnn = value;
+  m_Dnn      = value;
   m_DnnIsSet = true;
 }
-bool TrafficCharacterization::dnnIsSet() const { return m_DnnIsSet; }
-void TrafficCharacterization::unsetDnn() { m_DnnIsSet = false; }
-Snssai TrafficCharacterization::getSnssai() const { return m_Snssai; }
+bool TrafficCharacterization::dnnIsSet() const {
+  return m_DnnIsSet;
+}
+void TrafficCharacterization::unsetDnn() {
+  m_DnnIsSet = false;
+}
+Snssai TrafficCharacterization::getSnssai() const {
+  return m_Snssai;
+}
 void TrafficCharacterization::setSnssai(Snssai const& value) {
-  m_Snssai = value;
+  m_Snssai      = value;
   m_SnssaiIsSet = true;
 }
-bool TrafficCharacterization::snssaiIsSet() const { return m_SnssaiIsSet; }
-void TrafficCharacterization::unsetSnssai() { m_SnssaiIsSet = false; }
-std::string TrafficCharacterization::getAppId() const { return m_AppId; }
+bool TrafficCharacterization::snssaiIsSet() const {
+  return m_SnssaiIsSet;
+}
+void TrafficCharacterization::unsetSnssai() {
+  m_SnssaiIsSet = false;
+}
+std::string TrafficCharacterization::getAppId() const {
+  return m_AppId;
+}
 void TrafficCharacterization::setAppId(std::string const& value) {
-  m_AppId = value;
+  m_AppId      = value;
   m_AppIdIsSet = true;
 }
-bool TrafficCharacterization::appIdIsSet() const { return m_AppIdIsSet; }
-void TrafficCharacterization::unsetAppId() { m_AppIdIsSet = false; }
+bool TrafficCharacterization::appIdIsSet() const {
+  return m_AppIdIsSet;
+}
+void TrafficCharacterization::unsetAppId() {
+  m_AppIdIsSet = false;
+}
 std::vector<IpEthFlowDescription> TrafficCharacterization::getFDescs() const {
   return m_FDescs;
 }
 void TrafficCharacterization::setFDescs(
     std::vector<IpEthFlowDescription> const& value) {
-  m_FDescs = value;
+  m_FDescs      = value;
   m_FDescsIsSet = true;
 }
-bool TrafficCharacterization::fDescsIsSet() const { return m_FDescsIsSet; }
-void TrafficCharacterization::unsetFDescs() { m_FDescsIsSet = false; }
-int64_t TrafficCharacterization::getUlVol() const { return m_UlVol; }
+bool TrafficCharacterization::fDescsIsSet() const {
+  return m_FDescsIsSet;
+}
+void TrafficCharacterization::unsetFDescs() {
+  m_FDescsIsSet = false;
+}
+int64_t TrafficCharacterization::getUlVol() const {
+  return m_UlVol;
+}
 void TrafficCharacterization::setUlVol(int64_t const value) {
-  m_UlVol = value;
+  m_UlVol      = value;
   m_UlVolIsSet = true;
 }
-bool TrafficCharacterization::ulVolIsSet() const { return m_UlVolIsSet; }
-void TrafficCharacterization::unsetUlVol() { m_UlVolIsSet = false; }
+bool TrafficCharacterization::ulVolIsSet() const {
+  return m_UlVolIsSet;
+}
+void TrafficCharacterization::unsetUlVol() {
+  m_UlVolIsSet = false;
+}
 float TrafficCharacterization::getUlVolVariance() const {
   return m_UlVolVariance;
 }
 void TrafficCharacterization::setUlVolVariance(float const value) {
-  m_UlVolVariance = value;
+  m_UlVolVariance      = value;
   m_UlVolVarianceIsSet = true;
 }
 bool TrafficCharacterization::ulVolVarianceIsSet() const {
@@ -240,18 +268,24 @@ bool TrafficCharacterization::ulVolVarianceIsSet() const {
 void TrafficCharacterization::unsetUlVolVariance() {
   m_UlVolVarianceIsSet = false;
 }
-int64_t TrafficCharacterization::getDlVol() const { return m_DlVol; }
+int64_t TrafficCharacterization::getDlVol() const {
+  return m_DlVol;
+}
 void TrafficCharacterization::setDlVol(int64_t const value) {
-  m_DlVol = value;
+  m_DlVol      = value;
   m_DlVolIsSet = true;
 }
-bool TrafficCharacterization::dlVolIsSet() const { return m_DlVolIsSet; }
-void TrafficCharacterization::unsetDlVol() { m_DlVolIsSet = false; }
+bool TrafficCharacterization::dlVolIsSet() const {
+  return m_DlVolIsSet;
+}
+void TrafficCharacterization::unsetDlVol() {
+  m_DlVolIsSet = false;
+}
 float TrafficCharacterization::getDlVolVariance() const {
   return m_DlVolVariance;
 }
 void TrafficCharacterization::setDlVolVariance(float const value) {
-  m_DlVolVariance = value;
+  m_DlVolVariance      = value;
   m_DlVolVarianceIsSet = true;
 }
 bool TrafficCharacterization::dlVolVarianceIsSet() const {

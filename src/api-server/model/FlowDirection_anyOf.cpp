@@ -33,8 +33,8 @@ bool FlowDirection_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool FlowDirection_anyOf::validate(std::stringstream& msg,
-                                   const std::string& pathPrefix) const {
+bool FlowDirection_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "FlowDirection_anyOf" : pathPrefix;

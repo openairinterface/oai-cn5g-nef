@@ -32,8 +32,8 @@ bool AmfEventType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfEventType::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool AmfEventType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfEventType" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, AmfEventType& o) {
   from_json(j, o.m_value);
 }
 
-AmfEventType_anyOf AmfEventType::getValue() const { return m_value; }
+AmfEventType_anyOf AmfEventType::getValue() const {
+  return m_value;
+}
 
-void AmfEventType::setValue(AmfEventType_anyOf value) { m_value = value; }
+void AmfEventType::setValue(AmfEventType_anyOf value) {
+  m_value = value;
+}
 
 AmfEventType_anyOf::eAmfEventType_anyOf AmfEventType::getEnumValue() const {
   return m_value.getValue();

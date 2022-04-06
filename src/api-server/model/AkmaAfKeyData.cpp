@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 AkmaAfKeyData::AkmaAfKeyData() {
-  m_SuppFeat = "";
+  m_SuppFeat      = "";
   m_SuppFeatIsSet = false;
-  m_Expiry = "";
-  m_Kaf = "";
+  m_Expiry        = "";
+  m_Kaf           = "";
 }
 
 void AkmaAfKeyData::validate() const {
@@ -37,14 +37,14 @@ bool AkmaAfKeyData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AkmaAfKeyData::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool AkmaAfKeyData::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AkmaAfKeyData" : pathPrefix;
 
   if (suppFeatIsSet()) {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -73,7 +73,7 @@ void to_json(nlohmann::json& j, const AkmaAfKeyData& o) {
   j = nlohmann::json();
   if (o.suppFeatIsSet()) j["suppFeat"] = o.m_SuppFeat;
   j["expiry"] = o.m_Expiry;
-  j["kaf"] = o.m_Kaf;
+  j["kaf"]    = o.m_Kaf;
 }
 
 void from_json(const nlohmann::json& j, AkmaAfKeyData& o) {
@@ -85,16 +85,30 @@ void from_json(const nlohmann::json& j, AkmaAfKeyData& o) {
   j.at("kaf").get_to(o.m_Kaf);
 }
 
-std::string AkmaAfKeyData::getSuppFeat() const { return m_SuppFeat; }
+std::string AkmaAfKeyData::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void AkmaAfKeyData::setSuppFeat(std::string const& value) {
-  m_SuppFeat = value;
+  m_SuppFeat      = value;
   m_SuppFeatIsSet = true;
 }
-bool AkmaAfKeyData::suppFeatIsSet() const { return m_SuppFeatIsSet; }
-void AkmaAfKeyData::unsetSuppFeat() { m_SuppFeatIsSet = false; }
-std::string AkmaAfKeyData::getExpiry() const { return m_Expiry; }
-void AkmaAfKeyData::setExpiry(std::string const& value) { m_Expiry = value; }
-std::string AkmaAfKeyData::getKaf() const { return m_Kaf; }
-void AkmaAfKeyData::setKaf(std::string const& value) { m_Kaf = value; }
+bool AkmaAfKeyData::suppFeatIsSet() const {
+  return m_SuppFeatIsSet;
+}
+void AkmaAfKeyData::unsetSuppFeat() {
+  m_SuppFeatIsSet = false;
+}
+std::string AkmaAfKeyData::getExpiry() const {
+  return m_Expiry;
+}
+void AkmaAfKeyData::setExpiry(std::string const& value) {
+  m_Expiry = value;
+}
+std::string AkmaAfKeyData::getKaf() const {
+  return m_Kaf;
+}
+void AkmaAfKeyData::setKaf(std::string const& value) {
+  m_Kaf = value;
+}
 
 }  // namespace oai::nef::model

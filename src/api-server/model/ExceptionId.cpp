@@ -32,8 +32,8 @@ bool ExceptionId::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ExceptionId::validate(std::stringstream& msg,
-                           const std::string& pathPrefix) const {
+bool ExceptionId::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExceptionId" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, ExceptionId& o) {
   from_json(j, o.m_value);
 }
 
-ExceptionId_anyOf ExceptionId::getValue() const { return m_value; }
+ExceptionId_anyOf ExceptionId::getValue() const {
+  return m_value;
+}
 
-void ExceptionId::setValue(ExceptionId_anyOf value) { m_value = value; }
+void ExceptionId::setValue(ExceptionId_anyOf value) {
+  m_value = value;
+}
 
 ExceptionId_anyOf::eExceptionId_anyOf ExceptionId::getEnumValue() const {
   return m_value.getValue();

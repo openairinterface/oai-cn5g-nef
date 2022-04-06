@@ -32,8 +32,8 @@ bool DnaiChangeType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool DnaiChangeType::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool DnaiChangeType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "DnaiChangeType" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, DnaiChangeType& o) {
   from_json(j, o.m_value);
 }
 
-DnaiChangeType_anyOf DnaiChangeType::getValue() const { return m_value; }
+DnaiChangeType_anyOf DnaiChangeType::getValue() const {
+  return m_value;
+}
 
-void DnaiChangeType::setValue(DnaiChangeType_anyOf value) { m_value = value; }
+void DnaiChangeType::setValue(DnaiChangeType_anyOf value) {
+  m_value = value;
+}
 
 DnaiChangeType_anyOf::eDnaiChangeType_anyOf DnaiChangeType::getEnumValue()
     const {

@@ -20,15 +20,15 @@
 namespace oai::nef::model {
 
 NrLocation::NrLocation() {
-  m_AgeOfLocationInformation = 0;
+  m_AgeOfLocationInformation      = 0;
   m_AgeOfLocationInformationIsSet = false;
-  m_UeLocationTimestamp = "";
-  m_UeLocationTimestampIsSet = false;
-  m_GeographicalInformation = "";
-  m_GeographicalInformationIsSet = false;
-  m_GeodeticInformation = "";
-  m_GeodeticInformationIsSet = false;
-  m_GlobalGnbIdIsSet = false;
+  m_UeLocationTimestamp           = "";
+  m_UeLocationTimestampIsSet      = false;
+  m_GeographicalInformation       = "";
+  m_GeographicalInformationIsSet  = false;
+  m_GeodeticInformation           = "";
+  m_GeodeticInformationIsSet      = false;
+  m_GlobalGnbIdIsSet              = false;
 }
 
 void NrLocation::validate() const {
@@ -42,8 +42,8 @@ bool NrLocation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NrLocation::validate(std::stringstream& msg,
-                          const std::string& pathPrefix) const {
+bool NrLocation::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NrLocation" : pathPrefix;
@@ -70,7 +70,7 @@ bool NrLocation::validate(std::stringstream& msg,
   }
 
   if (geodeticInformationIsSet()) {
-    const std::string& value = m_GeodeticInformation;
+    const std::string& value           = m_GeodeticInformation;
     const std::string currentValuePath = _pathPrefix + ".geodeticInformation";
   }
 
@@ -115,8 +115,8 @@ bool NrLocation::operator!=(const NrLocation& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const NrLocation& o) {
-  j = nlohmann::json();
-  j["tai"] = o.m_Tai;
+  j         = nlohmann::json();
+  j["tai"]  = o.m_Tai;
   j["ncgi"] = o.m_Ncgi;
   if (o.ageOfLocationInformationIsSet())
     j["ageOfLocationInformation"] = o.m_AgeOfLocationInformation;
@@ -154,15 +154,23 @@ void from_json(const nlohmann::json& j, NrLocation& o) {
   }
 }
 
-Tai NrLocation::getTai() const { return m_Tai; }
-void NrLocation::setTai(Tai const& value) { m_Tai = value; }
-Ncgi NrLocation::getNcgi() const { return m_Ncgi; }
-void NrLocation::setNcgi(Ncgi const& value) { m_Ncgi = value; }
+Tai NrLocation::getTai() const {
+  return m_Tai;
+}
+void NrLocation::setTai(Tai const& value) {
+  m_Tai = value;
+}
+Ncgi NrLocation::getNcgi() const {
+  return m_Ncgi;
+}
+void NrLocation::setNcgi(Ncgi const& value) {
+  m_Ncgi = value;
+}
 int32_t NrLocation::getAgeOfLocationInformation() const {
   return m_AgeOfLocationInformation;
 }
 void NrLocation::setAgeOfLocationInformation(int32_t const value) {
-  m_AgeOfLocationInformation = value;
+  m_AgeOfLocationInformation      = value;
   m_AgeOfLocationInformationIsSet = true;
 }
 bool NrLocation::ageOfLocationInformationIsSet() const {
@@ -175,7 +183,7 @@ std::string NrLocation::getUeLocationTimestamp() const {
   return m_UeLocationTimestamp;
 }
 void NrLocation::setUeLocationTimestamp(std::string const& value) {
-  m_UeLocationTimestamp = value;
+  m_UeLocationTimestamp      = value;
   m_UeLocationTimestampIsSet = true;
 }
 bool NrLocation::ueLocationTimestampIsSet() const {
@@ -188,7 +196,7 @@ std::string NrLocation::getGeographicalInformation() const {
   return m_GeographicalInformation;
 }
 void NrLocation::setGeographicalInformation(std::string const& value) {
-  m_GeographicalInformation = value;
+  m_GeographicalInformation      = value;
   m_GeographicalInformationIsSet = true;
 }
 bool NrLocation::geographicalInformationIsSet() const {
@@ -201,7 +209,7 @@ std::string NrLocation::getGeodeticInformation() const {
   return m_GeodeticInformation;
 }
 void NrLocation::setGeodeticInformation(std::string const& value) {
-  m_GeodeticInformation = value;
+  m_GeodeticInformation      = value;
   m_GeodeticInformationIsSet = true;
 }
 bool NrLocation::geodeticInformationIsSet() const {
@@ -210,12 +218,18 @@ bool NrLocation::geodeticInformationIsSet() const {
 void NrLocation::unsetGeodeticInformation() {
   m_GeodeticInformationIsSet = false;
 }
-GlobalRanNodeId NrLocation::getGlobalGnbId() const { return m_GlobalGnbId; }
+GlobalRanNodeId NrLocation::getGlobalGnbId() const {
+  return m_GlobalGnbId;
+}
 void NrLocation::setGlobalGnbId(GlobalRanNodeId const& value) {
-  m_GlobalGnbId = value;
+  m_GlobalGnbId      = value;
   m_GlobalGnbIdIsSet = true;
 }
-bool NrLocation::globalGnbIdIsSet() const { return m_GlobalGnbIdIsSet; }
-void NrLocation::unsetGlobalGnbId() { m_GlobalGnbIdIsSet = false; }
+bool NrLocation::globalGnbIdIsSet() const {
+  return m_GlobalGnbIdIsSet;
+}
+void NrLocation::unsetGlobalGnbId() {
+  m_GlobalGnbIdIsSet = false;
+}
 
 }  // namespace oai::nef::model

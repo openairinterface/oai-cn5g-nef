@@ -27,7 +27,9 @@ SMContextsCollectionCollectionApi::SMContextsCollectionCollectionApi(
     const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void SMContextsCollectionCollectionApi::init() { setupRoutes(); }
+void SMContextsCollectionCollectionApi::init() {
+  setupRoutes();
+}
 
 void SMContextsCollectionCollectionApi::setupRoutes() {
   using namespace Pistache::Rest;
@@ -37,10 +39,10 @@ void SMContextsCollectionCollectionApi::setupRoutes() {
       Routes::bind(&SMContextsCollectionCollectionApi::create_handler, this));
 
   // Default handler, called when a route is not found
-  router->addCustomHandler(
-      Routes::bind(&SMContextsCollectionCollectionApi::
-                       sm_contexts_collection_collection_api_default_handler,
-                   this));
+  router->addCustomHandler(Routes::bind(
+      &SMContextsCollectionCollectionApi::
+          sm_contexts_collection_collection_api_default_handler,
+      this));
 }
 
 std::pair<Pistache::Http::Code, std::string>
@@ -53,8 +55,8 @@ SMContextsCollectionCollectionApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
-                          e.what());
+    return std::make_pair(
+        Pistache::Http::Code::Internal_Server_Error, e.what());
   }
 }
 
@@ -103,8 +105,8 @@ void SMContextsCollectionCollectionApi::
     sm_contexts_collection_collection_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(Pistache::Http::Code::Not_Found,
-                "The requested method does not exist");
+  response.send(
+      Pistache::Http::Code::Not_Found, "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

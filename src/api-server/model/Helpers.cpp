@@ -27,16 +27,17 @@ bool isLeapYear(const uint16_t year) {
   return (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0));
 }
 
-bool validateDateValues(const uint16_t year, const uint16_t month,
-                        const uint16_t day) {
-  return !((month == 0 || month > 12) || (day == 0) ||
-           (month == 2 && day > (28 + (isLeapYear(year) ? 1 : 0))) ||
-           (month <= 7 && day > (30 + month % 2)) ||
-           (month >= 8 && day > (31 - month % 2)));
+bool validateDateValues(
+    const uint16_t year, const uint16_t month, const uint16_t day) {
+  return !(
+      (month == 0 || month > 12) || (day == 0) ||
+      (month == 2 && day > (28 + (isLeapYear(year) ? 1 : 0))) ||
+      (month <= 7 && day > (30 + month % 2)) ||
+      (month >= 8 && day > (31 - month % 2)));
 }
 
-bool validateTimeValues(const uint16_t hours, const uint16_t minutes,
-                        const uint16_t seconds) {
+bool validateTimeValues(
+    const uint16_t hours, const uint16_t minutes, const uint16_t seconds) {
   return (hours <= 23) && (minutes <= 59) && (seconds <= 60);
 }
 }  // namespace
@@ -44,35 +45,44 @@ bool validateTimeValues(const uint16_t hours, const uint16_t minutes,
 bool validateRfc3339_date(const std::string& str) {
   std::smatch match;
   const bool found = std::regex_search(str, match, regexRfc3339_date);
-  return found && validateDateValues(std::stoi(match[1]), std::stoi(match[2]),
-                                     std::stoi(match[3]));
+  return found &&
+         validateDateValues(
+             std::stoi(match[1]), std::stoi(match[2]), std::stoi(match[3]));
 }
 
 bool validateRfc3339_date_time(const std::string& str) {
   std::smatch match;
   const bool found = std::regex_search(str, match, regexRfc3339_date_time);
   return found &&
-         validateDateValues(std::stoi(match[1]), std::stoi(match[2]),
-                            std::stoi(match[3])) &&
-         validateTimeValues(std::stoi(match[4]), std::stoi(match[5]),
-                            std::stoi(match[6]));
+         validateDateValues(
+             std::stoi(match[1]), std::stoi(match[2]), std::stoi(match[3])) &&
+         validateTimeValues(
+             std::stoi(match[4]), std::stoi(match[5]), std::stoi(match[6]));
 }
 
 std::string toStringValue(const std::string& value) {
   return std::string(value);
 }
 
-std::string toStringValue(const int32_t value) { return std::to_string(value); }
+std::string toStringValue(const int32_t value) {
+  return std::to_string(value);
+}
 
-std::string toStringValue(const int64_t value) { return std::to_string(value); }
+std::string toStringValue(const int64_t value) {
+  return std::to_string(value);
+}
 
 std::string toStringValue(const bool value) {
   return value ? std::string("true") : std::string("false");
 }
 
-std::string toStringValue(const float value) { return std::to_string(value); }
+std::string toStringValue(const float value) {
+  return std::to_string(value);
+}
 
-std::string toStringValue(const double value) { return std::to_string(value); }
+std::string toStringValue(const double value) {
+  return std::to_string(value);
+}
 
 bool fromStringValue(const std::string& inStr, std::string& value) {
   value = std::string(inStr);
@@ -127,8 +137,8 @@ bool fromStringValue(const std::string& inStr, double& value) {
   return true;
 }
 
-bool fromStringValue(const std::string& inStr,
-                     oai::nef::model::Ipv6Addr& value) {
+bool fromStringValue(
+    const std::string& inStr, oai::nef::model::Ipv6Addr& value) {
   // TODO
   return true;
 }

@@ -33,8 +33,8 @@ bool ExceptionId_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ExceptionId_anyOf::validate(std::stringstream& msg,
-                                 const std::string& pathPrefix) const {
+bool ExceptionId_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ExceptionId_anyOf" : pathPrefix;

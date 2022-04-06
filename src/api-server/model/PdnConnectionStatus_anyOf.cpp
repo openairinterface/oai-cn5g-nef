@@ -33,8 +33,8 @@ bool PdnConnectionStatus_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PdnConnectionStatus_anyOf::validate(std::stringstream& msg,
-                                         const std::string& pathPrefix) const {
+bool PdnConnectionStatus_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PdnConnectionStatus_anyOf" : pathPrefix;

@@ -33,8 +33,8 @@ bool DnaiChangeType_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool DnaiChangeType_anyOf::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool DnaiChangeType_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "DnaiChangeType_anyOf" : pathPrefix;

@@ -20,9 +20,9 @@
 namespace oai::nef::model {
 
 IpAddr::IpAddr() {
-  m_Ipv4Addr = "";
-  m_Ipv4AddrIsSet = false;
-  m_Ipv6AddrIsSet = false;
+  m_Ipv4Addr        = "";
+  m_Ipv4AddrIsSet   = false;
+  m_Ipv6AddrIsSet   = false;
   m_Ipv6PrefixIsSet = false;
 }
 
@@ -37,13 +37,13 @@ bool IpAddr::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool IpAddr::validate(std::stringstream& msg,
-                      const std::string& pathPrefix) const {
-  bool success = true;
+bool IpAddr::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "IpAddr" : pathPrefix;
 
   if (ipv4AddrIsSet()) {
-    const std::string& value = m_Ipv4Addr;
+    const std::string& value           = m_Ipv4Addr;
     const std::string currentValuePath = _pathPrefix + ".ipv4Addr";
   }
 
@@ -68,7 +68,9 @@ bool IpAddr::operator==(const IpAddr& rhs) const {
           ;
 }
 
-bool IpAddr::operator!=(const IpAddr& rhs) const { return !(*this == rhs); }
+bool IpAddr::operator!=(const IpAddr& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const IpAddr& o) {
   j = nlohmann::json();
@@ -92,26 +94,44 @@ void from_json(const nlohmann::json& j, IpAddr& o) {
   }
 }
 
-std::string IpAddr::getIpv4Addr() const { return m_Ipv4Addr; }
+std::string IpAddr::getIpv4Addr() const {
+  return m_Ipv4Addr;
+}
 void IpAddr::setIpv4Addr(std::string const& value) {
-  m_Ipv4Addr = value;
+  m_Ipv4Addr      = value;
   m_Ipv4AddrIsSet = true;
 }
-bool IpAddr::ipv4AddrIsSet() const { return m_Ipv4AddrIsSet; }
-void IpAddr::unsetIpv4Addr() { m_Ipv4AddrIsSet = false; }
-Ipv6Addr IpAddr::getIpv6Addr() const { return m_Ipv6Addr; }
+bool IpAddr::ipv4AddrIsSet() const {
+  return m_Ipv4AddrIsSet;
+}
+void IpAddr::unsetIpv4Addr() {
+  m_Ipv4AddrIsSet = false;
+}
+Ipv6Addr IpAddr::getIpv6Addr() const {
+  return m_Ipv6Addr;
+}
 void IpAddr::setIpv6Addr(Ipv6Addr const& value) {
-  m_Ipv6Addr = value;
+  m_Ipv6Addr      = value;
   m_Ipv6AddrIsSet = true;
 }
-bool IpAddr::ipv6AddrIsSet() const { return m_Ipv6AddrIsSet; }
-void IpAddr::unsetIpv6Addr() { m_Ipv6AddrIsSet = false; }
-Ipv6Prefix IpAddr::getIpv6Prefix() const { return m_Ipv6Prefix; }
+bool IpAddr::ipv6AddrIsSet() const {
+  return m_Ipv6AddrIsSet;
+}
+void IpAddr::unsetIpv6Addr() {
+  m_Ipv6AddrIsSet = false;
+}
+Ipv6Prefix IpAddr::getIpv6Prefix() const {
+  return m_Ipv6Prefix;
+}
 void IpAddr::setIpv6Prefix(Ipv6Prefix const& value) {
-  m_Ipv6Prefix = value;
+  m_Ipv6Prefix      = value;
   m_Ipv6PrefixIsSet = true;
 }
-bool IpAddr::ipv6PrefixIsSet() const { return m_Ipv6PrefixIsSet; }
-void IpAddr::unsetIpv6Prefix() { m_Ipv6PrefixIsSet = false; }
+bool IpAddr::ipv6PrefixIsSet() const {
+  return m_Ipv6PrefixIsSet;
+}
+void IpAddr::unsetIpv6Prefix() {
+  m_Ipv6PrefixIsSet = false;
+}
 
 }  // namespace oai::nef::model

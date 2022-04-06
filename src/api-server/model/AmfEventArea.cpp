@@ -21,7 +21,7 @@ namespace oai::nef::model {
 
 AmfEventArea::AmfEventArea() {
   m_PresenceInfoIsSet = false;
-  m_LadnInfoIsSet = false;
+  m_LadnInfoIsSet     = false;
 }
 
 void AmfEventArea::validate() const {
@@ -35,8 +35,8 @@ bool AmfEventArea::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfEventArea::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool AmfEventArea::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfEventArea" : pathPrefix;
@@ -79,19 +79,31 @@ void from_json(const nlohmann::json& j, AmfEventArea& o) {
   }
 }
 
-PresenceInfo AmfEventArea::getPresenceInfo() const { return m_PresenceInfo; }
+PresenceInfo AmfEventArea::getPresenceInfo() const {
+  return m_PresenceInfo;
+}
 void AmfEventArea::setPresenceInfo(PresenceInfo const& value) {
-  m_PresenceInfo = value;
+  m_PresenceInfo      = value;
   m_PresenceInfoIsSet = true;
 }
-bool AmfEventArea::presenceInfoIsSet() const { return m_PresenceInfoIsSet; }
-void AmfEventArea::unsetPresenceInfo() { m_PresenceInfoIsSet = false; }
-LadnInfo AmfEventArea::getLadnInfo() const { return m_LadnInfo; }
+bool AmfEventArea::presenceInfoIsSet() const {
+  return m_PresenceInfoIsSet;
+}
+void AmfEventArea::unsetPresenceInfo() {
+  m_PresenceInfoIsSet = false;
+}
+LadnInfo AmfEventArea::getLadnInfo() const {
+  return m_LadnInfo;
+}
 void AmfEventArea::setLadnInfo(LadnInfo const& value) {
-  m_LadnInfo = value;
+  m_LadnInfo      = value;
   m_LadnInfoIsSet = true;
 }
-bool AmfEventArea::ladnInfoIsSet() const { return m_LadnInfoIsSet; }
-void AmfEventArea::unsetLadnInfo() { m_LadnInfoIsSet = false; }
+bool AmfEventArea::ladnInfoIsSet() const {
+  return m_LadnInfoIsSet;
+}
+void AmfEventArea::unsetLadnInfo() {
+  m_LadnInfoIsSet = false;
+}
 
 }  // namespace oai::nef::model

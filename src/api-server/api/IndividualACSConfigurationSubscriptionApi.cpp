@@ -28,24 +28,31 @@ IndividualACSConfigurationSubscriptionApi::
         const std::shared_ptr<Pistache::Rest::Router>& rtr)
     : router(rtr) {}
 
-void IndividualACSConfigurationSubscriptionApi::init() { setupRoutes(); }
+void IndividualACSConfigurationSubscriptionApi::init() {
+  setupRoutes();
+}
 
 void IndividualACSConfigurationSubscriptionApi::setupRoutes() {
   using namespace Pistache::Rest;
 
   Routes::Delete(
       *router, base + "/:afId/subscriptions/:subscriptionId",
-      Routes::bind(&IndividualACSConfigurationSubscriptionApi::
-                       af_id_subscriptions_subscription_id_delete_handler,
-                   this));
-  Routes::Get(*router, base + "/:afId/subscriptions/:subscriptionId",
-              Routes::bind(&IndividualACSConfigurationSubscriptionApi::
-                               af_id_subscriptions_subscription_id_get_handler,
-                           this));
-  Routes::Put(*router, base + "/:afId/subscriptions/:subscriptionId",
-              Routes::bind(&IndividualACSConfigurationSubscriptionApi::
-                               af_id_subscriptions_subscription_id_put_handler,
-                           this));
+      Routes::bind(
+          &IndividualACSConfigurationSubscriptionApi::
+              af_id_subscriptions_subscription_id_delete_handler,
+          this));
+  Routes::Get(
+      *router, base + "/:afId/subscriptions/:subscriptionId",
+      Routes::bind(
+          &IndividualACSConfigurationSubscriptionApi::
+              af_id_subscriptions_subscription_id_get_handler,
+          this));
+  Routes::Put(
+      *router, base + "/:afId/subscriptions/:subscriptionId",
+      Routes::bind(
+          &IndividualACSConfigurationSubscriptionApi::
+              af_id_subscriptions_subscription_id_put_handler,
+          this));
 
   // Default handler, called when a route is not found
   router->addCustomHandler(Routes::bind(
@@ -64,8 +71,8 @@ IndividualACSConfigurationSubscriptionApi::handleParsingException(
   } catch (oai::nef::helpers::ValidationException& e) {
     return std::make_pair(Pistache::Http::Code::Bad_Request, e.what());
   } catch (std::exception& e) {
-    return std::make_pair(Pistache::Http::Code::Internal_Server_Error,
-                          e.what());
+    return std::make_pair(
+        Pistache::Http::Code::Internal_Server_Error, e.what());
   }
 }
 
@@ -81,12 +88,12 @@ void IndividualACSConfigurationSubscriptionApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto afId = request.param(":afId").as<std::string>();
+    auto afId           = request.param(":afId").as<std::string>();
     auto subscriptionId = request.param(":subscriptionId").as<std::string>();
 
     try {
-      this->af_id_subscriptions_subscription_id_delete(afId, subscriptionId,
-                                                       response);
+      this->af_id_subscriptions_subscription_id_delete(
+          afId, subscriptionId, response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -107,12 +114,12 @@ void IndividualACSConfigurationSubscriptionApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto afId = request.param(":afId").as<std::string>();
+    auto afId           = request.param(":afId").as<std::string>();
     auto subscriptionId = request.param(":subscriptionId").as<std::string>();
 
     try {
-      this->af_id_subscriptions_subscription_id_get(afId, subscriptionId,
-                                                    response);
+      this->af_id_subscriptions_subscription_id_get(
+          afId, subscriptionId, response);
     } catch (Pistache::Http::HttpError& e) {
       response.send(static_cast<Pistache::Http::Code>(e.code()), e.what());
       return;
@@ -133,7 +140,7 @@ void IndividualACSConfigurationSubscriptionApi::
         Pistache::Http::ResponseWriter response) {
   try {
     // Getting the path params
-    auto afId = request.param(":afId").as<std::string>();
+    auto afId           = request.param(":afId").as<std::string>();
     auto subscriptionId = request.param(":subscriptionId").as<std::string>();
 
     // Getting the body param
@@ -172,8 +179,8 @@ void IndividualACSConfigurationSubscriptionApi::
     individual_acs_configuration_subscription_api_default_handler(
         const Pistache::Rest::Request&,
         Pistache::Http::ResponseWriter response) {
-  response.send(Pistache::Http::Code::Not_Found,
-                "The requested method does not exist");
+  response.send(
+      Pistache::Http::Code::Not_Found, "The requested method does not exist");
 }
 
 }  // namespace oai::nef::api

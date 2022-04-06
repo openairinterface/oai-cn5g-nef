@@ -32,9 +32,9 @@ bool DddStatus::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool DddStatus::validate(std::stringstream& msg,
-                         const std::string& pathPrefix) const {
-  bool success = true;
+bool DddStatus::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "DddStatus" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -62,9 +62,13 @@ void from_json(const nlohmann::json& j, DddStatus& o) {
   from_json(j, o.m_value);
 }
 
-DddStatus_anyOf DddStatus::getValue() const { return m_value; }
+DddStatus_anyOf DddStatus::getValue() const {
+  return m_value;
+}
 
-void DddStatus::setValue(DddStatus_anyOf value) { m_value = value; }
+void DddStatus::setValue(DddStatus_anyOf value) {
+  m_value = value;
+}
 
 DddStatus_anyOf::eDddStatus_anyOf DddStatus::getEnumValue() const {
   return m_value.getValue();

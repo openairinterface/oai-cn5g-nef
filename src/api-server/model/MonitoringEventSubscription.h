@@ -522,8 +522,8 @@ class MonitoringEventSubscription {
   void unsetAddnMonEventReports();
 
   friend void to_json(nlohmann::json& j, const MonitoringEventSubscription& o);
-  friend void from_json(const nlohmann::json& j,
-                        MonitoringEventSubscription& o);
+  friend void from_json(
+      const nlohmann::json& j, MonitoringEventSubscription& o);
 
  protected:
   std::string m_Self;

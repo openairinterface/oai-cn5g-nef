@@ -27,31 +27,31 @@ void IndividualIPTVConfigurationApiImpl::
     af_id_configurations_configuration_id_delete(
         const std::string& afId, const std::string& configurationId,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 void IndividualIPTVConfigurationApiImpl::
     af_id_configurations_configuration_id_get(
         const std::string& afId, const std::string& configurationId,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 void IndividualIPTVConfigurationApiImpl::
     af_id_configurations_configuration_id_patch(
         const std::string& afId, const std::string& configurationId,
         const IptvConfigDataPatch& iptvConfigDataPatch,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 void IndividualIPTVConfigurationApiImpl::
     af_id_configurations_configuration_id_put(
         const std::string& afId, const std::string& configurationId,
         const IptvConfigData& iptvConfigData,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

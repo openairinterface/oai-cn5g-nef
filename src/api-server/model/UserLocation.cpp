@@ -21,8 +21,8 @@ namespace oai::nef::model {
 
 UserLocation::UserLocation() {
   m_EutraLocationIsSet = false;
-  m_NrLocationIsSet = false;
-  m_N3gaLocationIsSet = false;
+  m_NrLocationIsSet    = false;
+  m_N3gaLocationIsSet  = false;
 }
 
 void UserLocation::validate() const {
@@ -36,8 +36,8 @@ bool UserLocation::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UserLocation::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool UserLocation::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UserLocation" : pathPrefix;
@@ -89,26 +89,44 @@ void from_json(const nlohmann::json& j, UserLocation& o) {
   }
 }
 
-EutraLocation UserLocation::getEutraLocation() const { return m_EutraLocation; }
+EutraLocation UserLocation::getEutraLocation() const {
+  return m_EutraLocation;
+}
 void UserLocation::setEutraLocation(EutraLocation const& value) {
-  m_EutraLocation = value;
+  m_EutraLocation      = value;
   m_EutraLocationIsSet = true;
 }
-bool UserLocation::eutraLocationIsSet() const { return m_EutraLocationIsSet; }
-void UserLocation::unsetEutraLocation() { m_EutraLocationIsSet = false; }
-NrLocation UserLocation::getNrLocation() const { return m_NrLocation; }
+bool UserLocation::eutraLocationIsSet() const {
+  return m_EutraLocationIsSet;
+}
+void UserLocation::unsetEutraLocation() {
+  m_EutraLocationIsSet = false;
+}
+NrLocation UserLocation::getNrLocation() const {
+  return m_NrLocation;
+}
 void UserLocation::setNrLocation(NrLocation const& value) {
-  m_NrLocation = value;
+  m_NrLocation      = value;
   m_NrLocationIsSet = true;
 }
-bool UserLocation::nrLocationIsSet() const { return m_NrLocationIsSet; }
-void UserLocation::unsetNrLocation() { m_NrLocationIsSet = false; }
-N3gaLocation UserLocation::getN3gaLocation() const { return m_N3gaLocation; }
+bool UserLocation::nrLocationIsSet() const {
+  return m_NrLocationIsSet;
+}
+void UserLocation::unsetNrLocation() {
+  m_NrLocationIsSet = false;
+}
+N3gaLocation UserLocation::getN3gaLocation() const {
+  return m_N3gaLocation;
+}
 void UserLocation::setN3gaLocation(N3gaLocation const& value) {
-  m_N3gaLocation = value;
+  m_N3gaLocation      = value;
   m_N3gaLocationIsSet = true;
 }
-bool UserLocation::n3gaLocationIsSet() const { return m_N3gaLocationIsSet; }
-void UserLocation::unsetN3gaLocation() { m_N3gaLocationIsSet = false; }
+bool UserLocation::n3gaLocationIsSet() const {
+  return m_N3gaLocationIsSet;
+}
+void UserLocation::unsetN3gaLocation() {
+  m_N3gaLocationIsSet = false;
+}
 
 }  // namespace oai::nef::model

@@ -20,13 +20,13 @@
 namespace oai::nef::model {
 
 _5GLanParameters::_5GLanParameters() {
-  m_ExterGroupId = "";
-  m_Dnn = "";
-  m_AaaIpv4Addr = "";
-  m_AaaIpv4AddrIsSet = false;
-  m_AaaIpv6AddrIsSet = false;
-  m_AaaUsgsIsSet = false;
-  m_MtcProviderId = "";
+  m_ExterGroupId       = "";
+  m_Dnn                = "";
+  m_AaaIpv4Addr        = "";
+  m_AaaIpv4AddrIsSet   = false;
+  m_AaaIpv6AddrIsSet   = false;
+  m_AaaUsgsIsSet       = false;
+  m_MtcProviderId      = "";
   m_MtcProviderIdIsSet = false;
 }
 
@@ -41,19 +41,19 @@ bool _5GLanParameters::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool _5GLanParameters::validate(std::stringstream& msg,
-                                const std::string& pathPrefix) const {
+bool _5GLanParameters::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "5GLanParameters" : pathPrefix;
 
   /* Gpsis */ {
     const std::map<std::string, std::string>& value = m_Gpsis;
-    const std::string currentValuePath = _pathPrefix + ".gpsis";
+    const std::string currentValuePath              = _pathPrefix + ".gpsis";
   }
 
   if (aaaIpv4AddrIsSet()) {
-    const std::string& value = m_AaaIpv4Addr;
+    const std::string& value           = m_AaaIpv4Addr;
     const std::string currentValuePath = _pathPrefix + ".aaaIpv4Addr";
   }
 
@@ -67,7 +67,7 @@ bool _5GLanParameters::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const AaaUsage& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -126,17 +126,17 @@ bool _5GLanParameters::operator!=(const _5GLanParameters& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const _5GLanParameters& o) {
-  j = nlohmann::json();
+  j                 = nlohmann::json();
   j["exterGroupId"] = o.m_ExterGroupId;
-  j["gpsis"] = o.m_Gpsis;
-  j["dnn"] = o.m_Dnn;
+  j["gpsis"]        = o.m_Gpsis;
+  j["dnn"]          = o.m_Dnn;
   if (o.aaaIpv4AddrIsSet()) j["aaaIpv4Addr"] = o.m_AaaIpv4Addr;
   if (o.aaaIpv6AddrIsSet()) j["aaaIpv6Addr"] = o.m_AaaIpv6Addr;
   if (o.aaaUsgsIsSet() || !o.m_AaaUsgs.empty()) j["aaaUsgs"] = o.m_AaaUsgs;
   if (o.mtcProviderIdIsSet()) j["mtcProviderId"] = o.m_MtcProviderId;
-  j["snssai"] = o.m_Snssai;
+  j["snssai"]      = o.m_Snssai;
   j["sessionType"] = o.m_SessionType;
-  j["appDesps"] = o.m_AppDesps;
+  j["appDesps"]    = o.m_AppDesps;
 }
 
 void from_json(const nlohmann::json& j, _5GLanParameters& o) {
@@ -164,7 +164,9 @@ void from_json(const nlohmann::json& j, _5GLanParameters& o) {
   j.at("appDesps").get_to(o.m_AppDesps);
 }
 
-std::string _5GLanParameters::getExterGroupId() const { return m_ExterGroupId; }
+std::string _5GLanParameters::getExterGroupId() const {
+  return m_ExterGroupId;
+}
 void _5GLanParameters::setExterGroupId(std::string const& value) {
   m_ExterGroupId = value;
 }
@@ -175,42 +177,70 @@ void _5GLanParameters::setGpsis(
     std::map<std::string, std::string> const& value) {
   m_Gpsis = value;
 }
-std::string _5GLanParameters::getDnn() const { return m_Dnn; }
-void _5GLanParameters::setDnn(std::string const& value) { m_Dnn = value; }
-std::string _5GLanParameters::getAaaIpv4Addr() const { return m_AaaIpv4Addr; }
+std::string _5GLanParameters::getDnn() const {
+  return m_Dnn;
+}
+void _5GLanParameters::setDnn(std::string const& value) {
+  m_Dnn = value;
+}
+std::string _5GLanParameters::getAaaIpv4Addr() const {
+  return m_AaaIpv4Addr;
+}
 void _5GLanParameters::setAaaIpv4Addr(std::string const& value) {
-  m_AaaIpv4Addr = value;
+  m_AaaIpv4Addr      = value;
   m_AaaIpv4AddrIsSet = true;
 }
-bool _5GLanParameters::aaaIpv4AddrIsSet() const { return m_AaaIpv4AddrIsSet; }
-void _5GLanParameters::unsetAaaIpv4Addr() { m_AaaIpv4AddrIsSet = false; }
-Ipv6Addr _5GLanParameters::getAaaIpv6Addr() const { return m_AaaIpv6Addr; }
+bool _5GLanParameters::aaaIpv4AddrIsSet() const {
+  return m_AaaIpv4AddrIsSet;
+}
+void _5GLanParameters::unsetAaaIpv4Addr() {
+  m_AaaIpv4AddrIsSet = false;
+}
+Ipv6Addr _5GLanParameters::getAaaIpv6Addr() const {
+  return m_AaaIpv6Addr;
+}
 void _5GLanParameters::setAaaIpv6Addr(Ipv6Addr const& value) {
-  m_AaaIpv6Addr = value;
+  m_AaaIpv6Addr      = value;
   m_AaaIpv6AddrIsSet = true;
 }
-bool _5GLanParameters::aaaIpv6AddrIsSet() const { return m_AaaIpv6AddrIsSet; }
-void _5GLanParameters::unsetAaaIpv6Addr() { m_AaaIpv6AddrIsSet = false; }
-std::vector<AaaUsage> _5GLanParameters::getAaaUsgs() const { return m_AaaUsgs; }
+bool _5GLanParameters::aaaIpv6AddrIsSet() const {
+  return m_AaaIpv6AddrIsSet;
+}
+void _5GLanParameters::unsetAaaIpv6Addr() {
+  m_AaaIpv6AddrIsSet = false;
+}
+std::vector<AaaUsage> _5GLanParameters::getAaaUsgs() const {
+  return m_AaaUsgs;
+}
 void _5GLanParameters::setAaaUsgs(std::vector<AaaUsage> const& value) {
-  m_AaaUsgs = value;
+  m_AaaUsgs      = value;
   m_AaaUsgsIsSet = true;
 }
-bool _5GLanParameters::aaaUsgsIsSet() const { return m_AaaUsgsIsSet; }
-void _5GLanParameters::unsetAaaUsgs() { m_AaaUsgsIsSet = false; }
+bool _5GLanParameters::aaaUsgsIsSet() const {
+  return m_AaaUsgsIsSet;
+}
+void _5GLanParameters::unsetAaaUsgs() {
+  m_AaaUsgsIsSet = false;
+}
 std::string _5GLanParameters::getMtcProviderId() const {
   return m_MtcProviderId;
 }
 void _5GLanParameters::setMtcProviderId(std::string const& value) {
-  m_MtcProviderId = value;
+  m_MtcProviderId      = value;
   m_MtcProviderIdIsSet = true;
 }
 bool _5GLanParameters::mtcProviderIdIsSet() const {
   return m_MtcProviderIdIsSet;
 }
-void _5GLanParameters::unsetMtcProviderId() { m_MtcProviderIdIsSet = false; }
-Snssai _5GLanParameters::getSnssai() const { return m_Snssai; }
-void _5GLanParameters::setSnssai(Snssai const& value) { m_Snssai = value; }
+void _5GLanParameters::unsetMtcProviderId() {
+  m_MtcProviderIdIsSet = false;
+}
+Snssai _5GLanParameters::getSnssai() const {
+  return m_Snssai;
+}
+void _5GLanParameters::setSnssai(Snssai const& value) {
+  m_Snssai = value;
+}
 PduSessionType _5GLanParameters::getSessionType() const {
   return m_SessionType;
 }

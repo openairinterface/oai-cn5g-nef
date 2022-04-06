@@ -41,7 +41,7 @@ bool ChangeOfSupiPeiAssociationReport::validate(
       pathPrefix.empty() ? "ChangeOfSupiPeiAssociationReport" : pathPrefix;
 
   /* NewPei */ {
-    const std::string& value = m_NewPei;
+    const std::string& value           = m_NewPei;
     const std::string currentValuePath = _pathPrefix + ".newPei";
   }
 
@@ -63,7 +63,7 @@ bool ChangeOfSupiPeiAssociationReport::operator!=(
 }
 
 void to_json(nlohmann::json& j, const ChangeOfSupiPeiAssociationReport& o) {
-  j = nlohmann::json();
+  j           = nlohmann::json();
   j["newPei"] = o.m_NewPei;
 }
 

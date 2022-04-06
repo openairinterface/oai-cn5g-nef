@@ -32,9 +32,9 @@ bool SubType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SubType::validate(std::stringstream& msg,
-                       const std::string& pathPrefix) const {
-  bool success = true;
+bool SubType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
+  bool success                  = true;
   const std::string _pathPrefix = pathPrefix.empty() ? "SubType" : pathPrefix;
 
   if (!m_value.validate(msg)) {
@@ -49,18 +49,26 @@ bool SubType::operator==(const SubType& rhs) const {
       getValue() == rhs.getValue();
 }
 
-bool SubType::operator!=(const SubType& rhs) const { return !(*this == rhs); }
+bool SubType::operator!=(const SubType& rhs) const {
+  return !(*this == rhs);
+}
 
 void to_json(nlohmann::json& j, const SubType& o) {
   j = nlohmann::json();
   to_json(j, o.m_value);
 }
 
-void from_json(const nlohmann::json& j, SubType& o) { from_json(j, o.m_value); }
+void from_json(const nlohmann::json& j, SubType& o) {
+  from_json(j, o.m_value);
+}
 
-SubType_anyOf SubType::getValue() const { return m_value; }
+SubType_anyOf SubType::getValue() const {
+  return m_value;
+}
 
-void SubType::setValue(SubType_anyOf value) { m_value = value; }
+void SubType::setValue(SubType_anyOf value) {
+  m_value = value;
+}
 
 SubType_anyOf::eSubType_anyOf SubType::getEnumValue() const {
   return m_value.getValue();

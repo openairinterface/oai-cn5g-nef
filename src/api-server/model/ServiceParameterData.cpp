@@ -20,34 +20,34 @@
 namespace oai::nef::model {
 
 ServiceParameterData::ServiceParameterData() {
-  m_AfServiceId = "";
-  m_AfServiceIdIsSet = false;
-  m_AppId = "";
-  m_AppIdIsSet = false;
-  m_Dnn = "";
-  m_DnnIsSet = false;
-  m_SnssaiIsSet = false;
-  m_ExternalGroupId = "";
+  m_AfServiceId          = "";
+  m_AfServiceIdIsSet     = false;
+  m_AppId                = "";
+  m_AppIdIsSet           = false;
+  m_Dnn                  = "";
+  m_DnnIsSet             = false;
+  m_SnssaiIsSet          = false;
+  m_ExternalGroupId      = "";
   m_ExternalGroupIdIsSet = false;
-  m_AnyUeInd = false;
-  m_AnyUeIndIsSet = false;
-  m_Gpsi = "";
-  m_GpsiIsSet = false;
-  m_UeIpv4 = "";
-  m_UeIpv4IsSet = false;
-  m_UeIpv6IsSet = false;
-  m_UeMac = "";
-  m_UeMacIsSet = false;
-  m_Self = "";
-  m_SelfIsSet = false;
-  m_ParamOverPc5 = "";
-  m_ParamOverPc5IsSet = false;
-  m_ParamOverUu = "";
-  m_ParamOverUuIsSet = false;
-  m_MtcProviderId = "";
-  m_MtcProviderIdIsSet = false;
-  m_SuppFeat = "";
-  m_SuppFeatIsSet = false;
+  m_AnyUeInd             = false;
+  m_AnyUeIndIsSet        = false;
+  m_Gpsi                 = "";
+  m_GpsiIsSet            = false;
+  m_UeIpv4               = "";
+  m_UeIpv4IsSet          = false;
+  m_UeIpv6IsSet          = false;
+  m_UeMac                = "";
+  m_UeMacIsSet           = false;
+  m_Self                 = "";
+  m_SelfIsSet            = false;
+  m_ParamOverPc5         = "";
+  m_ParamOverPc5IsSet    = false;
+  m_ParamOverUu          = "";
+  m_ParamOverUuIsSet     = false;
+  m_MtcProviderId        = "";
+  m_MtcProviderIdIsSet   = false;
+  m_SuppFeat             = "";
+  m_SuppFeatIsSet        = false;
 }
 
 void ServiceParameterData::validate() const {
@@ -61,29 +61,29 @@ bool ServiceParameterData::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ServiceParameterData::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool ServiceParameterData::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ServiceParameterData" : pathPrefix;
 
   if (gpsiIsSet()) {
-    const std::string& value = m_Gpsi;
+    const std::string& value           = m_Gpsi;
     const std::string currentValuePath = _pathPrefix + ".gpsi";
   }
 
   if (ueIpv4IsSet()) {
-    const std::string& value = m_UeIpv4;
+    const std::string& value           = m_UeIpv4;
     const std::string currentValuePath = _pathPrefix + ".ueIpv4";
   }
 
   if (ueMacIsSet()) {
-    const std::string& value = m_UeMac;
+    const std::string& value           = m_UeMac;
     const std::string currentValuePath = _pathPrefix + ".ueMac";
   }
 
   if (suppFeatIsSet()) {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -241,39 +241,59 @@ std::string ServiceParameterData::getAfServiceId() const {
   return m_AfServiceId;
 }
 void ServiceParameterData::setAfServiceId(std::string const& value) {
-  m_AfServiceId = value;
+  m_AfServiceId      = value;
   m_AfServiceIdIsSet = true;
 }
 bool ServiceParameterData::afServiceIdIsSet() const {
   return m_AfServiceIdIsSet;
 }
-void ServiceParameterData::unsetAfServiceId() { m_AfServiceIdIsSet = false; }
-std::string ServiceParameterData::getAppId() const { return m_AppId; }
+void ServiceParameterData::unsetAfServiceId() {
+  m_AfServiceIdIsSet = false;
+}
+std::string ServiceParameterData::getAppId() const {
+  return m_AppId;
+}
 void ServiceParameterData::setAppId(std::string const& value) {
-  m_AppId = value;
+  m_AppId      = value;
   m_AppIdIsSet = true;
 }
-bool ServiceParameterData::appIdIsSet() const { return m_AppIdIsSet; }
-void ServiceParameterData::unsetAppId() { m_AppIdIsSet = false; }
-std::string ServiceParameterData::getDnn() const { return m_Dnn; }
+bool ServiceParameterData::appIdIsSet() const {
+  return m_AppIdIsSet;
+}
+void ServiceParameterData::unsetAppId() {
+  m_AppIdIsSet = false;
+}
+std::string ServiceParameterData::getDnn() const {
+  return m_Dnn;
+}
 void ServiceParameterData::setDnn(std::string const& value) {
-  m_Dnn = value;
+  m_Dnn      = value;
   m_DnnIsSet = true;
 }
-bool ServiceParameterData::dnnIsSet() const { return m_DnnIsSet; }
-void ServiceParameterData::unsetDnn() { m_DnnIsSet = false; }
-Snssai ServiceParameterData::getSnssai() const { return m_Snssai; }
+bool ServiceParameterData::dnnIsSet() const {
+  return m_DnnIsSet;
+}
+void ServiceParameterData::unsetDnn() {
+  m_DnnIsSet = false;
+}
+Snssai ServiceParameterData::getSnssai() const {
+  return m_Snssai;
+}
 void ServiceParameterData::setSnssai(Snssai const& value) {
-  m_Snssai = value;
+  m_Snssai      = value;
   m_SnssaiIsSet = true;
 }
-bool ServiceParameterData::snssaiIsSet() const { return m_SnssaiIsSet; }
-void ServiceParameterData::unsetSnssai() { m_SnssaiIsSet = false; }
+bool ServiceParameterData::snssaiIsSet() const {
+  return m_SnssaiIsSet;
+}
+void ServiceParameterData::unsetSnssai() {
+  m_SnssaiIsSet = false;
+}
 std::string ServiceParameterData::getExternalGroupId() const {
   return m_ExternalGroupId;
 }
 void ServiceParameterData::setExternalGroupId(std::string const& value) {
-  m_ExternalGroupId = value;
+  m_ExternalGroupId      = value;
   m_ExternalGroupIdIsSet = true;
 }
 bool ServiceParameterData::externalGroupIdIsSet() const {
@@ -282,75 +302,115 @@ bool ServiceParameterData::externalGroupIdIsSet() const {
 void ServiceParameterData::unsetExternalGroupId() {
   m_ExternalGroupIdIsSet = false;
 }
-bool ServiceParameterData::isAnyUeInd() const { return m_AnyUeInd; }
+bool ServiceParameterData::isAnyUeInd() const {
+  return m_AnyUeInd;
+}
 void ServiceParameterData::setAnyUeInd(bool const value) {
-  m_AnyUeInd = value;
+  m_AnyUeInd      = value;
   m_AnyUeIndIsSet = true;
 }
-bool ServiceParameterData::anyUeIndIsSet() const { return m_AnyUeIndIsSet; }
-void ServiceParameterData::unsetAnyUeInd() { m_AnyUeIndIsSet = false; }
-std::string ServiceParameterData::getGpsi() const { return m_Gpsi; }
+bool ServiceParameterData::anyUeIndIsSet() const {
+  return m_AnyUeIndIsSet;
+}
+void ServiceParameterData::unsetAnyUeInd() {
+  m_AnyUeIndIsSet = false;
+}
+std::string ServiceParameterData::getGpsi() const {
+  return m_Gpsi;
+}
 void ServiceParameterData::setGpsi(std::string const& value) {
-  m_Gpsi = value;
+  m_Gpsi      = value;
   m_GpsiIsSet = true;
 }
-bool ServiceParameterData::gpsiIsSet() const { return m_GpsiIsSet; }
-void ServiceParameterData::unsetGpsi() { m_GpsiIsSet = false; }
-std::string ServiceParameterData::getUeIpv4() const { return m_UeIpv4; }
+bool ServiceParameterData::gpsiIsSet() const {
+  return m_GpsiIsSet;
+}
+void ServiceParameterData::unsetGpsi() {
+  m_GpsiIsSet = false;
+}
+std::string ServiceParameterData::getUeIpv4() const {
+  return m_UeIpv4;
+}
 void ServiceParameterData::setUeIpv4(std::string const& value) {
-  m_UeIpv4 = value;
+  m_UeIpv4      = value;
   m_UeIpv4IsSet = true;
 }
-bool ServiceParameterData::ueIpv4IsSet() const { return m_UeIpv4IsSet; }
-void ServiceParameterData::unsetUeIpv4() { m_UeIpv4IsSet = false; }
-Ipv6Addr ServiceParameterData::getUeIpv6() const { return m_UeIpv6; }
+bool ServiceParameterData::ueIpv4IsSet() const {
+  return m_UeIpv4IsSet;
+}
+void ServiceParameterData::unsetUeIpv4() {
+  m_UeIpv4IsSet = false;
+}
+Ipv6Addr ServiceParameterData::getUeIpv6() const {
+  return m_UeIpv6;
+}
 void ServiceParameterData::setUeIpv6(Ipv6Addr const& value) {
-  m_UeIpv6 = value;
+  m_UeIpv6      = value;
   m_UeIpv6IsSet = true;
 }
-bool ServiceParameterData::ueIpv6IsSet() const { return m_UeIpv6IsSet; }
-void ServiceParameterData::unsetUeIpv6() { m_UeIpv6IsSet = false; }
-std::string ServiceParameterData::getUeMac() const { return m_UeMac; }
+bool ServiceParameterData::ueIpv6IsSet() const {
+  return m_UeIpv6IsSet;
+}
+void ServiceParameterData::unsetUeIpv6() {
+  m_UeIpv6IsSet = false;
+}
+std::string ServiceParameterData::getUeMac() const {
+  return m_UeMac;
+}
 void ServiceParameterData::setUeMac(std::string const& value) {
-  m_UeMac = value;
+  m_UeMac      = value;
   m_UeMacIsSet = true;
 }
-bool ServiceParameterData::ueMacIsSet() const { return m_UeMacIsSet; }
-void ServiceParameterData::unsetUeMac() { m_UeMacIsSet = false; }
-std::string ServiceParameterData::getSelf() const { return m_Self; }
+bool ServiceParameterData::ueMacIsSet() const {
+  return m_UeMacIsSet;
+}
+void ServiceParameterData::unsetUeMac() {
+  m_UeMacIsSet = false;
+}
+std::string ServiceParameterData::getSelf() const {
+  return m_Self;
+}
 void ServiceParameterData::setSelf(std::string const& value) {
-  m_Self = value;
+  m_Self      = value;
   m_SelfIsSet = true;
 }
-bool ServiceParameterData::selfIsSet() const { return m_SelfIsSet; }
-void ServiceParameterData::unsetSelf() { m_SelfIsSet = false; }
+bool ServiceParameterData::selfIsSet() const {
+  return m_SelfIsSet;
+}
+void ServiceParameterData::unsetSelf() {
+  m_SelfIsSet = false;
+}
 std::string ServiceParameterData::getParamOverPc5() const {
   return m_ParamOverPc5;
 }
 void ServiceParameterData::setParamOverPc5(std::string const& value) {
-  m_ParamOverPc5 = value;
+  m_ParamOverPc5      = value;
   m_ParamOverPc5IsSet = true;
 }
 bool ServiceParameterData::paramOverPc5IsSet() const {
   return m_ParamOverPc5IsSet;
 }
-void ServiceParameterData::unsetParamOverPc5() { m_ParamOverPc5IsSet = false; }
+void ServiceParameterData::unsetParamOverPc5() {
+  m_ParamOverPc5IsSet = false;
+}
 std::string ServiceParameterData::getParamOverUu() const {
   return m_ParamOverUu;
 }
 void ServiceParameterData::setParamOverUu(std::string const& value) {
-  m_ParamOverUu = value;
+  m_ParamOverUu      = value;
   m_ParamOverUuIsSet = true;
 }
 bool ServiceParameterData::paramOverUuIsSet() const {
   return m_ParamOverUuIsSet;
 }
-void ServiceParameterData::unsetParamOverUu() { m_ParamOverUuIsSet = false; }
+void ServiceParameterData::unsetParamOverUu() {
+  m_ParamOverUuIsSet = false;
+}
 std::string ServiceParameterData::getMtcProviderId() const {
   return m_MtcProviderId;
 }
 void ServiceParameterData::setMtcProviderId(std::string const& value) {
-  m_MtcProviderId = value;
+  m_MtcProviderId      = value;
   m_MtcProviderIdIsSet = true;
 }
 bool ServiceParameterData::mtcProviderIdIsSet() const {
@@ -359,12 +419,18 @@ bool ServiceParameterData::mtcProviderIdIsSet() const {
 void ServiceParameterData::unsetMtcProviderId() {
   m_MtcProviderIdIsSet = false;
 }
-std::string ServiceParameterData::getSuppFeat() const { return m_SuppFeat; }
+std::string ServiceParameterData::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void ServiceParameterData::setSuppFeat(std::string const& value) {
-  m_SuppFeat = value;
+  m_SuppFeat      = value;
   m_SuppFeatIsSet = true;
 }
-bool ServiceParameterData::suppFeatIsSet() const { return m_SuppFeatIsSet; }
-void ServiceParameterData::unsetSuppFeat() { m_SuppFeatIsSet = false; }
+bool ServiceParameterData::suppFeatIsSet() const {
+  return m_SuppFeatIsSet;
+}
+void ServiceParameterData::unsetSuppFeat() {
+  m_SuppFeatIsSet = false;
+}
 
 }  // namespace oai::nef::model

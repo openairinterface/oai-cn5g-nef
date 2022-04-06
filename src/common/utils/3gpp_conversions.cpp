@@ -45,7 +45,7 @@ bool xgpp_conv::monitoring_event_to_amf_event(
 
   // AMF EventList
   std::vector<AmfEvent> amf_events;
-  AmfEvent amf_event = {};
+  AmfEvent amf_event          = {};
   AmfEventType amf_event_type = {};
 
   switch (monitoring_event_sub.getMonitoringType().getEnumValue()) {
@@ -110,7 +110,7 @@ bool xgpp_conv::monitoring_event_to_amf_event(
   // AnyUE
 
   //   AmfEventMode Options
-  AmfEventMode option = {};
+  AmfEventMode option               = {};
   AmfEventTrigger amf_event_trigger = {};
   amf_event_trigger.setEnumValue(
       AmfEventTrigger_anyOf::eAmfEventTrigger_anyOf::

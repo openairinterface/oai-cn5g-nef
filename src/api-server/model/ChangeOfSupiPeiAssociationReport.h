@@ -62,10 +62,10 @@ class ChangeOfSupiPeiAssociationReport {
   std::string getNewPei() const;
   void setNewPei(std::string const& value);
 
-  friend void to_json(nlohmann::json& j,
-                      const ChangeOfSupiPeiAssociationReport& o);
-  friend void from_json(const nlohmann::json& j,
-                        ChangeOfSupiPeiAssociationReport& o);
+  friend void to_json(
+      nlohmann::json& j, const ChangeOfSupiPeiAssociationReport& o);
+  friend void from_json(
+      const nlohmann::json& j, ChangeOfSupiPeiAssociationReport& o);
 
  protected:
   std::string m_NewPei;

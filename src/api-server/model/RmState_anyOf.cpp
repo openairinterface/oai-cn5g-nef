@@ -33,8 +33,8 @@ bool RmState_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool RmState_anyOf::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool RmState_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "RmState_anyOf" : pathPrefix;

@@ -22,7 +22,7 @@ namespace oai::nef::model {
 SmContextConfiguration::SmContextConfiguration() {
   m_SmalDataRateControlIsSet = false;
   m_SmallDataRateStatusIsSet = false;
-  m_ServPlmnDataRateCtl = 0;
+  m_ServPlmnDataRateCtl      = 0;
   m_ServPlmnDataRateCtlIsSet = false;
 }
 
@@ -37,14 +37,14 @@ bool SmContextConfiguration::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SmContextConfiguration::validate(std::stringstream& msg,
-                                      const std::string& pathPrefix) const {
+bool SmContextConfiguration::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SmContextConfiguration" : pathPrefix;
 
   if (servPlmnDataRateCtlIsSet()) {
-    const int32_t& value = m_ServPlmnDataRateCtl;
+    const int32_t& value               = m_ServPlmnDataRateCtl;
     const std::string currentValuePath = _pathPrefix + ".servPlmnDataRateCtl";
 
     if (value < 10) {
@@ -110,7 +110,7 @@ SmallDataRateControl SmContextConfiguration::getSmalDataRateControl() const {
 }
 void SmContextConfiguration::setSmalDataRateControl(
     SmallDataRateControl const& value) {
-  m_SmalDataRateControl = value;
+  m_SmalDataRateControl      = value;
   m_SmalDataRateControlIsSet = true;
 }
 bool SmContextConfiguration::smalDataRateControlIsSet() const {
@@ -124,7 +124,7 @@ SmallDataRateStatus SmContextConfiguration::getSmallDataRateStatus() const {
 }
 void SmContextConfiguration::setSmallDataRateStatus(
     SmallDataRateStatus const& value) {
-  m_SmallDataRateStatus = value;
+  m_SmallDataRateStatus      = value;
   m_SmallDataRateStatusIsSet = true;
 }
 bool SmContextConfiguration::smallDataRateStatusIsSet() const {
@@ -137,7 +137,7 @@ int32_t SmContextConfiguration::getServPlmnDataRateCtl() const {
   return m_ServPlmnDataRateCtl;
 }
 void SmContextConfiguration::setServPlmnDataRateCtl(int32_t const value) {
-  m_ServPlmnDataRateCtl = value;
+  m_ServPlmnDataRateCtl      = value;
   m_ServPlmnDataRateCtlIsSet = true;
 }
 bool SmContextConfiguration::servPlmnDataRateCtlIsSet() const {

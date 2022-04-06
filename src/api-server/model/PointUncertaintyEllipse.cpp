@@ -20,7 +20,9 @@
 
 namespace oai::nef::model {
 
-PointUncertaintyEllipse::PointUncertaintyEllipse() { m_Confidence = 0; }
+PointUncertaintyEllipse::PointUncertaintyEllipse() {
+  m_Confidence = 0;
+}
 
 void PointUncertaintyEllipse::validate() const {
   std::stringstream msg;
@@ -33,14 +35,14 @@ bool PointUncertaintyEllipse::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool PointUncertaintyEllipse::validate(std::stringstream& msg,
-                                       const std::string& pathPrefix) const {
+bool PointUncertaintyEllipse::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "PointUncertaintyEllipse" : pathPrefix;
 
   /* Confidence */ {
-    const int32_t& value = m_Confidence;
+    const int32_t& value               = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -77,11 +79,11 @@ bool PointUncertaintyEllipse::operator!=(
 }
 
 void to_json(nlohmann::json& j, const PointUncertaintyEllipse& o) {
-  j = nlohmann::json();
-  j["shape"] = o.m_Shape;
-  j["point"] = o.m_Point;
+  j                       = nlohmann::json();
+  j["shape"]              = o.m_Shape;
+  j["point"]              = o.m_Point;
   j["uncertaintyEllipse"] = o.m_UncertaintyEllipse;
-  j["confidence"] = o.m_Confidence;
+  j["confidence"]         = o.m_Confidence;
 }
 
 void from_json(const nlohmann::json& j, PointUncertaintyEllipse& o) {
@@ -91,7 +93,9 @@ void from_json(const nlohmann::json& j, PointUncertaintyEllipse& o) {
   j.at("confidence").get_to(o.m_Confidence);
 }
 
-SupportedGADShapes PointUncertaintyEllipse::getShape() const { return m_Shape; }
+SupportedGADShapes PointUncertaintyEllipse::getShape() const {
+  return m_Shape;
+}
 void PointUncertaintyEllipse::setShape(SupportedGADShapes const& value) {
   m_Shape = value;
 }
@@ -108,7 +112,9 @@ void PointUncertaintyEllipse::setUncertaintyEllipse(
     UncertaintyEllipse const& value) {
   m_UncertaintyEllipse = value;
 }
-int32_t PointUncertaintyEllipse::getConfidence() const { return m_Confidence; }
+int32_t PointUncertaintyEllipse::getConfidence() const {
+  return m_Confidence;
+}
 void PointUncertaintyEllipse::setConfidence(int32_t const value) {
   m_Confidence = value;
 }

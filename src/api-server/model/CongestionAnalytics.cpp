@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 CongestionAnalytics::CongestionAnalytics() {
-  m_Confidence = 0;
+  m_Confidence      = 0;
   m_ConfidenceIsSet = false;
 }
 
@@ -35,14 +35,14 @@ bool CongestionAnalytics::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CongestionAnalytics::validate(std::stringstream& msg,
-                                   const std::string& pathPrefix) const {
+bool CongestionAnalytics::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CongestionAnalytics" : pathPrefix;
 
   if (confidenceIsSet()) {
-    const int32_t& value = m_Confidence;
+    const int32_t& value               = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -75,10 +75,10 @@ bool CongestionAnalytics::operator!=(const CongestionAnalytics& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const CongestionAnalytics& o) {
-  j = nlohmann::json();
+  j            = nlohmann::json();
   j["cngType"] = o.m_CngType;
-  j["tmWdw"] = o.m_TmWdw;
-  j["nsi"] = o.m_Nsi;
+  j["tmWdw"]   = o.m_TmWdw;
+  j["nsi"]     = o.m_Nsi;
   if (o.confidenceIsSet()) j["confidence"] = o.m_Confidence;
 }
 
@@ -92,20 +92,36 @@ void from_json(const nlohmann::json& j, CongestionAnalytics& o) {
   }
 }
 
-CongestionType CongestionAnalytics::getCngType() const { return m_CngType; }
+CongestionType CongestionAnalytics::getCngType() const {
+  return m_CngType;
+}
 void CongestionAnalytics::setCngType(CongestionType const& value) {
   m_CngType = value;
 }
-TimeWindow CongestionAnalytics::getTmWdw() const { return m_TmWdw; }
-void CongestionAnalytics::setTmWdw(TimeWindow const& value) { m_TmWdw = value; }
-ThresholdLevel CongestionAnalytics::getNsi() const { return m_Nsi; }
-void CongestionAnalytics::setNsi(ThresholdLevel const& value) { m_Nsi = value; }
-int32_t CongestionAnalytics::getConfidence() const { return m_Confidence; }
+TimeWindow CongestionAnalytics::getTmWdw() const {
+  return m_TmWdw;
+}
+void CongestionAnalytics::setTmWdw(TimeWindow const& value) {
+  m_TmWdw = value;
+}
+ThresholdLevel CongestionAnalytics::getNsi() const {
+  return m_Nsi;
+}
+void CongestionAnalytics::setNsi(ThresholdLevel const& value) {
+  m_Nsi = value;
+}
+int32_t CongestionAnalytics::getConfidence() const {
+  return m_Confidence;
+}
 void CongestionAnalytics::setConfidence(int32_t const value) {
-  m_Confidence = value;
+  m_Confidence      = value;
   m_ConfidenceIsSet = true;
 }
-bool CongestionAnalytics::confidenceIsSet() const { return m_ConfidenceIsSet; }
-void CongestionAnalytics::unsetConfidence() { m_ConfidenceIsSet = false; }
+bool CongestionAnalytics::confidenceIsSet() const {
+  return m_ConfidenceIsSet;
+}
+void CongestionAnalytics::unsetConfidence() {
+  m_ConfidenceIsSet = false;
+}
 
 }  // namespace oai::nef::model

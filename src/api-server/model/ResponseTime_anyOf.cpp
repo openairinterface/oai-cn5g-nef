@@ -33,8 +33,8 @@ bool ResponseTime_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool ResponseTime_anyOf::validate(std::stringstream& msg,
-                                  const std::string& pathPrefix) const {
+bool ResponseTime_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "ResponseTime_anyOf" : pathPrefix;

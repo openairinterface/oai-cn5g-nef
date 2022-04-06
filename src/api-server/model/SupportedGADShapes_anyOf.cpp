@@ -34,8 +34,8 @@ bool SupportedGADShapes_anyOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SupportedGADShapes_anyOf::validate(std::stringstream& msg,
-                                        const std::string& pathPrefix) const {
+bool SupportedGADShapes_anyOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SupportedGADShapes_anyOf" : pathPrefix;

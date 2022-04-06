@@ -20,13 +20,13 @@
 namespace oai::nef::model {
 
 CircumstanceDescription::CircumstanceDescription() {
-  m_Freq = 0.0f;
-  m_FreqIsSet = false;
-  m_Tm = "";
-  m_TmIsSet = false;
+  m_Freq         = 0.0f;
+  m_FreqIsSet    = false;
+  m_Tm           = "";
+  m_TmIsSet      = false;
   m_LocAreaIsSet = false;
-  m_Vol = 0L;
-  m_VolIsSet = false;
+  m_Vol          = 0L;
+  m_VolIsSet     = false;
 }
 
 void CircumstanceDescription::validate() const {
@@ -40,14 +40,14 @@ bool CircumstanceDescription::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool CircumstanceDescription::validate(std::stringstream& msg,
-                                       const std::string& pathPrefix) const {
+bool CircumstanceDescription::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "CircumstanceDescription" : pathPrefix;
 
   if (volIsSet()) {
-    const int64_t& value = m_Vol;
+    const int64_t& value               = m_Vol;
     const std::string currentValuePath = _pathPrefix + ".vol";
 
     if (value < 0ll) {
@@ -111,35 +111,57 @@ void from_json(const nlohmann::json& j, CircumstanceDescription& o) {
   }
 }
 
-float CircumstanceDescription::getFreq() const { return m_Freq; }
+float CircumstanceDescription::getFreq() const {
+  return m_Freq;
+}
 void CircumstanceDescription::setFreq(float const value) {
-  m_Freq = value;
+  m_Freq      = value;
   m_FreqIsSet = true;
 }
-bool CircumstanceDescription::freqIsSet() const { return m_FreqIsSet; }
-void CircumstanceDescription::unsetFreq() { m_FreqIsSet = false; }
-std::string CircumstanceDescription::getTm() const { return m_Tm; }
+bool CircumstanceDescription::freqIsSet() const {
+  return m_FreqIsSet;
+}
+void CircumstanceDescription::unsetFreq() {
+  m_FreqIsSet = false;
+}
+std::string CircumstanceDescription::getTm() const {
+  return m_Tm;
+}
 void CircumstanceDescription::setTm(std::string const& value) {
-  m_Tm = value;
+  m_Tm      = value;
   m_TmIsSet = true;
 }
-bool CircumstanceDescription::tmIsSet() const { return m_TmIsSet; }
-void CircumstanceDescription::unsetTm() { m_TmIsSet = false; }
+bool CircumstanceDescription::tmIsSet() const {
+  return m_TmIsSet;
+}
+void CircumstanceDescription::unsetTm() {
+  m_TmIsSet = false;
+}
 NetworkAreaInfo CircumstanceDescription::getLocArea() const {
   return m_LocArea;
 }
 void CircumstanceDescription::setLocArea(NetworkAreaInfo const& value) {
-  m_LocArea = value;
+  m_LocArea      = value;
   m_LocAreaIsSet = true;
 }
-bool CircumstanceDescription::locAreaIsSet() const { return m_LocAreaIsSet; }
-void CircumstanceDescription::unsetLocArea() { m_LocAreaIsSet = false; }
-int64_t CircumstanceDescription::getVol() const { return m_Vol; }
+bool CircumstanceDescription::locAreaIsSet() const {
+  return m_LocAreaIsSet;
+}
+void CircumstanceDescription::unsetLocArea() {
+  m_LocAreaIsSet = false;
+}
+int64_t CircumstanceDescription::getVol() const {
+  return m_Vol;
+}
 void CircumstanceDescription::setVol(int64_t const value) {
-  m_Vol = value;
+  m_Vol      = value;
   m_VolIsSet = true;
 }
-bool CircumstanceDescription::volIsSet() const { return m_VolIsSet; }
-void CircumstanceDescription::unsetVol() { m_VolIsSet = false; }
+bool CircumstanceDescription::volIsSet() const {
+  return m_VolIsSet;
+}
+void CircumstanceDescription::unsetVol() {
+  m_VolIsSet = false;
+}
 
 }  // namespace oai::nef::model

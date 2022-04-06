@@ -43,9 +43,9 @@ void IndividualMonitoringEventSubscriptionApiImpl::
       "subscription ID %s",
       subscriptionId.c_str());
 
-  int http_code = 0;
+  int http_code                  = 0;
   ProblemDetails problem_details = {};
-  uint8_t http_version = 1;
+  uint8_t http_version           = 1;
 
   m_nef_app->handle_delete_ind_monitoring_event_subscription(
       scsAsId, subscriptionId, http_version, http_code, problem_details);
@@ -76,10 +76,10 @@ void IndividualMonitoringEventSubscriptionApiImpl::
       "subscription ID %s",
       subscriptionId.c_str());
 
-  int http_code = 0;
+  int http_code                  = 0;
   ProblemDetails problem_details = {};
-  uint8_t http_version = 1;
-  nlohmann::json json_data = {};
+  uint8_t http_version           = 1;
+  nlohmann::json json_data       = {};
 
   m_nef_app->handle_fetch_ind_monitoring_event_subscription(
       scsAsId, subscriptionId, http_version, json_data, http_code);
@@ -108,9 +108,9 @@ void IndividualMonitoringEventSubscriptionApiImpl::
       "subscription ID %s",
       subscriptionId.c_str());
 
-  int http_code = 0;
+  int http_code                  = 0;
   ProblemDetails problem_details = {};
-  uint8_t http_version = 1;
+  uint8_t http_version           = 1;
   m_nef_app->handle_modify_ind_monitoring_event_subscription(
       scsAsId, subscriptionId, patchItem, http_version, http_code,
       problem_details);
@@ -142,8 +142,8 @@ void IndividualMonitoringEventSubscriptionApiImpl::
       "subscription ID %s",
       subscriptionId.c_str());
 
-  int http_code = 0;
-  uint8_t http_version = 1;
+  int http_code            = 0;
+  uint8_t http_version     = 1;
   nlohmann::json json_data = {};
 
   m_nef_app->handle_update_ind_monitoring_event_subscription(

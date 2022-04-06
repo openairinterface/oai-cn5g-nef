@@ -44,10 +44,12 @@ class DefaultApi {
  private:
   void setupRoutes();
 
-  void root_post_handler(const Pistache::Rest::Request& request,
-                         Pistache::Http::ResponseWriter response);
-  void default_api_default_handler(const Pistache::Rest::Request& request,
-                                   Pistache::Http::ResponseWriter response);
+  void root_post_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
+  void default_api_default_handler(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
 
   const std::shared_ptr<Pistache::Rest::Router> router;
 

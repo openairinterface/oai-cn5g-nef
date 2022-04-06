@@ -20,19 +20,19 @@
 namespace oai::nef::model {
 
 TrafficInfluSubPatch::TrafficInfluSubPatch() {
-  m_AppReloInd = false;
-  m_AppReloIndIsSet = false;
-  m_TrafficFiltersIsSet = false;
+  m_AppReloInd             = false;
+  m_AppReloIndIsSet        = false;
+  m_TrafficFiltersIsSet    = false;
   m_EthTrafficFiltersIsSet = false;
-  m_TrafficRoutesIsSet = false;
-  m_TfcCorrInd = false;
-  m_TfcCorrIndIsSet = false;
-  m_TempValiditiesIsSet = false;
-  m_ValidGeoZoneIdsIsSet = false;
-  m_AfAckInd = false;
-  m_AfAckIndIsSet = false;
-  m_AddrPreserInd = false;
-  m_AddrPreserIndIsSet = false;
+  m_TrafficRoutesIsSet     = false;
+  m_TfcCorrInd             = false;
+  m_TfcCorrIndIsSet        = false;
+  m_TempValiditiesIsSet    = false;
+  m_ValidGeoZoneIdsIsSet   = false;
+  m_AfAckInd               = false;
+  m_AfAckIndIsSet          = false;
+  m_AddrPreserInd          = false;
+  m_AddrPreserIndIsSet     = false;
 }
 
 void TrafficInfluSubPatch::validate() const {
@@ -46,8 +46,8 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool TrafficInfluSubPatch::validate(std::stringstream& msg,
-                                    const std::string& pathPrefix) const {
+bool TrafficInfluSubPatch::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "TrafficInfluSubPatch" : pathPrefix;
@@ -62,7 +62,7 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const FlowInfo& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -85,7 +85,7 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const EthFlowDescription& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -101,7 +101,7 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg,
 
   if (trafficRoutesIsSet()) {
     const std::vector<RouteToLocation>& value = m_TrafficRoutes;
-    const std::string currentValuePath = _pathPrefix + ".trafficRoutes";
+    const std::string currentValuePath        = _pathPrefix + ".trafficRoutes";
 
     if (value.size() < 1) {
       success = false;
@@ -109,7 +109,7 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const RouteToLocation& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -132,7 +132,7 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const TemporalValidity& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -147,7 +147,7 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg,
 
   if (validGeoZoneIdsIsSet()) {
     const std::vector<std::string>& value = m_ValidGeoZoneIds;
-    const std::string currentValuePath = _pathPrefix + ".validGeoZoneIds";
+    const std::string currentValuePath    = _pathPrefix + ".validGeoZoneIds";
 
     if (value.size() < 1) {
       success = false;
@@ -155,7 +155,7 @@ bool TrafficInfluSubPatch::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -271,19 +271,25 @@ void from_json(const nlohmann::json& j, TrafficInfluSubPatch& o) {
   }
 }
 
-bool TrafficInfluSubPatch::isAppReloInd() const { return m_AppReloInd; }
+bool TrafficInfluSubPatch::isAppReloInd() const {
+  return m_AppReloInd;
+}
 void TrafficInfluSubPatch::setAppReloInd(bool const value) {
-  m_AppReloInd = value;
+  m_AppReloInd      = value;
   m_AppReloIndIsSet = true;
 }
-bool TrafficInfluSubPatch::appReloIndIsSet() const { return m_AppReloIndIsSet; }
-void TrafficInfluSubPatch::unsetAppReloInd() { m_AppReloIndIsSet = false; }
+bool TrafficInfluSubPatch::appReloIndIsSet() const {
+  return m_AppReloIndIsSet;
+}
+void TrafficInfluSubPatch::unsetAppReloInd() {
+  m_AppReloIndIsSet = false;
+}
 std::vector<FlowInfo> TrafficInfluSubPatch::getTrafficFilters() const {
   return m_TrafficFilters;
 }
 void TrafficInfluSubPatch::setTrafficFilters(
     std::vector<FlowInfo> const& value) {
-  m_TrafficFilters = value;
+  m_TrafficFilters      = value;
   m_TrafficFiltersIsSet = true;
 }
 bool TrafficInfluSubPatch::trafficFiltersIsSet() const {
@@ -298,7 +304,7 @@ std::vector<EthFlowDescription> TrafficInfluSubPatch::getEthTrafficFilters()
 }
 void TrafficInfluSubPatch::setEthTrafficFilters(
     std::vector<EthFlowDescription> const& value) {
-  m_EthTrafficFilters = value;
+  m_EthTrafficFilters      = value;
   m_EthTrafficFiltersIsSet = true;
 }
 bool TrafficInfluSubPatch::ethTrafficFiltersIsSet() const {
@@ -312,7 +318,7 @@ std::vector<RouteToLocation> TrafficInfluSubPatch::getTrafficRoutes() const {
 }
 void TrafficInfluSubPatch::setTrafficRoutes(
     std::vector<RouteToLocation> const& value) {
-  m_TrafficRoutes = value;
+  m_TrafficRoutes      = value;
   m_TrafficRoutesIsSet = true;
 }
 bool TrafficInfluSubPatch::trafficRoutesIsSet() const {
@@ -321,19 +327,25 @@ bool TrafficInfluSubPatch::trafficRoutesIsSet() const {
 void TrafficInfluSubPatch::unsetTrafficRoutes() {
   m_TrafficRoutesIsSet = false;
 }
-bool TrafficInfluSubPatch::isTfcCorrInd() const { return m_TfcCorrInd; }
+bool TrafficInfluSubPatch::isTfcCorrInd() const {
+  return m_TfcCorrInd;
+}
 void TrafficInfluSubPatch::setTfcCorrInd(bool const value) {
-  m_TfcCorrInd = value;
+  m_TfcCorrInd      = value;
   m_TfcCorrIndIsSet = true;
 }
-bool TrafficInfluSubPatch::tfcCorrIndIsSet() const { return m_TfcCorrIndIsSet; }
-void TrafficInfluSubPatch::unsetTfcCorrInd() { m_TfcCorrIndIsSet = false; }
+bool TrafficInfluSubPatch::tfcCorrIndIsSet() const {
+  return m_TfcCorrIndIsSet;
+}
+void TrafficInfluSubPatch::unsetTfcCorrInd() {
+  m_TfcCorrIndIsSet = false;
+}
 std::vector<TemporalValidity> TrafficInfluSubPatch::getTempValidities() const {
   return m_TempValidities;
 }
 void TrafficInfluSubPatch::setTempValidities(
     std::vector<TemporalValidity> const& value) {
-  m_TempValidities = value;
+  m_TempValidities      = value;
   m_TempValiditiesIsSet = true;
 }
 bool TrafficInfluSubPatch::tempValiditiesIsSet() const {
@@ -347,7 +359,7 @@ std::vector<std::string> TrafficInfluSubPatch::getValidGeoZoneIds() const {
 }
 void TrafficInfluSubPatch::setValidGeoZoneIds(
     std::vector<std::string> const& value) {
-  m_ValidGeoZoneIds = value;
+  m_ValidGeoZoneIds      = value;
   m_ValidGeoZoneIdsIsSet = true;
 }
 bool TrafficInfluSubPatch::validGeoZoneIdsIsSet() const {
@@ -356,16 +368,24 @@ bool TrafficInfluSubPatch::validGeoZoneIdsIsSet() const {
 void TrafficInfluSubPatch::unsetValidGeoZoneIds() {
   m_ValidGeoZoneIdsIsSet = false;
 }
-bool TrafficInfluSubPatch::isAfAckInd() const { return m_AfAckInd; }
+bool TrafficInfluSubPatch::isAfAckInd() const {
+  return m_AfAckInd;
+}
 void TrafficInfluSubPatch::setAfAckInd(bool const value) {
-  m_AfAckInd = value;
+  m_AfAckInd      = value;
   m_AfAckIndIsSet = true;
 }
-bool TrafficInfluSubPatch::afAckIndIsSet() const { return m_AfAckIndIsSet; }
-void TrafficInfluSubPatch::unsetAfAckInd() { m_AfAckIndIsSet = false; }
-bool TrafficInfluSubPatch::isAddrPreserInd() const { return m_AddrPreserInd; }
+bool TrafficInfluSubPatch::afAckIndIsSet() const {
+  return m_AfAckIndIsSet;
+}
+void TrafficInfluSubPatch::unsetAfAckInd() {
+  m_AfAckIndIsSet = false;
+}
+bool TrafficInfluSubPatch::isAddrPreserInd() const {
+  return m_AddrPreserInd;
+}
 void TrafficInfluSubPatch::setAddrPreserInd(bool const value) {
-  m_AddrPreserInd = value;
+  m_AddrPreserInd      = value;
   m_AddrPreserIndIsSet = true;
 }
 bool TrafficInfluSubPatch::addrPreserIndIsSet() const {

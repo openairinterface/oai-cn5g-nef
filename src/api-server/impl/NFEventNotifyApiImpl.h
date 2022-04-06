@@ -45,9 +45,9 @@ using namespace oai::nef::model;
 
 class NFEventNotifyApiImpl : public oai::nef::api::NFEventNotifyApi {
  public:
-  NFEventNotifyApiImpl(std::shared_ptr<Pistache::Rest::Router>,
-                       oai::nef::app::nef_app* nef_app_inst,
-                       std::string address);
+  NFEventNotifyApiImpl(
+      std::shared_ptr<Pistache::Rest::Router>,
+      oai::nef::app::nef_app* nef_app_inst, std::string address);
   ~NFEventNotifyApiImpl() {}
 
   void receive_nf_event_notification(

@@ -32,8 +32,8 @@ bool AssociationType::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AssociationType::validate(std::stringstream& msg,
-                               const std::string& pathPrefix) const {
+bool AssociationType::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AssociationType" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, AssociationType& o) {
   from_json(j, o.m_value);
 }
 
-AssociationType_anyOf AssociationType::getValue() const { return m_value; }
+AssociationType_anyOf AssociationType::getValue() const {
+  return m_value;
+}
 
-void AssociationType::setValue(AssociationType_anyOf value) { m_value = value; }
+void AssociationType::setValue(AssociationType_anyOf value) {
+  m_value = value;
+}
 
 AssociationType_anyOf::eAssociationType_anyOf AssociationType::getEnumValue()
     const {

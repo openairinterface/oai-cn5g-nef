@@ -43,11 +43,11 @@ class TrafficInfluenceSubscriptionApiImpl
       const std::shared_ptr<Pistache::Rest::Router>& rtr);
   ~TrafficInfluenceSubscriptionApiImpl() override = default;
 
-  void af_id_subscriptions_get(const std::string& afId,
-                               Pistache::Http::ResponseWriter& response);
-  void af_id_subscriptions_post(const std::string& afId,
-                                const TrafficInfluSub& trafficInfluSub,
-                                Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_get(
+      const std::string& afId, Pistache::Http::ResponseWriter& response);
+  void af_id_subscriptions_post(
+      const std::string& afId, const TrafficInfluSub& trafficInfluSub,
+      Pistache::Http::ResponseWriter& response);
 };
 
 }  // namespace oai::nef::api

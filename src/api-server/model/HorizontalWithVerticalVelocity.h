@@ -79,10 +79,10 @@ class HorizontalWithVerticalVelocity {
   VerticalDirection getVDirection() const;
   void setVDirection(VerticalDirection const& value);
 
-  friend void to_json(nlohmann::json& j,
-                      const HorizontalWithVerticalVelocity& o);
-  friend void from_json(const nlohmann::json& j,
-                        HorizontalWithVerticalVelocity& o);
+  friend void to_json(
+      nlohmann::json& j, const HorizontalWithVerticalVelocity& o);
+  friend void from_json(
+      const nlohmann::json& j, HorizontalWithVerticalVelocity& o);
 
  protected:
   float m_HSpeed;

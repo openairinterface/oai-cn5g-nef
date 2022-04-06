@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 NefEventFilter::NefEventFilter() {
-  m_AppIdsIsSet = false;
+  m_AppIdsIsSet  = false;
   m_LocAreaIsSet = false;
 }
 
@@ -35,15 +35,15 @@ bool NefEventFilter::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NefEventFilter::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool NefEventFilter::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NefEventFilter" : pathPrefix;
 
   if (appIdsIsSet()) {
     const std::vector<std::string>& value = m_AppIds;
-    const std::string currentValuePath = _pathPrefix + ".appIds";
+    const std::string currentValuePath    = _pathPrefix + ".appIds";
 
     if (value.size() < 1) {
       success = false;
@@ -51,7 +51,7 @@ bool NefEventFilter::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const std::string& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -85,7 +85,7 @@ bool NefEventFilter::operator!=(const NefEventFilter& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const NefEventFilter& o) {
-  j = nlohmann::json();
+  j          = nlohmann::json();
   j["tgtUe"] = o.m_TgtUe;
   if (o.appIdsIsSet() || !o.m_AppIds.empty()) j["appIds"] = o.m_AppIds;
   if (o.locAreaIsSet()) j["locArea"] = o.m_LocArea;
@@ -103,23 +103,37 @@ void from_json(const nlohmann::json& j, NefEventFilter& o) {
   }
 }
 
-TargetUeIdentification NefEventFilter::getTgtUe() const { return m_TgtUe; }
+TargetUeIdentification NefEventFilter::getTgtUe() const {
+  return m_TgtUe;
+}
 void NefEventFilter::setTgtUe(TargetUeIdentification const& value) {
   m_TgtUe = value;
 }
-std::vector<std::string> NefEventFilter::getAppIds() const { return m_AppIds; }
+std::vector<std::string> NefEventFilter::getAppIds() const {
+  return m_AppIds;
+}
 void NefEventFilter::setAppIds(std::vector<std::string> const& value) {
-  m_AppIds = value;
+  m_AppIds      = value;
   m_AppIdsIsSet = true;
 }
-bool NefEventFilter::appIdsIsSet() const { return m_AppIdsIsSet; }
-void NefEventFilter::unsetAppIds() { m_AppIdsIsSet = false; }
-NetworkAreaInfo NefEventFilter::getLocArea() const { return m_LocArea; }
+bool NefEventFilter::appIdsIsSet() const {
+  return m_AppIdsIsSet;
+}
+void NefEventFilter::unsetAppIds() {
+  m_AppIdsIsSet = false;
+}
+NetworkAreaInfo NefEventFilter::getLocArea() const {
+  return m_LocArea;
+}
 void NefEventFilter::setLocArea(NetworkAreaInfo const& value) {
-  m_LocArea = value;
+  m_LocArea      = value;
   m_LocAreaIsSet = true;
 }
-bool NefEventFilter::locAreaIsSet() const { return m_LocAreaIsSet; }
-void NefEventFilter::unsetLocArea() { m_LocAreaIsSet = false; }
+bool NefEventFilter::locAreaIsSet() const {
+  return m_LocAreaIsSet;
+}
+void NefEventFilter::unsetLocArea() {
+  m_LocAreaIsSet = false;
+}
 
 }  // namespace oai::nef::model

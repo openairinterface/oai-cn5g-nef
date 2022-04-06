@@ -33,8 +33,8 @@ bool Point_allOf::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool Point_allOf::validate(std::stringstream& msg,
-                           const std::string& pathPrefix) const {
+bool Point_allOf::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "Point_allOf" : pathPrefix;
@@ -55,7 +55,7 @@ bool Point_allOf::operator!=(const Point_allOf& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const Point_allOf& o) {
-  j = nlohmann::json();
+  j          = nlohmann::json();
   j["point"] = o.m_Point;
 }
 
@@ -63,7 +63,9 @@ void from_json(const nlohmann::json& j, Point_allOf& o) {
   j.at("point").get_to(o.m_Point);
 }
 
-GeographicalCoordinates Point_allOf::getPoint() const { return m_Point; }
+GeographicalCoordinates Point_allOf::getPoint() const {
+  return m_Point;
+}
 void Point_allOf::setPoint(GeographicalCoordinates const& value) {
   m_Point = value;
 }

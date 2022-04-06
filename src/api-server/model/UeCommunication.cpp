@@ -20,22 +20,22 @@
 namespace oai::nef::model {
 
 UeCommunication::UeCommunication() {
-  m_CommDur = 0;
-  m_CommDurVariance = 0.0f;
-  m_CommDurVarianceIsSet = false;
-  m_PerioTime = 0;
-  m_PerioTimeIsSet = false;
-  m_PerioTimeVariance = 0.0f;
+  m_CommDur                = 0;
+  m_CommDurVariance        = 0.0f;
+  m_CommDurVarianceIsSet   = false;
+  m_PerioTime              = 0;
+  m_PerioTimeIsSet         = false;
+  m_PerioTimeVariance      = 0.0f;
   m_PerioTimeVarianceIsSet = false;
-  m_Ts = "";
-  m_TsIsSet = false;
-  m_TsVariance = 0.0f;
-  m_TsVarianceIsSet = false;
-  m_RecurringTimeIsSet = false;
-  m_Ratio = 0;
-  m_RatioIsSet = false;
-  m_Confidence = 0;
-  m_ConfidenceIsSet = false;
+  m_Ts                     = "";
+  m_TsIsSet                = false;
+  m_TsVariance             = 0.0f;
+  m_TsVarianceIsSet        = false;
+  m_RecurringTimeIsSet     = false;
+  m_Ratio                  = 0;
+  m_RatioIsSet             = false;
+  m_Confidence             = 0;
+  m_ConfidenceIsSet        = false;
 }
 
 void UeCommunication::validate() const {
@@ -49,14 +49,14 @@ bool UeCommunication::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool UeCommunication::validate(std::stringstream& msg,
-                               const std::string& pathPrefix) const {
+bool UeCommunication::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "UeCommunication" : pathPrefix;
 
   if (ratioIsSet()) {
-    const int32_t& value = m_Ratio;
+    const int32_t& value               = m_Ratio;
     const std::string currentValuePath = _pathPrefix + ".ratio";
 
     if (value < 1) {
@@ -70,7 +70,7 @@ bool UeCommunication::validate(std::stringstream& msg,
   }
 
   if (confidenceIsSet()) {
-    const int32_t& value = m_Confidence;
+    const int32_t& value               = m_Confidence;
     const std::string currentValuePath = _pathPrefix + ".confidence";
 
     if (value < 0) {
@@ -127,7 +127,7 @@ bool UeCommunication::operator!=(const UeCommunication& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const UeCommunication& o) {
-  j = nlohmann::json();
+  j            = nlohmann::json();
   j["commDur"] = o.m_CommDur;
   if (o.commDurVarianceIsSet()) j["commDurVariance"] = o.m_CommDurVariance;
   if (o.perioTimeIsSet()) j["perioTime"] = o.m_PerioTime;
@@ -178,29 +178,43 @@ void from_json(const nlohmann::json& j, UeCommunication& o) {
   }
 }
 
-int32_t UeCommunication::getCommDur() const { return m_CommDur; }
-void UeCommunication::setCommDur(int32_t const value) { m_CommDur = value; }
-float UeCommunication::getCommDurVariance() const { return m_CommDurVariance; }
+int32_t UeCommunication::getCommDur() const {
+  return m_CommDur;
+}
+void UeCommunication::setCommDur(int32_t const value) {
+  m_CommDur = value;
+}
+float UeCommunication::getCommDurVariance() const {
+  return m_CommDurVariance;
+}
 void UeCommunication::setCommDurVariance(float const value) {
-  m_CommDurVariance = value;
+  m_CommDurVariance      = value;
   m_CommDurVarianceIsSet = true;
 }
 bool UeCommunication::commDurVarianceIsSet() const {
   return m_CommDurVarianceIsSet;
 }
-void UeCommunication::unsetCommDurVariance() { m_CommDurVarianceIsSet = false; }
-int32_t UeCommunication::getPerioTime() const { return m_PerioTime; }
+void UeCommunication::unsetCommDurVariance() {
+  m_CommDurVarianceIsSet = false;
+}
+int32_t UeCommunication::getPerioTime() const {
+  return m_PerioTime;
+}
 void UeCommunication::setPerioTime(int32_t const value) {
-  m_PerioTime = value;
+  m_PerioTime      = value;
   m_PerioTimeIsSet = true;
 }
-bool UeCommunication::perioTimeIsSet() const { return m_PerioTimeIsSet; }
-void UeCommunication::unsetPerioTime() { m_PerioTimeIsSet = false; }
+bool UeCommunication::perioTimeIsSet() const {
+  return m_PerioTimeIsSet;
+}
+void UeCommunication::unsetPerioTime() {
+  m_PerioTimeIsSet = false;
+}
 float UeCommunication::getPerioTimeVariance() const {
   return m_PerioTimeVariance;
 }
 void UeCommunication::setPerioTimeVariance(float const value) {
-  m_PerioTimeVariance = value;
+  m_PerioTimeVariance      = value;
   m_PerioTimeVarianceIsSet = true;
 }
 bool UeCommunication::perioTimeVarianceIsSet() const {
@@ -209,51 +223,77 @@ bool UeCommunication::perioTimeVarianceIsSet() const {
 void UeCommunication::unsetPerioTimeVariance() {
   m_PerioTimeVarianceIsSet = false;
 }
-std::string UeCommunication::getTs() const { return m_Ts; }
+std::string UeCommunication::getTs() const {
+  return m_Ts;
+}
 void UeCommunication::setTs(std::string const& value) {
-  m_Ts = value;
+  m_Ts      = value;
   m_TsIsSet = true;
 }
-bool UeCommunication::tsIsSet() const { return m_TsIsSet; }
-void UeCommunication::unsetTs() { m_TsIsSet = false; }
-float UeCommunication::getTsVariance() const { return m_TsVariance; }
+bool UeCommunication::tsIsSet() const {
+  return m_TsIsSet;
+}
+void UeCommunication::unsetTs() {
+  m_TsIsSet = false;
+}
+float UeCommunication::getTsVariance() const {
+  return m_TsVariance;
+}
 void UeCommunication::setTsVariance(float const value) {
-  m_TsVariance = value;
+  m_TsVariance      = value;
   m_TsVarianceIsSet = true;
 }
-bool UeCommunication::tsVarianceIsSet() const { return m_TsVarianceIsSet; }
-void UeCommunication::unsetTsVariance() { m_TsVarianceIsSet = false; }
+bool UeCommunication::tsVarianceIsSet() const {
+  return m_TsVarianceIsSet;
+}
+void UeCommunication::unsetTsVariance() {
+  m_TsVarianceIsSet = false;
+}
 ScheduledCommunicationTime UeCommunication::getRecurringTime() const {
   return m_RecurringTime;
 }
 void UeCommunication::setRecurringTime(
     ScheduledCommunicationTime const& value) {
-  m_RecurringTime = value;
+  m_RecurringTime      = value;
   m_RecurringTimeIsSet = true;
 }
 bool UeCommunication::recurringTimeIsSet() const {
   return m_RecurringTimeIsSet;
 }
-void UeCommunication::unsetRecurringTime() { m_RecurringTimeIsSet = false; }
+void UeCommunication::unsetRecurringTime() {
+  m_RecurringTimeIsSet = false;
+}
 TrafficCharacterization UeCommunication::getTrafChar() const {
   return m_TrafChar;
 }
 void UeCommunication::setTrafChar(TrafficCharacterization const& value) {
   m_TrafChar = value;
 }
-int32_t UeCommunication::getRatio() const { return m_Ratio; }
+int32_t UeCommunication::getRatio() const {
+  return m_Ratio;
+}
 void UeCommunication::setRatio(int32_t const value) {
-  m_Ratio = value;
+  m_Ratio      = value;
   m_RatioIsSet = true;
 }
-bool UeCommunication::ratioIsSet() const { return m_RatioIsSet; }
-void UeCommunication::unsetRatio() { m_RatioIsSet = false; }
-int32_t UeCommunication::getConfidence() const { return m_Confidence; }
+bool UeCommunication::ratioIsSet() const {
+  return m_RatioIsSet;
+}
+void UeCommunication::unsetRatio() {
+  m_RatioIsSet = false;
+}
+int32_t UeCommunication::getConfidence() const {
+  return m_Confidence;
+}
 void UeCommunication::setConfidence(int32_t const value) {
-  m_Confidence = value;
+  m_Confidence      = value;
   m_ConfidenceIsSet = true;
 }
-bool UeCommunication::confidenceIsSet() const { return m_ConfidenceIsSet; }
-void UeCommunication::unsetConfidence() { m_ConfidenceIsSet = false; }
+bool UeCommunication::confidenceIsSet() const {
+  return m_ConfidenceIsSet;
+}
+void UeCommunication::unsetConfidence() {
+  m_ConfidenceIsSet = false;
+}
 
 }  // namespace oai::nef::model

@@ -20,10 +20,10 @@
 namespace oai::nef::model {
 
 AmfEventState::AmfEventState() {
-  m_Active = false;
-  m_RemainReports = 0;
-  m_RemainReportsIsSet = false;
-  m_RemainDuration = 0;
+  m_Active              = false;
+  m_RemainReports       = 0;
+  m_RemainReportsIsSet  = false;
+  m_RemainDuration      = 0;
   m_RemainDurationIsSet = false;
 }
 
@@ -38,8 +38,8 @@ bool AmfEventState::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool AmfEventState::validate(std::stringstream& msg,
-                             const std::string& pathPrefix) const {
+bool AmfEventState::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "AmfEventState" : pathPrefix;
@@ -68,7 +68,7 @@ bool AmfEventState::operator!=(const AmfEventState& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const AmfEventState& o) {
-  j = nlohmann::json();
+  j           = nlohmann::json();
   j["active"] = o.m_Active;
   if (o.remainReportsIsSet()) j["remainReports"] = o.m_RemainReports;
   if (o.remainDurationIsSet()) j["remainDuration"] = o.m_RemainDuration;
@@ -86,23 +86,37 @@ void from_json(const nlohmann::json& j, AmfEventState& o) {
   }
 }
 
-bool AmfEventState::isActive() const { return m_Active; }
-void AmfEventState::setActive(bool const value) { m_Active = value; }
-int32_t AmfEventState::getRemainReports() const { return m_RemainReports; }
+bool AmfEventState::isActive() const {
+  return m_Active;
+}
+void AmfEventState::setActive(bool const value) {
+  m_Active = value;
+}
+int32_t AmfEventState::getRemainReports() const {
+  return m_RemainReports;
+}
 void AmfEventState::setRemainReports(int32_t const value) {
-  m_RemainReports = value;
+  m_RemainReports      = value;
   m_RemainReportsIsSet = true;
 }
-bool AmfEventState::remainReportsIsSet() const { return m_RemainReportsIsSet; }
-void AmfEventState::unsetRemainReports() { m_RemainReportsIsSet = false; }
-int32_t AmfEventState::getRemainDuration() const { return m_RemainDuration; }
+bool AmfEventState::remainReportsIsSet() const {
+  return m_RemainReportsIsSet;
+}
+void AmfEventState::unsetRemainReports() {
+  m_RemainReportsIsSet = false;
+}
+int32_t AmfEventState::getRemainDuration() const {
+  return m_RemainDuration;
+}
 void AmfEventState::setRemainDuration(int32_t const value) {
-  m_RemainDuration = value;
+  m_RemainDuration      = value;
   m_RemainDurationIsSet = true;
 }
 bool AmfEventState::remainDurationIsSet() const {
   return m_RemainDurationIsSet;
 }
-void AmfEventState::unsetRemainDuration() { m_RemainDurationIsSet = false; }
+void AmfEventState::unsetRemainDuration() {
+  m_RemainDurationIsSet = false;
+}
 
 }  // namespace oai::nef::model

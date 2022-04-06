@@ -19,7 +19,9 @@
 
 namespace oai::nef::model {
 
-NefEventSubs::NefEventSubs() { m_EventFilterIsSet = false; }
+NefEventSubs::NefEventSubs() {
+  m_EventFilterIsSet = false;
+}
 
 void NefEventSubs::validate() const {
   std::stringstream msg;
@@ -32,8 +34,8 @@ bool NefEventSubs::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NefEventSubs::validate(std::stringstream& msg,
-                            const std::string& pathPrefix) const {
+bool NefEventSubs::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NefEventSubs" : pathPrefix;
@@ -58,7 +60,7 @@ bool NefEventSubs::operator!=(const NefEventSubs& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const NefEventSubs& o) {
-  j = nlohmann::json();
+  j          = nlohmann::json();
   j["event"] = o.m_Event;
   if (o.eventFilterIsSet()) j["eventFilter"] = o.m_EventFilter;
 }
@@ -71,14 +73,24 @@ void from_json(const nlohmann::json& j, NefEventSubs& o) {
   }
 }
 
-NefEvent NefEventSubs::getEvent() const { return m_Event; }
-void NefEventSubs::setEvent(NefEvent const& value) { m_Event = value; }
-NefEventFilter NefEventSubs::getEventFilter() const { return m_EventFilter; }
+NefEvent NefEventSubs::getEvent() const {
+  return m_Event;
+}
+void NefEventSubs::setEvent(NefEvent const& value) {
+  m_Event = value;
+}
+NefEventFilter NefEventSubs::getEventFilter() const {
+  return m_EventFilter;
+}
 void NefEventSubs::setEventFilter(NefEventFilter const& value) {
-  m_EventFilter = value;
+  m_EventFilter      = value;
   m_EventFilterIsSet = true;
 }
-bool NefEventSubs::eventFilterIsSet() const { return m_EventFilterIsSet; }
-void NefEventSubs::unsetEventFilter() { m_EventFilterIsSet = false; }
+bool NefEventSubs::eventFilterIsSet() const {
+  return m_EventFilterIsSet;
+}
+void NefEventSubs::unsetEventFilter() {
+  m_EventFilterIsSet = false;
+}
 
 }  // namespace oai::nef::model

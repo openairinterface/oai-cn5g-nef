@@ -94,8 +94,8 @@ class SmContextStatusNotification {
   void unsetApnRateStatus();
 
   friend void to_json(nlohmann::json& j, const SmContextStatusNotification& o);
-  friend void from_json(const nlohmann::json& j,
-                        SmContextStatusNotification& o);
+  friend void from_json(
+      const nlohmann::json& j, SmContextStatusNotification& o);
 
  protected:
   SmContextStatus m_Status;

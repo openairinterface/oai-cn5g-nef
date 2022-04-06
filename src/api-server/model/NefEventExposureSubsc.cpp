@@ -21,11 +21,11 @@ namespace oai::nef::model {
 
 NefEventExposureSubsc::NefEventExposureSubsc() {
   m_EventsRepInfoIsSet = false;
-  m_NotifUri = "";
-  m_NotifId = "";
-  m_EventNotifsIsSet = false;
-  m_SuppFeat = "";
-  m_SuppFeatIsSet = false;
+  m_NotifUri           = "";
+  m_NotifId            = "";
+  m_EventNotifsIsSet   = false;
+  m_SuppFeat           = "";
+  m_SuppFeatIsSet      = false;
 }
 
 void NefEventExposureSubsc::validate() const {
@@ -39,15 +39,15 @@ bool NefEventExposureSubsc::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool NefEventExposureSubsc::validate(std::stringstream& msg,
-                                     const std::string& pathPrefix) const {
+bool NefEventExposureSubsc::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "NefEventExposureSubsc" : pathPrefix;
 
   /* EventsSubs */ {
     const std::vector<NefEventSubs>& value = m_EventsSubs;
-    const std::string currentValuePath = _pathPrefix + ".eventsSubs";
+    const std::string currentValuePath     = _pathPrefix + ".eventsSubs";
 
     if (value.size() < 1) {
       success = false;
@@ -55,7 +55,7 @@ bool NefEventExposureSubsc::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const NefEventSubs& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -78,7 +78,7 @@ bool NefEventExposureSubsc::validate(std::stringstream& msg,
     }
     {  // Recursive validation of array elements
       const std::string oldValuePath = currentValuePath;
-      int i = 0;
+      int i                          = 0;
       for (const NefEventNotification& value : value) {
         const std::string currentValuePath =
             oldValuePath + "[" + std::to_string(i) + "]";
@@ -92,7 +92,7 @@ bool NefEventExposureSubsc::validate(std::stringstream& msg,
   }
 
   if (suppFeatIsSet()) {
-    const std::string& value = m_SuppFeat;
+    const std::string& value           = m_SuppFeat;
     const std::string currentValuePath = _pathPrefix + ".suppFeat";
   }
 
@@ -128,11 +128,11 @@ bool NefEventExposureSubsc::operator!=(const NefEventExposureSubsc& rhs) const {
 }
 
 void to_json(nlohmann::json& j, const NefEventExposureSubsc& o) {
-  j = nlohmann::json();
+  j               = nlohmann::json();
   j["eventsSubs"] = o.m_EventsSubs;
   if (o.eventsRepInfoIsSet()) j["eventsRepInfo"] = o.m_EventsRepInfo;
   j["notifUri"] = o.m_NotifUri;
-  j["notifId"] = o.m_NotifId;
+  j["notifId"]  = o.m_NotifId;
   if (o.eventNotifsIsSet() || !o.m_EventNotifs.empty())
     j["eventNotifs"] = o.m_EventNotifs;
   if (o.suppFeatIsSet()) j["suppFeat"] = o.m_SuppFeat;
@@ -168,7 +168,7 @@ ReportingInformation NefEventExposureSubsc::getEventsRepInfo() const {
 }
 void NefEventExposureSubsc::setEventsRepInfo(
     ReportingInformation const& value) {
-  m_EventsRepInfo = value;
+  m_EventsRepInfo      = value;
   m_EventsRepInfoIsSet = true;
 }
 bool NefEventExposureSubsc::eventsRepInfoIsSet() const {
@@ -177,11 +177,15 @@ bool NefEventExposureSubsc::eventsRepInfoIsSet() const {
 void NefEventExposureSubsc::unsetEventsRepInfo() {
   m_EventsRepInfoIsSet = false;
 }
-std::string NefEventExposureSubsc::getNotifUri() const { return m_NotifUri; }
+std::string NefEventExposureSubsc::getNotifUri() const {
+  return m_NotifUri;
+}
 void NefEventExposureSubsc::setNotifUri(std::string const& value) {
   m_NotifUri = value;
 }
-std::string NefEventExposureSubsc::getNotifId() const { return m_NotifId; }
+std::string NefEventExposureSubsc::getNotifId() const {
+  return m_NotifId;
+}
 void NefEventExposureSubsc::setNotifId(std::string const& value) {
   m_NotifId = value;
 }
@@ -191,19 +195,27 @@ std::vector<NefEventNotification> NefEventExposureSubsc::getEventNotifs()
 }
 void NefEventExposureSubsc::setEventNotifs(
     std::vector<NefEventNotification> const& value) {
-  m_EventNotifs = value;
+  m_EventNotifs      = value;
   m_EventNotifsIsSet = true;
 }
 bool NefEventExposureSubsc::eventNotifsIsSet() const {
   return m_EventNotifsIsSet;
 }
-void NefEventExposureSubsc::unsetEventNotifs() { m_EventNotifsIsSet = false; }
-std::string NefEventExposureSubsc::getSuppFeat() const { return m_SuppFeat; }
+void NefEventExposureSubsc::unsetEventNotifs() {
+  m_EventNotifsIsSet = false;
+}
+std::string NefEventExposureSubsc::getSuppFeat() const {
+  return m_SuppFeat;
+}
 void NefEventExposureSubsc::setSuppFeat(std::string const& value) {
-  m_SuppFeat = value;
+  m_SuppFeat      = value;
   m_SuppFeatIsSet = true;
 }
-bool NefEventExposureSubsc::suppFeatIsSet() const { return m_SuppFeatIsSet; }
-void NefEventExposureSubsc::unsetSuppFeat() { m_SuppFeatIsSet = false; }
+bool NefEventExposureSubsc::suppFeatIsSet() const {
+  return m_SuppFeatIsSet;
+}
+void NefEventExposureSubsc::unsetSuppFeat() {
+  m_SuppFeatIsSet = false;
+}
 
 }  // namespace oai::nef::model

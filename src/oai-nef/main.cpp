@@ -40,7 +40,7 @@ using namespace std;
 
 nef_app* nef_app_inst = nullptr;
 nef_config nef_cfg;
-NEFApiServer* api_server = nullptr;
+NEFApiServer* api_server               = nullptr;
 nef_http2_server* nef_api_server_http2 = nullptr;
 
 //------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
 
   // NEF Pistache API server (HTTP1)
   Pistache::Address addr(
-      std::string(inet_ntoa(*((struct in_addr*)&nef_cfg.sbi.addr4))),
+      std::string(inet_ntoa(*((struct in_addr*) &nef_cfg.sbi.addr4))),
       Pistache::Port(nef_cfg.sbi.port));
   api_server = new NEFApiServer(addr, nef_app_inst);
   api_server->init(2);
@@ -121,9 +121,9 @@ int main(int argc, char** argv) {
   nef_manager.join();
   nef_http2_manager.join();
 
-  FILE* fp = NULL;
+  FILE* fp             = NULL;
   std::string filename = fmt::format("/tmp/nef_{}.status", getpid());
-  fp = fopen(filename.c_str(), "w+");
+  fp                   = fopen(filename.c_str(), "w+");
   fprintf(fp, "STARTED\n");
   fflush(fp);
   fclose(fp);

@@ -32,8 +32,8 @@ bool LocationFilter::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool LocationFilter::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool LocationFilter::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "LocationFilter" : pathPrefix;
@@ -63,9 +63,13 @@ void from_json(const nlohmann::json& j, LocationFilter& o) {
   from_json(j, o.m_value);
 }
 
-LocationFilter_anyOf LocationFilter::getValue() const { return m_value; }
+LocationFilter_anyOf LocationFilter::getValue() const {
+  return m_value;
+}
 
-void LocationFilter::setValue(LocationFilter_anyOf value) { m_value = value; }
+void LocationFilter::setValue(LocationFilter_anyOf value) {
+  m_value = value;
+}
 
 LocationFilter_anyOf::eLocationFilter_anyOf LocationFilter::getEnumValue()
     const {

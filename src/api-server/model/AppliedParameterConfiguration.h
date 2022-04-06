@@ -94,10 +94,10 @@ class AppliedParameterConfiguration {
   bool maximumDetectionTimeIsSet() const;
   void unsetMaximumDetectionTime();
 
-  friend void to_json(nlohmann::json& j,
-                      const AppliedParameterConfiguration& o);
-  friend void from_json(const nlohmann::json& j,
-                        AppliedParameterConfiguration& o);
+  friend void to_json(
+      nlohmann::json& j, const AppliedParameterConfiguration& o);
+  friend void from_json(
+      const nlohmann::json& j, AppliedParameterConfiguration& o);
 
  protected:
   std::vector<std::string> m_ExternalIds;

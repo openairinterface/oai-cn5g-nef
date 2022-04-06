@@ -29,23 +29,23 @@ void IndividualLPIParametersProvisioningApiImpl::
     af_id_provisioned_lpis_provisioned_lpi_id_delete(
         const std::string& afId, const std::string& provisionedLpiId,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 void IndividualLPIParametersProvisioningApiImpl::
     af_id_provisioned_lpis_provisioned_lpi_id_get(
         const std::string& afId, const std::string& provisionedLpiId,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 void IndividualLPIParametersProvisioningApiImpl::
     af_id_provisioned_lpis_provisioned_lpi_id_put(
         const std::string& afId, const std::string& provisionedLpiId,
         const LpiParametersProvision& lpiParametersProvision,
         Pistache::Http::ResponseWriter& response) {
-  response.send(Pistache::Http::Code::Ok,
-                "This API has not been implemented yet!\n");
+  response.send(
+      Pistache::Http::Code::Ok, "This API has not been implemented yet!\n");
 }
 
 }  // namespace api

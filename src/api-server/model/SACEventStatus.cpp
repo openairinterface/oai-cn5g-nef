@@ -20,7 +20,7 @@
 namespace oai::nef::model {
 
 SACEventStatus::SACEventStatus() {
-  m_ReachedNumUesIsSet = false;
+  m_ReachedNumUesIsSet     = false;
   m_ReachedNumPduSessIsSet = false;
 }
 
@@ -35,8 +35,8 @@ bool SACEventStatus::validate(std::stringstream& msg) const {
   return validate(msg, "");
 }
 
-bool SACEventStatus::validate(std::stringstream& msg,
-                              const std::string& pathPrefix) const {
+bool SACEventStatus::validate(
+    std::stringstream& msg, const std::string& pathPrefix) const {
   bool success = true;
   const std::string _pathPrefix =
       pathPrefix.empty() ? "SACEventStatus" : pathPrefix;
@@ -80,18 +80,24 @@ void from_json(const nlohmann::json& j, SACEventStatus& o) {
   }
 }
 
-SACInfo SACEventStatus::getReachedNumUes() const { return m_ReachedNumUes; }
+SACInfo SACEventStatus::getReachedNumUes() const {
+  return m_ReachedNumUes;
+}
 void SACEventStatus::setReachedNumUes(SACInfo const& value) {
-  m_ReachedNumUes = value;
+  m_ReachedNumUes      = value;
   m_ReachedNumUesIsSet = true;
 }
-bool SACEventStatus::reachedNumUesIsSet() const { return m_ReachedNumUesIsSet; }
-void SACEventStatus::unsetReachedNumUes() { m_ReachedNumUesIsSet = false; }
+bool SACEventStatus::reachedNumUesIsSet() const {
+  return m_ReachedNumUesIsSet;
+}
+void SACEventStatus::unsetReachedNumUes() {
+  m_ReachedNumUesIsSet = false;
+}
 SACInfo SACEventStatus::getReachedNumPduSess() const {
   return m_ReachedNumPduSess;
 }
 void SACEventStatus::setReachedNumPduSess(SACInfo const& value) {
-  m_ReachedNumPduSess = value;
+  m_ReachedNumPduSess      = value;
   m_ReachedNumPduSessIsSet = true;
 }
 bool SACEventStatus::reachedNumPduSessIsSet() const {
