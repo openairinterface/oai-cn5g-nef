@@ -35,7 +35,7 @@ WORKDIR /openair-nef/
 COPY . /openair-nef
 RUN cp -Rf /openair-nef-ext-ref /openair-nef/build/ext
 
-# Building NRF
+# Building NEF
 WORKDIR /openair-nef/build/scripts
 RUN ./build_nef --clean --Verbose --build-type Release --jobs && \
     ldd /openair-nef/build/nef/build/nef && \
