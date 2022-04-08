@@ -1,6 +1,6 @@
 # RELEASE NOTES: #
 
-## vX.X.X -- YYY 2022 ##
+## v1.4.0 -- April 2022 ##
 
 * Initial release
 
