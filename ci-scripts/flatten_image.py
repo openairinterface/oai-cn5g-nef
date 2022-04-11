@@ -66,7 +66,11 @@ def perform_flattening(tag):
 
     # Export / Import trick
     cmd = cli + ' export test-flatten | ' + cli + ' import '
-    cmd += ' --change "ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" '
+    # Bizarro syntax issue with podman
+    if cli == 'docker':
+      cmd += ' --change "ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" '
+    else:
+      cmd += ' --change "ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" '
     cmd += ' --change "WORKDIR /openair-nef" '
     cmd += ' --change "EXPOSE 80/tcp" '
     cmd += ' --change "EXPOSE 9090/tcp" '

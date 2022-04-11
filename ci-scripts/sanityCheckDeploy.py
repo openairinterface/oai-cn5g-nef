@@ -135,6 +135,8 @@ def generic_deployment(tag):
         netDwnStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
         for line in str(netDwnStatus.strip()).split('\n'):
             print(line)
+        cmd = 'sudo podman volume prune --force || true'
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     return status
 
 if __name__ == '__main__':
