@@ -50,6 +50,9 @@ def NEF_BASE_IMAGE_TAG = params.NefBaseImageTag
 // Merge Request Link
 def gitlabMergeRequestLink
 
+// Docker Hub account to push to
+def DH_Account = "oaisoftwarealliance"
+
 //-------------------------------------------------------------------------------
 // Pipeline start
 pipeline {
@@ -383,9 +386,9 @@ pipeline {
               [$class: 'UsernamePasswordMultiBinding', credentialsId: "${params.DockerHubCredentials}", usernameVariable: 'DH_Username', passwordVariable: 'DH_Password']
             ]) {
               myShCmd("echo ${DH_Password} | docker login --username ${DH_Username} --password-stdin", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
-              myShCmd("docker image tag oai-nef:develop ${DH_Username}/oai-nef:develop", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
-              myShCmd("docker push ${DH_Username}/oai-nef:develop", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
-              myShCmd("docker rmi ${DH_Username}/oai-nef:develop", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
+              myShCmd("docker image tag oai-nef:develop ${DH_Account}/oai-nef:develop", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
+              myShCmd("docker push ${DH_Account}/oai-nef:develop", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
+              myShCmd("docker rmi ${DH_Account}/oai-nef:develop", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
               myShCmd("docker logout", rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
             }
           }
