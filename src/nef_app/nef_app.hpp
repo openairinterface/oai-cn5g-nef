@@ -32,6 +32,7 @@
 
 #include <shared_mutex>
 #include <string>
+#include <optional>
 
 #include "AmfEventNotification.h"
 #include "IpAddr.h"

@@ -195,7 +195,7 @@ class HtmlReport():
 					self.file.write('    <strong>All files in repository follow OAI rules. <span class="glyphicon glyphicon-ok-circle"></span> -> (' + nb_total.strip() + ' were checked)</strong>\n')
 				self.file.write('  </div>\n')
 			else:
-				self.file.write('  <div class="alert alert-warning">\n')
+				self.file.write('  <div class="alert alert-danger">\n')
 				if self.git_pull_request:
 					self.file.write('    <strong>' + nb_fail.strip() + ' modified files in Pull-Request DO NOT follow OAI rules. <span class="glyphicon glyphicon-warning-sign"></span> -> (' + nb_total.strip() + ' were checked)</strong>\n')
 				else:
@@ -551,11 +551,11 @@ class HtmlReport():
 				else:
 					cell_msg += '   ** Nlohmann Json Installation: KO\n'
 				if base_image:
-					cell_msg += '   ** nghttp2 Installation: N/A\n'
+					cell_msg += '   ** nghttp2-asio Installation: N/A\n'
 				elif nghttp2_build_status:
-					cell_msg += '   ** nghttp2 Installation: OK\n'
+					cell_msg += '   ** nghttp2-asio Installation: OK\n'
 				else:
-					cell_msg += '   ** nghttp2 Installation: KO\n'
+					cell_msg += '   ** nghttp2-asio Installation: KO\n'
 				cell_msg += '</b></pre></td>\n'
 			else:
 				cell_msg = '	  <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
@@ -590,7 +590,7 @@ class HtmlReport():
 				status = False
 				if nfType == 'NEF':
 					section_start_pattern = 'build_nef --clean --Verbose --build-type Release --jobs'
-					section_end_pattern = 'FROM ubuntu:bionic as oai-nef$'
+					section_end_pattern = 'FROM .* as oai-nef$'
 					pass_pattern = 'nef installed'
 				section_status = False
 				with open(cwd + '/archives/' + logFileName, 'r') as logfile:
@@ -638,7 +638,7 @@ class HtmlReport():
 			if os.path.isfile(cwd + '/archives/' + logFileName):
 				if nfType == 'NEF':
 					section_start_pattern = 'build_nef --clean --Verbose --build-type Release --jobs'
-					section_end_pattern = 'FROM ubuntu:bionic as oai-nef$'
+					section_end_pattern = 'FROM .* as oai-nef$'
 				section_status = False
 				with open(cwd + '/archives/' + logFileName, 'r') as logfile:
 					for line in logfile:
