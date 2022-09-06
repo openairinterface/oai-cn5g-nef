@@ -590,7 +590,7 @@ class HtmlReport():
 				status = False
 				if nfType == 'NEF':
 					section_start_pattern = 'build_nef --clean --Verbose --build-type Release --jobs'
-					section_end_pattern = 'FROM ubuntu:bionic as oai-nef$'
+					section_end_pattern = 'FROM .* as oai-nef$'
 					pass_pattern = 'nef installed'
 				section_status = False
 				with open(cwd + '/archives/' + logFileName, 'r') as logfile:
@@ -638,7 +638,7 @@ class HtmlReport():
 			if os.path.isfile(cwd + '/archives/' + logFileName):
 				if nfType == 'NEF':
 					section_start_pattern = 'build_nef --clean --Verbose --build-type Release --jobs'
-					section_end_pattern = 'FROM ubuntu:bionic as oai-nef$'
+					section_end_pattern = 'FROM .* as oai-nef$'
 				section_status = False
 				with open(cwd + '/archives/' + logFileName, 'r') as logfile:
 					for line in logfile:
