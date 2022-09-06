@@ -551,11 +551,11 @@ class HtmlReport():
 				else:
 					cell_msg += '   ** Nlohmann Json Installation: KO\n'
 				if base_image:
-					cell_msg += '   ** nghttp2 Installation: N/A\n'
+					cell_msg += '   ** nghttp2-asio Installation: N/A\n'
 				elif nghttp2_build_status:
-					cell_msg += '   ** nghttp2 Installation: OK\n'
+					cell_msg += '   ** nghttp2-asio Installation: OK\n'
 				else:
-					cell_msg += '   ** nghttp2 Installation: KO\n'
+					cell_msg += '   ** nghttp2-asio Installation: KO\n'
 				cell_msg += '</b></pre></td>\n'
 			else:
 				cell_msg = '	  <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'

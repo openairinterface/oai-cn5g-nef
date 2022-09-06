@@ -184,7 +184,7 @@ pipeline {
                     echo "Maybe a previous build went wrong"
                   }
                   // In case of push to `develop` branch we build from scratch
-                  myShCmd('docker build --no-cache --target oai-nef --tag oai-nef:' + nef_tag + ' --file docker/Dockerfile.nef.ubuntu18 . > archives/nef_docker_image_build.log 2>&1', rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
+                  myShCmd('docker build --no-cache --target oai-nef --tag oai-nef:' + nef_tag + ' --file docker/Dockerfile.nef.ubuntu . > archives/nef_docker_image_build.log 2>&1', rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
                 }
                 if ("MERGE".equals(env.gitlabActionType)) {
                   try {
@@ -249,7 +249,7 @@ pipeline {
                   myShCmd('cp /etc/pki/entitlement/*pem ./etc-pki-entitlement', rem_rhel_host_flag, rem_rhel_host_user, rem_rhel_host)
                   myShCmd('sudo cp /etc/rhsm/rhsm.conf ./rhsm-conf', rem_rhel_host_flag, rem_rhel_host_user, rem_rhel_host)
                   myShCmd('sudo cp /etc/rhsm/ca/*pem ./rhsm-ca', rem_rhel_host_flag, rem_rhel_host_user, rem_rhel_host)
-                  myShCmd('sudo podman build --no-cache --target oai-nef --tag oai-nef:' + nef_tag + ' --file docker/Dockerfile.nef.rhel8 . > archives/nef_podman_image_build.log 2>&1', rem_rhel_host_flag, rem_rhel_host_user, rem_rhel_host)
+                  myShCmd('sudo podman build --no-cache --target oai-nef --tag oai-nef:' + nef_tag + ' --file docker/Dockerfile.nef.rhel8 --format docker . > archives/nef_podman_image_build.log 2>&1', rem_rhel_host_flag, rem_rhel_host_user, rem_rhel_host)
                   // Putting a place holder to try out on the flattening of image.
                   // If not satisfactory, we can remove it.
                   myShCmd('python3 ./ci-scripts/flatten_image.py --tag oai-nef:' + nef_tag, rem_rhel_host_flag, rem_rhel_host_user, rem_rhel_host)

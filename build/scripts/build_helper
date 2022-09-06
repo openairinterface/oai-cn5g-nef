@@ -25,15 +25,15 @@
 #
 #######################################
 #SUPPORTED_DISTRO="Ubuntu 18.04, CentOS 7, RHEL 7"
-SUPPORTED_DISTRO="Ubuntu 18.04,RHEL8"
+SUPPORTED_DISTRO="Ubuntu 18.04,20.04,22.04, RHEL8"
 if [ ! -f /etc/os-release ]; then
   echo_fatal "No /etc/os-release file found. You're likely on an unsupported distro."
 fi
 OS_DISTRO=$(grep "^ID=" /etc/os-release | sed "s/ID=//" | sed "s/\"//g")
 OS_RELEASE=$(grep "^VERSION_ID=" /etc/os-release | sed "s/VERSION_ID=//" | sed "s/\"//g")
 case "$OS_DISTRO" in
-  fedora) OS_BASEDISTRO="fedora"; INSTALLER="dnf"; CMAKE="cmake3" ;;
-  rhel)   OS_BASEDISTRO="fedora"; INSTALLER="yum"; CMAKE="cmake3" ;;
+  fedora) OS_BASEDISTRO="fedora"; INSTALLER="dnf"; CMAKE="cmake" ;;
+  rhel)   OS_BASEDISTRO="fedora"; INSTALLER="yum"; CMAKE="cmake" ;;
   centos) OS_BASEDISTRO="fedora"; INSTALLER="yum"; CMAKE="cmake3" ;;
   debian) OS_BASEDISTRO="debian"; INSTALLER="apt-get"; CMAKE="cmake" ;;
   ubuntu) OS_BASEDISTRO="debian"; INSTALLER="apt-get"; CMAKE="cmake" ;;
@@ -129,6 +129,7 @@ check_supported_distribution() {
     case "$distribution" in
         "ubuntu18.04") return 0 ;;
         "ubuntu20.04") return 0 ;;
+        "ubuntu22.04") return 0 ;;
         "rhel8")       return 0 ;;
         "rhel8.2")       return 0 ;;
         "rhel8.3")       return 0 ;;
@@ -165,7 +166,10 @@ clean_kernel() {
 
 #-------------------------------------------------------------------------------
 disable_ipv6() {
-  $SUDO sysctl -w net.ipv6.conf.all.disable_ipv6=1
+  if [ $IS_CONTAINER -eq 0 ]
+  then
+      $SUDO sysctl -w net.ipv6.conf.all.disable_ipv6=1
+  fi
 }
 
 
