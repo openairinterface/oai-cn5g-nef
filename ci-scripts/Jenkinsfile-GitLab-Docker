@@ -197,7 +197,7 @@ pipeline {
                   }
                   // "latest" is the tag used in the docker file.
                   myShCmd('docker image tag oai-nef-base:' + NEF_BASE_IMAGE_TAG + ' oai-nef-base:latest', rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
-                  myShCmd('docker build --no-cache --target oai-nef --tag oai-nef:' + nef_tag + ' --file ci-scripts/docker/Dockerfile.ci.ubuntu.18.04 . > archives/nef_docker_image_build.log 2>&1', rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
+                  myShCmd('docker build --no-cache --target oai-nef --tag oai-nef:' + nef_tag + ' --file ci-scripts/docker/Dockerfile.ci.ubuntu . > archives/nef_docker_image_build.log 2>&1', rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
                 }
                 // Putting a place holder to try out on the flattening of image.
                 // If not satisfactory, we can remove it.
