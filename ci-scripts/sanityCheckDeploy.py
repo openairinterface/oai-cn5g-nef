@@ -102,8 +102,6 @@ def generic_deployment(tag):
         time.sleep(1)
         cwd = os.getcwd()
         cmd = 'sudo podman run --name cicd-oai-nef --network cicd-oai-public-net --ip 192.168.28.210'
-        cmd += ' --volume ' + cwd + '/ci-scripts/docker-compose/nef-healthy-check.sh:/openair-nef/bin/nef-healthy-check.sh'
-        cmd += ' --health-cmd /openair-nef/bin/nef-healthy-check.sh'
         cmd += ' --env-file ./ci-scripts/podman/nef.env -d ' + tag
         print (cmd)
         contUpStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)

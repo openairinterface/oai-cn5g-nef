@@ -36,13 +36,6 @@ services:
         networks:
             cicd_public_net:
                 ipv4_address: 192.168.28.210
-        volumes:
-            - ./nef-healthy-check.sh:/openair-nef/bin/nef-healthy-check.sh
-        healthcheck:
-            test: /bin/bash -c "/openair-nef/bin/nef-healthy-check.sh"
-            interval: 10s
-            timeout: 5s
-            retries: 5
 
 networks:
     cicd_public_net:
