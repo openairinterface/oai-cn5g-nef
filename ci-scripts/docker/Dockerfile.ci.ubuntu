@@ -34,13 +34,14 @@
 ARG BASE_IMAGE=ubuntu:bionic
 FROM oai-nef-base:latest as oai-nef-builder
 
+RUN rm -Rf /openair-nef
 WORKDIR /openair-nef/
 COPY . /openair-nef
-RUN cp -Rf /openair-nef-ext-ref /openair-nef/build/ext
 
 # Building NEF
 WORKDIR /openair-nef/build/scripts
 RUN ./build_nef --clean --Verbose --build-type Release --jobs && \
+    cp -Rf /openair-nef-ext-ref /openair-nef/build/ext && \
     ldd /openair-nef/build/nef/build/nef && \
     mv /openair-nef/build/nef/build/nef /openair-nef/build/nef/build/oai_nef
 
