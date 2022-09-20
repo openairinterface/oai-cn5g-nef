@@ -40,8 +40,9 @@ COPY . /openair-nef
 
 # Building NEF
 WORKDIR /openair-nef/build/scripts
-RUN ./build_nef --clean --Verbose --build-type Release --jobs && \
+RUN ldconfig && \
     cp -Rf /openair-nef-ext-ref /openair-nef/build/ext && \
+    ./build_nef --clean --Verbose --build-type Release --jobs && \
     ldd /openair-nef/build/nef/build/nef && \
     mv /openair-nef/build/nef/build/nef /openair-nef/build/nef/build/oai_nef
 
