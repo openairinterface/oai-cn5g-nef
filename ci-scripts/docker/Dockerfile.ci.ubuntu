@@ -64,7 +64,7 @@ RUN apt-get update && \
 # Ubuntu 18 --> libasan4
 # Ubuntu 20 --> libasan5
 # Ubuntu 22 --> libasan6
-      libasan? \
+#      libasan? \
       libconfig++9v5 \
 # Ubuntu 18 --> libnettle6
 # Ubuntu 20 --> libnettle7
