@@ -79,7 +79,7 @@ def perform_flattening(tag):
     cmd += ' --change "EXPOSE 9090/tcp" '
     cmd += ' --change "HEALTHCHECK --interval=10s --timeout=15s --retries=6 CMD /openair-nef/bin/healthcheck.sh" '
     cmd += ' --change "CMD [\\"/openair-nef/bin/oai_nef\\", \\"-c\\", \\"/openair-nef/etc/nef.conf\\", \\"-o\\"]" '
-    cmd += ' --change "ENTRYPOINT [\\"/bin/bash\\", \\"/openair-nef/bin/entrypoint.sh\\"]" '
+    cmd += ' --change "ENTRYPOINT [\\"python3\\", \\"/openair-nef/bin/entrypoint.py\\"]" '
     cmd += ' - ' + image_prefix + tag
     print (cmd)
     subprocess.check_output(cmd, shell=True, universal_newlines=True)
