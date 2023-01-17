@@ -151,6 +151,7 @@ pipeline {
             echo "GitLab Usermail is ${gitCommitAuthorEmailAddr}"
             sh "git log -n1 --pretty=format:\"%s\" > .git/CI_COMMIT_MSG"
           }
+          sh "git submodule update --init --recursive"
           sh "tar -cjhf /tmp/openair-nef.tar.bz2 ."
           sh "mv /tmp/openair-nef.tar.bz2 ."
           copyTo2ndServer('openair-nef.tar.bz2', rem_u18_host_flag, rem_u18_host_user, rem_u18_host)
