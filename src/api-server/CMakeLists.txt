@@ -37,6 +37,6 @@ file(GLOB NEF_API_SERVER_src_files
     ${NEF_API_SERVER_DIR}/api/*.cpp
     ${NEF_API_SERVER_DIR}/impl/*.cpp
 )
- 
+
 add_library(NEF_API STATIC
            ${NEF_API_SERVER_src_files})

@@ -19,14 +19,40 @@
 #      contact@openairinterface.org
 ################################################################################
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/utils)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
-include_directories(${SRC_TOP_DIR}/common)
-include_directories(${SRC_TOP_DIR}/../build/ext/spdlog/include)
+SET(UTILS_DIR ${SRC_TOP_DIR}/common/utils)
 
-add_library(3GPP_COMMON_TYPES STATIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
-)
+## Logger used in NF_TARGET (main)
+target_include_directories(${NF_TARGET} PUBLIC ${UTILS_DIR})
+target_sources(${NF_TARGET} PRIVATE
+    ${UTILS_DIR}/conversions.cpp
+    ${UTILS_DIR}/3gpp_conversions.cpp
+    ${UTILS_DIR}/if.cpp
+    ${UTILS_DIR}/pid_file.cpp
+    ${UTILS_DIR}/string.cpp
+    ${UTILS_DIR}/thread_sched.cpp
+    ${UTILS_DIR}/fqdn.cpp
+        )
 
+## Logger used in NF_TARGET_LIB ("app" library)
+target_include_directories(${NF_TARGET_LIB} PUBLIC ${LOGGER_DIR})
+target_sources(${NF_TARGET_LIB} PRIVATE
+    ${UTILS_DIR}/conversions.cpp
+    ${UTILS_DIR}/3gpp_conversions.cpp
+    ${UTILS_DIR}/if.cpp
+    ${UTILS_DIR}/pid_file.cpp
+    ${UTILS_DIR}/string.cpp
+    ${UTILS_DIR}/thread_sched.cpp
+    ${UTILS_DIR}/fqdn.cpp
+        )
 
+## UTILS used in NF_TARGET_API (API library
+target_include_directories(${NF_TARGET_API_LIB} PUBLIC ${LOGGER_DIR})
+target_sources(${NF_TARGET_API_LIB} PRIVATE
+    ${UTILS_DIR}/conversions.cpp
+    ${UTILS_DIR}/3gpp_conversions.cpp
+    ${UTILS_DIR}/if.cpp
+    ${UTILS_DIR}/pid_file.cpp
+    ${UTILS_DIR}/string.cpp
+    ${UTILS_DIR}/thread_sched.cpp
+    ${UTILS_DIR}/fqdn.cpp
+        )
