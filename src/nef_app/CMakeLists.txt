@@ -32,4 +32,6 @@ add_library (NEF STATIC
   nef_client.cpp
 )
 
-
+## Common modules
+include(${SRC_TOP_DIR}/oai-cn5g-common-src/logger/logger.cmake)
+include(${SRC_TOP_DIR}/common/utils/utils.cmake)

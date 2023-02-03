@@ -262,8 +262,6 @@ else(STATIC_LINKING)
     SET(BUILD_SHARED_LIBS ON)
 endif(STATIC_LINKING)
 
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../../src/common ${CMAKE_CURRENT_BINARY_DIR}/common)
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../../src/common/utils ${CMAKE_CURRENT_BINARY_DIR}/utils)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../../src/api-server ${CMAKE_CURRENT_BINARY_DIR}/api-server)
 
 ################################################################################
@@ -290,8 +288,7 @@ IF(STATIC_LINKING)
     SET_TARGET_PROPERTIES(nef PROPERTIES LINK_SEARCH_END_STATIC 1)
     # asan do not support static linking
     SET(ASAN)
-ENDIF(STATIC_LINKING)   
+ENDIF(STATIC_LINKING)
 
-target_link_libraries (nef ${ASAN} 
-    -Wl,--start-group NEF 3GPP_COMMON_TYPES NEF_API CN_UTILS -lnettle ${NETTLE_LIBRARIES} ${CRYPTO_LIBRARIES} -lnghttp2_asio -lboost_system -lboost_thread -lboost_date_time -lssl -lcrypto -Wl,--end-group pthread m rt config++ event boost_system pistache curl boost_chrono)
-    
+target_link_libraries (nef ${ASAN}
+    -Wl,--start-group NEF NEF_API -lnettle ${NETTLE_LIBRARIES} ${CRYPTO_LIBRARIES} -lnghttp2_asio -lboost_system -lboost_thread -lboost_date_time -lssl -lcrypto -lfmt -Wl,--end-group pthread m rt config++ event boost_system pistache curl boost_chrono)
