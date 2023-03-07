@@ -35,6 +35,7 @@ ARG BASE_IMAGE=ubuntu:bionic
 FROM $BASE_IMAGE as oai-nef-base
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
 ENV IS_DOCKERFILE=1
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
@@ -48,17 +49,23 @@ RUN git config --global https.postBuffer 123289600 && \
     git config --global http.sslverify false
 
 # Copying source code
-COPY . /openair-nef
 WORKDIR /openair-nef
+COPY ./build/scripts /openair-nef/build/scripts/
+COPY ./build/nef/CMakeLists.txt /openair-nef/build/nef/CMakeLists.txt
+COPY ./build/cmake_modules /openair-nef/build/cmake_modules/
+COPY ./src/oai-cn5g-common-src/scripts/build_helper /openair-nef/src/oai-cn5g-common-src/scripts/
 
 # Installing all the needed libraries/packages to build and run NEF
 WORKDIR /openair-nef/build/scripts
-RUN ./build_nef --install-deps --force
+RUN ./build_nef --install-deps --force && \
+    ldconfig
 
 #---------------------------------------------------------------------
 # BUILDER IMAGE
 #---------------------------------------------------------------------
 FROM oai-nef-base as oai-nef-builder
+# Copying source code
+COPY . /openair-nef
 # Building NEF
 WORKDIR /openair-nef/build/scripts
 RUN ldconfig && \
