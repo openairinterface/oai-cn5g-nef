@@ -272,7 +272,6 @@ include_directories(${SRC_TOP_DIR}/nef_app)
 include_directories(${SRC_TOP_DIR}/oai-nef)
 include_directories(${SRC_TOP_DIR}/common)
 include_directories(${SRC_TOP_DIR}/common/utils)
-include_directories(${SRC_TOP_DIR}/../build/ext/spdlog/include)
 include_directories(${SRC_TOP_DIR}/api-server)
 include_directories(${SRC_TOP_DIR}/api-server/api)
 include_directories(${SRC_TOP_DIR}/api-server/impl)
@@ -282,6 +281,10 @@ add_executable(nef
   ${SRC_TOP_DIR}/oai-nef/main.cpp
   ${SRC_TOP_DIR}/oai-nef/options.cpp
   )
+
+# Including common modules
+include(${SRC_TOP_DIR}/common/utils/utils.cmake)
+include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger/logger.cmake)
 
 IF(STATIC_LINKING)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")

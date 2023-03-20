@@ -28,7 +28,7 @@ include_directories(${NEF_API_SERVER_DIR}/)
 include_directories(${SRC_TOP_DIR}/nef_app)
 include_directories(${SRC_TOP_DIR}/common)
 include_directories(${SRC_TOP_DIR}/common/utils)
-include_directories(${SRC_TOP_DIR}/../build/ext/spdlog/include)
+include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger)
 
 file(GLOB NEF_API_SERVER_src_files
     ${NEF_API_SERVER_DIR}/nef-api-server.cpp

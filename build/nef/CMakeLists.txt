@@ -35,9 +35,8 @@ endif()
 set (BUILD_TOP_DIR   ${OPENAIRCN_DIR}/build)
 set (SRC_TOP_DIR     ${OPENAIRCN_DIR}/src)
 
-set (NF_TARGET_LIB       NEF)
 set (NF_TARGET           nef)
-set (NF_TARGET_API_LIB   NEF_API)
+set (MOUNTED_COMMON      oai-cn5g-common-src)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../src/oai-nef/CMakeLists.txt)
 
