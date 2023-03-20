@@ -32,27 +32,3 @@ target_sources(${NF_TARGET} PRIVATE
     ${UTILS_DIR}/thread_sched.cpp
     ${UTILS_DIR}/fqdn.cpp
         )
-
-## Logger used in NF_TARGET_LIB ("app" library)
-target_include_directories(${NF_TARGET_LIB} PUBLIC ${LOGGER_DIR})
-target_sources(${NF_TARGET_LIB} PRIVATE
-    ${UTILS_DIR}/conversions.cpp
-    ${UTILS_DIR}/3gpp_conversions.cpp
-    ${UTILS_DIR}/if.cpp
-    ${UTILS_DIR}/pid_file.cpp
-    ${UTILS_DIR}/string.cpp
-    ${UTILS_DIR}/thread_sched.cpp
-    ${UTILS_DIR}/fqdn.cpp
-        )
-
-## UTILS used in NF_TARGET_API (API library
-target_include_directories(${NF_TARGET_API_LIB} PUBLIC ${LOGGER_DIR})
-target_sources(${NF_TARGET_API_LIB} PRIVATE
-    ${UTILS_DIR}/conversions.cpp
-    ${UTILS_DIR}/3gpp_conversions.cpp
-    ${UTILS_DIR}/if.cpp
-    ${UTILS_DIR}/pid_file.cpp
-    ${UTILS_DIR}/string.cpp
-    ${UTILS_DIR}/thread_sched.cpp
-    ${UTILS_DIR}/fqdn.cpp
-        )

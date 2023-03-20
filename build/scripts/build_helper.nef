@@ -29,7 +29,7 @@
 ################################
 SCRIPT=$(readlink -f ${BASH_SOURCE})
 THIS_SCRIPT_PATH=`dirname $SCRIPT`
-source $THIS_SCRIPT_PATH/../../src/oai-cn5g-common-src/scripts/build_helper
+source $THIS_SCRIPT_PATH/../build-common/installation/build_helper
 
 #-------------------------------------------------------------------------------
 #arg1 is force (0 or 1) (no interactive script)
