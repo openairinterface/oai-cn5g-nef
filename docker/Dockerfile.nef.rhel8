@@ -72,7 +72,7 @@ RUN ldconfig && \
     # Adapting the entrypoint to NEF NF
     sed -i -e "s@openair-nf-root-folder@openair-nef@g" \
            -e "s@nf-config-file@nef.conf@g" \
-           ../build-common/docker-scripts/entrypoint.py && \
+           ../common-build/docker-scripts/entrypoint.py && \
     # Remove entitlements and Subscription Manager configs
     rm -rf /etc/pki/entitlement && \
     rm -rf /etc/rhsm
@@ -116,7 +116,7 @@ RUN rm -f /etc/rhsm-host && \
 WORKDIR /openair-nef/bin
 COPY --from=oai-nef-builder \
     /openair-nef/build/nef/build/oai_nef \
-    /openair-nef/build/build-common/docker-scripts/entrypoint.py \
+    /openair-nef/build/common-build/docker-scripts/entrypoint.py \
     /openair-nef/scripts/healthcheck.sh \
     ./
 
