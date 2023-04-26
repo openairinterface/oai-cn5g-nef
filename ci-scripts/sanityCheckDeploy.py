@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
  Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  contributor license agreements.  See the NOTICE file distributed with
@@ -22,9 +23,9 @@
 import argparse
 import os
 import re
-import subprocess
 import sys
 import time
+import common.python.cls_cmd as cls_cmd
 
 def main() -> None:
     args = _parse_args()
@@ -45,14 +46,15 @@ def _parse_args() -> argparse.Namespace:
 def generic_deployment(tag):
     # First detect which docker/podman command to use
     cli = ''
+    myCmds = cls_cmd.LocalCmd()
     cmd = 'which podman || true'
-    podman_check = subprocess.check_output(cmd, shell=True, universal_newlines=True)
-    if re.search('podman', podman_check.strip()):
+    podman_check = myCmds.run(cmd, silent=True)
+    if re.search('podman', podman_check.stdout):
         cli = 'sudo podman'
     if cli == '':
         cmd = 'which docker || true'
-        docker_check = subprocess.check_output(cmd, shell=True, universal_newlines=True)
-        if re.search('docker', docker_check.strip()):
+        docker_check = myCmds.run(cmd, silent=True)
+        if re.search('docker', docker_check.stdout):
             cli = 'docker'
     if cli == '':
         print ('No docker / podman installed: quitting')
@@ -61,19 +63,16 @@ def generic_deployment(tag):
     status = 0
     if cli == 'docker':
         infos = tag.split(':')
-        cmd = 'sed -e "s@NEF_IMAGE_TAG@' + infos[1] + '@" ci-scripts/docker-compose/docker-compose.tplt > ci-scripts/docker-compose/docker-compose.yaml'
-        print (cmd)
-        subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
+        cmd = f'sed -e "s@NEF_IMAGE_TAG@{infos[1]}@" ci-scripts/docker-compose/docker-compose.tplt > ci-scripts/docker-compose/docker-compose.yaml'
+        myCmds.run(cmd)
         cmd = 'cd ci-scripts/docker-compose && docker-compose up -d'
-        print (cmd)
-        upStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(upStatus.strip()).split('\n'):
+        upStatus = myCmds.run(cmd)
+        for line in upStatus.stdout.split('\n'):
             print(line)
         time.sleep(20)
         cmd = 'docker inspect --format="STATUS: {{.State.Health.Status}}" cicd-oai-nef'
-        print (cmd)
-        healthStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(healthStatus.strip()).split('\n'):
+        healthStatus = myCmds.run(cmd)
+        for line in healthStatus.stdout.split('\n'):
             print(line)
             if re.search('STATUS:', line):
                 if re.search('STATUS: healthy', line):
@@ -81,37 +80,32 @@ def generic_deployment(tag):
                 else:
                     status = -1
         cmd = 'docker logs cicd-oai-nef'
-        print (cmd)
-        logStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(logStatus.strip()).split('\n'):
+        logStatus = myCmds.run(cmd)
+        for line in logStatus.stdout.split('\n'):
             print(line)
         time.sleep(5)
         cmd = 'cd ci-scripts/docker-compose && docker-compose down'
-        print (cmd)
-        downStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(downStatus.strip()).split('\n'):
+        downStatus = myCmds.run(cmd)
+        for line in downStatus.stdout.split('\n'):
             print(line)
         cmd = 'docker volume prune --force || true'
-        subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
+        myCmds.run(cmd)
     else:
         cmd = 'sudo podman network create --subnet 192.168.28.192/26 --ip-range 192.168.28.192/26 cicd-oai-public-net'
-        print (cmd)
-        netUpStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(netUpStatus.strip()).split('\n'):
+        netUpStatus = myCmds.run(cmd)
+        for line in netUpStatus.stdout.split('\n'):
             print(line)
         time.sleep(1)
         cwd = os.getcwd()
         cmd = 'sudo podman run --name cicd-oai-nef --network cicd-oai-public-net --ip 192.168.28.210'
-        cmd += ' --env-file ./ci-scripts/podman/nef.env -d ' + tag
-        print (cmd)
-        contUpStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(contUpStatus.strip()).split('\n'):
+        cmd += f' --env-file ./ci-scripts/podman/nef.env -d {tag}'
+        contUpStatus = myCmds.run(cmd)
+        for line in contUpStatus.stdout.split('\n'):
             print(line)
         time.sleep(20)
         cmd = 'sudo podman inspect --format="STATUS: {{.State.Healthcheck.Status}}" cicd-oai-nef'
-        print (cmd)
-        healthStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(healthStatus.strip()).split('\n'):
+        healthStatus = myCmds.run(cmd)
+        for line in healthStatus.stdout.split('\n'):
             print(line)
             if re.search('STATUS:', line):
                 if re.search('STATUS: healthy', line):
@@ -119,22 +113,19 @@ def generic_deployment(tag):
                 else:
                     status = -1
         cmd = 'sudo podman logs cicd-oai-nef'
-        print (cmd)
-        logStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(logStatus.strip()).split('\n'):
+        logStatus = myCmds.run(cmd)
+        for line in logStatus.stdout.split('\n'):
             print(line)
         cmd = 'sudo podman rm -f cicd-oai-nef'
-        print (cmd)
-        contDwnStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(contDwnStatus.strip()).split('\n'):
+        contDwnStatus = myCmds.run(cmd)
+        for line in contDwnStatus.stdout.split('\n'):
             print(line)
         cmd = 'sudo podman network rm cicd-oai-public-net'
-        print (cmd)
-        netDwnStatus = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
-        for line in str(netDwnStatus.strip()).split('\n'):
+        netDwnStatus = myCmds.run(cmd)
+        for line in netDwnStatus.stdout.split('\n'):
             print(line)
         cmd = 'sudo podman volume prune --force || true'
-        subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
+        myCmds.run(cmd)
     return status
 
 if __name__ == '__main__':

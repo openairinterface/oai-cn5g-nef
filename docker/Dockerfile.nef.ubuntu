@@ -51,9 +51,8 @@ RUN git config --global https.postBuffer 123289600 && \
 # Copying source code
 WORKDIR /openair-nef
 COPY ./build/scripts /openair-nef/build/scripts/
-COPY ./build/build-common /openair-nef/build/build-common/
+COPY ./build/common-build /openair-nef/build/common-build/
 COPY ./build/nef/CMakeLists.txt /openair-nef/build/nef/CMakeLists.txt
-COPY ./build/cmake_modules /openair-nef/build/cmake_modules/
 
 # Installing all the needed libraries/packages to build and run NEF
 WORKDIR /openair-nef/build/scripts
@@ -74,7 +73,7 @@ RUN ./build_nef --clean --Verbose --build-type Release --jobs && \
     # Adapting the entrypoint to NEF NF
     sed -i -e "s@openair-nf-root-folder@openair-nef@g" \
            -e "s@nf-config-file@nef.conf@g" \
-           ../build-common/docker-scripts/entrypoint.py
+           ../common-build/docker-scripts/entrypoint.py
 
 #---------------------------------------------------------------------
 # TARGET IMAGE
@@ -128,7 +127,7 @@ RUN apt-get update && \
 WORKDIR /openair-nef/bin
 COPY --from=oai-nef-builder \
     /openair-nef/build/nef/build/oai_nef \
-    /openair-nef/build/build-common/docker-scripts/entrypoint.py \
+    /openair-nef/build/common-build/docker-scripts/entrypoint.py \
     /openair-nef/scripts/healthcheck.sh \
     ./
 
