@@ -326,6 +326,7 @@ pipeline {
           steps {
             lock (rhelResource) {
               script {
+                prepareWorkspaceMergeCase()
                 gitlabCommitStatus(name: "Sanity Check on RHEL8 Image") {
                   sh 'python3 ./ci-scripts/sanityCheckDeploy.py --tag oai-nef:' + nef_tag
                 }
