@@ -213,7 +213,7 @@ pipeline {
               script {
                 sh "sudo podman image prune --force"
                 sh "rm -Rf ./etc-pki-entitlement ./rhsm-conf ./rhsm-ca"
-                stash includes: 'archives/nef_podman_image_build.log', name: 'podmanBuildLog'
+                stash allowEmpty: true, includes: 'archives/nef_podman_image_build.log', name: 'podmanBuildLog'
               }
             }
           }
@@ -248,7 +248,7 @@ pipeline {
             }
             cleanup {
               script {
-                stash includes: 'archives/cppcheck*.*', name: 'cppcheckLogs'
+                stash allowEmpty: true, includes: 'archives/cppcheck*.*', name: 'cppcheckLogs'
                 // no need to keep the cppcheck container
                 sh 'docker rm -f nef-ci-cppcheck || true'
                 sh 'docker rmi nef-cppcheck:test || true'
@@ -285,7 +285,7 @@ pipeline {
           post {
             cleanup {
               script {
-                stash includes: 'src/oai_rules_result*.txt', name: 'formatCheckLogs'
+                stash allowEmpty: true, includes: 'src/oai_rules_result*.txt, archives/clang_format_install.log', name: 'formatCheckLogs'
                 sh 'docker rm -f nef-ci-clang-format || true'
                 sh 'docker rmi nef-clang-format-check:test || true'
               }
