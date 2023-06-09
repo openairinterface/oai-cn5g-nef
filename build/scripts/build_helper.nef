@@ -100,15 +100,6 @@ check_install_nef_deps() {
   # Libraries
   if [[ $OS_DISTRO == "ubuntu" ]]; then
     case "$(get_distribution_release)" in
-      "ubuntu18.04")
-        # Currently Ubuntu18.04 has boost 1.65 as the latest
-        # We need at least 1.66
-        # PPA has 1.67
-        $SUDO $INSTALLER install $OPTION software-properties-common
-        $SUDO add-apt-repository ppa:mhier/libboost-latest --yes
-        $SUDO $INSTALLER update
-        specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan4"
-        ;;
       "ubuntu20.04")
         specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan5"
         ;;
@@ -158,18 +149,6 @@ check_install_nef_deps() {
   fi
   echo "Install distro libs"
   $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
-
-  # fix issue with libboost in U18 for a bare metal deployment
-  if [[ $OS_DISTRO == "ubuntu" ]]; then
-    case "$(get_distribution_release)" in
-      "ubuntu18.04")
-        $SUDO $INSTALLER remove $OPTION libboost1.65-dev || true
-        $SUDO $INSTALLER autoremove $OPTION || true
-        $SUDO $INSTALLER install $OPTION libboost1.67-dev
-        ;;
-    esac
-  fi
-
   ret=$?;[[ $ret -ne 0 ]] && return $ret
   echo "distro libs installation complete"
 
@@ -190,10 +169,6 @@ check_install_nef_deps() {
 
   if [[ $OS_DISTRO == "ubuntu" ]]; then
     case "$(get_distribution_release)" in
-      "ubuntu18.04")
-        install_libyaml_cpp_from_git $1 $2
-        ret=$?;[[ $ret -ne 0 ]] && return $ret
-        ;;
       "ubuntu20.04")
         $SUDO $INSTALLER install $OPTION libyaml-cpp0.6 libyaml-cpp-dev
         ;;
@@ -258,12 +233,6 @@ check_install_nef_min_deps() {
 
   # Libraries
   if [[ $OS_DISTRO == "ubuntu" ]]; then
-    case "$(get_distribution_release)" in
-      "ubuntu18.04")
-        specific_packages="libconfig++-dev libasio-dev libboost-all-dev"
-      ;;
-    esac
-    # removed libspdlog-dev
     PACKAGE_LIST="\
       libtool"
   elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
@@ -278,13 +247,7 @@ check_install_nef_min_deps() {
 
   # Networking
   if [[ $OS_DISTRO == "ubuntu" ]]; then
-    case "$(get_distribution_release)" in
-  "ubuntu18.04")
-      specific_packages="iproute2"
-      ;;
-    esac
     PACKAGE_LIST="\
-      $specific_packages \
       ethtool \
       iptables \
       vlan"
