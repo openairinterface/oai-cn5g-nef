@@ -1,14 +1,15 @@
 openapi: 3.0.0
 info:
   title: 3gpp-lpi-pp
-  version: 1.0.1
+  version: 1.1.2
   description: |
-    API for Location Privacy Indication Parameters Provisioning.
-    © 2021, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    API for Location Privacy Indication Parameters Provisioning.  
+    © 2022, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  
     All rights reserved.
 externalDocs:
-  description: 3GPP TS 29.522 V16.7.0; 5G System; Network Exposure Function Northbound APIs.
-  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.522/'
+  description: >
+    3GPP TS 29.522 V17.8.0; 5G System; Network Exposure Function Northbound APIs.
+  url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.522/'
 security:
   - {}
   - oAuth2ClientCredentials: []
@@ -17,11 +18,12 @@ servers:
     variables:
       apiRoot:
         default: https://example.com
-        description: apiRoot as defined in subclause 5.2.4 of 3GPP TS 29.122.
+        description: apiRoot as defined in clause 5.2.4 of 3GPP TS 29.122.
 paths:
   /{afId}/provisionedLpis:
     get:
       summary: read all of the active LPI Parameters Provisioning resources for the AF
+      operationId: ReadAllResources
       tags:
         - LPI Parameters Provisionings
       parameters:
@@ -40,7 +42,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/LpiParametersProvision'
-                minItems: 1
         '307':
           $ref: 'TS29122_CommonData.yaml#/components/responses/307'
         '308':
@@ -66,6 +67,7 @@ paths:
 
     post:
       summary: Creates a new LPI Parameters Provisioning resource
+      operationId: CreateNewResource
       tags:
         - LPI Parameters Provisionings
       parameters:
@@ -91,7 +93,7 @@ paths:
                 $ref: '#/components/schemas/LpiParametersProvision'
           headers:
             Location:
-              description: 'Contains the URI of the newly created resource'
+              description: Contains the URI of the newly created resource.
               required: true
               schema:
                 type: string
@@ -121,6 +123,7 @@ paths:
   /{afId}/provisionedLpis/{provisionedLpiId}:
     get:
       summary: read an active LPI Parameters Provisioning resource for the AF and the provisioned LPI Id
+      operationId: ReadAnResource
       tags:
         - Individual LPI Parameters Provisioning
       parameters:
@@ -167,7 +170,8 @@ paths:
           $ref: 'TS29122_CommonData.yaml#/components/responses/default'
 
     put:
-      summary: Updates/replaces an existing LPI Parameters Provisioning resource
+      summary: Fully updates/replaces an existing LPI Parameters Provisioning resource
+      operationId: FullyUpdateAnResource
       tags:
         - Individual LPI Parameters Provisioning
       parameters:
@@ -192,13 +196,82 @@ paths:
               $ref: '#/components/schemas/LpiParametersProvision'
       responses:
         '200':
-          description: OK (Successful update of the existing resource)
+          description: >
+            OK. The resource has been successfully updated and a representation of the updated 
+            resource is returned.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LpiParametersProvision'
         '204':
-          description: Successful case. The resource has been successfully updated and no additional content is sent in the response message.
+          description: >
+            Successful case. The resource has been successfully updated and no additional
+            content is sent in the response message.
+        '307':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/307'
+        '308':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/308'
+        '400':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/400'
+        '401':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/401'
+        '403':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/403'
+        '404':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/404'
+        '411':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/411'
+        '413':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/413'
+        '415':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/415'
+        '429':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/429'
+        '500':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/500'
+        '503':
+          $ref: 'TS29122_CommonData.yaml#/components/responses/503'
+        default:
+          $ref: 'TS29122_CommonData.yaml#/components/responses/default'
+
+    patch:
+      summary: Partially modifies an existing LPI Parameters Provisioning resource.
+      operationId: PartialUpdateAnResource
+      tags:
+        - Individual LPI Parameters Provisioning
+      parameters:
+        - name: afId
+          in: path
+          description: Identifier of the AF
+          required: true
+          schema:
+            type: string
+        - name: provisionedLpiId
+          in: path
+          description: Identifier of the provisioned LPI parameter resource
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Parameters to modify the existing resource.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LpiParametersProvisionPatch'
+      responses:
+        '200':
+          description: >
+            OK. The resource has been successfully modified and a representation of the 
+            updated resource is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LpiParametersProvision'
+        '204':
+          description: >
+            Successful case. The resource has been successfully modified and no additional content 
+            is sent in the response message.
         '307':
           $ref: 'TS29122_CommonData.yaml#/components/responses/307'
         '308':
@@ -228,6 +301,7 @@ paths:
 
     delete:
       summary: Deletes an already existing LPI Parameters Provisioning resource
+      operationId: DeleteAnResource
       tags:
         - Individual LPI Parameters Provisioning
       parameters:
@@ -276,6 +350,7 @@ components:
           scopes: {}
   schemas: 
     LpiParametersProvision:
+      description: Represents an individual LPI Parameters Provisionings resource.
       type: object
       properties:
         self:
@@ -293,3 +368,11 @@ components:
       required:
         - lpi
         - suppFeat
+    LpiParametersProvisionPatch:
+      description: Represents the parameters to modify an existing Individual LPI Parameters Provisionings resource.
+      type: object
+      properties:
+        lpi:
+          $ref: 'TS29503_Nudm_SDM.yaml#/components/schemas/Lpi'
+        mtcProviderId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/MtcProviderInformation'

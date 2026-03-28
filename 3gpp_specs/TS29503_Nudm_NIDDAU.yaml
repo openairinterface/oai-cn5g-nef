@@ -1,23 +1,23 @@
 openapi: 3.0.0
 
 info:
-  version: '1.0.0'
+  version: '1.1.1'
   title: 'Nudm_NIDDAU'
   description: |
-    Nudm NIDD Authorization Service.
-    © 2020, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    Nudm NIDD Authorization Service.  
+    Â© 2022, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  
     All rights reserved.
 
 externalDocs:
-  description: 3GPP TS 29.503 Unified Data Management Services, version 16.4.0
-  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.503/'
+  description: 3GPP TS 29.503 Unified Data Management Services, version 17.8.0
+  url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.503/'
 
 servers:
   - url: '{apiRoot}/nudm-niddau/v1'
     variables:
       apiRoot:
         default: https://example.com
-        description: apiRoot as defined in clause clause 4.4 of 3GPP TS 29.501.
+        description: apiRoot as defined in clause 4.4 of 3GPP TS 29.501.
 
 security:
   - oAuth2ClientCredentials:
@@ -96,6 +96,7 @@ components:
 # COMPLEX TYPES:
 #
     AuthorizationData:
+      description: Represents NIDD authorization data.
       type: object
       required:
        - authorizationData
@@ -110,6 +111,7 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
 
     UserIdentifier:
+      description: Represents the user identifier.
       type: object
       required:
         - supi
@@ -122,6 +124,7 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
 
     NiddAuthUpdateInfo:
+      description: Represents NIDD authorization update information.
       type: object
       required:
         - authorizationData
@@ -130,8 +133,15 @@ components:
           $ref: '#/components/schemas/AuthorizationData'
         invalidityInd:
           type: boolean
+        snssai:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Snssai'
+        dnn:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Dnn'
+        niddCause:
+          $ref: '#/components/schemas/NiddCause'
 
     NiddAuthUpdateNotification:
+      description: Represents a NIDD authorization update notification.
       type: object
       required:
         - niddAuthUpdateInfoList
@@ -143,6 +153,7 @@ components:
           minItems: 1
 
     AuthorizationInfo:
+      description: Represents NIDD authorization information.
       type: object
       required:
        - snssai
@@ -158,6 +169,14 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/MtcProviderInformation'
         authUpdateCallbackUri:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Uri'
+        afId:
+          type: string
+        nefId:
+          $ref: 'TS29510_Nnrf_NFManagement.yaml#/components/schemas/NefId'
+        validityTime:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
+        contextInfo:
+          $ref: 'TS29503_Nudm_SDM.yaml#/components/schemas/ContextInfo'
 
 
 # SIMPLE TYPES:
@@ -165,4 +184,12 @@ components:
 
 
 # ENUMS:
+
+    NiddCause:
+      anyOf:
+        - type: string
+          enum:
+          - SUBSCRIPTION_WITHDRAWAL
+          - DNN_REMOVED
+        - type: string
 

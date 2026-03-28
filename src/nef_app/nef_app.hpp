@@ -1,572 +1,373 @@
+#include "../common-src/model/ProblemDetails.h"
+
+using oai::model::ProblemDetails;
 /*
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
  * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License. You may obtain a copy of the
- * License at
- *
- *      http://www.openairinterface.org/?page_id=698
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
- */
-
-/*! \file nef_app.hpp
- \brief
- \author  Tien-Thinh NGUYEN
- \company Eurecom
- \date 2022
- \email: Tien-Thinh.Nguyen@eurecom.fr
+ * file except in compliance with the License.
  */
 
 #ifndef FILE_NEF_APP_HPP_SEEN
 #define FILE_NEF_APP_HPP_SEEN
 
+#include <map>
+#include <memory>
 #include <shared_mutex>
 #include <string>
-#include <optional>
+#include <unordered_map>
+#include <vector>
 
-#include "AmfEventNotification.h"
-#include "IpAddr.h"
-#include "MonitoringEventSubscription.h"
-#include "MonitoringReport.h"
-#include "NefEventExposureNotif.h"
-#include "NefEventExposureSubsc.h"
-#include "NsmfEventExposureNotification.h"
-#include "PatchItem.h"
-#include "ProblemDetails.h"
+#include <boost/signals2.hpp>
+#include <nlohmann/json.hpp>
+#include "../common-src/model/ProblemDetails.h"
+
 #include "nef.h"
+#include "nef_af_profile.hpp"
+#include "nef_event.hpp"
+#include "nef_subscription.hpp"
 #include "uint_generator.hpp"
 
-using namespace oai::nef::model;
+namespace bs2 = boost::signals2;
 
-namespace oai::nef::app {
+namespace oai {
+namespace nef {
+namespace app {
 
-class nef_config;
+class nef_client;
+
 class nef_app {
  public:
-  explicit nef_app(const std::string& config_file);
+  explicit nef_app(const std::string& config_file, nef_event& ev);
   nef_app(nef_app const&) = delete;
   void operator=(nef_app const&) = delete;
-
   virtual ~nef_app();
 
-  /*
-   * Generate an unique ID for the new subscription
-   * @param [const std::string &] sub_id: the generated ID
-   * @return void
-   */
-  void generate_ev_subscription_id(std::string& sub_id);
+  // ── Utility ──────────────────────────────────────────────────────────────
+  void generate_uuid();
+  void generate_af_subscription_id(std::string& sub_id);
 
-  /*
-   * Generate an unique ID for the new subscription
-   * @param void
-   * @return the generated ID
-   */
-  evsub_id_t generate_ev_subscription_id();
+  // ── Authorization ─────────────────────────────────────────────────────────
+  bool authorize_af_request(
+      const std::string& scs_as_id, const std::string& api_name) const;
 
-  /*
-   * Handle a request to create a subscription (Event Exposure)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const NefEventExposureSubsc &] ev_sub: Requested subscription's
-   * information
-   * @param [NefEventExposureSubsc &] created_ev_sub: Created subscription's
-   * information
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [ProblemDetails &] problem_details: Store details of the error
-   * @return void
-   */
-  void handle_create_individual_subscription(
-      std::string& sub_id, const NefEventExposureSubsc& ev_sub,
-      NefEventExposureSubsc& created_ev_sub, const uint8_t http_version,
-      int& http_code, ProblemDetails& problem_details);
+  // Per-request auth context set by HTTP layer before dispatch.
+  void set_request_bearer_token(const std::string& bearer_token) const;
+  void clear_request_bearer_token() const;
 
-  /*
-   * Handle a request to delete a subscription (Event Exposure)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [ProblemDetails &] problem_details: Store details of the error
-   * @return void
-   */
-  void handle_remove_individual_subscription(
-      const std::string& sub_id, const uint8_t http_version, int& http_code,
-      ProblemDetails& problem_details);
+  // ── Monitoring Event Exposure (3GPP TS 29.122 §5.6) ──────────────────────
+  void handle_monitoring_event_subscription_create(
+      const std::string& scs_as_id, const nlohmann::json& body,
+      std::string& sub_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Handle a request to get a subscription information (Event Exposure)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [nlohmann::json &] ev_sub: Subscription's information
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [ProblemDetails &] problem_details: Store details of the error
-   * @return void
-   */
-  void handle_get_individual_subscription(
-      const std::string& sub_id, nlohmann::json& ev_sub,
-      const uint8_t http_version, int& http_code,
-      ProblemDetails& problem_details);
+  void handle_monitoring_event_subscription_delete(
+      const std::string& scs_as_id, const std::string& sub_id, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Handle a request to update a subscription information (Event Exposure)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const NefEventExposureSubsc &] ev_sub: Requested subscription's
-   * information
-   * @param [nlohmann::json &] updated_ev_sub: Updated subscription's
-   * information or problem details (Store details of the error)
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @return void
-   */
-  void handle_update_individual_subscription(
-      const std::string& sub_id, const NefEventExposureSubsc& ev_sub,
-      nlohmann::json& updated_ev_sub, const uint8_t http_version,
-      int& http_code);
+  void handle_monitoring_event_subscription_get(
+      const std::string& scs_as_id, const std::string& sub_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Handle a NF event notification (from AMF/SMF/UDM, etc)
-   * @param [const NefEventExposureNotif &] eventNotif: Notification data
-   * @param [nlohmann::json &] response_data: response data
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @return void
-   */
-  void handle_nf_event_notification(
-      const NefEventExposureNotif& eventNotif, nlohmann::json& response_data,
-      const uint8_t http_version, int& http_code);
+  // F2.2: Monitoring Event UPDATE (PUT)
+  void handle_monitoring_event_subscription_update(
+      const std::string& scs_as_id, const std::string& sub_id,
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Handle an event notification from AMF
-   * @param [const AmfEventNotification &] amfEventNotification: Notification
-   * data
-   * @param [nlohmann::json &] response_data: response data
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @return void
-   */
-  void handle_amf_event_notification(
-      const AmfEventNotification& amfEventNotification,
-      nlohmann::json& response_data, const uint8_t http_version,
-      int& http_code);
+  // ── Traffic Influence (3GPP TS 29.522 §5.3) ──────────────────────────────
+  void handle_traffic_influence_create(
+      const std::string& af_id, const nlohmann::json& body, std::string& ti_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Handle an event notification from SMF
-   * @param [const NsmfEventExposureNotification &]
-   * smfEventExposureNotification: Notification data
-   * @param [nlohmann::json &] response_data: response data
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @return void
-   */
-  void handle_smf_event_notification(
-      const NsmfEventExposureNotification& smfEventExposureNotification,
-      nlohmann::json& response_data, const uint8_t http_version,
-      int& http_code);
+  void handle_traffic_influence_update(
+      const std::string& af_id, const std::string& ti_id,
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Handle an event notification from SMF
-   * @param [const std::vector<MonitoringReport>&]
-   * eventExposureNotif: Notification data
-   * @param [nlohmann::json &] response_data: response data
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @return void
-   */
-  void handle_udm_event_notification(
-      const std::vector<MonitoringReport>& eventExposureNotif,
-      nlohmann::json& response_data, const uint8_t http_version,
-      int& http_code);
+  void handle_traffic_influence_delete(
+      const std::string& af_id, const std::string& ti_id, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Handle a request to create a Monitoring subscription
-   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const MonitoringEventSubscription &] ev_sub: Requested
-   * subscription's information
-   * @param [MonitoringEventSubscription &] created_ev_sub: Created
-   * subscription's information
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [ProblemDetails &] problem_details: Store details of the error
-   * @return void
-   */
-  void handle_create_monitoring_event_subscription(
-      const std::string& consumer_nf_id, std::string& sub_id,
-      const MonitoringEventSubscription& ev_sub,
-      MonitoringEventSubscription& created_ev_sub, const uint8_t http_version,
-      int& http_code, ProblemDetails& problem_details);
+  // F2.1: TI GET and LIST
+  void handle_traffic_influence_get(
+      const std::string& af_id, const std::string& app_session_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+  void handle_traffic_influence_list(
+      const std::string& af_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Handle a request to fetch all subscription information for a consumer NF
-   * (e.g., AF)
-   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [nlohmann::json&] result: the result in Json format
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @return void
-   */
-  void handle_fetch_all_monitoring_event_subscriptions(
-      const std::string& consumer_nf_id,
-      const std::optional<std::vector<oai::nef::model::IpAddr>>& ipAddrs,
-      const std::optional<std::string>& ipDomain,
-      const std::optional<std::vector<std::string>>& macAddrs,
-      const uint8_t http_version, nlohmann::json& result, int& http_code);
+  // F2.4: TI PATCH
+  void handle_traffic_influence_patch(
+      const std::string& af_id, const std::string& app_session_id,
+      const nlohmann::json& patch_body, nlohmann::json& response_body,
+      int& http_code, uint8_t http_version);
 
-  /*
-   * Handle a request to delete an existing subscription for a consumer NF
-   * (e.g., AF)
-   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [ProblemDetails &] problem_details: Store details of the error
-   * @return void
-   */
-  void handle_delete_ind_monitoring_event_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      const uint8_t http_version, int& http_code,
-      ProblemDetails& problem_details);
+  // ── PFD Management (3GPP TS 29.122 §5.12) ────────────────────────────────
+  void handle_pfd_create(
+      const std::string& app_id, const nlohmann::json& body,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Handle a request to fetch a subscription for a consumer NF
-   * (e.g., AF)
-   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [nlohmann::json&] result: the result in Json format
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @return void
-   */
-  void handle_fetch_ind_monitoring_event_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      const uint8_t http_version, nlohmann::json& response_data,
-      int& http_code);
+  void handle_pfd_delete(
+      const std::string& app_id, int& http_code, uint8_t http_version);
 
-  /*
-   * Handle a request to modify an existing subscription for a consumer NF
-   * (e.g., AF)
-   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const std::vector<PatchItem>&] patchItem: List of updated item
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [ProblemDetails &] problem_details: Store details of the error
-   * @return void
-   */
-  void handle_modify_ind_monitoring_event_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      const std::vector<PatchItem>& patchItem, const uint8_t http_version,
-      int& http_code, ProblemDetails& problem_details);
+  void handle_pfd_get(
+      const std::string& app_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Handle a request to update an existing subscription for a consumer NF
-   * (e.g., AF)
-   * @param [std::string &] consumer_nf_id: ID of the consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [const MonitoringEventSubscription&] ev_sub: Updated subscription
-   * information
-   * @param [const uint8_t] http_version: HTTP version
-   * @param [int &] http_code: HTTP code used to return to the service consumer
-   * @param [nlohmann::json&] result: the result in Json format
-   * @param [ProblemDetails &] problem_details: Store details of the error
-   * @return void
-   */
-  void handle_update_ind_monitoring_event_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      const MonitoringEventSubscription& ev_sub, const uint8_t http_version,
-      nlohmann::json& response_data, int& http_code);
+  // F2.8: PFD transaction-level and app-level endpoints
+  void handle_pfd_transaction_list(
+      const std::string& scs_as_id, nlohmann::json& response_body,
+      int& http_code, uint8_t http_version);
 
-  /*
-   * Add a new individual subscription (Event Exposure) to the DB
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [std::shared_ptr<NefEventExposureSubsc> &] ces: Pointer to the
-   * created subscription
-   * @return true if the subscription is created successfully, otherwise return
-   * false
-   */
-  bool add_ee_subscription(
-      const std::string& sub_id, std::shared_ptr<NefEventExposureSubsc>& ces);
+  void handle_pfd_transaction_put(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Add/Create a subscription (Event Exposure) and store to the DB
-   * @param [std::string &] consumer_nf_id: ID of the Consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [std::string &] nf_resource_location: Location of the created
-   * subscription from AMF/SMF/UDM
-   * @param [std::shared_ptr<MonitoringEventSubscription>&] ces: Shared pointer
-   * to the created Event
-   * @return true if the subscription is created/added successfully, otherwise
-   * return false
-   */
-  bool add_ee_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      const std::string& nf_resource_location,
-      std::shared_ptr<MonitoringEventSubscription>& ces);
+  void handle_pfd_transaction_delete(
+      const std::string& scs_as_id, const std::string& trans_id, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Remove an existing subscription (Event Exposure) from the DB
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @return true if the subscription is removed successfully, otherwise return
-   * false
-   */
-  bool remove_ee_subscription(const std::string& sub_id);
+  void handle_pfd_app_get(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const std::string& app_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Get info of an existing subscription (Event Exposure) from the DB
-   * @param [std::string &] sub_id: ID of the subscription
-   * @param [nlohmann::json &] ev_sub: Store subscription info in JSON format
-   * @return true if the subscription is existed, otherwise return
-   * false
-   */
-  bool get_ee_subscription(const std::string& sub_id, nlohmann::json& ev_sub);
+  void handle_pfd_app_put(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const std::string& app_id, const nlohmann::json& body,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Remove an existing monitoring subscription (Event Exposure) from the DB
-   * @param [std::string &] consumer_nf_id: ID of the Consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @return true if the subscription is removed successfully, otherwise return
-   * false
-   */
-  bool remove_monitoring_ee_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id);
+  void handle_pfd_app_patch(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const std::string& app_id, const nlohmann::json& patch_body,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Get info of an existing monitoring subscription (Event Exposure) from the
-   * DB
-   * @param [std::string &] consumer_nf_id: ID of the Consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the subscription
-   * @param [nlohmann::json &] ev_sub: Store subscription info in JSON format
-   * @return true if the subscription is existed, otherwise return
-   * false
-   */
-  bool get_monitoring_ee_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      nlohmann::json& ev_sub);
+  void handle_pfd_app_delete(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const std::string& app_id, int& http_code, uint8_t http_version);
 
-  /*
-   * Get info of an existing monitoring subscription (Event Exposure) from the
-   * DB
-   * @param [const std::string &] consumer_nf_id: ID of the Consumer NF (e.g.,
-   * AF)
-   * @param [const std::string &] sub_id: ID of the subscription
-   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Store the
-   * pointer to the Event
-   * @return true if the subscription is existed, otherwise return false
-   */
-  bool get_monitoring_ee_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      std::shared_ptr<MonitoringEventSubscription>& mes);
+  // Nnef_PFDmanagement (TS 29.551)
+  void handle_nnef_pfd_list_transactions(
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Get info of an existing monitoring subscription (Event Exposure) from the
-   * DB
-   * @param [const std::string &] consumer_nf_id: ID of the Consumer NF (e.g.,
-   * AF)
-   * @param [std::set<std::string> &] sub_ids: Set of sub IDs associated with
-   * this consumer NF
-   * @return true if the subscription is existed, otherwise return
-   * false
-   */
-  bool get_sub_ids(
-      const std::string& consumer_nf_id, std::set<std::string>& sub_ids);
+  void handle_nnef_pfd_put_transaction(
+      const std::string& transaction_id, const nlohmann::json& body,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Subscribe NF (AMF/SMF/UDM, etc) events
-   * @param [const MonitoringEventSubscription&] ev_sub: Subscription
-   * information (from AF)
-   * @param [std::string &] sub_id: ID of the created subscription
-   * @param [std::string &] nf_resource_location: Location of the created
-   * subscription (generated by AMF)
-   * @param [int&] http_code: HTTP response code from NF
-   * @return void
-   */
-  void subscribe_nf_events(
-      const MonitoringEventSubscription& ev_sub, const std::string& sub_id,
-      std::string& nf_resource_location, int& http_code);
+  void handle_nnef_pfd_get_transaction(
+      const std::string& transaction_id, nlohmann::json& response_body,
+      int& http_code, uint8_t http_version);
 
-  /*
-   * Subscribe to AMF events
-   * @param [std::string &] sub_id: ID of the created subscription (from AF)
-   * @param [std::string &] nf_resource_location: Location of the created
-   * subscription (generated by AMF)
-   * @param [const oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf
-   * &] event_type: Event type
-   * @param [const MonitoringEventSubscription&] ev_sub: Subscription
-   * information (from AF)
-   * @param [int&] http_code: HTTP response code from AMF
-   * @return void
-   */
-  void subscribe_amf_events(
-      const std::string& sub_id, std::string& nf_resource_location,
-      const oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf&
-          event_type,
-      const MonitoringEventSubscription& ev_sub, int& http_code);
+  void handle_nnef_pfd_delete_transaction(
+      const std::string& transaction_id, int& http_code, uint8_t http_version);
 
-  /*
-   * Subscribe to SMF events
-   * @param [std::string &] sub_id: ID of the created subscription (from AF)
-   * @param [std::string &] nf_resource_location: Location of the created
-   * subscription (generated by SMF)
-   * @param [const oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf
-   * &] event_type: Event type
-   * @param [const MonitoringEventSubscription&] ev_sub: Subscription
-   * information (from AF)
-   * @param [int&] http_code: HTTP response code from SMF
-   * @return void
-   */
-  void subscribe_smf_events(
-      const std::string& sub_id, std::string& nf_resource_location,
-      const oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf&
-          event_type,
-      const MonitoringEventSubscription& ev_sub, int& http_code);
+  void handle_nnef_pfd_get_app(
+      const std::string& transaction_id, const std::string& app_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Subscribe to UDM events
-   * @param [std::string &] sub_id: ID of the created subscription (from AF)
-   * @param [std::string &] nf_resource_location: Location of the created
-   * subscription (generated by UDM)
-   * @param [const oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf
-   * &] event_type: Event type
-   * @param [const MonitoringEventSubscription&] ev_sub: Subscription
-   * information (from AF)
-   * @param [int&] http_code: HTTP response code from UDM
-   * @return void
-   */
-  void subscribe_udm_events(
-      const std::string& sub_id, std::string& nf_resource_location,
-      const oai::nef::model::MonitoringType_anyOf::eMonitoringType_anyOf&
-          event_type,
-      const MonitoringEventSubscription& ev_sub, int& http_code);
+  void handle_nnef_pfd_put_app(
+      const std::string& transaction_id, const std::string& app_id,
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Unsubscribe to a particular event
-   * @param [const std::string &] nf_resource_location: Location of the
-   * subscription
-   * @param [int&] http_code: HTTP response code from NF
-   * @return void
-   */
-  void unsubscribe_nf_event(
-      const std::string& nf_resource_location, int& http_code);
+  void handle_nnef_pfd_delete_app(
+      const std::string& transaction_id, const std::string& app_id,
+      int& http_code, uint8_t http_version);
 
-  /*
-   * Validate the monitoring event subscription request (e.g., whether the
-   * request parameters are in line with operator policies)
-   * @param [const MonitoringEventSubscription&] ev_sub: Event Subscription info
-   * @param [MonitoringEventSubscription&] created_ev_sub: Updated Subscription
-   * info (if the request is valid)
-   * @param [ProblemDetails&] problem_details: Store details of the error
-   * @return true if the request parameters are valid, otherwise false
-   */
-  bool validate_monitoring_event_subscription(
-      const MonitoringEventSubscription& ev_sub,
-      MonitoringEventSubscription& created_ev_sub,
-      ProblemDetails& problem_details);
+  // ── Background Data Transfer (3GPP TS 29.122 §5.13) ─────────────────────
+  void handle_bdt_policy_create(
+      const std::string& af_id, const nlohmann::json& body, std::string& bdt_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
 
-  /*
-   * Update a new value for a member of MonitoringEventSubscription
-   * @param [const std::string &] path: member name
-   * @param [const std::string &] value: new value
-   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
-   * subscription to be updated
-   * @return true if success, otherwise false
-   */
-  bool replace_subscription_info(
-      const std::string& path, const std::string& value,
-      std::shared_ptr<MonitoringEventSubscription>& mes);
+  void handle_bdt_policy_update(
+      const std::string& af_id, const std::string& bdt_id,
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Add a new member of MonitoringEventSubscription
-   * @param [const std::string &] path: member name
-   * @param [const std::string &] value: value
-   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
-   * subscription to be updated
-   * @return true if success, otherwise false
-   */
-  bool add_subscription_info(
-      const std::string& path, const std::string& value,
-      std::shared_ptr<MonitoringEventSubscription>& mes);
+  void handle_bdt_policy_delete(
+      const std::string& af_id, const std::string& bdt_id, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Remove a member of MonitoringEventSubscription
-   * @param [const std::string &] path: member name
-   * @param [const std::string &] value: value
-   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
-   * subscription to be updated
-   * @return true if success, otherwise false
-   */
-  bool remove_subscription_info(
-      const std::string& path,
-      std::shared_ptr<MonitoringEventSubscription>& mes);
+  void handle_bdt_policy_list(
+      const std::string& af_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
 
-  /*
-   * Update a MonitoringEventSubscription
-   * @param [std::string &] consumer_nf_id: ID of the Consumer NF (e.g., AF)
-   * @param [std::string &] sub_id: ID of the subscription
-   * @param [std::shared_ptr<MonitoringEventSubscription>&] mes: Pointer to the
-   * subscription to be updated
-   * @return true if success, otherwise false
-   */
-  bool update_monitoring_subscription(
-      const std::string& consumer_nf_id, const std::string& sub_id,
-      std::shared_ptr<MonitoringEventSubscription>& mes);
+  void handle_bdt_policy_get(
+      const std::string& af_id, const std::string& bdt_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+
+  // F2.6: BDT PATCH
+  void handle_bdt_policy_patch(
+      const std::string& af_id, const std::string& bdt_policy_id,
+      const nlohmann::json& patch_body, nlohmann::json& response_body,
+      int& http_code, uint8_t http_version);
+
+  // ── QoS Provisioning / Monitoring (3GPP TS 29.122 §5.7) ─────────────────
+  void handle_qos_subscription_create(
+      const std::string& af_id, const nlohmann::json& body,
+      std::string& qos_sub_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
+
+  void handle_qos_subscription_delete(
+      const std::string& af_id, const std::string& qos_sub_id, int& http_code,
+      uint8_t http_version);
+
+  void handle_qos_subscription_get(
+      const std::string& af_id, const std::string& qos_sub_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+
+  void handle_qos_subscription_list(
+      const std::string& af_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
+
+  // F2.3: QoS UPDATE (PUT)
+  void handle_qos_subscription_update(
+      const std::string& scs_as_id, const std::string& sub_id,
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
+
+  // F2.5: QoS PATCH
+  void handle_qos_subscription_patch(
+      const std::string& scs_as_id, const std::string& sub_id,
+      const nlohmann::json& patch_body, nlohmann::json& response_body,
+      int& http_code, uint8_t http_version);
+
+  // ── Analytics (3GPP TS 29.520) ────────────────────────────────────────────
+  void handle_analytics_subscription_create(
+      const std::string& af_id, const nlohmann::json& body,
+      std::string& analytics_sub_id, nlohmann::json& response_body,
+      int& http_code, uint8_t http_version);
+
+  void handle_analytics_subscription_delete(
+      const std::string& af_id, const std::string& analytics_sub_id,
+      int& http_code, uint8_t http_version);
+
+  void handle_analytics_subscription_get(
+      const std::string& af_id, const std::string& analytics_sub_id,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+
+  void handle_analytics_subscription_list(
+      const std::string& af_id, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
+
+  // F2.9: Analytics UPDATE (PUT)
+  void handle_analytics_subscription_update(
+      const std::string& scs_as_id, const std::string& sub_id,
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
+
+  // F2.7: Analytics /fetch endpoint
+  void handle_analytics_fetch(
+      const std::string& scs_as_id, const nlohmann::json& body,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+
+  // ── Inbound notification from 5GC NF ─────────────────────────────────────
+  void handle_nf_notification(
+      const std::string& nf_sub_id, const nlohmann::json& notif_payload);
+
+  // Nnef_EventExposure (TS 29.591)
+  void handle_nnef_event_exposure_subscribe(
+      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+      uint8_t http_version);
+
+  void handle_nnef_event_exposure_unsubscribe(
+      const std::string& subscription_id, int& http_code, uint8_t http_version);
+
+  void handle_nnef_event_exposure_get(
+      const std::string& subscription_id, nlohmann::json& response_body,
+      int& http_code, uint8_t http_version);
+
+  void handle_nnef_event_exposure_update(
+      const std::string& subscription_id, const nlohmann::json& body,
+      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+
+  // ── AF Profile management (mirrors nrf_app NF profile management) ─────────
+  bool add_af_profile(
+      const std::string& af_id, const std::shared_ptr<nef_af_profile>& p);
+
+  bool remove_af_profile(const std::string& af_id);
+
+  std::shared_ptr<nef_af_profile> find_af_profile(
+      const std::string& af_id) const;
+
+  bool is_af_registered(const std::string& af_id) const;
 
  private:
-  /*
-   * Generate a random UUID for NEF instance
-   * @param [void]
-   * @return void
-   */
-  void generate_uuid();
+  std::string m_nef_instance_id;
 
-  util::uint_generator<uint32_t> evsub_id_generator;
-  std::string nef_instance_id;  // NEF instance ID
+  // AF subscriptions map (af_sub_id → subscription)
+  std::map<std::string, std::shared_ptr<nef_subscription>>
+      m_af_sub_id2subscription;
+  mutable std::shared_mutex m_af_subscriptions_mutex;
 
-  // NF's instance id <-> list of subscription IDs
-  std::map<std::string, std::vector<std::string>> nef_subscriptions;
-  mutable std::shared_mutex m_instance_id2nef_subscription;
+  // NF→AF sub-id mapping  (nf_sub_id → af_sub_id)
+  std::map<std::string, std::string> m_nf2af_sub_id;
+  mutable std::shared_mutex m_nf2af_mutex;
 
-  // Sub_id <->Subscription (Southbound APIs)
-  std::map<std::string, std::shared_ptr<NefEventExposureSubsc>>
-      subscrition_id2nef_subscription;
-  mutable std::shared_mutex m_subscription_id2nef_subscription;
+  // Traffic influence sessions (ti_id → body)
+  std::map<std::string, nlohmann::json> m_ti_sessions;
+  std::map<std::string, std::string> m_ti_id2af_id;
+  std::map<std::string, std::string> m_ti_id2pcf_policy_id;
+  mutable std::shared_mutex m_ti_mutex;
 
-  // Event Sub<->list of Subscriptions (Southbound)
-  std::map<NefEvent_anyOf::eNefEvent_anyOf, std::set<std::string>>
-      event_sub2subscriptions;
-  mutable std::shared_mutex m_event_sub2subscriptions;
+  // BDT policy sessions (bdt_id → body)
+  std::map<std::string, nlohmann::json> m_bdt_sessions;
+  std::map<std::string, std::string> m_bdt_id2af_id;
+  std::map<std::string, std::string> m_bdt_id2pcf_policy_id;
+  mutable std::shared_mutex m_bdt_mutex;
 
-  // Use 1 common shared_mutex for Northbound APIs
-  mutable std::shared_mutex m_subscription_id2nef_monitoring_subscription;
+  // PFD transactions (trans_id → transaction body containing pfdDatas)
+  std::map<std::string, nlohmann::json> m_pfd_trans_sessions;
+  std::map<std::string, std::string> m_pfd_trans2scs_id;
+  mutable std::shared_mutex m_pfd_mutex;
 
-  // Sub_id <->Subscription (for Northbound APIs)
-  std::map<std::string, std::shared_ptr<MonitoringEventSubscription>>
-      subscrition_id2nef_monitoring_subscription;
+  // SBI PFD management storage (distinct from T8 PFD storage)
+  std::unordered_map<std::string, nlohmann::json> m_nnef_pfd_transactions;
+  mutable std::shared_mutex m_nnef_pfd_transactions_mutex;
 
-  // Consumer NF ID <->list of Subscriptions (Northbound)
-  std::map<std::string, std::set<std::string>>
-      nf_id2nef_monitoring_subscriptions;
+  // Nnef_EventExposure subscriptions (subscription_id → subscription body)
+  std::unordered_map<std::string, nlohmann::json> m_nnef_event_subscriptions;
+  mutable std::shared_mutex m_nnef_event_subscriptions_mutex;
 
-  // Event Sub<->list of Subscriptions (Northbound)
-  std::map<MonitoringType_anyOf::eMonitoringType_anyOf, std::set<std::string>>
-      event_sub2monitoring_subscriptions;
-  // mutable std::shared_mutex m_event_sub2monitoring_subscriptions;
+  nef_event& m_event_sub;
+  std::vector<bs2::connection> m_connections;
+  oai::utils::uint_generator<uint32_t> m_sub_id_generator;
 
-  // Sub_id <->resource location (Subscription Correlation ID, Northbound)
-  std::map<std::string, std::string>
-      subscrition_id2nef_monitoring_resource_location;
-  // mutable std::shared_mutex
-  // m_subscrition_id2nef_monitoring_resource_location;
+  std::shared_ptr<nef_client> m_nef_client;
+
+  // AF profile store: af_id → profile (mirrors instance_id2nrf_profile in
+  // nrf_app)
+  std::map<std::string, std::shared_ptr<nef_af_profile>> m_af_id2profile;
+  mutable std::shared_mutex m_af_id2profile_mutex;
+
+  // ── Internal helpers ──────────────────────────────────────────────────────
+  bool add_subscription(
+      const std::string& sub_id, const std::shared_ptr<nef_subscription>& s);
+  bool remove_subscription(const std::string& sub_id);
+  std::shared_ptr<nef_subscription> find_subscription(
+      const std::string& sub_id) const;
+  bool is_subscription_owner(
+      const std::shared_ptr<nef_subscription>& sub,
+      const std::string& af_id) const;
+
+  void subscribe_nf_notification();
+  void handle_nf_notification_event(
+      const std::string& nf_sub_id, const nlohmann::json& notif);
+
+  void handle_subscription_expiry_tick(uint64_t t);
+
+  // Lifecycle helpers: create profile on first subscription, destroy on last
+  void ensure_af_profile(const std::string& af_id, const std::string& sub_id);
+  void release_af_profile_subscription(
+      const std::string& af_id, const std::string& sub_id);
 };
-}  // namespace oai::nef::app
-#include "nef_config.hpp"
+
+}  // namespace app
+}  // namespace nef
+}  // namespace oai
 
 #endif /* FILE_NEF_APP_HPP_SEEN */

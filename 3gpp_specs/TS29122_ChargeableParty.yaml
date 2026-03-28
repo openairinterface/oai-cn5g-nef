@@ -1,14 +1,14 @@
 openapi: 3.0.0
 info:
   title: 3gpp-chargeable-party
-  version: 1.2.0-alpha.5
+  version: 1.2.1
   description: |
-    API for Chargeable Party management.
-    © 2021, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    API for Chargeable Party management.  
+    © 2022, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  
     All rights reserved.
 externalDocs:
-  description: 3GPP TS 29.122 V17.4.0 T8 reference point for Northbound APIs
-  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.122/'
+  description: 3GPP TS 29.122 V17.7.0 T8 reference point for Northbound APIs
+  url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.122/'
 security:
   - {}
   - oAuth2ClientCredentials: []
@@ -17,11 +17,11 @@ servers:
     variables:
       apiRoot:
         default: https://example.com
-        description: apiRoot as defined in subclause 5.2.4 of 3GPP TS 29.122.
+        description: apiRoot as defined in clause 5.2.4 of 3GPP TS 29.122.
 paths:
   /{scsAsId}/transactions:
     get:
-      summary: Read all chargeable party transaction resources for a given SCS/AS.
+      summary: Read all or queried chargeable party transaction resources for a given SCS/AS.
       operationId: FetchAllChargeablePartyTransactions
       tags:
         - Chargeable Party Transaction Operation
@@ -36,11 +36,13 @@ paths:
           in: query
           description: The IP address(es) of the requested UE(s).
           required: false
-          schema:
-            type: array
-            items:
-              $ref: 'TS29571_CommonData.yaml#/components/schemas/IpAddr'
-            minItems: 1
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'TS29571_CommonData.yaml#/components/schemas/IpAddr'
+                minItems: 1
         - name: ip-domain
           in: query
           description: The IPv4 address domain identifier. The attribute may only be provided if IPv4 address is included in the ip-addrs query parameter.
@@ -366,7 +368,7 @@ components:
           $ref: 'TS29122_CommonData.yaml#/components/schemas/Link'
         requestTestNotification:
           type: boolean
-          description: Set to true by the SCS/AS to request the SCEF to send a test notification as defined in subclause 5.2.5.3. Set to false or omitted otherwise.
+          description: Set to true by the SCS/AS to request the SCEF to send a test notification as defined in clause 5.2.5.3. Set to false or omitted otherwise.
         websockNotifConfig:
           $ref: 'TS29122_CommonData.yaml#/components/schemas/WebsockNotifConfig'
         exterAppId:
@@ -396,7 +398,8 @@ components:
           $ref: 'TS29122_CommonData.yaml#/components/schemas/SponsorInformation'
         sponsoringEnabled:
           type: boolean
-          description: Indicates sponsoring status.
+          description: >
+            Indicates whether the sponsoring data connectivity is enabled (true) or not (false).
         referenceId:
           $ref: 'TS29122_CommonData.yaml#/components/schemas/BdtReferenceId'
         servAuthInfo:
@@ -434,7 +437,8 @@ components:
           description: Identifies Ethernet packet flows.
         sponsoringEnabled:
           type: boolean
-          description: Indicates sponsoring status.
+          description: >
+            Indicates whether the sponsoring data connectivity is enabled (true) or not (false).
         referenceId:
           $ref: 'TS29122_CommonData.yaml#/components/schemas/BdtReferenceId'
         usageThreshold:
@@ -447,3 +451,4 @@ components:
           items:
             $ref: 'TS29122_CommonData.yaml#/components/schemas/Event'
           minItems: 1
+

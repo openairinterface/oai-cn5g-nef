@@ -1,23 +1,23 @@
 openapi: 3.0.0
 
 info:
-  version: '1.1.0'
+  version: '1.2.3'
   title: 'Nudm_EE'
   description: |
-    Nudm Event Exposure Service.
-    © 2020, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    Nudm Event Exposure Service.  
+    Â© 2023, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  
     All rights reserved.
 
 externalDocs:
-  description: 3GPP TS 29.503 Unified Data Management Services, version 16.4.0
-  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.503/'
+  description: 3GPP TS 29.503 Unified Data Management Services, version 17.10.0
+  url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.503/'
 
 servers:
   - url: '{apiRoot}/nudm-ee/v1'
     variables:
       apiRoot:
         default: https://example.com
-        description: apiRoot as defined in clause clause 4.4 of 3GPP TS 29.501.
+        description: apiRoot as defined in clause 4.4 of 3GPP TS 29.501.
 
 security:
   - oAuth2ClientCredentials:
@@ -98,6 +98,72 @@ paths:
                   $ref: 'TS29571_CommonData.yaml#/components/responses/503'
                 default:
                   description: Unexpected error
+        monitoringRevocationNotification:
+          '{request.body#/secondCallbackRef}':
+            post:
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/EeMonitoringRevoked'
+              responses:
+                '204':
+                  description: Successful Notification response
+                '400':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/400'
+                '404':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/404'
+                '500':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/500'
+                '503':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/503'
+                default:
+                  description: Unexpected error
+        dataRestorationNotification:
+          '{request.body#/dataRestorationCallbackUri}':
+            post:
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: 'TS29503_Nudm_UECM.yaml#/components/schemas/DataRestorationNotification'
+              responses:
+                '204':
+                  description: Successful Notification response
+                '307':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/307'
+                '308':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/308'
+                '400':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/400'
+                '401':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/401'
+                '403':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/403'
+                '404':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/404'
+                '409':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/409'
+                '411':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/411'
+                '413':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/413'
+                '415':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/415'
+                '429':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/429'
+                '500':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/500'
+                '502':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/502'
+                '503':
+                  $ref: 'TS29571_CommonData.yaml#/components/responses/503'
+                default:
+                  description: Unexpected error
+
+
 
   /{ueIdentity}/ee-subscriptions/{subscriptionId}:
     delete:
@@ -172,11 +238,11 @@ paths:
             application/json:
               schema:
                 $ref: 'TS29571_CommonData.yaml#/components/schemas/PatchResult'
-        '204': 
+        '204':
           description: Successful response
-        '403': 
+        '403':
           $ref: 'TS29571_CommonData.yaml#/components/responses/403'
-        '404': 
+        '404':
           $ref: 'TS29571_CommonData.yaml#/components/responses/404'
         default:
           description: Unexpected error
@@ -185,8 +251,8 @@ components:
   securitySchemes:
     oAuth2ClientCredentials:
       type: oauth2
-      flows: 
-        clientCredentials: 
+      flows:
+        clientCredentials:
           tokenUrl: '{nrfApiRoot}/oauth2/token'
           scopes:
             nudm-ee: Access to the nudm-ee API
@@ -202,14 +268,47 @@ components:
         - eeSubscription
       properties:
         eeSubscription:
-            $ref: '#/components/schemas/EeSubscription'
+          $ref: '#/components/schemas/EeSubscription'
         numberOfUes:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Uinteger'
         eventReports:
-            type: array
-            items:
-              $ref: '#/components/schemas/MonitoringReport'
-            minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MonitoringReport'
+          minItems: 1
+        epcStatusInd:
+          type: boolean
+        failedMonitoringConfigs:
+          description: A map (list of key-value pairs where referenceId converted from integer to string serves as key; see clause 6.4.6.3.2) of FailedMonitoringConfiguration
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/FailedMonitoringConfiguration'
+          minProperties: 1
+        failedMoniConfigsEPC:
+          description: A map (list of key-value pairs where referenceId converted from integer to string serves as key; see clause 6.4.6.3.2) of FailedMonitoringConfiguration, the key value "ALL" may be used to identify a map entry which contains the failed cause of the EE subscription was not successful in EPC domain.
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/FailedMonitoringConfiguration'
+          minProperties: 1
+        resetIds:
+          type: array
+          items:
+            type: string
+          minItems: 1
+
+
+    FailedMonitoringConfiguration:
+      description: Contains the event type and failed cause of the failed Monitoring Configuration in the EE subscription
+      type: object
+      required:
+        - eventType
+        - failedCause
+      properties:
+        eventType:
+          $ref: '#/components/schemas/EventType'
+        failedCause:
+          $ref: '#/components/schemas/FailedCause'
+
 
     EeSubscription:
       type: object
@@ -224,7 +323,7 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/MonitoringConfiguration'
-          minProperties: 1  
+          minProperties: 1
         reportingOptions:
           $ref: '#/components/schemas/ReportingOptions'
         supportedFeatures:
@@ -233,7 +332,34 @@ components:
           type: string
         contextInfo:
           $ref: 'TS29503_Nudm_SDM.yaml#/components/schemas/ContextInfo'
-
+        epcAppliedInd:
+          type: boolean
+          default: false
+        scefDiamHost:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DiameterIdentity'
+        scefDiamRealm:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DiameterIdentity'
+        notifyCorrelationId:
+          type: string
+        secondCallbackRef:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Uri'
+        gpsi:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Gpsi'
+        excludeGpsiList:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/Gpsi'
+          minItems: 1
+        includeGpsiList:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/Gpsi'
+          minItems: 1
+        dataRestorationCallbackUri:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Uri'
+        udrRestartInd:
+          type: boolean
+          default: false
 
     MonitoringConfiguration:
       type: object
@@ -259,7 +385,23 @@ components:
         suggestedPacketNumDl:
           type: integer
           minimum: 1
-
+        dnn:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Dnn'
+        singleNssai:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Snssai'
+        pduSessionStatusCfg:
+          $ref: '#/components/schemas/PduSessionStatusCfg'
+        reachabilityForSmsCfg:
+          $ref: '#/components/schemas/ReachabilityForSmsConfiguration'
+        mtcProviderInformation:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/MtcProviderInformation'
+        afId:
+          type: string
+        reachabilityForDataCfg:
+          $ref: '#/components/schemas/ReachabilityForDataConfiguration'
+        idleStatusInd:
+          type: boolean
+          default: false
 
     LossConnectivityCfg:
       type: object
@@ -296,6 +438,8 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSec'
         reportPeriod:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSec'
+        notifFlag:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/NotificationFlag'
 
     MonitoringReport:
       type: object
@@ -316,6 +460,8 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Gpsi'
         timeStamp:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
+        reachabilityReport:
+          $ref: '#/components/schemas/ReachabilityReport'
 
     Report:
       oneOf:
@@ -323,6 +469,9 @@ components:
         - $ref: '#/components/schemas/RoamingStatusReport'
         - $ref: '#/components/schemas/CnTypeChangeReport'
         - $ref: '#/components/schemas/CmInfoReport'
+        - $ref: '#/components/schemas/LossConnectivityReport'
+        - $ref: '#/components/schemas/LocationReport'
+        - $ref: '#/components/schemas/PdnConnectivityStatReport'
 
     ReachabilityForSmsReport:
       type: object
@@ -352,6 +501,8 @@ components:
             boolean
         newServingPlmn:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/PlmnId'
+        accessType:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/AccessType'
 
     CnTypeChangeReport:
       type: object
@@ -399,6 +550,110 @@ components:
       required:
         - newCmInfoList
 
+    PduSessionStatusCfg:
+      type: object
+      properties:
+        dnn:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Dnn'
+
+    ReachabilityReport:
+      type: object
+      properties:
+        amfInstanceId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/NfInstanceId'
+        accessTypeList:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/AccessType'
+          minItems: 1
+        reachability:
+            $ref: 'TS29518_Namf_EventExposure.yaml#/components/schemas/UeReachability'
+        maxAvailabilityTime:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
+        idleStatusIndication:
+          $ref: 'TS29518_Namf_EventExposure.yaml#/components/schemas/IdleStatusIndication'
+
+    ReachabilityForDataConfiguration:
+      type: object
+      required:
+        - reportCfg
+      properties:
+        reportCfg:
+          $ref: '#/components/schemas/ReachabilityForDataReportConfig'
+        minInterval:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSec'
+
+    EeMonitoringRevoked:
+      type: object
+      required:
+        - revokedMonitoringEventList
+      properties:
+        revokedMonitoringEventList:
+          description: A map (list of key-value pairs where ReferenceId serves as key) of MonitoringEvents
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MonitoringEvent'
+          minProperties: 1
+        removedGpsi:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Gpsi'
+        excludeGpsiList:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/Gpsi'
+          minItems: 1
+
+    MonitoringEvent:
+      type: object
+      required:
+        - eventType
+      properties:
+        eventType:
+          $ref: '#/components/schemas/EventType'
+        revokedCause:
+          $ref: '#/components/schemas/RevokedCause'
+
+    LossConnectivityReport:
+      type: object
+      required:
+        - lossOfConnectReason
+      properties:
+        lossOfConnectReason:
+          $ref: 'TS29518_Namf_EventExposure.yaml#/components/schemas/LossOfConnectivityReason'
+
+    LocationReport:
+      type: object
+      required:
+        - location
+      properties:
+        location:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/UserLocation'
+
+    PdnConnectivityStatReport:
+      type: object
+      required:
+        - pdnConnStat
+      properties:
+        pdnConnStat:
+          $ref: '#/components/schemas/PdnConnectivityStatus'
+        dnn:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Dnn'
+        pduSeId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/PduSessionId'
+        ipv4Addr:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Ipv4Addr'
+        ipv6Prefixes:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/Ipv6Prefix'
+          minItems: 1
+        ipv6Addrs:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/Ipv6Addr'
+          minItems: 1
+        pduSessType:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/PduSessionType'
+
 
 # SIMPLE TYPES:
 
@@ -410,6 +665,14 @@ components:
 
 
 # ENUMS:
+
+    ReachabilityForSmsConfiguration:
+      anyOf:
+        - type: string
+          enum:
+          - REACHABILITY_FOR_SMS_OVER_NAS
+          - REACHABILITY_FOR_SMS_OVER_IP
+        - type: string
 
     EventType:
       anyOf:
@@ -427,6 +690,14 @@ components:
           - DL_DATA_DELIVERY_STATUS
           - PDN_CONNECTIVITY_STATUS
           - UE_CONNECTION_MANAGEMENT_STATE
+          - ACCESS_TYPE_REPORT
+          - REGISTRATION_STATE_REPORT
+          - CONNECTIVITY_STATE_REPORT
+          - TYPE_ALLOCATION_CODE_REPORT
+          - FREQUENT_MOBILITY_REGISTRATION_REPORT
+          - PDU_SES_REL
+          - PDU_SES_EST
+          - UE_MEMORY_AVAILABLE_FOR_SMS
         - type: string
 
     LocationAccuracy:
@@ -434,6 +705,7 @@ components:
         - type: string
           enum:
           - CELL_LEVEL
+          - RAN_NODE_LEVEL
           - TA_LEVEL
           - N3IWF_LEVEL
           - UE_IP
@@ -464,3 +736,42 @@ components:
           - PERIODIC
           - ON_EVENT_DETECTION
         - type: string
+
+    ReachabilityForDataReportConfig:
+      anyOf:
+        - type: string
+          enum:
+          - DIRECT_REPORT
+          - INDIRECT_REPORT
+        - type: string
+
+    RevokedCause:
+      anyOf:
+        - type: string
+          enum:
+          - NOT_ALLOWED
+          - EXCLUDED_FROM_GROUP
+          - GPSI_REMOVED
+        - type: string
+
+    FailedCause:
+      anyOf:
+        - type: string
+          enum:
+          - AF_NOT_ALLOWED
+          - MTC_PROVIDER_NOT_ALLOWED
+          - MONITORING_NOT_ALLOWED
+          - UNSUPPORTED_MONITORING_EVENT_TYPE
+          - UNSUPPORTED_MONITORING_REPORT_OPTIONS
+          - UNSPECIFIED
+        - type: string
+      description: Indicates the Failed cause of the failed Monitoring Configuration in the EE subscription
+
+    PdnConnectivityStatus:
+      anyOf:
+        - type: string
+          enum:
+          - ESTABLISHED
+          - RELEASED
+        - type: string
+

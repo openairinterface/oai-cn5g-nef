@@ -4,172 +4,124 @@
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
  * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License. You may obtain a copy of the
- * License at
- *
- *      http://www.openairinterface.org/?page_id=698
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
- */
-
-/*! \file nef_client.hpp
- \author  Tien-Thinh NGUYEN
- \company Eurecom
- \date 2022
- \email: Tien-Thinh.Nguyen@eurecom.fr
+ * file except in compliance with the License.
  */
 
 #ifndef FILE_NEF_CLIENT_HPP_SEEN
 #define FILE_NEF_CLIENT_HPP_SEEN
 
-#include <curl/curl.h>
-
-#include <boost/thread.hpp>
-#include <boost/thread/future.hpp>
-#include <map>
+#include <cstdint>
 #include <nlohmann/json.hpp>
-#include <shared_mutex>
-#include <thread>
+#include <string>
 #include <vector>
 
-#include "uint_generator.hpp"
+#include "nef.h"
 
-namespace oai::nef::app {
+namespace oai {
+namespace nef {
+namespace app {
 
+/**
+ * HTTP/SBI client used by NEF for:
+ *  1. NRF registration / heartbeat / de-registration.
+ *  2. NF discovery via NRF (with config-based fallback).
+ *  3. Southbound subscriptions to AMF/SMF/PCF/UDR.
+ *  4. Forwarding notifications to AFs.
+ */
 class nef_client {
- private:
-  CURLM* curl_multi;
-  std::vector<CURL*> handles;
-  struct curl_slist* headers;
-
-  mutable std::shared_mutex m_curl_handle_promises;
-  std::map<uint32_t, boost::shared_ptr<boost::promise<uint32_t>>>
-      curl_handle_promises;
-
  public:
-  //  nef_client(nef_event& ev);
   nef_client();
   virtual ~nef_client();
 
   nef_client(nef_client const&) = delete;
   void operator=(nef_client const&) = delete;
 
-  /*
-   * Create Curl handle for multi curl
-   * @param [const std::string &] uri: URI of the subscribed NF
-   * @param [std::string &] response_data: response data
-   * @param [uint32_t* ] promise_id: pointer to the promise id
-   * @param [const std::string&] method: HTTP method
-   * @return true if a handle was created successfully, otherwise return false
-   */
-  bool curl_create_handle(
-      const std::string& uri, const std::string& data,
-      std::string& response_data, std::string& header_data,
-      uint32_t* promise_id, const std::string& method,
+  // ── NRF registration ──────────────────────────────────────────────────────
+  bool register_to_nrf();
+  bool deregister_from_nrf();
+  bool send_heartbeat_to_nrf();
+
+  // ── NF discovery ──────────────────────────────────────────────────────────
+  bool discover_nf(nf_type_t nf_type, std::string& nf_endpoint);
+
+  // ── AMF — event-exposure subscription ────────────────────────────────────
+  bool subscribe_amf_event_exposure(
+      const nlohmann::json& subscription_data, std::string& amf_sub_id,
       uint8_t http_version = 1);
 
-  /*
-   * Perform curl multi to actually process the available data
-   * @param [uint64_t ms] ms: current time
-   * @return void
-   */
-  void perform_curl_multi(uint64_t ms);
+  bool unsubscribe_amf_event_exposure(
+      const std::string& amf_sub_id, uint8_t http_version = 1);
 
-  /*
-   * Release all the handles
-   * @param void
-   * @return void
-   */
-  void curl_release_handles();
+  // ── SMF — event-exposure subscription ────────────────────────────────────
+  bool subscribe_smf_event_exposure(
+      const nlohmann::json& subscription_data, std::string& smf_sub_id,
+      uint8_t http_version = 1);
 
-  /*
-   * Wait for the promise ready
-   * @param [boost::shared_future<uint32_t>&] f: future
-   * @return future value
-   */
-  uint32_t get_available_response(boost::shared_future<uint32_t>& f);
+  bool unsubscribe_smf_event_exposure(
+      const std::string& smf_sub_id, uint8_t http_version = 1);
 
-  /*
-   * Store the promise
-   * @param [uint32_t] pid: promise id
-   * @param [boost::shared_ptr<boost::promise<uint32_t>>&] p: promise
-   * @return void
-   */
-  void add_promise(
-      uint32_t pid, boost::shared_ptr<boost::promise<uint32_t>>& p);
+  // ── PCF — policy-authorization / BDT-policy ──────────────────────────────
+  bool create_pcf_policy_auth(
+      const nlohmann::json& request_body, std::string& app_session_id,
+      uint32_t& http_code, uint8_t http_version = 1);
 
-  /*
-   * Remove the promise
-   * @param [uint32_t] pid: promise id
-   * @return void
-   */
-  void remove_promise(uint32_t id);
+  bool update_pcf_policy_auth(
+      const std::string& app_session_id, const nlohmann::json& request_body,
+      uint32_t& http_code, uint8_t http_version = 1);
 
-  /*
-   * Set the value of the promise to make it ready
-   * @param [uint32_t] pid: promise id
-   * @param [uint32_t ] http_code: http response code
-   * @return void
-   */
-  void trigger_process_response(uint32_t pid, uint32_t http_code);
+  bool delete_pcf_policy_auth(
+      const std::string& app_session_id, uint32_t& http_code,
+      uint8_t http_version = 1);
 
-  /*
-   * Generate an unique value for promise id
-   * @param void
-   * @return generated promise id
-   */
-  static uint64_t generate_promise_id() {
-    return util::uint_uid_generator<uint64_t>::get_instance().get_uid();
-  }
+  bool create_pcf_bdt_policy(
+      const nlohmann::json& bdt_req, std::string& pcf_bdt_id,
+      uint32_t& http_code, uint8_t http_version = 1);
 
-  /*
-   * Get header location from the response from NFs
-   * @param [const std::string&] header_data: HTTP header
-   * @return header location
-   */
-  std::string get_header_location(const std::string& header_data);
+  bool update_pcf_bdt_policy(
+      const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
+      uint32_t& http_code, uint8_t http_version = 1);
 
-  /*
-   * Send a request to subscribe to Event Exposure service from a NF
-   * @param [const nlohmann::json&] json_body: Request body
-   * @param [const std::string &] nf_uri: URI of the subscribed NF
-   * @param [std::string &] response_data: response data
-   * @param [std::string&] location: Store the location of created resource for
-   * this Sub
-   * @param [int&] http_code: HTTP response code
-   * @return void
-   */
-  void send_event_exposure_subscribe(
-      const nlohmann::json& json_body, const std::string& uri,
-      std::string& response_data, std::string& location, int& http_code);
+  bool delete_pcf_bdt_policy(
+      const std::string& bdt_policy_id, uint32_t& http_code,
+      uint8_t http_version = 1);
 
-  /*
-   * Send a request to unsubscribe to Event Exposure service from a NF
-   * @param [const std::string &] resource_location: URI of the resource
-   * location (subscription)
-   * @param [std::string &] response_data: response data
-   * @param [int&] http_code: HTTP response code
-   * @return void
-   */
-  void send_event_exposure_unsubscribe(
-      const std::string& resource_location, std::string& response_data,
-      int& http_code);
+  // ── UDR — PFD data ────────────────────────────────────────────────────────
+  bool udr_put_pfd_data(
+      const std::string& app_id, const nlohmann::json& pfd_data,
+      uint8_t http_version = 1);
 
-  /*
-   * Send an Event Exposure Notification data to the subscribed NF
-   * @param [const nlohmann::json&] json_body: message body
-   * @param [const std::string &] nf_uri: URI of the subscribed NF
-   * @return void
+  bool udr_delete_pfd_data(const std::string& app_id, uint8_t http_version = 1);
+
+  void udr_get_pfd_data(
+      const std::string& app_id, nlohmann::json& result, uint32_t& http_code);
+
+  bool udr_put_influence_data(
+      const std::string& ti_id, const nlohmann::json& data, uint32_t& http_code,
+      uint8_t http_version = 1);
+
+  bool udr_delete_influence_data(
+      const std::string& ti_id, uint32_t& http_code, uint8_t http_version = 1);
+
+  // ── NEF own notification URL (used as callback in southbound subscriptions)
+  // ──
+  /**
+   * Build the URL that AMF/SMF/PCF should POST to when they have an event for
+   * a given NF subscription.  Shape:
+   *   http://<nef_host>:<port>/nef-notify/v1/notify/<nf_sub_id>
    */
-  void send_event_exposure_notify(
-      const nlohmann::json& json_body, const std::string& uri);
+  static std::string get_nef_notify_uri(const std::string& nf_sub_id);
+
+  // ── Forward notification to AF ────────────────────────────────────────────
+  bool forward_notification_to_af(
+      const std::string& af_notif_uri, const nlohmann::json& payload,
+      uint8_t http_version = 1);
+
+ private:
+  std::string m_nef_instance_id;  ///< UUID generated at construction
 };
-}  // namespace oai::nef::app
+
+}  // namespace app
+}  // namespace nef
+}  // namespace oai
+
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */

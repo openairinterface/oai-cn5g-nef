@@ -1,15 +1,15 @@
 openapi: 3.0.0
 info:
-  version: '1.0.6'
-  title: Ngmlc_Location
+  version: '1.1.4'
+  title: 'Ngmlc_Location'
   description: |
-    Ngmlc_Location Service.
-    © 2021, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    GMLC Location Service.  
+    © 2024, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  
     All rights reserved.
 
 externalDocs:
-  description: 3GPP TS 29.515 V16.7.0; 5G System; Gateway Mobile Location Services; Stage 3
-  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.515/'
+  description: 3GPP TS 29.515 V17.10.0; 5G System; Gateway Mobile Location Services; Stage 3
+  url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.515/'
 
 servers:
   - url: '{apiRoot}/ngmlc-loc/v1'
@@ -43,9 +43,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LocationData'
-        '307': 
+        '307':
           $ref: 'TS29571_CommonData.yaml#/components/responses/307'
-        '308': 
+        '308':
           $ref: 'TS29571_CommonData.yaml#/components/responses/308'
         '400':
           $ref: 'TS29571_CommonData.yaml#/components/responses/400'
@@ -84,9 +84,9 @@ paths:
               responses:
                 '204':
                   description: Expected response to a valid notification
-                '307': 
+                '307':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/307'
-                '308': 
+                '308':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/308'
                 '400':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/400'
@@ -124,9 +124,9 @@ paths:
               responses:
                 '204':
                   description: Expected response to a valid notification
-                '307': 
+                '307':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/307'
-                '308': 
+                '308':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/308'
                 '400':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/400'
@@ -167,9 +167,9 @@ paths:
       responses:
         '204':
           description: Expected response to a successful cancellation
-        '307': 
+        '307':
           $ref: 'TS29571_CommonData.yaml#/components/responses/307'
-        '308': 
+        '308':
           $ref: 'TS29571_CommonData.yaml#/components/responses/308'
         '400':
           $ref: 'TS29571_CommonData.yaml#/components/responses/400'
@@ -210,9 +210,9 @@ paths:
       responses:
         '204':
           description: Expected response to successful location context transfer
-        '307': 
+        '307':
           $ref: 'TS29571_CommonData.yaml#/components/responses/307'
-        '308': 
+        '308':
           $ref: 'TS29571_CommonData.yaml#/components/responses/308'
         '400':
           $ref: 'TS29571_CommonData.yaml#/components/responses/400'
@@ -253,9 +253,9 @@ paths:
       responses:
         '204':
           description: Expected response to successful UE location information subscription
-        '307': 
+        '307':
           $ref: 'TS29571_CommonData.yaml#/components/responses/307'
-        '308': 
+        '308':
           $ref: 'TS29571_CommonData.yaml#/components/responses/308'
         '400':
           $ref: 'TS29571_CommonData.yaml#/components/responses/400'
@@ -294,9 +294,9 @@ paths:
               responses:
                 '204':
                   description: Expected response to a valid notification
-                '307': 
+                '307':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/307'
-                '308': 
+                '308':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/308'
                 '400':
                   $ref: 'TS29571_CommonData.yaml#/components/responses/400'
@@ -338,6 +338,7 @@ components:
 # COMPLEX TYPES
 #
     InputData:
+      description: Contains the input parameters in ProvideLocation service operation
       type: object
       required:
         - externalClientType
@@ -400,9 +401,18 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/AmfId'
         codeWord:
           $ref: '#/components/schemas/CodeWord'
+        scheduledLocTime:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
+        reliableLocReq:
+          type: boolean
+          default: false
+        integrityRequirements:
+          $ref: '#/components/schemas/IntegrityRequirements'
+
 
 
     LocationData:
+      description: Contains the response parameters in ProvideLocation service operation
       type: object
       properties:
         gpsi:
@@ -413,8 +423,12 @@ components:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/GeographicArea'
         civicAddress:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/CivicAddress'
+        localLocationEstimate:
+          $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/LocalArea'
         ageOfLocationEstimate:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AgeOfLocationEstimate'
+        timestampOfLocationEstimate:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
         positioningDataList:
           type: array
           items:
@@ -439,7 +453,17 @@ components:
           $ref: 'TS29518_Namf_Location.yaml#/components/schemas/LocationPrivacyVerResult'
         successType:
           $ref: '#/components/schemas/SuccessType'
+        achievedQos:
+          $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/MinorLocationQoS'
+        acceptedPeriodicEventInfo:
+          $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/PeriodicEventInfo'
+        haGnssMetrics:
+          $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/HighAccuracyGnssMetrics'
+        integrityResult:
+          $ref: '#/components/schemas/IntegrityResult'
+
     CancelLocData:
+      description: Contains the input parameters in CancelLocation service operation
       type: object
       required:
         - hgmlcCallBackUri
@@ -463,6 +487,7 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/AmfId'
 
     LocUpdateData:
+      description: Contains the input parameters in LocationUpdate service operation
       type: object
       required:
         - locationRequestType
@@ -483,6 +508,8 @@ components:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/GeographicArea'
         ageOfLocationEstimate:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AgeOfLocationEstimate'
+        timestampOfLocationEstimate:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
         accuracyFulfilmentIndicator:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AccuracyFulfilmentIndicator'
         civicAddress:
@@ -500,6 +527,7 @@ components:
           $ref: '#/components/schemas/LcsServiceTypeId'
 
     EventNotifyData:
+      description: Contains the input parameters for the target UE in EventNotify Notification service operation
       type: object
       required:
         - eventNotifyDataType
@@ -517,8 +545,12 @@ components:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/GeographicArea'
         civicAddress:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/CivicAddress'
+        localLocationEstimate:
+          $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/LocalArea'
         ageOfLocationEstimate:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AgeOfLocationEstimate'
+        timestampOfLocationEstimate:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
         positioningDataList:
           type: array
           items:
@@ -545,8 +577,15 @@ components:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AccuracyFulfilmentIndicator'
         failureCause:
           $ref: '#/components/schemas/FailureCause'
+        achievedQos:
+          $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/MinorLocationQoS'
+        haGnssMetrics:
+          $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/HighAccuracyGnssMetrics'
+        integrityResult:
+          $ref: '#/components/schemas/IntegrityResult'
 
     UePrivacyRequirements:
+      description: UE privacy requirements from (H)GMLC to the serving AMF or VGMLC(in the roaming case) for the target UE
       type: object
       properties:
         lcsServiceAuthInfo:
@@ -555,6 +594,7 @@ components:
           type: boolean
 
     LocUpdateNotification:
+      description: Location Update Notification
       type: object
       required:
         - locationRequestType
@@ -573,6 +613,8 @@ components:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/GeographicArea'
         ageOfLocationEstimate:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AgeOfLocationEstimate'
+        timestampOfLocationEstimate:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
         accuracyFulfilmentIndicator:
           $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AccuracyFulfilmentIndicator'
         civicAddress:
@@ -585,6 +627,7 @@ components:
           $ref: '#/components/schemas/ServiceIdentity'
 
     LocUpdateSubs:
+      description: UE location information subscription
       type: object
       required:
         - nfInstanceId
@@ -600,11 +643,13 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Supi'
 
     EventNotifyDataExt:
+      description: Extended Event Notify Data for UEs of a target group
       allOf:
       - $ref: '#/components/schemas/EventNotifyData'
       - $ref: '#/components/schemas/EventNotifyDataAdditionalInfo'
 
     EventNotifyDataAdditionalInfo:
+      description: Additional information to Event Notify Data
       type: object
       properties:
         addEventDataList:
@@ -613,6 +658,7 @@ components:
             $ref: '#/components/schemas/EventNotifyData'
           minItems: 1
     AreaEventInfoAddition:
+      description: Additional information for Extended Area event information
       type: object
       properties:
         geoAreaList:
@@ -625,32 +671,102 @@ components:
           default: false
 
     AreaEventInfoExt:
+      description: Extended Area Event Information
       allOf:
         - $ref: 'TS29572_Nlmf_Location.yaml#/components/schemas/AreaEventInfo'
         - $ref: '#/components/schemas/AreaEventInfoAddition'
 
+    IntegrityRequirements:
+      description: integrity requirements.
+      type: object
+      properties:
+        timeToAlert:
+          $ref: '#/components/schemas/TimeToAlert'
+        targetIntegrityRisk:
+          $ref: '#/components/schemas/TargetIntegrityRisk'
+        alertLimit:
+          $ref: '#/components/schemas/AlertLimit'
+
+    AlertLimit:
+      description: Alert Limit.
+      type: object
+      required:
+        - horizontalProtectionLevel
+      properties:
+        horizontalProtectionLevel:
+          $ref: '#/components/schemas/HorizontalProtectionLevel'
+        verticalProtectionLevel:
+          $ref: '#/components/schemas/VerticalProtectionLevel'
+
+    IntegrityProtectionLevel:
+      description: Integrity Protection Level.
+      type: object
+      required:
+        - horizontalProtectionLevel
+      properties:
+        horizontalProtectionLevel:
+          $ref: '#/components/schemas/HorizontalProtectionLevel'
+        verticalProtectionLevel:
+          $ref: '#/components/schemas/VerticalProtectionLevel'
+
+    IntegrityResult:
+      description: Integrity Result.
+      type: object
+      properties:
+        computingEntity:
+          $ref: '#/components/schemas/IntegrityComputingEntity'
+        protectionLevel:
+          $ref: '#/components/schemas/IntegrityProtectionLevel'
+        integrityReqMetInd:
+          type: boolean
+        achievedTir:
+          $ref: '#/components/schemas/TargetIntegrityRisk'
 
 #
 # SIMPLE TYPES
 #
     ServiceIdentity:
+      description: Contains the service identity
       type: string
     ExternalClientIdentification:
+      description: Contains the external client identification
       type: string
     CodeWord:
+      description: Contains the codeword
       type: string
     E164CountryCodeOfGeographicArea:
+      description: Contains the E.164 country codes for geographic areas
       type: string
     LcsServiceTypeId:
       description: LCS Service Type Id.
       type: integer
       minimum: 0
       maximum: 127
-
+    TimeToAlert:
+      description: Contains the time-to-alert
+      type: integer
+      minimum: 1
+      maximum: 300
+    TargetIntegrityRisk:
+      description: Contains the target integrity risk
+      type: integer
+      minimum: 10
+      maximum: 90
+    HorizontalProtectionLevel:
+      description: Contains the Horizontal Protection Level
+      type: integer
+      minimum: 0
+      maximum: 50000
+    VerticalProtectionLevel:
+      description: Contains the Vertical Protection Level
+      type: integer
+      minimum: 0
+      maximum: 50000
 #
 # ENUMS
 #
     PseudonymIndicator:
+      description: It defines if a pseudonym is requested
       anyOf:
         - type: string
           enum:
@@ -658,6 +774,7 @@ components:
             - PSEUDONYM_NOT_REQUESTED
         - type: string
     LocationRequestType:
+      description: NI-LR, MT-LR or MO-LR
       anyOf:
         - type: string
           enum:
@@ -666,6 +783,7 @@ components:
             - MO_LR
         - type: string
     LocationTypeRequested:
+      description: Contains the location type requested by the LCS client
       anyOf:
         - type: string
           enum:
@@ -675,6 +793,7 @@ components:
             - NOTIFICATION_VERIFICATION_ONLY
         - type: string
     EventNotifyDataType:
+      description: Contains the type of event that triggers event notification
       anyOf:
         - type: string
           enum:
@@ -691,6 +810,7 @@ components:
             - 5GC_MT_LR
         - type: string
     FailureCause:
+      description: Positioning failure cause
       anyOf:
         - type: string
           enum:
@@ -701,9 +821,20 @@ components:
         - type: string
 
     SuccessType:
+      description: Success Type to indicate full or partial success
       anyOf:
         - type: string
           enum:
             - SUCCESS_COMPLETELY
             - SUCCESS_PARTIALLY
+        - type: string
+
+    IntegrityComputingEntity:
+      description: Integrity Computing Entity
+      anyOf:
+        - type: string
+          enum:
+            - UE
+            - LMF
+            - BOTH
         - type: string
