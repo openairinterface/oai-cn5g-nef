@@ -20,7 +20,7 @@ namespace oai::nef::api {
  */
 class nef_sbi_helper : public oai::common::sbi::sbi_helper {
  public:
-  // ── Northbound API base paths (TS 29.522) ─────────────────────────────────
+  // Northbound API base paths (TS 29.522)
   static inline const std::string NefMonitoringEventBase =
       "/3gpp-monitoring-event/";
   static inline const std::string NefTrafficInfluenceBase =
@@ -32,9 +32,9 @@ class nef_sbi_helper : public oai::common::sbi::sbi_helper {
   static inline const std::string NefQosMonitoringBase =
       "/3gpp-as-session-with-qos/";
   static inline const std::string NefAnalyticsBase =
-      "/3gpp-analyticsExposure/";
+      "/3gpp-analyticsexposure/";
 
-  // ── Southbound service base paths ──────────────────────────────────────────
+  // Southbound service base paths
   // AMF: Namf_EventExposure (TS 29.518)
   static inline const std::string AmfEventExposureBase = "/namf-evts/";
   // SMF: Nsmf_EventExposure (TS 29.508)
@@ -47,7 +47,7 @@ class nef_sbi_helper : public oai::common::sbi::sbi_helper {
   static inline const std::string PcfBdtPolicyControlBase =
       "/npcf-bdtpolicycontrol/";
 
-  // ── NEF inbound notification endpoint (NEF gives this to AMF/SMF/PCF) ──────
+  // NEF inbound notification endpoint (NEF gives this to AMF/SMF/PCF)
   // The path is: NefNotifyBase + api_version + "/notify/" + nf_sub_id
   // e.g.  /nef-notify/v1/notify/amf-sub-abc123
   static inline const std::string NefNotifyBase = "/nef-notify/";

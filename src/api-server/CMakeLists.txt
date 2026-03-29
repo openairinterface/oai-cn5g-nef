@@ -5,8 +5,6 @@
 
 set(NEF_API_SERVER_DIR "${SRC_TOP_DIR}/api-server")
 
-include_directories(${NEF_API_SERVER_DIR}/api)
-include_directories(${NEF_API_SERVER_DIR}/impl)
 include_directories(${NEF_API_SERVER_DIR}/)
 include_directories(${SRC_TOP_DIR}/nef_app)
 include_directories(${SRC_TOP_DIR}/common)
@@ -21,9 +19,7 @@ include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/config/config.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model/common_model/common_model.cmake)
 
 file(GLOB NEF_API_SERVER_src_files
-    ${NEF_API_SERVER_DIR}/nef-api-server.cpp
     ${NEF_API_SERVER_DIR}/nef-http2-server.cpp
-    ${NEF_API_SERVER_DIR}/impl/*.cpp
 )
 
 add_library(NEF_API STATIC

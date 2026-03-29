@@ -19,24 +19,18 @@
  *      contact@openairinterface.org
  */
 
-/*! \file nef_notification_mapper.cpp
- \brief Translates southbound NF notification payloads to NEF T8 format.
- \author OAI
- \date   2024
- */
-
 #include "nef_notification_mapper.hpp"
 #include "logger.hpp"
 
 using namespace oai::nef::app;
 using json = nlohmann::json;
 
-// ── Helper: RFC 7807 problem-detail ──────────────────────────────────────────
+// Helper: RFC 7807 problem-detail
 static json make_problem(const std::string& title, const std::string& detail) {
   return json{{"title", title}, {"detail", detail}, {"status", 0}};
 }
 
-// ── AMF → T8 Monitoring Event Notification ───────────────────────────────────
+// AMF → T8 Monitoring Event Notification
 bool nef_notification_mapper::amf_to_monitoring_notification(
     const json& amf_notif, json& t8_notif, const std::string& sub_id) {
   // AMF EventExposure Notify schema (TS 29.518 §6.3.4.3.3):
@@ -56,8 +50,7 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
 
   t8_notif["subscription"] = sub_id;
 
-  if (!amf_notif.contains("reportList") ||
-      !amf_notif["reportList"].is_array()) {
+  if (!amf_notif.contains("reportList") || !amf_notif["reportList"].is_array()) {
     Logger::nef_app().warn(
         "amf_to_monitoring_notification: missing/invalid 'reportList'");
     t8_notif = make_problem("Bad AMF notification", "reportList not found");
@@ -74,10 +67,10 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
       t8_report["monitoringType"] = "LOCATION_REPORTING";
       if (r.contains("state")) t8_report["locationInfo"] = r["state"];
     } else if (amf_type == "UE_REACHABILITY_FOR_SMS") {
-      t8_report["monitoringType"]     = "UE_REACHABILITY";
+      t8_report["monitoringType"] = "UE_REACHABILITY";
       t8_report["reachabilityForSms"] = true;
     } else if (amf_type == "UE_REACHABILITY_FOR_DATA") {
-      t8_report["monitoringType"]      = "UE_REACHABILITY";
+      t8_report["monitoringType"] = "UE_REACHABILITY";
       t8_report["reachabilityForData"] = true;
     } else if (amf_type == "PDU_SESSION_STATUS") {
       t8_report["monitoringType"] = "PDU_SESSION_STATUS";
@@ -90,9 +83,9 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
     }
 
     // Common fields
-    if (r.contains("supi")) t8_report["supi"] = r["supi"];
+    if (r.contains("supi"))      t8_report["supi"]      = r["supi"];
     if (r.contains("timeStamp")) t8_report["timeStamp"] = r["timeStamp"];
-    if (r.contains("gpsi")) t8_report["gpsi"] = r["gpsi"];
+    if (r.contains("gpsi"))      t8_report["gpsi"]      = r["gpsi"];
 
     reports.push_back(t8_report);
   }
@@ -100,7 +93,7 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
   return true;
 }
 
-// ── SMF → T8 Session-with-QoS Notification ───────────────────────────────────
+// SMF → T8 Session-with-QoS Notification
 bool nef_notification_mapper::smf_to_qos_notification(
     const json& smf_notif, json& t8_notif, const std::string& sub_id) {
   // SMF EventExposure Notify (TS 29.508 §4.6.3):
@@ -120,8 +113,7 @@ bool nef_notification_mapper::smf_to_qos_notification(
 
   t8_notif["subscription"] = sub_id;
 
-  if (!smf_notif.contains("eventNotifs") ||
-      !smf_notif["eventNotifs"].is_array()) {
+  if (!smf_notif.contains("eventNotifs") || !smf_notif["eventNotifs"].is_array()) {
     Logger::nef_app().warn(
         "smf_to_qos_notification: missing/invalid 'eventNotifs'");
     t8_notif = make_problem("Bad SMF notification", "eventNotifs not found");
@@ -143,9 +135,9 @@ bool nef_notification_mapper::smf_to_qos_notification(
       t8_ev["event"] = smf_event;
     }
 
-    if (e.contains("supi")) t8_ev["supi"] = e["supi"];
+    if (e.contains("supi"))      t8_ev["supi"]      = e["supi"];
     if (e.contains("timeStamp")) t8_ev["timeStamp"] = e["timeStamp"];
-    if (e.contains("pduSeId")) t8_ev["pduSeId"] = e["pduSeId"];
+    if (e.contains("pduSeId"))   t8_ev["pduSeId"]   = e["pduSeId"];
 
     ev_notifs.push_back(t8_ev);
   }
@@ -153,7 +145,7 @@ bool nef_notification_mapper::smf_to_qos_notification(
   return true;
 }
 
-// ── PCF → T8 Traffic Influence Notification ──────────────────────────────────
+// PCF → T8 Traffic Influence Notification
 bool nef_notification_mapper::pcf_to_ti_notification(
     const json& pcf_notif, json& t8_notif, const std::string& sub_id) {
   // PCF PolicyAuthorization Notify (TS 29.514 §4.2.3.4):

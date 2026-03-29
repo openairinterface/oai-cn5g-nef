@@ -38,7 +38,7 @@ namespace app {
 
 /*
  * nef_notification_mapper
- * ───────────────────────
+ * 
  * Stateless utility class that converts southbound NF notification payloads
  * (AMF / SMF / PCF) into the northbound format that is sent to the AF via the
  * NEF T8 reference point.
@@ -52,11 +52,11 @@ namespace app {
  */
 class nef_notification_mapper {
  public:
-  nef_notification_mapper()                               = delete;
-  nef_notification_mapper(const nef_notification_mapper&) = delete;
+  nef_notification_mapper()                                     = delete;
+  nef_notification_mapper(const nef_notification_mapper&)       = delete;
   nef_notification_mapper& operator=(const nef_notification_mapper&) = delete;
 
-  // ── Monitoring Event (AMF → NEF → AF) ──────────────────────────────────
+  // Monitoring Event (AMF → NEF → AF)
   /*
    * Map an AMF EventExposure notification (3GPP TS 29.518 §6.3.4.3.3) into a
    * T8 MonitoringEventNotification (3GPP TS 29.122 §8.4.4.3.2).
@@ -67,10 +67,11 @@ class nef_notification_mapper {
    * @return true on success, false if mandatory fields are absent.
    */
   static bool amf_to_monitoring_notification(
-      const nlohmann::json& amf_notif, nlohmann::json& t8_notif,
+      const nlohmann::json& amf_notif,
+      nlohmann::json& t8_notif,
       const std::string& sub_id);
 
-  // ── Session-with-QoS (SMF → NEF → AF) ──────────────────────────────────
+  // Session-with-QoS (SMF → NEF → AF)
   /*
    * Map an SMF event notification into a T8 AsSessionWithQoSEventNotification.
    *
@@ -80,10 +81,11 @@ class nef_notification_mapper {
    * @return true on success.
    */
   static bool smf_to_qos_notification(
-      const nlohmann::json& smf_notif, nlohmann::json& t8_notif,
+      const nlohmann::json& smf_notif,
+      nlohmann::json& t8_notif,
       const std::string& sub_id);
 
-  // ── Traffic Influence / Policy (PCF → NEF → AF) ─────────────────────────
+  // Traffic Influence / Policy (PCF → NEF → AF)
   /*
    * Map a PCF policy notification into a T8 TrafficInfluenceNotification.
    *
@@ -93,7 +95,8 @@ class nef_notification_mapper {
    * @return true on success.
    */
   static bool pcf_to_ti_notification(
-      const nlohmann::json& pcf_notif, nlohmann::json& t8_notif,
+      const nlohmann::json& pcf_notif,
+      nlohmann::json& t8_notif,
       const std::string& sub_id);
 };
 

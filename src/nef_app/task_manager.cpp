@@ -67,7 +67,7 @@ void task_manager::manage_tasks() {
 
 void task_manager::wait_for_cycle() {
   uint64_t exp;
-  ssize_t res;
+  ssize_t  res;
 
   if (sfd > 0) {
     res = read(sfd, &exp, sizeof(exp));

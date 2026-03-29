@@ -111,7 +111,6 @@ include_directories(${SRC_TOP_DIR}/nef_app)
 include_directories(${SRC_TOP_DIR}/oai-nef)
 include_directories(${SRC_TOP_DIR}/common)
 include_directories(${SRC_TOP_DIR}/api-server)
-include_directories(${SRC_TOP_DIR}/api-server/impl)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/http)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model/common_model)
@@ -139,7 +138,7 @@ target_link_libraries(nef ${ASAN}
       -lnghttp2_asio -lboost_system -lboost_thread -lboost_date_time
       -lfmt -lspdlog -lssl -lcrypto dl
     -Wl,--end-group
-    pthread m rt event boost_system pistache curl -lyaml-cpp cpr::cpr)
+    pthread m rt event boost_system curl -lyaml-cpp cpr::cpr)
 
 add_boolean_option(USE_LTTNG False "Activate LTTng tracing" ON)
 if(USE_LTTNG)

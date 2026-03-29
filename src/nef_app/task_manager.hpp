@@ -34,9 +34,9 @@ class task_manager {
   void wait_for_cycle();
 
   nef_event& event_sub_;
-  int sfd;
-  bool terminate;
-  bool terminated;
+  int        sfd;
+  bool       terminate;
+  bool       terminated;
 };
 
 }  // namespace app

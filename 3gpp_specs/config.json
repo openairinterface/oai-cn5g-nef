@@ -1,0 +1,4 @@
+{
+    "modelPackage"   : "oai::model",
+    "apiPackage"     : "oai::api"
+}

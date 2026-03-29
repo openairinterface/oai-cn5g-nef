@@ -61,8 +61,21 @@ class nef_jwt {
    * @return true if the token is valid for the requested scope and AF
    */
   bool validate_af_token(
-      const std::string& bearer_token, const std::string& required_scope,
+      const std::string& bearer_token,
+      const std::string& required_scope,
       const std::string& af_id) const;
+
+  /*
+   * Extract the 'sub' (subject) claim from a bearer token WITHOUT validating
+   * the signature.  Used by handlers where the AF identity is not present in
+   * the URL path; the sub claim is then passed to validate_af_token().
+   * @param [const std::string &] bearer_token: JWT string (without "Bearer ")
+   * @param [std::string &] out_sub: output — value of the 'sub' claim
+   * @return true if the token was parseable and the sub claim was present
+   */
+  bool extract_sub_claim(
+      const std::string& bearer_token,
+      std::string& out_sub) const;
 
   /*
    * Retrieve the HMAC secret for the given scope / NF pair.
@@ -84,7 +97,8 @@ class nef_jwt {
    * @return true on success
    */
   bool get_secret_key(
-      const std::string& scope, const std::string& target_nf_instance_id,
+      const std::string& scope,
+      const std::string& target_nf_instance_id,
       std::string& key) const;
 };
 

@@ -89,21 +89,20 @@ class nef_subscription {
   void display() const;
 
  private:
-  std::string m_af_sub_id;
-  std::string m_nf_sub_id;  // obtained from AMF/SMF/PCF/UDR
-  std::string m_notification_uri;
-  std::string m_scs_as_id;
-  nef_service_type_t m_service_type =
-      nef_service_type_t::NEF_SERVICE_TYPE_MONITORING_EVENT;
-  nf_type_t m_target_nf_type = nf_type_t::NF_TYPE_AMF;
+  std::string            m_af_sub_id;
+  std::string            m_nf_sub_id;        // obtained from AMF/SMF/PCF/UDR
+  std::string            m_notification_uri;
+  std::string            m_scs_as_id;
+  nef_service_type_t     m_service_type      = nef_service_type_t::NEF_SERVICE_TYPE_MONITORING_EVENT;
+  nf_type_t              m_target_nf_type    = nf_type_t::NF_TYPE_AMF;
   boost::posix_time::ptime m_validity_time;
   std::chrono::system_clock::time_point m_expire_time{};
-  bool m_has_expire_time             = false;
-  uint8_t m_http_version             = 1;
-  nlohmann::json m_subscription_data = {};
+  bool                   m_has_expire_time   = false;
+  uint8_t                m_http_version      = 1;
+  nlohmann::json         m_subscription_data = {};
 
-  nef_event& m_event_sub;
-  bs2::connection m_ev_connection;
+  nef_event&             m_event_sub;
+  bs2::connection        m_ev_connection;
 };
 
 }  // namespace app

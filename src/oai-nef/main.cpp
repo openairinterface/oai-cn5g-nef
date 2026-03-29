@@ -15,7 +15,6 @@
 #include "conversions.hpp"
 #include "http_client.hpp"
 #include "logger.hpp"
-#include "nef-api-server.h"
 #include "nef-http2-server.h"
 #include "nef_app.hpp"
 #include "task_manager.hpp"
@@ -23,34 +22,40 @@
 #include "nef_config.hpp"
 #include "options.hpp"
 #include "pid_file.hpp"
-#include "pistache/endpoint.h"
-#include "pistache/http.h"
-#include "pistache/router.h"
 #include "sbi_helper.hpp"
 
 using namespace oai::nef::app;
 using namespace oai::utils;
 using namespace oai::config::nef;
 
-nef_app* nef_app_inst = nullptr;
+nef_app*  nef_app_inst   = nullptr;
 std::unique_ptr<nef_config> nef_config_inst;
 std::shared_ptr<oai::http::http_client> http_client_inst = nullptr;
-NEFApiServer* api_server                                 = nullptr;
-nef_http2_server* nef_api_server_2                       = nullptr;
-task_manager* tm_inst                                    = nullptr;
+nef_http2_server* nef_api_server_2   = nullptr;
+task_manager*     tm_inst            = nullptr;
 std::unique_ptr<oai::config::lttng_configuration> lttng_config_yaml;
 
 void my_app_signal_handler(int s) {
   auto shutdown_start = std::chrono::system_clock::now();
   Logger::set_level(spdlog::level::debug);
-  Logger::system().info("Caught signal %d", s);
+  Logger::system().info("Caught signal %d — starting graceful shutdown", s);
+
+  // Step 1: Enter drain mode so new requests get 503 immediately.
+  if (nef_api_server_2) {
+    nef_api_server_2->initiate_graceful_shutdown();
+  }
+
+  // Step 2: Deregister from NRF so load balancers route new traffic elsewhere.
+  if (nef_app_inst) {
+    nef_app_inst->deregister_from_nrf();
+  }
+
+  // Step 3: Brief drain window for in-flight requests and notifications.
+  Logger::system().info("Graceful shutdown: draining in-flight requests (2 s)...");
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
   Logger::system().debug("Freeing allocated memory...");
 
-  if (api_server) {
-    api_server->shutdown();
-    delete api_server;
-    api_server = nullptr;
-  }
   if (nef_api_server_2) {
     nef_api_server_2->stop();
     delete nef_api_server_2;
@@ -72,8 +77,10 @@ void my_app_signal_handler(int s) {
   Logger::system().info("Freeing allocated memory done");
 
   auto elapsed = std::chrono::system_clock::now() - shutdown_start;
-  auto ms_diff = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
-  Logger::system().info("Bye. Shutdown procedure took %d ms", ms_diff.count());
+  auto ms_diff =
+      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
+  Logger::system().info(
+      "Bye. Graceful shutdown completed in %d ms", ms_diff.count());
   exit(0);
 }
 
@@ -100,7 +107,8 @@ int main(int argc, char** argv) {
   std::cout << "LTTNG Tracing disabled at build-time!\n";
 #endif
 
-  Logger::set_lttng(static_cast<bool>(lttng_config_yaml->is_lttng_active()));
+  Logger::set_lttng(
+      static_cast<bool>(lttng_config_yaml->is_lttng_active()));
   Logger::init("nef", Options::getlogStdout(), Options::getlogRotFilelog());
   Logger::nef_app().startup("Options parsed");
 
@@ -120,7 +128,8 @@ int main(int argc, char** argv) {
 
   // HTTP Client
   http_client_inst = oai::http::http_client::create_instance(
-      Logger::nef_sbi(), oai::common::sbi::kNfDefaultHttpRequestTimeout,
+      Logger::nef_sbi(),
+      oai::common::sbi::kNfDefaultHttpRequestTimeout,
       nef_config_inst->local().get_sbi().get_if_name(),
       nef_config_inst->get_http_version());
 
@@ -136,33 +145,24 @@ int main(int argc, char** argv) {
 
   // PID file
   std::string pid_file_name =
-      oai::utils::get_exe_absolute_path("/var/run", nef_config_inst->instance);
+      oai::utils::get_exe_absolute_path(
+          "/var/run", nef_config_inst->instance);
   if (!oai::utils::is_pid_file_lock_success(pid_file_name.c_str())) {
-    Logger::nef_app().error("Lock PID file %s failed\n", pid_file_name.c_str());
+    Logger::nef_app().error(
+        "Lock PID file %s failed\n", pid_file_name.c_str());
     exit(-EDEADLK);
   }
 
-  if (nef_config_inst->get_http_version() == 1) {
-    // HTTP/1.1 — Pistache
-    Pistache::Address addr(
-        std::string(inet_ntoa(*((struct in_addr*) &nef_config_inst->local()
-                                    .get_sbi()
-                                    .get_addr4()))),
-        Pistache::Port(nef_config_inst->local().get_sbi().get_port()));
-    api_server = new NEFApiServer(addr, nef_app_inst);
-    api_server->init(2);
-    std::thread nef_manager(&NEFApiServer::start, api_server);
-    nef_manager.join();
-  } else if (nef_config_inst->get_http_version() == 2) {
-    // HTTP/2 — nghttp2
-    nef_api_server_2 = new nef_http2_server(
-        conv::toString(nef_config_inst->local().get_sbi().get_addr4()),
-        nef_config_inst->local().get_sbi().get_port(), nef_app_inst);
-    std::thread nef_http2_manager(&nef_http2_server::start, nef_api_server_2);
-    nef_http2_manager.join();
-  }
+  // HTTP/2 — nghttp2
+  nef_api_server_2 = new nef_http2_server(
+      conv::toString(
+          nef_config_inst->local().get_sbi().get_addr4()),
+      nef_config_inst->local().get_sbi().get_port(),
+      nef_app_inst);
+  std::thread nef_http2_manager(&nef_http2_server::start, nef_api_server_2);
+  nef_http2_manager.join();
 
-  FILE* fp             = NULL;
+  FILE*       fp       = NULL;
   std::string filename = fmt::format("/tmp/nef_{}.status", getpid());
   fp                   = fopen(filename.c_str(), "w+");
   fprintf(fp, "STARTED\n");

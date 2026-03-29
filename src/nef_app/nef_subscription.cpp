@@ -20,8 +20,8 @@ nef_subscription::nef_subscription(nef_event& ev) : m_event_sub(ev) {
 }
 
 nef_subscription::~nef_subscription() {
-  Logger::nef_app().debug(
-      "Delete NEF Subscription instance: %s", m_af_sub_id.c_str());
+  Logger::nef_app().debug("Delete NEF Subscription instance: %s",
+                          m_af_sub_id.c_str());
   if (m_ev_connection.connected()) m_ev_connection.disconnect();
 }
 
@@ -73,8 +73,7 @@ void nef_subscription::set_expire_time(
   m_has_expire_time = true;
 }
 
-std::chrono::system_clock::time_point nef_subscription::get_expire_time()
-    const {
+std::chrono::system_clock::time_point nef_subscription::get_expire_time() const {
   return m_expire_time;
 }
 

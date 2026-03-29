@@ -38,14 +38,15 @@ namespace app {
  *   - Updated as subscriptions are added / removed.
  *   - Destroyed when the AF's last subscription is deleted.
  */
-class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
+class nef_af_profile
+    : public std::enable_shared_from_this<nef_af_profile> {
  public:
   explicit nef_af_profile(nef_event& ev);
   nef_af_profile(nef_af_profile const&) = delete;
   void operator=(nef_af_profile const&) = delete;
   virtual ~nef_af_profile();
 
-  // ── AF identity ──────────────────────────────────────────────────────────
+  // AF identity
   /*
    * Set the AF / SCS identifier.
    * @param [const std::string&] af_id: SCS/AS identifier
@@ -58,7 +59,7 @@ class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
    */
   std::string get_af_id() const;
 
-  // ── API key (pre-shared, optional) ───────────────────────────────────────
+  // API key (pre-shared, optional)
   /*
    * Set the pre-shared API key for this AF.
    * @param [const std::string&] key
@@ -73,7 +74,7 @@ class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
    */
   bool validate_api_key(const std::string& provided_key) const;
 
-  // ── Allowed APIs ─────────────────────────────────────────────────────────
+  // Allowed APIs
   /*
    * Set the list of service names this AF is allowed to use.
    * An empty list means all services are permitted.
@@ -88,7 +89,7 @@ class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
    */
   bool is_api_allowed(const std::string& api_name) const;
 
-  // ── Active subscription tracking (mirrors nrf_profile NF-service list) ───
+  // Active subscription tracking
   /*
    * Record a new subscription as belonging to this AF.
    * @param [const std::string&] sub_id: AF subscription ID
@@ -114,19 +115,19 @@ class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
    */
   bool has_no_subscriptions() const;
 
-  // ── Serialization (mirrors nrf_profile::to_json) ─────────────────────────
+  // Serialization
   nlohmann::json to_json() const;
 
   void display() const;
 
  private:
-  nef_event& m_event_sub;  // mirrors nrf_profile::m_event_sub
-  std::string m_af_id;
-  std::string m_api_key;                    // empty = unchecked
+  nef_event&               m_event_sub;
+  std::string              m_af_id;
+  std::string              m_api_key;       // empty = unchecked
   std::vector<std::string> m_allowed_apis;  // empty = all allowed
   std::vector<std::string> m_subscription_ids;
 
-  mutable std::shared_mutex m_mutex;  // mirrors nrf_profile::nf_profile_mutex
+  mutable std::shared_mutex m_mutex;        
 };
 
 }  // namespace app

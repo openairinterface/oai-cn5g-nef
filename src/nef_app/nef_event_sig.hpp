@@ -22,7 +22,8 @@ namespace app {
 
 // Periodic task tick (1ms resolution, drives heartbeat timers)
 typedef bs2::signal_type<
-    void(uint64_t), bs2::keywords::mutex_type<bs2::mutex>>::type task_sig_t;
+    void(uint64_t),
+    bs2::keywords::mutex_type<bs2::mutex>>::type task_sig_t;
 
 // Fired when a 5GC NF (AMF/SMF/PCF) sends a notification to NEF
 // Carries the internal NF subscription-id and the raw JSON payload

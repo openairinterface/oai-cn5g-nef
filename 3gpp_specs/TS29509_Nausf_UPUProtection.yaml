@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: 1.2.2
+  version: 1.2.1
   title: Nausf_UPUProtection Service
   description: |
     AUSF UPU Protection Service.  
@@ -8,7 +8,7 @@ info:
     All rights reserved.
 
 externalDocs:
-  description: 3GPP TS 29.509 V17.11.0; 5G System; Authentication Server Services
+  description: 3GPP TS 29.509 V17.10.0; 5G System; Authentication Server Services
   url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.509'
 
 servers:
@@ -109,9 +109,7 @@ components:
         - counterUpu
 
     UpuData:
-      description: >
-        Contains UE parameters update data set (e.g., the updated Routing ID 
-        Data or the Default configured NSSAI or the disaster roaming parameters).
+      description: Contains UE parameters update data set (e.g., the updated Routing ID Data or the Default configured NSSAI or the disaster roaming parameters).
       type: object
       properties:
         secPacket:
@@ -127,11 +125,7 @@ components:
           type: boolean
         aol:
           type: boolean
-        disasterCondPlmnIds:
-          type: array
-          items:
-            $ref: 'TS29571_CommonData.yaml#/components/schemas/PlmnId'
-          minItems: 1
+  
 
 #
 # SIMPLE TYPES:

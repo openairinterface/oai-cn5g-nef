@@ -17,22 +17,22 @@
 
 using namespace oai::config::nef;
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // Constructor
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 nef_config_type::nef_config_type(
     const std::string& name, const std::string& host, const sbi_interface& sbi)
     : nf(name, host, sbi) {
-  m_config_name      = NEF_CONFIG_NAME_LABEL;
+  m_config_name = NEF_CONFIG_NAME_LABEL;
   m_support_features = string_config_value(
       NEF_CONFIG_SUPPORT_FEATURES_LABEL,
       "nnef-eventexposure,nnef-pfdmanagement");
   // m_af_whitelist is default-constructed as empty vector (open-access mode)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // from_yaml
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 void nef_config_type::from_yaml(const YAML::Node& node) {
   nf::from_yaml(node);
 
@@ -77,13 +77,16 @@ void nef_config_type::from_yaml(const YAML::Node& node) {
       if (sec_node["jwt_secret"]) {
         m_jwt_secret_key = sec_node["jwt_secret"].as<std::string>();
       }
+      if (sec_node["insecure_dev_mode"]) {
+        m_insecure_dev_mode = sec_node["insecure_dev_mode"].as<bool>(false);
+      }
     }
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // to_json / from_json
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 nlohmann::json nef_config_type::to_json() {
   nlohmann::json j = nf::to_json();
 
@@ -135,47 +138,55 @@ bool nef_config_type::from_json(const nlohmann::json& json_data) {
   return false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // to_string
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 std::string nef_config_type::to_string(const std::string& indent) const {
-  std::string out          = {};
-  std::string inner_indent = indent + indent;
-  unsigned int inner_width = get_inner_width(inner_indent.length());
+  std::string  out          = {};
+  std::string  inner_indent = indent + indent;
+  unsigned int inner_width  = get_inner_width(inner_indent.length());
   out.append(nf::to_string(indent));
 
   out.append(inner_indent)
       .append(fmt::format(
-          BASE_FORMATTER, OUTER_LIST_ELEM, m_support_features.get_config_name(),
-          inner_width, m_support_features.get_value()));
+          BASE_FORMATTER, OUTER_LIST_ELEM,
+          m_support_features.get_config_name(), inner_width,
+          m_support_features.get_value()));
 
   // Whitelist summary
   out.append(inner_indent)
       .append(fmt::format(
           BASE_FORMATTER, OUTER_LIST_ELEM, NEF_CONFIG_AF_WHITELIST_LABEL,
           inner_width,
-          m_af_whitelist.empty() ?
-              std::string("(open-access / dev mode)") :
-              std::to_string(m_af_whitelist.size()) + " entry/entries"));
+          m_af_whitelist.empty()
+              ? std::string("(open-access / dev mode)")
+              : std::to_string(m_af_whitelist.size()) + " entry/entries"));
 
   return out;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // validate
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 void nef_config_type::validate() {
   nf::validate();
-  if (m_af_whitelist.empty()) {
-    Logger::system().warn(
-        "NEF AF whitelist is empty – all AF/SCS identifiers are accepted "
-        "(development mode)");
+  if (m_af_whitelist.empty() && m_jwt_secret_key.empty()) {
+    if (m_insecure_dev_mode) {
+      Logger::system().warn(
+          "NEF: insecure_dev_mode=true with no JWT secret and no AF whitelist – "
+          "all requests will be permitted (development mode only)");
+    } else {
+      Logger::system().warn(
+          "NEF: no JWT secret and no AF whitelist configured – "
+          "fail-closed mode: all requests will be DENIED. "
+          "Set insecure_dev_mode: true to allow unauthenticated access.");
+    }
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // Accessors
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 std::string nef_config_type::get_support_features() const {
   return m_support_features.get_value();
 }

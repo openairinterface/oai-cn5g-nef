@@ -1,7 +1,7 @@
 openapi: 3.0.0
 
 info:
-  version: '1.2.6'
+  version: '1.2.5'
   title: 'LMF Location'
   description: |
     LMF Location Service.  
@@ -9,7 +9,7 @@ info:
     All rights reserved.
 
 externalDocs:
-  description: 3GPP TS 29.572 V17.11.0; 5G System; Location Management Services; Stage 3
+  description: 3GPP TS 29.572 V17.10.0; 5G System; Location Management Services; Stage 3
   url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.572/'
 
 servers:
@@ -389,8 +389,6 @@ components:
           $ref: '#/components/schemas/PeriodicEventInfo'
         haGnssMetrics:
           $ref: '#/components/schemas/HighAccuracyGnssMetrics'
-        integrityResult:
-          $ref: 'TS29515_Ngmlc_Location.yaml#/components/schemas/IntegrityResult'
 
     GeographicArea:
       description: Geographic area specified by different shape.
@@ -628,8 +626,6 @@ components:
               $ref: '#/components/schemas/UncertaintyEllipsoid'
             confidence:
               $ref: '#/components/schemas/Confidence'
-            vConfidence:
-              $ref: '#/components/schemas/Confidence'
 
     GeographicalCoordinates:
       description: Geographical coordinates.
@@ -820,7 +816,7 @@ components:
 
     VelocityEstimate:
       description: Velocity estimate.
-      anyOf:
+      oneOf:
         - $ref: '#/components/schemas/HorizontalVelocity'
         - $ref: '#/components/schemas/HorizontalWithVerticalVelocity'
         - $ref: '#/components/schemas/HorizontalVelocityWithUncertainty'
@@ -1147,8 +1143,6 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/SupportedFeatures'
         haGnssMetrics:
           $ref: '#/components/schemas/HighAccuracyGnssMetrics'
-        integrityResult:
-          $ref: 'TS29515_Ngmlc_Location.yaml#/components/schemas/IntegrityResult'
 
 
     UeConnectivityState:
