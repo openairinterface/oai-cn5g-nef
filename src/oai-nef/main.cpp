@@ -3,9 +3,12 @@
  * contributor license agreements.
  */
 
+#include <algorithm>
+#include <cerrno>
 #include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/eventfd.h>
 #include <unistd.h>
 
 #include <chrono>
@@ -35,53 +38,12 @@ nef_http2_server* nef_api_server_2   = nullptr;
 task_manager*     tm_inst            = nullptr;
 std::unique_ptr<oai::config::lttng_configuration> lttng_config_yaml;
 
-void my_app_signal_handler(int s) {
-  auto shutdown_start = std::chrono::system_clock::now();
-  Logger::set_level(spdlog::level::debug);
-  Logger::system().info("Caught signal %d — starting graceful shutdown", s);
+static int shutdown_efd_g = -1;
 
-  // Step 1: Enter drain mode so new requests get 503 immediately.
-  if (nef_api_server_2) {
-    nef_api_server_2->initiate_graceful_shutdown();
-  }
-
-  // Step 2: Deregister from NRF so load balancers route new traffic elsewhere.
-  if (nef_app_inst) {
-    nef_app_inst->deregister_from_nrf();
-  }
-
-  // Step 3: Brief drain window for in-flight requests and notifications.
-  Logger::system().info("Graceful shutdown: draining in-flight requests (2 s)...");
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
-  Logger::system().debug("Freeing allocated memory...");
-
-  if (nef_api_server_2) {
-    nef_api_server_2->stop();
-    delete nef_api_server_2;
-    nef_api_server_2 = nullptr;
-  }
-  Logger::system().debug("NEF API Server memory done");
-
-  if (tm_inst) {
-    delete tm_inst;
-    tm_inst = nullptr;
-  }
-  Logger::system().debug("Stopped the NEF Task Manager.");
-
-  if (nef_app_inst) {
-    delete nef_app_inst;
-    nef_app_inst = nullptr;
-  }
-  Logger::system().debug("NEF APP memory done");
-  Logger::system().info("Freeing allocated memory done");
-
-  auto elapsed = std::chrono::system_clock::now() - shutdown_start;
-  auto ms_diff =
-      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
-  Logger::system().info(
-      "Bye. Graceful shutdown completed in %d ms", ms_diff.count());
-  exit(0);
+static void my_shutdown_signal_handler(int /*s*/) {
+  const uint64_t one = 1;
+  // NOLINTNEXTLINE: write() in signal handler is async-signal-safe
+  ::write(shutdown_efd_g, &one, sizeof(one));
 }
 
 int main(int argc, char** argv) {
@@ -112,8 +74,19 @@ int main(int argc, char** argv) {
   Logger::init("nef", Options::getlogStdout(), Options::getlogRotFilelog());
   Logger::nef_app().startup("Options parsed");
 
-  std::signal(SIGTERM, my_app_signal_handler);
-  std::signal(SIGINT, my_app_signal_handler);
+  // Create eventfd for async-signal-safe wakeup
+  shutdown_efd_g = eventfd(0, EFD_CLOEXEC);
+  if (shutdown_efd_g < 0) {
+    Logger::nef_sbi().error("eventfd creation failed: errno={}", errno);
+    return EXIT_FAILURE;
+  }
+
+  // Install signal handlers (async-signal-safe: only write to eventfd)
+  struct sigaction sa{};
+  sa.sa_handler = my_shutdown_signal_handler;
+  sigemptyset(&sa.sa_mask);
+  sigaction(SIGTERM, &sa, nullptr);
+  sigaction(SIGINT,  &sa, nullptr);
 
   // Configuration
   nef_config_inst = std::make_unique<nef_config>(
@@ -149,18 +122,22 @@ int main(int argc, char** argv) {
           "/var/run", nef_config_inst->instance);
   if (!oai::utils::is_pid_file_lock_success(pid_file_name.c_str())) {
     Logger::nef_app().error(
-        "Lock PID file %s failed\n", pid_file_name.c_str());
+        "Lock PID file {} failed\n", pid_file_name);
     exit(-EDEADLK);
   }
 
   // HTTP/2 — nghttp2
+  http2_server_config cfg;
+  cfg.num_worker_threads = std::max(1U, std::thread::hardware_concurrency());
+
   nef_api_server_2 = new nef_http2_server(
       conv::toString(
           nef_config_inst->local().get_sbi().get_addr4()),
       nef_config_inst->local().get_sbi().get_port(),
-      nef_app_inst);
+      nef_app_inst,
+      cfg,
+      Logger::nef_sbi().get());
   std::thread nef_http2_manager(&nef_http2_server::start, nef_api_server_2);
-  nef_http2_manager.join();
 
   FILE*       fp       = NULL;
   std::string filename = fmt::format("/tmp/nef_{}.status", getpid());
@@ -170,7 +147,59 @@ int main(int argc, char** argv) {
   fclose(fp);
 
   Logger::nef_app().info("Initiation done!");
-  pause();
 
-  return 0;
+  // Block main thread until signal
+  uint64_t val = 0;
+  ::read(shutdown_efd_g, &val, sizeof(val));
+  close(shutdown_efd_g);
+
+  auto shutdown_start = std::chrono::system_clock::now();
+  Logger::set_level(spdlog::level::debug);
+  Logger::system().info("Signal received \xe2\x80\x94 starting graceful shutdown");
+
+  // Step 1: Enter drain mode so new requests get 503 immediately.
+  if (nef_api_server_2) {
+    nef_api_server_2->initiate_graceful_shutdown();
+  }
+
+  // Step 2: Deregister from NRF so load balancers route new traffic elsewhere.
+  if (nef_app_inst) {
+    nef_app_inst->deregister_from_nrf();
+  }
+
+  // Step 3: Brief drain window for in-flight requests and notifications.
+  Logger::system().info("Graceful shutdown: draining in-flight requests (2 s)...");
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  Logger::system().debug("Freeing allocated memory...");
+
+  if (nef_api_server_2) {
+    nef_api_server_2->stop();
+    nef_http2_manager.join();  // wait for event loop to fully exit
+    delete nef_api_server_2;
+    nef_api_server_2 = nullptr;
+  }
+  Logger::system().debug("NEF API Server memory done");
+
+  if (tm_inst) {
+    task_manager_thread.detach();  // task_manager has no async-safe stop
+    delete tm_inst;
+    tm_inst = nullptr;
+  }
+  Logger::system().debug("Stopped the NEF Task Manager.");
+
+  if (nef_app_inst) {
+    delete nef_app_inst;
+    nef_app_inst = nullptr;
+  }
+  Logger::system().debug("NEF APP memory done");
+  Logger::system().info("Freeing allocated memory done");
+
+  auto elapsed = std::chrono::system_clock::now() - shutdown_start;
+  auto ms_diff =
+      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
+  Logger::system().info(
+      "Bye. Graceful shutdown completed in {} ms", ms_diff.count());
+
+  return EXIT_SUCCESS;
 }

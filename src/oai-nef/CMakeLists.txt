@@ -135,10 +135,10 @@ target_link_libraries(nef ${ASAN}
     -Wl,--start-group
       NEF NEF_API
       -lnettle ${NETTLE_LIBRARIES} ${CRYPTO_LIBRARIES}
-      -lnghttp2_asio -lboost_system -lboost_thread -lboost_date_time
+      -lnghttp2 -lboost_system -lboost_thread -lboost_date_time
       -lfmt -lspdlog -lssl -lcrypto dl
     -Wl,--end-group
-    pthread m rt event boost_system curl -lyaml-cpp cpr::cpr)
+    pthread m rt event event_pthreads boost_system curl -lyaml-cpp cpr::cpr)
 
 add_boolean_option(USE_LTTNG False "Activate LTTng tracing" ON)
 if(USE_LTTNG)
