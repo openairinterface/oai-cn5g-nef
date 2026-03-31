@@ -48,8 +48,8 @@ void IPTVConfigurationsApi::setupRoutes() {
 }
 
 std::pair<Pistache::Http::Code, std::string>
-IPTVConfigurationsApi::handleParsingException(const std::exception& ex) const
-    noexcept {
+IPTVConfigurationsApi::handleParsingException(
+    const std::exception& ex) const noexcept {
   try {
     throw;
   } catch (nlohmann::detail::exception& e) {
@@ -63,8 +63,8 @@ IPTVConfigurationsApi::handleParsingException(const std::exception& ex) const
 }
 
 std::pair<Pistache::Http::Code, std::string>
-IPTVConfigurationsApi::handleOperationException(const std::exception& ex) const
-    noexcept {
+IPTVConfigurationsApi::handleOperationException(
+    const std::exception& ex) const noexcept {
   return std::make_pair(Pistache::Http::Code::Internal_Server_Error, ex.what());
 }
 

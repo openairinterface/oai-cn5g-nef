@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
-
 #include "pid_file.hpp"
 
 #include <errno.h>
