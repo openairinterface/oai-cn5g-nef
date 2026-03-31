@@ -1,18 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License.
- */
-
-/**
- * @file nef_audit_record.hpp
- * @brief Audit record builder (logger-free, testable).
- *
- * Separated from nef_audit_log.hpp so unit tests can include this without
- * pulling in spdlog/logger.hpp.
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #pragma once

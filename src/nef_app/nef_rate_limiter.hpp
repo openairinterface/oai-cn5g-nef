@@ -1,23 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License.
- */
-
-/**
- * @file nef_rate_limiter.hpp
- * @brief F4.2 — Per-AF token-bucket rate limiter (header-only).
- *
- * Each AF (identified by bearer token or remote address) maintains an
- * independent token bucket. Tokens refill continuously based on elapsed time
- * since the last check. When a bucket is empty `allow()` returns false and
- * the caller should respond 429 Too Many Requests.
- *
- * Thread-safety: a single std::mutex guards the per-bucket map. For typical
- * NEF loads (O(10) AFs) contention is negligible.
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #pragma once

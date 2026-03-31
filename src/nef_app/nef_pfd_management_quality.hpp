@@ -1,18 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License.
- */
-
-/*! \file nef_pfd_management_quality.hpp
- * \brief Header-only utilities for F3.2 — Nnef_PFDmanagement Quality
- *        Verification (SBI, TS 29.551).
- *
- * Pure logic — no dependency on the NEF library or config singleton.
- * Directly testable by unit tests without linking the full nef_lib.
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #pragma once

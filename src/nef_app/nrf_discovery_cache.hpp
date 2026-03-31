@@ -1,24 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License.
- */
-
-/**
- * F4.1 — NRF Discovery Result Caching
- *
- * Header-only, thread-safe, TTL-based cache for NRF discovery results.
- * Caches a discovered NF endpoint string per NF-type key (e.g. "AMF", "SMF")
- * for up to TTL seconds, avoiding a round-trip to NRF on every SBI call.
- *
- * Default TTL is 30 seconds.  Callers may override TTL per put() call (e.g.
- * pass TTL=0 in tests to trigger immediate expiry).
- *
- * Thread-safety: reads are lock-free once the shared_mutex is held in shared
- * mode; writes take an exclusive lock.
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #pragma once

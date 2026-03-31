@@ -1,7 +1,4 @@
-################################################################################
-# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
-# contributor license agreements.
-################################################################################
+# SPDX-License-Identifier: LicenseRef-CSSL-1.0
 
 include_directories(${SRC_TOP_DIR}/api-server/)
 include_directories(${SRC_TOP_DIR}/common/)

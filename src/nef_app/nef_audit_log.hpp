@@ -1,25 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1 (the "License"); you may not use this
- * file except in compliance with the License.
- */
-
-/**
- * @file nef_audit_log.hpp
- * @brief Structured JSON audit logger for NEF resource mutations.
- *
- * All CREATE / UPDATE / DELETE / PATCH operations on NEF-managed resources
- * produce a single-line JSON audit record at INFO level in the NEF_APP
- * logging channel, prefixed with "[AUDIT]" for easy grepping.
- *
- * Usage:
- *   nef_audit::log("CREATE", "TI", af_id, app_session_id, 201);
- *
- * The JSON builder lives in nef_audit_record.hpp (no logger dependency) so
- * it can be unit-tested without linking spdlog.
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #pragma once

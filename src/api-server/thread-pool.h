@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
 #ifndef FILE_THREAD_POOL_SEEN
 #define FILE_THREAD_POOL_SEEN
 

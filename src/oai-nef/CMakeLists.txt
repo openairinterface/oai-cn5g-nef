@@ -1,7 +1,5 @@
-################################################################################
-# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
-# contributor license agreements.
-################################################################################
+# SPDX-License-Identifier: LicenseRef-CSSL-1.0
+
 cmake_minimum_required (VERSION 3.0.2)
 
 macro(add_option name val helpstr)
@@ -113,7 +111,7 @@ include_directories(${SRC_TOP_DIR}/common)
 include_directories(${SRC_TOP_DIR}/api-server)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/http)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger)
-include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model/common_model)
+include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils/bstr)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/nas/common)

@@ -1,29 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License.
- */
-
-/*! \file nef_pfd_atomicity.hpp
- * \brief PFD Transaction Atomicity / Rollback
- *
- * Header-only compensating rollback tracker for multi-app PFD batch writes.
- *
- * Usage pattern inside a PFD transaction PUT handler:
- *
- *   PfdRollbackTracker rollback;
- *   for (const auto& [app_id, app_body] : apps.items()) {
- *     if (!udr_put(app_id, app_body)) {
- *       rollback.execute([&](const std::string& id){ return udr_delete(id); },
- *                        [&](const std::string& id){ log_error(id); });
- *       return error_response;
- *     }
- *     rollback.mark_committed(app_id);
- *   }
- *   // All writes succeeded — commit local state now.
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #pragma once

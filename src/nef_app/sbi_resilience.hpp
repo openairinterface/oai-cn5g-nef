@@ -1,22 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1  (the "License"); you may not use this
- * file except in compliance with the License.
- */
-
-/**
- * F4.6 — Southbound SBI Retry and Circuit Breaker
- *
- * Header-only utilities for per-NF-type circuit breaking and retry-with-backoff
- * on all southbound calls from NEF to AMF, SMF, PCF, UDR.
- *
- * Separate from F1.6's circuit_breaker_registry (nef_retry_helper.hpp), which
- * tracks per-endpoint AF notification delivery.  Here the keys are NF type
- * strings ("AMF", "SMF", "PCF", "UDR") and the state machine has three states
- * (CLOSED → OPEN → HALF_OPEN) instead of a simple failure counter.
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #pragma once
