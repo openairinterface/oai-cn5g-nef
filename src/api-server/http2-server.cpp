@@ -21,7 +21,7 @@
 
 /*! \file http2-server.cpp
  \brief Generic HTTP/2 server wrapper — implementation.
-        Uses nghttp2 v1.68.0+ C API + libevent (cleartext h2c, no TLS).
+        Uses nghttp2 v1.68.1 C API + libevent (cleartext h2c, no TLS).
         Uses v2 API: nghttp2_submit_response2, nghttp2_session_mem_recv2,
         nghttp2_data_provider2, nghttp2_ssize.
  \author  OAI
@@ -37,7 +37,7 @@
 #include <unistd.h>  // close() — used in accept_cb when max_connections exceeded
 #include <event2/thread.h>
 
-#include <spdlog/spdlog.h>
+#include "logger.hpp"
 
 // ---------------------------------------------------------------------------
 // Internal types (not exposed in header)
@@ -187,7 +187,7 @@ struct thread_pool_work_item {
 // Called by nghttp2 to hand outgoing bytes to the transport layer.
 // Appends to the bufferevent output buffer; does NOT call bufferevent_write()
 // (which can trigger recursive write callbacks in some libevent configs).
-// v2 API (nghttp2 v1.68.0+): returns nghttp2_ssize (typedef ptrdiff_t).
+// v2 API (nghttp2 v1.68.1): returns nghttp2_ssize (typedef ptrdiff_t).
 
 static nghttp2_ssize send_callback(
     nghttp2_session* /*session*/, const uint8_t* data, size_t length,
@@ -215,8 +215,7 @@ static int on_begin_headers_callback(
     return 0;
   }
 
-  auto* stream = conn->create_stream(frame->hd.stream_id);
-  stream->request.peer_address = conn->peer_address;
+  conn->create_stream(frame->hd.stream_id);
   return 0;
 }
 
@@ -281,13 +280,11 @@ static int on_data_chunk_recv_callback(
     return 0;
   }
 
-  // Enforce maximum body size — send RFC 7807 413 if exceeded.
+  // Enforce maximum body size — reset the stream if exceeded.
   size_t max_body = conn->server->config().max_request_body_size;
   if (stream->request.body.size() + len > max_body) {
-    http2_response err_resp(session, stream_id, conn->bev, stream);
-    err_resp.send(
-        413, {{"content-type", "application/problem+json"}},
-        R"({"type":"about:blank","title":"Payload Too Large","status":413,"detail":"Request body exceeds maximum allowed size"})");
+    nghttp2_submit_rst_stream(
+        session, NGHTTP2_FLAG_NONE, stream_id, NGHTTP2_ENHANCE_YOUR_CALM);
     return 0;
   }
 
@@ -365,16 +362,16 @@ static int on_frame_recv_callback(
                   // cleanup cannot be performed from this worker thread —
                   // deferred-destruction timeout (if active) or server shutdown
                   // will be the last cleanup opportunity.
-                  if (srv->logger()) srv->logger()->error(
-                      "HTTP2 conn {} stream {}: event_base_once failed,"
+                  Logger::nef_app().error(
+                      "HTTP2 conn %llu stream %d: event_base_once failed,"
                       " response discarded",
-                      item->conn_id, item->stream_id);
+                      (unsigned long long) item->conn_id, item->stream_id);
                   delete item;  // prevent leak; client will get a timeout
                 }
               });
 
           if (!ok) {
-            // Worker queue full — revert and send RFC 7807 503 synchronously.
+            // Worker queue full — revert and send 503 synchronously.
             delete item;
             stream->pending_worker = false;
             http2_response sync_resp(
@@ -464,7 +461,7 @@ static void initialize_nghttp2_session(
   nghttp2_session_callbacks* callbacks;
   nghttp2_session_callbacks_new(&callbacks);
 
-  // v2 API (nghttp2 v1.68.0+): _set_send_callback2
+  // v2 API (nghttp2 v1.68.1): _set_send_callback2
   nghttp2_session_callbacks_set_send_callback2(callbacks, send_callback);
   nghttp2_session_callbacks_set_on_frame_recv_callback(
       callbacks, on_frame_recv_callback);
@@ -482,7 +479,7 @@ static void initialize_nghttp2_session(
   // Limit outstanding unacknowledged PING frames — PING flood protection.
   nghttp2_option_set_max_outbound_ack(option, 1000);
 
-  // ── v1.68.0+ security hardening ──
+  // ── v1.68.1 security hardening ──
 
   // CVE-2023-44487 (HTTP/2 Rapid Reset): Token-bucket rate limiter.
   // burst=100: initial and maximum token count.
@@ -537,7 +534,7 @@ static void initialize_nghttp2_session(
 
 // Forward declaration — response_body_read_callback must be declared before
 // http2_response::send() references it as a function pointer (feedback N8).
-// v2 API (nghttp2 v1.68.0+): returns nghttp2_ssize.
+// v2 API (nghttp2 v1.68.1): returns nghttp2_ssize.
 static nghttp2_ssize response_body_read_callback(
     nghttp2_session*, int32_t, uint8_t*, size_t, uint32_t*,
     nghttp2_data_source*, void*);
@@ -575,13 +572,6 @@ void http2_response::send(
     return;  // response_post_cb will call submit_response + session_send
   }
 
-  // Get logger via session userdata (sync mode only; work_item_ path returns
-  // early above).
-  auto* _conn_ =
-      static_cast<http2_connection*>(nghttp2_session_get_user_data(session_));
-  spdlog::logger* _log_ =
-      (_conn_ && _conn_->server) ? _conn_->server->logger() : nullptr;
-
   // Synchronous mode: submit directly to nghttp2 (event loop thread only) ──
   // No NGHTTP2_NV_FLAG_NO_COPY_* — nghttp2 copies all name/value data during
   // nghttp2_submit_response(). Safe regardless of header string lifetimes
@@ -608,7 +598,7 @@ void http2_response::send(
     int rv = nghttp2_submit_response2(
         session_, stream_id_, nva.data(), nva.size(), nullptr);
     if (rv != 0) {
-      if (_log_) _log_->error(
+      Logger::nef_app().error(
           "HTTP2 send: nghttp2_submit_response2 failed for stream {}: {}",
           stream_id_, nghttp2_strerror(rv));
     }
@@ -632,7 +622,7 @@ void http2_response::send(
     int rv = nghttp2_submit_response2(
         session_, stream_id_, nva.data(), nva.size(), &data_prd);
     if (rv != 0) {
-      if (_log_) _log_->error(
+      Logger::nef_app().error(
           "HTTP2 send: nghttp2_submit_response2 failed for stream {}: {}",
           stream_id_, nghttp2_strerror(rv));
     }
@@ -647,9 +637,9 @@ void http2_response::send(
   // sends everything in one shot without waiting for the next read_cb cycle.
   int rv_send = nghttp2_session_send(session_);
   if (rv_send != 0) {
-    if (_log_) _log_->error(
-        "HTTP2 send: nghttp2_session_send failed for stream {}: {}",
-        stream_id_, nghttp2_strerror(rv_send));
+    Logger::nef_app().error(
+        "HTTP2 send: nghttp2_session_send failed for stream {}: {}", stream_id_,
+        nghttp2_strerror(rv_send));
   }
 }
 
@@ -706,9 +696,9 @@ void http2_server::response_post_cb(
   if (!conn) {
     // Connection gone: warn unconditionally (no conn object to hold a
     // once-flag).
-    if (server->logger()) server->logger()->warn(
-        "HTTP2 conn {} stream {}: response discarded, connection gone",
-        item->conn_id, item->stream_id);
+    Logger::nef_app().warn(
+        "HTTP2 conn %llu stream %d: response discarded, connection gone",
+        static_cast<unsigned long long>(item->conn_id), item->stream_id);
     delete item;
     return;
   }
@@ -720,10 +710,10 @@ void http2_server::response_post_cb(
   if (conn->pending_destruction) {
     if (!conn->warned_pending_dest_discard) {
       conn->warned_pending_dest_discard = true;
-      if (server->logger()) server->logger()->warn(
-          "HTTP2 conn {} stream {}: response discarded, connection in "
+      Logger::nef_app().warn(
+          "HTTP2 conn %llu stream %d: response discarded, connection in "
           "deferred destruction",
-          conn->conn_id, item->stream_id);
+          static_cast<unsigned long long>(conn->conn_id), item->stream_id);
     }
     conn->discard_pending_dest++;
 
@@ -736,13 +726,13 @@ void http2_server::response_post_cb(
 
     // If this was the last pending worker, finalize deferred destruction.
     if (!conn->has_pending_workers()) {
-      if (server->logger()) server->logger()->warn(
-          "HTTP2 conn {}: deferred destruction completing — discards: "
-          "conn_missing={} stream_missing={} stream_closed_pending={} "
-          "pending_dest={}",
-          conn->conn_id, conn->discard_conn_missing,
-          conn->discard_stream_missing, conn->discard_stream_closed_pending,
-          conn->discard_pending_dest);
+      Logger::nef_app().warn(
+          "HTTP2 conn %llu: deferred destruction completing — discards: "
+          "conn_missing=%d stream_missing=%d stream_closed_pending=%d "
+          "pending_dest=%d",
+          static_cast<unsigned long long>(conn->conn_id),
+          conn->discard_conn_missing, conn->discard_stream_missing,
+          conn->discard_stream_closed_pending, conn->discard_pending_dest);
       server->remove_connection(conn);
       delete conn;
     }
@@ -755,9 +745,9 @@ void http2_server::response_post_cb(
   if (!stream) {
     if (!conn->warned_stream_missing) {
       conn->warned_stream_missing = true;
-      if (server->logger()) server->logger()->warn(
-          "HTTP2 conn {} stream {}: response discarded, stream gone",
-          conn->conn_id, item->stream_id);
+      Logger::nef_app().warn(
+          "HTTP2 conn %llu stream %d: response discarded, stream gone",
+          static_cast<unsigned long long>(conn->conn_id), item->stream_id);
     }
     conn->discard_stream_missing++;
     delete item;
@@ -770,10 +760,10 @@ void http2_server::response_post_cb(
   if (stream->closed_while_pending || !stream->pending_worker) {
     if (!conn->warned_stream_closed_pending) {
       conn->warned_stream_closed_pending = true;
-      if (server->logger()) server->logger()->warn(
-          "HTTP2 conn {} stream {}: response discarded, stream closed "
+      Logger::nef_app().warn(
+          "HTTP2 conn %llu stream %d: response discarded, stream closed "
           "while pending",
-          conn->conn_id, item->stream_id);
+          static_cast<unsigned long long>(conn->conn_id), item->stream_id);
     }
     conn->discard_stream_closed_pending++;
     conn->remove_stream(item->stream_id);
@@ -804,9 +794,8 @@ void http2_server::response_post_cb(
 // ---------------------------------------------------------------------------
 
 http2_server::http2_server(
-    const std::string& address, uint32_t port, http2_server_config config,
-    spdlog::logger* logger)
-    : address_(address), port_(port), config_(config), logger_(logger) {}
+    const std::string& address, uint32_t port, http2_server_config config)
+    : address_(address), port_(port), config_(config) {}
 
 http2_server::~http2_server() {
   // Destruction before stop() is a programming error; do best-effort cleanup.
@@ -856,11 +845,11 @@ void http2_server::start() {
 
   base_ = event_base_new();
   if (!base_) {
-    if (logger_) logger_->error("HTTP2 server: failed to create event_base");
+    Logger::nef_app().error("HTTP2 server: failed to create event_base");
     return;
   }
 
-  // Resolve the bind address (IPv4 only — matches existing get_addr4() NRF
+  // Resolve the bind address (IPv4 only — matches existing get_addr4() nef
   // behaviour; IPv6 is a future enhancement).
   struct sockaddr_in sin;
   memset(&sin, 0, sizeof(sin));
@@ -871,8 +860,8 @@ void http2_server::start() {
     sin.sin_addr.s_addr = INADDR_ANY;
   } else {
     if (inet_pton(AF_INET, address_.c_str(), &sin.sin_addr) != 1) {
-      if (logger_) logger_->error(
-          "HTTP2 server: invalid bind address '{}'", address_);
+      Logger::nef_app().error(
+          "HTTP2 server: invalid bind address '%s'", address_.c_str());
       event_base_free(base_);
       base_ = nullptr;
       return;
@@ -885,8 +874,8 @@ void http2_server::start() {
       reinterpret_cast<struct sockaddr*>(&sin), static_cast<int>(sizeof(sin)));
 
   if (!listener_) {
-    if (logger_) logger_->error(
-        "HTTP2 server: failed to bind to {}:{}", address_, port_);
+    Logger::nef_app().error(
+        "HTTP2 server: failed to bind to %s:%u", address_.c_str(), port_);
     event_base_free(base_);
     base_ = nullptr;
     return;
@@ -898,13 +887,13 @@ void http2_server::start() {
   if (config_.num_worker_threads > 0) {
     pool_ = std::make_unique<thread_pool>(
         config_.num_worker_threads, config_.max_pending_tasks);
-    if (logger_) logger_->info(
-        "HTTP2 server: thread pool created ({} workers)",
+    Logger::nef_app().info(
+        "HTTP2 server: thread pool created (%u workers)",
         config_.num_worker_threads);
   }
 
-  if (logger_) logger_->info(
-      "HTTP2 server listening on {}:{}", address_, port_);
+  Logger::nef_app().info(
+      "HTTP2 server listening on %s:%u", address_.c_str(), port_);
 
   // Blocks until drain_timer_cb calls event_base_loopbreak().
   event_base_dispatch(base_);
@@ -924,7 +913,7 @@ void http2_server::start() {
   event_base_free(base_);
   base_ = nullptr;
   running_.store(false);
-  if (logger_) logger_->info("HTTP2 server fully stopped");
+  Logger::nef_app().info("HTTP2 server fully stopped");
 }
 
 void http2_server::stop() {
@@ -936,7 +925,7 @@ void http2_server::stop() {
   int ret                = event_base_once(
       base_, -1, EV_TIMEOUT, goaway_and_drain_cb, this, &zero_tv);
   if (ret != 0) {
-    if (logger_) logger_->error(
+    Logger::nef_app().error(
         "HTTP2 server stop: event_base_once failed, using loopbreak fallback");
     event_base_loopbreak(base_);
   }
@@ -952,8 +941,8 @@ void http2_server::stop() {
 // Called by libevent when a new TCP connection arrives.
 
 void http2_server::accept_cb(
-    struct evconnlistener* listener, evutil_socket_t fd,
-    struct sockaddr* addr, int addrlen, void* arg) {
+    struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr* addr,
+    int addrlen, void* arg) {
   auto* server            = static_cast<http2_server*>(arg);
   struct event_base* base = evconnlistener_get_base(listener);
 
@@ -1033,7 +1022,7 @@ void http2_server::read_cb(struct bufferevent* bev, void* arg) {
   // evbuffer_pullup() returns unsigned char*; nghttp2_session_mem_recv() takes
   // const uint8_t*. On all supported platforms these are identical, but the
   // reinterpret_cast makes the conversion explicit (feedback S4).
-  // Note: for large buffers evbuffer_pullup copies memory. For NEF workloads
+  // Note: for large buffers evbuffer_pullup copies memory. For nef workloads
   // (small SBI frames) this is negligible. Future optimisation:
   // evbuffer_peek().
   unsigned char* raw = evbuffer_pullup(input, static_cast<ev_ssize_t>(datalen));
@@ -1041,7 +1030,7 @@ void http2_server::read_cb(struct bufferevent* bev, void* arg) {
   const uint8_t* data = reinterpret_cast<const uint8_t*>(raw);
 
   // Feed data to nghttp2.
-  // v2 API (nghttp2 v1.68.0+): nghttp2_session_mem_recv2 returns nghttp2_ssize.
+  // v2 API (nghttp2 v1.68.1): nghttp2_session_mem_recv2 returns nghttp2_ssize.
   nghttp2_ssize readlen =
       nghttp2_session_mem_recv2(conn->session, data, datalen);
   if (readlen < 0) {
@@ -1221,28 +1210,29 @@ void http2_server::deferred_destruction_timeout_cb(
 
   http2_connection* conn = server->find_connection(id);
   if (!conn) {
-    if (server->logger()) server->logger()->debug(
-        "HTTP2 conn {}: deferred destruction timeout — connection already "
+    Logger::nef_app().debug(
+        "HTTP2 conn %llu: deferred destruction timeout — connection already "
         "removed",
-        id);
+        static_cast<unsigned long long>(id));
     return;
   }
 
   if (!conn->pending_destruction) {
-    if (server->logger()) server->logger()->debug(
-        "HTTP2 conn {}: deferred destruction timeout — not in deferred "
+    Logger::nef_app().debug(
+        "HTTP2 conn %llu: deferred destruction timeout — not in deferred "
         "state, skipping",
-        id);
+        static_cast<unsigned long long>(id));
     return;
   }
 
-  if (server->logger()) server->logger()->warn(
-      "HTTP2 conn {}: deferred destruction timeout expired — "
+  Logger::nef_app().warn(
+      "HTTP2 conn %llu: deferred destruction timeout expired — "
       "force-destroying;"
-      " discards: conn_missing={} stream_missing={}"
-      " stream_closed_pending={} pending_dest={}",
-      id, conn->discard_conn_missing, conn->discard_stream_missing,
-      conn->discard_stream_closed_pending, conn->discard_pending_dest);
+      " discards: conn_missing=%d stream_missing=%d"
+      " stream_closed_pending=%d pending_dest=%d",
+      static_cast<unsigned long long>(id), conn->discard_conn_missing,
+      conn->discard_stream_missing, conn->discard_stream_closed_pending,
+      conn->discard_pending_dest);
 
   server->remove_connection(conn);
   delete conn;
@@ -1261,10 +1251,10 @@ void http2_connection::start_deferred_destruction(const char* reason) {
   bufferevent_setcb(bev, nullptr, nullptr, nullptr, nullptr);
   bufferevent_disable(bev, EV_READ | EV_WRITE);
 
-  if (server->logger()) server->logger()->warn(
-      "HTTP2 conn {}: deferring destruction, reason={}, waiting for "
-      "pending workers",
-      conn_id, reason);
+  Logger::nef_app().warn(
+      "HTTP2 conn %llu: deferring destruction, reason=%s,"
+      " waiting for pending workers",
+      static_cast<unsigned long long>(conn_id), reason);
 
   auto* ctx = new deferred_destruction_ctx{conn_id, server};
   struct timeval tv;
@@ -1273,10 +1263,10 @@ void http2_connection::start_deferred_destruction(const char* reason) {
   if (event_base_once(
           server->base(), -1, EV_TIMEOUT,
           http2_server::deferred_destruction_timeout_cb, ctx, &tv) != 0) {
-    if (server->logger()) server->logger()->error(
-        "HTTP2 conn {}: event_base_once failed for deferred destruction "
+    Logger::nef_app().error(
+        "HTTP2 conn %llu: event_base_once failed for deferred destruction "
         "timeout — connection may leak",
-        conn_id);
+        static_cast<unsigned long long>(conn_id));
     delete ctx;
   }
 }

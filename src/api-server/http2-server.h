@@ -21,7 +21,7 @@
 
 /*! \file http2-server.h
  \brief Generic HTTP/2 server wrapper using nghttp2 C API + libevent.
-        Targets nghttp2 v1.68.0+ (uses v2 API functions).
+        Targets nghttp2 v1.68.1 (uses v2 API functions).
  \author  OAI
  */
 
@@ -43,7 +43,6 @@
 #include <event2/listener.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
-#include <spdlog/spdlog.h>
 
 #include "thread-pool.h"
 
@@ -137,7 +136,7 @@ class http2_server {
  public:
   http2_server(
       const std::string& address, uint32_t port,
-      http2_server_config config = {}, spdlog::logger* logger = nullptr);
+      http2_server_config config = {});
   ~http2_server();
 
   // Non-copyable, non-movable
@@ -160,9 +159,6 @@ class http2_server {
   // Config accessors.
   const http2_server_config& config() const { return config_; }
   http2_server_config& config() { return config_; }
-
-  // Logger accessor.
-  spdlog::logger* logger() const { return logger_; }
 
   // Route lookup — public so file-scope nghttp2 callbacks
   // (on_frame_recv_callback etc.) in the .cpp can call
@@ -197,7 +193,6 @@ class http2_server {
   std::string address_;
   uint32_t port_;
   http2_server_config config_;
-  spdlog::logger* logger_ = nullptr;
   std::atomic<bool> running_{false};
 
   // routing table (sorted longest-prefix-first after start())

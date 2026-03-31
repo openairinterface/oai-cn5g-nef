@@ -31,11 +31,11 @@ using namespace oai::nef::app;
 using namespace oai::utils;
 using namespace oai::config::nef;
 
-nef_app*  nef_app_inst   = nullptr;
+nef_app* nef_app_inst = nullptr;
 std::unique_ptr<nef_config> nef_config_inst;
 std::shared_ptr<oai::http::http_client> http_client_inst = nullptr;
-nef_http2_server* nef_api_server_2   = nullptr;
-task_manager*     tm_inst            = nullptr;
+nef_http2_server* nef_api_server_2                       = nullptr;
+task_manager* tm_inst                                    = nullptr;
 std::unique_ptr<oai::config::lttng_configuration> lttng_config_yaml;
 
 static int shutdown_efd_g = -1;
@@ -69,8 +69,7 @@ int main(int argc, char** argv) {
   std::cout << "LTTNG Tracing disabled at build-time!\n";
 #endif
 
-  Logger::set_lttng(
-      static_cast<bool>(lttng_config_yaml->is_lttng_active()));
+  Logger::set_lttng(static_cast<bool>(lttng_config_yaml->is_lttng_active()));
   Logger::init("nef", Options::getlogStdout(), Options::getlogRotFilelog());
   Logger::nef_app().startup("Options parsed");
 
@@ -82,11 +81,11 @@ int main(int argc, char** argv) {
   }
 
   // Install signal handlers (async-signal-safe: only write to eventfd)
-  struct sigaction sa{};
+  struct sigaction sa {};
   sa.sa_handler = my_shutdown_signal_handler;
   sigemptyset(&sa.sa_mask);
   sigaction(SIGTERM, &sa, nullptr);
-  sigaction(SIGINT,  &sa, nullptr);
+  sigaction(SIGINT, &sa, nullptr);
 
   // Configuration
   nef_config_inst = std::make_unique<nef_config>(
@@ -101,8 +100,7 @@ int main(int argc, char** argv) {
 
   // HTTP Client
   http_client_inst = oai::http::http_client::create_instance(
-      Logger::nef_sbi(),
-      oai::common::sbi::kNfDefaultHttpRequestTimeout,
+      Logger::nef_sbi(), oai::common::sbi::kNfDefaultHttpRequestTimeout,
       nef_config_inst->local().get_sbi().get_if_name(),
       nef_config_inst->get_http_version());
 
@@ -118,11 +116,9 @@ int main(int argc, char** argv) {
 
   // PID file
   std::string pid_file_name =
-      oai::utils::get_exe_absolute_path(
-          "/var/run", nef_config_inst->instance);
+      oai::utils::get_exe_absolute_path("/var/run", nef_config_inst->instance);
   if (!oai::utils::is_pid_file_lock_success(pid_file_name.c_str())) {
-    Logger::nef_app().error(
-        "Lock PID file {} failed\n", pid_file_name);
+    Logger::nef_app().error("Lock PID file {} failed\n", pid_file_name);
     exit(-EDEADLK);
   }
 
@@ -131,15 +127,11 @@ int main(int argc, char** argv) {
   cfg.num_worker_threads = std::max(1U, std::thread::hardware_concurrency());
 
   nef_api_server_2 = new nef_http2_server(
-      conv::toString(
-          nef_config_inst->local().get_sbi().get_addr4()),
-      nef_config_inst->local().get_sbi().get_port(),
-      nef_app_inst,
-      cfg,
-      Logger::nef_sbi().get());
+      conv::toString(nef_config_inst->local().get_sbi().get_addr4()),
+      nef_config_inst->local().get_sbi().get_port(), nef_app_inst, cfg);
   std::thread nef_http2_manager(&nef_http2_server::start, nef_api_server_2);
 
-  FILE*       fp       = NULL;
+  FILE* fp             = NULL;
   std::string filename = fmt::format("/tmp/nef_{}.status", getpid());
   fp                   = fopen(filename.c_str(), "w+");
   fprintf(fp, "STARTED\n");
@@ -155,7 +147,8 @@ int main(int argc, char** argv) {
 
   auto shutdown_start = std::chrono::system_clock::now();
   Logger::set_level(spdlog::level::debug);
-  Logger::system().info("Signal received \xe2\x80\x94 starting graceful shutdown");
+  Logger::system().info(
+      "Signal received \xe2\x80\x94 starting graceful shutdown");
 
   // Step 1: Enter drain mode so new requests get 503 immediately.
   if (nef_api_server_2) {
@@ -168,7 +161,8 @@ int main(int argc, char** argv) {
   }
 
   // Step 3: Brief drain window for in-flight requests and notifications.
-  Logger::system().info("Graceful shutdown: draining in-flight requests (2 s)...");
+  Logger::system().info(
+      "Graceful shutdown: draining in-flight requests (2 s)...");
   std::this_thread::sleep_for(std::chrono::seconds(2));
 
   Logger::system().debug("Freeing allocated memory...");
@@ -196,8 +190,7 @@ int main(int argc, char** argv) {
   Logger::system().info("Freeing allocated memory done");
 
   auto elapsed = std::chrono::system_clock::now() - shutdown_start;
-  auto ms_diff =
-      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
+  auto ms_diff = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
   Logger::system().info(
       "Bye. Graceful shutdown completed in {} ms", ms_diff.count());
 
