@@ -1,4 +1,6 @@
-# Contributing to OpenAir-CN-5G #
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# Contributing to OpenAir-CN-5G
 
 We want to make contributing to this project as easy and transparent as possible.
 
@@ -6,16 +8,15 @@ Please refer to the steps described on our website: [How to contribute to OAI](h
 
 1. Sign and return a Contributor License Agreement to OAI team.
 2. Create an account on [Eurecom GiLab Server](https://gitlab.eurecom.fr/users/sign_in) if you do not have any.
-   - If your email domain (`@domain.com`) is not whitelisted, please contact us (mailto:contact@openairinterface.org).
+   - If your email domain (`@domain.com`) is not whitelisted, please contact us (mailto:oaicicdteam@openairinterface.org).
    - Eurecom GitLab does NOT accept public email domains.
-3. Provide the `username` of this account to the OAI team (mailto:contact@openairinterface.org) so you have developer rights on this repository.
-4. The policies are described in these wiki pages: [OAI Policies](https://gitlab.eurecom.fr/oai/openairinterface5g/wikis/oai-policies-home)
-   - You can fork onto another hosting system. But we will **NOT** accept a pull request from a forked repository.
-      * This decision was made for the license reasons.
-      * The Continuous Integration will reject your pull request.
-   - All pull requests SHALL have **`develop`** branch as target branch.
+3. Provide the `username` of this account to the OAI team (mailto:oaicicdteam@openairinterface.org) so you have developer rights on this repository.
+4. You can fork onto another hosting system. But we will **NOT** accept a pull request from a forked repository.
+      - This decision was made for the license reasons.
+      - The Continuous Integration will reject your pull request.
+      - All pull requests SHALL have **`develop`** branch as target branch.
 
-## Synchronizing GIT sub-modules ##
+## Synchronizing GIT sub-modules
 
 We are using nested GIT submodules. To synchronize them, the 2 most important commands to know are :
 
@@ -28,7 +29,7 @@ Use the `--verbose` option to see the execution of each command.
 
 If the synchronization fails, you may need to go into the path of the failing git-submodule(s) and clean the workspace from non-tracked/modified files.
 
-## Coding Styles ##
+## Coding Styles
 
 We are using `clang-format` as formatting tool on the C/C++ code.
 
@@ -53,11 +54,11 @@ $ cd myClonedWorkspace/src
 $ clang-format -i theFilesYouWantToFormat
 ```
 
-## License ##
+## License
 
 By contributing to OpenAirInterface, you agree that your contributions will be licensed under the [LICENSE](LICENSE) file in the root directory of this source tree.
 
-## Continuous Integration process ##
+## Continuous Integration process
 
 1.  You push your modified code with the new branch onto our [official GitLab repository](https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-nef).
     -  Please make the name of the branch explicit and short.
