@@ -14,7 +14,7 @@ log_level:
 register_nf:
   general: yes
 
-http_version: 1
+http_version: 2
 
 ############## SBI Interfaces
 nfs:
@@ -55,7 +55,7 @@ nef:
   sbi:
     port: 8080
     api_version: v1
-    interface_name: eth0
+    interface_name: lo
   # Comma-separated list of supported northbound services
   support_features: >
     nnef-eventexposure,
@@ -86,4 +86,4 @@ nef:
     # secret and no AF whitelist are configured (fail-open).  Default: false
     # (fail-closed: all requests denied when auth is unconfigured).
     # WARNING: NEVER enable in production — all access is unrestricted.
-    insecure_dev_mode: false
+    insecure_dev_mode: true

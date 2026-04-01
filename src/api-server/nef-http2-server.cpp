@@ -708,7 +708,7 @@ void nef_http2_server::start() {
 
   // Health check endpoint
   server_.handle(
-      "/healthz",
+      "/health",
       [this](const http2_request& req, http2_response& res) {
         if (req.method != "GET") {
           end_http2_error(res, 405, "Method Not Allowed",
@@ -729,6 +729,7 @@ void nef_http2_server::start() {
         res.send(http_code, {{"content-type", "application/json"}}, body);
       });
 
+  // Start the server (blocks until stop() is called)
   server_.start();
 }
 
