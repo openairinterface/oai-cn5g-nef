@@ -194,9 +194,9 @@ pipeline {
             }
             cleanup {
               script {
-                sh "sudo podman image prune --force"
-                sh "rm -Rf ./etc-pki-entitlement ./rhsm-conf ./rhsm-ca"
                 stash allowEmpty: true, includes: 'archives/nef_podman_image_build.log', name: 'podmanBuildLog'
+                sh "sudo podman image prune --force "
+                sh "rm -Rf ./etc-pki-entitlement ./rhsm-conf ./rhsm-ca"
               }
             }
           }
@@ -279,9 +279,9 @@ pipeline {
       post {
         always {
           script {
-            unstash 'podmanBuildLog'
-            unstash 'cppcheckLogs'
-            unstash 'formatCheckLogs'
+            try { unstash 'podmanBuildLog' } catch (err) { echo "podmanBuildLog not found, skipping" }
+            try { unstash 'cppcheckLogs' } catch (err) { echo "cppcheckLogs not found, skipping" }
+            try { unstash 'formatCheckLogs' } catch (err) { echo "formatCheckLogs not found, skipping" }
           }
         }
       }
