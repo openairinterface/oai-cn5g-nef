@@ -115,7 +115,7 @@ check_install_nef_deps() {
       check \
       nettle-devel \
       libcurl-devel \
-      python2 \
+      python3 \
       pkgconfig \
       ninja-build \
       boost-devel \

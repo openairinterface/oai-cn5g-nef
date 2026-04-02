@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------
 #
 # Dockerfile for the Open-Air-Interface NEF service
-#   Valid for UBI 8.6 | RHEL 8.6
+#   Valid for UBI 9.x | RHEL 9.x
 #
 #---------------------------------------------------------------------
 
@@ -13,23 +13,25 @@
 # BUILDER IMAGE
 #---------------------------------------------------------------------
 
-FROM registry.access.redhat.com/ubi8/ubi:latest AS oai-nef-builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest as oai-nef-builder
+
+ARG EPEL_URL
+ENV EPEL_URL=${EPEL_URL}
 
 ENV IS_DOCKERFILE=1
 
 # Copy the entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
-
-# Copy the subscription manager configurations
-COPY ./rhsm-conf /etc/rhsm
-COPY ./rhsm-ca /etc/rhsm/ca
+COPY ./rhsm-conf/rhsm.conf /etc/rhsm/rhsm.conf
+COPY ./rhsm-ca/ /etc/rhsm/ca/
 
 RUN rm -f /etc/rhsm-host && \
-    yum repolist --disablerepo=* && \
-    subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms && \
-    yum update -y && \
+    microdnf install -y subscription-manager dnf && \
+    subscription-manager repos --enable codeready-builder-for-rhel-9-x86_64-rpms && \
+    dnf update -y --allowerasing --skip-broken --nobest && \
+    # To display the current version
     cat /etc/os-release && \
-    yum install -y \
+    dnf install -y \
         psmisc \
         git \
         diffutils \
@@ -59,20 +61,17 @@ RUN ldconfig && \
            -e "s@nf-config-file@nef.conf@g" \
            ../common-build/docker-scripts/entrypoint.py && \
     # Remove entitlements and Subscription Manager configs
-    rm -rf /etc/pki/entitlement && \
-    rm -rf /etc/rhsm
+    rm -rf /etc/pki/entitlement
 #---------------------------------------------------------------------
 # TARGET IMAGE
 #---------------------------------------------------------------------
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest as oai-nef
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest as oai-nef
 ENV TZ=Europe/Paris
 
 # Copy the entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
-
 # Copy the subscription manager configurations
-COPY ./rhsm-conf /etc/rhsm
-COPY ./rhsm-ca /etc/rhsm/ca
+COPY --from=oai-nef-builder /etc/rhsm /etc/rhsm
 
 # We install some debug tools for the moment in addition of mandatory libraries
 RUN rm -f /etc/rhsm-host && \
@@ -81,7 +80,6 @@ RUN rm -f /etc/rhsm-host && \
       python3 \
       python3-pip \
       tzdata \
-#      libasan \
       procps-ng \
       psmisc \
       net-tools \

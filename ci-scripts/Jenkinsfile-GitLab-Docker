@@ -36,6 +36,9 @@ DH_Account = "oaisoftwarealliance"
 // Private Local Registry URL
 PrivateRegistryURL = 'selfix.sboai.cs.eurecom.fr'
 
+// For EPEL Packages - RHEL
+EpelPackage = params.EpelPackageUrl
+
 //-------------------------------------------------------------------------------
 // Pipeline start
 pipeline {
@@ -50,7 +53,7 @@ pipeline {
     // Minimal checks
     gitlabBuilds(builds: [
       "Build Ubuntu NEF Image",
-      "Build RHEL8 NEF Image",
+      "Build RHEL9 NEF Image",
       "Static Code Analysis",
       "Code Formatting Checker"
     ])
@@ -162,12 +165,12 @@ pipeline {
           }
         }
 
-        stage ('Build RHEL8 NEF Image') {
+        stage ('Build RHEL9 NEF Image') {
           agent { label rhelNode }
           steps {
             lock (rhelResource) {
               script {
-                gitlabCommitStatus(name: "Build RHEL8 NEF Image") {
+                gitlabCommitStatus(name: "Build RHEL9 NEF Image") {
                   // It's a different agent from main one.
                   prepareWorkspaceMergeCase()
                   sh "sudo podman image rm oai-nef:${nef_tag} || true"
@@ -178,7 +181,14 @@ pipeline {
                   sh "sudo cp /etc/rhsm/rhsm.conf ./rhsm-conf"
                   sh "sudo cp /etc/rhsm/ca/*pem ./rhsm-ca"
                   // Building
-                  sh "sudo podman build --no-cache --squash --target oai-nef --tag oai-nef:${nef_tag} --file docker/Dockerfile.nef.rhel8 --format docker . > archives/nef_podman_image_build.log 2>&1"
+                  sh """
+                      sudo podman build --no-cache --squash \
+                          --target oai-nef \
+                          --tag oai-nef:${nef_tag} \
+                          --file docker/Dockerfile.nef.rhel9 \
+                          --build-arg EPEL_URL=${EpelPackage} \
+                          --format docker . > archives/nef_podman_image_build.log 2>&1
+                  """
                   sh "sudo podman image prune --force"
                   sh "sudo podman image ls | egrep --color=never 'nef|REPOSITORY' >> archives/nef_podman_image_build.log"
                 }
@@ -187,10 +197,10 @@ pipeline {
           }
           post {
             success {
-              sh "echo 'OAI-NEF PODMAN RHEL8 IMAGE BUILD: OK' >> archives/nef_podman_image_build.log"
+              sh "echo 'OAI-NEF PODMAN RHEL9 IMAGE BUILD: OK' >> archives/nef_podman_image_build.log"
             }
             unsuccessful {
-              sh "echo 'OAI-NEF PODMAN RHEL8 IMAGE BUILD: KO' >> archives/nef_podman_image_build.log"
+              sh "echo 'OAI-NEF PODMAN RHEL9 IMAGE BUILD: KO' >> archives/nef_podman_image_build.log"
             }
             cleanup {
               script {
@@ -304,13 +314,13 @@ pipeline {
             }
           }
         }
-        stage ('RHEL8 Sanity Check Deployment') {
+        stage ('RHEL9 Sanity Check Deployment') {
           agent { label rhelNode }
           steps {
             lock (rhelResource) {
               script {
                 prepareWorkspaceMergeCase()
-                gitlabCommitStatus(name: "Sanity Check on RHEL8 Image") {
+                gitlabCommitStatus(name: "Sanity Check on RHEL9 Image") {
                   sh 'python3 ./ci-scripts/sanityCheckDeploy.py --tag oai-nef:' + nef_tag
                 }
               }
