@@ -1,29 +1,5 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the OAI Public License, Version 1.1  (the "License"); you may not use this
- *file except in compliance with the License. You may obtain a copy of the
- *License at
- *
- *      http://www.openairinterface.org/?page_id=698
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
- */
-
-/*! \file conversions.hpp
- \brief
- \author Sebastien ROUX, Lionel Gauthier
- \company Eurecom
- \email: lionel.gauthier@eurecom.fr
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
 #ifndef FILE_CONVERSIONS_HPP_SEEN
@@ -37,9 +13,9 @@
 #define IN_ADDR_FMT "%u.%u.%u.%u"
 #define PRI_IN_ADDR(aDDRESS)                                                   \
   (uint8_t)((aDDRESS.s_addr) & 0x000000ff),                                    \
-      (uint8_t)(((aDDRESS.s_addr) & 0x0000ff00) >> 8),                         \
-      (uint8_t)(((aDDRESS.s_addr) & 0x00ff0000) >> 16),                        \
-      (uint8_t)(((aDDRESS.s_addr) & 0xff000000) >> 24)
+      (uint8_t) (((aDDRESS.s_addr) & 0x0000ff00) >> 8),                        \
+      (uint8_t) (((aDDRESS.s_addr) & 0x00ff0000) >> 16),                       \
+      (uint8_t) (((aDDRESS.s_addr) & 0xff000000) >> 24)
 
 #define IPV4_ADDR_DISPLAY_8(aDDRESS)                                           \
   (aDDRESS)[0], (aDDRESS)[1], (aDDRESS)[2], (aDDRESS)[3]
