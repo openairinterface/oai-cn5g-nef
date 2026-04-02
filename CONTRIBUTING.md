@@ -33,25 +33,28 @@ If the synchronization fails, you may need to go into the path of the failing gi
 
 We are using `clang-format` as formatting tool on the C/C++ code.
 
-At the time of writing (March 1st, 2022), we are using `clang-format` version 8.0.0 or above. By default, on a Ubuntu bionic Desktop edition, you would install version 6.0.0.
-
-So it is very likely you will have to install it manually. Again, at the time of writing, the working version we found was 9.0.0.
+On a Ubuntu-22 server:
 
 ```bash
-$ wget https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-$ mkdir clang_tmp
-$ tar xvfJ  clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C ./clang_tmp
-$ sudo cp clang_tmp/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04/bin/clang-format /usr/bin/clang-format
-$ rm -Rf clang*
-$ clang-format --version
-clang-format version 9.0.0 (tags/RELEASE_900/final)
+sudo apt-get update
+sudo apt-get install clang-format-12
+sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-12 20
+clang-format --version
+Ubuntu clang-format version 12.0.1-19ubuntu3
 ```
 
-How to format:
+How to test (as CI):
+
+```
+# run the below command in the parent folder
+ci-scripts/common/bash/checkCodingFormattingRules.sh
+```
+
+How to format (fix issues reported by above script):
 
 ```bash
-$ cd myClonedWorkspace/src
-$ clang-format -i theFilesYouWantToFormat
+cd myClonedWorkspace/src
+clang-format -i theFilesYouWantToFormat
 ```
 
 ## License
