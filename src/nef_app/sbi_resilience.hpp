@@ -14,7 +14,7 @@
 
 namespace oai::nef::app {
 
-// ── Circuit-breaker state machine ─────────────────────────────────────────────
+// Circuit-breaker state machine
 
 /// Three-state circuit-breaker FSM per NF type.
 enum class sbi_cb_state {
@@ -25,10 +25,10 @@ enum class sbi_cb_state {
 
 /// Internal per-NF tracking entry (not exposed in the public API).
 struct sbi_cb_entry_t {
-  sbi_cb_state state                                 = sbi_cb_state::CLOSED;
-  int          consecutive_failures                  = 0;
+  sbi_cb_state state       = sbi_cb_state::CLOSED;
+  int consecutive_failures = 0;
   std::chrono::steady_clock::time_point open_since{};
-  bool         half_open_probe_in_flight             = false;
+  bool half_open_probe_in_flight = false;
 };
 
 /**
@@ -54,7 +54,8 @@ class sbi_circuit_breaker_registry {
 
   /**
    * @param cb_threshold   Consecutive failures before CLOSED→OPEN transition.
-   * @param cooldown_secs  Seconds in OPEN state before transitioning to HALF_OPEN.
+   * @param cooldown_secs  Seconds in OPEN state before transitioning to
+   * HALF_OPEN.
    */
   explicit sbi_circuit_breaker_registry(
       int cb_threshold  = CB_THRESHOLD_DEFAULT,
@@ -82,7 +83,7 @@ class sbi_circuit_breaker_registry {
         std::chrono::duration_cast<std::chrono::seconds>(now - e.open_since)
             .count();
     if (elapsed >= m_cooldown_secs) {
-      e.state                      = sbi_cb_state::HALF_OPEN;
+      e.state                     = sbi_cb_state::HALF_OPEN;
       e.half_open_probe_in_flight = false;
     }
   }
@@ -116,9 +117,9 @@ class sbi_circuit_breaker_registry {
    */
   void record_success(const std::string& nf_type) {
     std::lock_guard<std::mutex> lk(m_mtx);
-    auto& e               = m_entries[nf_type];
-    e.state               = sbi_cb_state::CLOSED;
-    e.consecutive_failures = 0;
+    auto& e                     = m_entries[nf_type];
+    e.state                     = sbi_cb_state::CLOSED;
+    e.consecutive_failures      = 0;
     e.half_open_probe_in_flight = false;
   }
 
@@ -134,8 +135,8 @@ class sbi_circuit_breaker_registry {
 
     if (e.state == sbi_cb_state::HALF_OPEN) {
       // Probe failed: back to OPEN, restart cooldown timer.
-      e.state                      = sbi_cb_state::OPEN;
-      e.open_since                 = now;
+      e.state                     = sbi_cb_state::OPEN;
+      e.open_since                = now;
       e.half_open_probe_in_flight = false;
       return;
     }
@@ -143,8 +144,8 @@ class sbi_circuit_breaker_registry {
     ++e.consecutive_failures;
     if (e.state == sbi_cb_state::CLOSED &&
         e.consecutive_failures >= m_threshold) {
-      e.state                      = sbi_cb_state::OPEN;
-      e.open_since                 = now;
+      e.state                     = sbi_cb_state::OPEN;
+      e.open_since                = now;
       e.half_open_probe_in_flight = false;
     }
   }
@@ -170,7 +171,7 @@ class sbi_circuit_breaker_registry {
   int m_cooldown_secs;
 };
 
-// ── Retry policy helpers ───────────────────────────────────────────────────────
+// Retry policy helpers
 
 /**
  * Returns true if the given HTTP status code warrants a retry.
@@ -187,7 +188,7 @@ inline bool sbi_should_retry(int status, bool is_post) {
   return (status == 0 || status == 503 || status == 429);
 }
 
-// ── sbi_call_with_retry ───────────────────────────────────────────────────────
+// sbi_call_with_retry
 
 /**
  * Invoke an SBI callable with retry-with-backoff and circuit-breaker
@@ -211,9 +212,11 @@ inline bool sbi_should_retry(int status, bool is_post) {
  *  - On success: record_success() resets the failure counter.
  *  - On failure (after all retries or non-retriable): record_failure().
  *
- * @tparam CallFn   Callable returning int (HTTP status code; 0 = network error).
+ * @tparam CallFn   Callable returning int (HTTP status code; 0 = network
+ * error).
  * @tparam SleepFn  void(std::chrono::milliseconds) — injected for test speed.
- * @tparam LogFn    void(const std::string&)         — injected for test isolation.
+ * @tparam LogFn    void(const std::string&)         — injected for test
+ * isolation.
  *
  * @param nf_type      NF type string used as the CB key ("AMF", "SMF", …).
  * @param is_post      True for POST operations (relaxed retry policy).
@@ -223,25 +226,23 @@ inline bool sbi_should_retry(int status, bool is_post) {
  * @param log_fn       Called for notable retry and circuit-breaker events.
  * @param max_attempts Total number of attempts including the first (default 4).
  *
- * @return Final HTTP status code, or -1 if the circuit breaker blocked the call.
+ * @return Final HTTP status code, or -1 if the circuit breaker blocked the
+ * call.
  */
 template<typename CallFn, typename SleepFn, typename LogFn>
 int sbi_call_with_retry(
-    const std::string&            nf_type,
-    bool                          is_post,
-    CallFn&&                      attempt_fn,
-    sbi_circuit_breaker_registry& cb,
-    SleepFn&&                     sleep_fn,
-    LogFn&&                       log_fn,
-    int                           max_attempts = 4) {
-  // ── Circuit-breaker fast path ─────────────────────────────────────────────
+    const std::string& nf_type, bool is_post, CallFn&& attempt_fn,
+    sbi_circuit_breaker_registry& cb, SleepFn&& sleep_fn, LogFn&& log_fn,
+    int max_attempts = 4) {
+  // Circuit-breaker fast path
   if (cb.is_open(nf_type)) {
-    log_fn("[SBI] Circuit breaker OPEN for NF " + nf_type +
-           " — dropping call without sending");
+    log_fn(
+        "[SBI] Circuit breaker OPEN for NF " + nf_type +
+        " — dropping call without sending");
     return -1;
   }
 
-  // ── Per-call jitter RNG ───────────────────────────────────────────────────
+  // Per-call jitter RNG
   std::mt19937 rng{std::random_device{}()};
 
   int status = 0;
@@ -255,9 +256,10 @@ int sbi_call_with_retry(
       std::uniform_int_distribution<int> jitter_dist(-jitter_span, jitter_span);
       const int delay_ms = base_ms + jitter_dist(rng);
 
-      log_fn("[SBI] Retry attempt " + std::to_string(attempt + 1) +
-             "/" + std::to_string(max_attempts) + " for NF " + nf_type +
-             " (delay " + std::to_string(delay_ms) + " ms)");
+      log_fn(
+          "[SBI] Retry attempt " + std::to_string(attempt + 1) + "/" +
+          std::to_string(max_attempts) + " for NF " + nf_type + " (delay " +
+          std::to_string(delay_ms) + " ms)");
 
       sleep_fn(std::chrono::milliseconds(delay_ms));
     }
@@ -268,20 +270,21 @@ int sbi_call_with_retry(
       status = 0;  // treat thrown exception as connection failure → retriable
     }
 
-    // ── 2xx: success ────────────────────────────────────────────────────────
+    // 2xx: success
     if (status >= 200 && status < 300) {
       cb.record_success(nf_type);
       return status;
     }
 
-    // ── 4xx: permanent application-level error, no CB update ────────────────
+    // 4xx: permanent application-level error, no CB update
     if (status >= 400 && status < 500) {
       return status;
     }
 
-    // ── Check whether this failure warrants a retry ──────────────────────────
+    // Check whether this failure warrants a retry
     if (!sbi_should_retry(status, is_post)) {
-      // Non-retriable transient error (e.g. POST + 503): record failure and bail.
+      // Non-retriable transient error (e.g. POST + 503): record failure and
+      // bail.
       cb.record_failure(nf_type);
       return status;
     }
@@ -289,7 +292,7 @@ int sbi_call_with_retry(
     // Retriable: continue to next attempt.
   }
 
-  // ── All attempts exhausted ────────────────────────────────────────────────
+  // All attempts exhausted
   cb.record_failure(nf_type);
   return status;
 }

@@ -1,9 +1,6 @@
 /*
  * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
-/*
- * SPDX-License-Identifier: LicenseRef-CSSL-1.0
- */
 
 #pragma once
 
@@ -34,7 +31,7 @@ inline std::string validate_callback_uri(const std::string& uri) {
     return "callback URI must not be empty";
   }
 
-  // 1. Extract scheme 
+  // 1. Extract scheme
   const auto scheme_end = uri.find("://");
   if (scheme_end == std::string::npos) {
     return "callback URI is malformed: missing '://' separator";
@@ -81,7 +78,7 @@ inline std::string validate_callback_uri(const std::string& uri) {
   bool is_ipv6_literal = false;
   if (authority[0] == '[') {
     // IPv6 bracketed literal: [::1] or [::1]:port
-    is_ipv6_literal = true;
+    is_ipv6_literal        = true;
     const auto bracket_end = authority.find(']');
     if (bracket_end == std::string::npos) {
       return "callback URI is malformed: unclosed IPv6 bracket";
@@ -96,8 +93,8 @@ inline std::string validate_callback_uri(const std::string& uri) {
   } else {
     // IPv4 or hostname — strip optional trailing ":port"
     const auto colon_pos = authority.rfind(':');
-    host = (colon_pos != std::string::npos) ? authority.substr(0, colon_pos)
-                                            : authority;
+    host = (colon_pos != std::string::npos) ? authority.substr(0, colon_pos) :
+                                              authority;
   }
 
   if (host.empty()) {
@@ -105,7 +102,7 @@ inline std::string validate_callback_uri(const std::string& uri) {
   }
 
   // 4. Check IPv4 blocked ranges
-  struct in_addr addr4{};
+  struct in_addr addr4 {};
   if (inet_pton(AF_INET, host.c_str(), &addr4) == 1) {
     const uint32_t ip = ntohl(addr4.s_addr);
 
@@ -119,27 +116,30 @@ inline std::string validate_callback_uri(const std::string& uri) {
     }
     // 10.0.0.0/8  (RFC 1918)
     if ((ip >> 24) == 10u) {
-      return "callback URI host is in an RFC 1918 private range and is not allowed";
+      return "callback URI host is in an RFC 1918 private range and is not "
+             "allowed";
     }
     // 172.16.0.0/12  (RFC 1918: 172.16.0.0 – 172.31.255.255)
     //   Top 12 bits of 172.16.0.0 = 0xAC1
     if ((ip >> 20) == 0xAC1u) {
-      return "callback URI host is in an RFC 1918 private range and is not allowed";
+      return "callback URI host is in an RFC 1918 private range and is not "
+             "allowed";
     }
     // 192.168.0.0/16  (RFC 1918)
     if ((ip >> 16) == 0xC0A8u) {
-      return "callback URI host is in an RFC 1918 private range and is not allowed";
+      return "callback URI host is in an RFC 1918 private range and is not "
+             "allowed";
     }
 
     return "";  // valid IPv4
   }
 
   // 5. Check IPv6 blocked ranges
-  struct in6_addr addr6{};
+  struct in6_addr addr6 {};
   if (inet_pton(AF_INET6, host.c_str(), &addr6) == 1) {
     // ::1  (loopback)
     static const uint8_t kLoopback6[16] = {0, 0, 0, 0, 0, 0, 0, 0,
-                                            0, 0, 0, 0, 0, 0, 0, 1};
+                                           0, 0, 0, 0, 0, 0, 0, 1};
     if (std::memcmp(addr6.s6_addr, kLoopback6, 16) == 0) {
       return "callback URI host is a loopback address and is not allowed";
     }

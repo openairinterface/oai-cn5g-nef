@@ -21,7 +21,6 @@ namespace app {
 /**
  * Tracks a single registered AF (SCS/AS) inside NEF.
  *
- * Analogous to nrf_profile in NRF — NRF tracks each registered NF instance;
  * NEF tracks each AF that has at least one active subscription.
  *
  * Lifecycle:
@@ -29,8 +28,7 @@ namespace app {
  *   - Updated as subscriptions are added / removed.
  *   - Destroyed when the AF's last subscription is deleted.
  */
-class nef_af_profile
-    : public std::enable_shared_from_this<nef_af_profile> {
+class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
  public:
   explicit nef_af_profile(nef_event& ev);
   nef_af_profile(nef_af_profile const&) = delete;
@@ -112,13 +110,13 @@ class nef_af_profile
   void display() const;
 
  private:
-  nef_event&               m_event_sub;
-  std::string              m_af_id;
-  std::string              m_api_key;       // empty = unchecked
+  nef_event& m_event_sub;
+  std::string m_af_id;
+  std::string m_api_key;                    // empty = unchecked
   std::vector<std::string> m_allowed_apis;  // empty = all allowed
   std::vector<std::string> m_subscription_ids;
 
-  mutable std::shared_mutex m_mutex;        
+  mutable std::shared_mutex m_mutex;
 };
 
 }  // namespace app

@@ -47,7 +47,7 @@ class nef_app {
   // second and subsequent calls are no-ops (double-deregistration guard).
   void deregister_from_nrf();
 
-  // Authorization ─────────────────────────────────────────────────────────
+  // Authorization
   bool authorize_af_request(
       const std::string& scs_as_id, const std::string& api_name) const;
 

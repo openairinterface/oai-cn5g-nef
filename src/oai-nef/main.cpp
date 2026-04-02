@@ -40,12 +40,14 @@ std::unique_ptr<oai::config::lttng_configuration> lttng_config_yaml;
 
 static int shutdown_efd_g = -1;
 
+//------------------------------------------------------------------------------
 static void my_shutdown_signal_handler(int /*s*/) {
   const uint64_t one = 1;
   // NOLINTNEXTLINE: write() in signal handler is async-signal-safe
   ::write(shutdown_efd_g, &one, sizeof(one));
 }
 
+//------------------------------------------------------------------------------
 int main(int argc, char** argv) {
   srand(time(NULL));
 

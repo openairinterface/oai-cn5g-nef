@@ -13,7 +13,7 @@
 
 namespace oai::nef::app {
 
-// ── Log level used by the retry helper ───────────────────────────────────────
+// Log level used by the retry helper
 // Deliberately avoids the names WARN/ERROR/CRITICAL to prevent collisions with
 // system macros from syslog.h / <windows.h>.
 enum class retry_log_level { WARN_LEVEL, CRIT_LEVEL, ERR_LEVEL };
@@ -21,7 +21,7 @@ enum class retry_log_level { WARN_LEVEL, CRIT_LEVEL, ERR_LEVEL };
 /// Callback type for logging retry and circuit-breaker events.
 using retry_log_fn = std::function<void(retry_log_level, const std::string&)>;
 
-// ── Circuit-breaker registry ──────────────────────────────────────────────────
+// Circuit-breaker registry
 
 /**
  * Thread-safe per-endpoint consecutive-failure counter.
@@ -76,7 +76,7 @@ class circuit_breaker_registry {
   std::unordered_map<std::string, int> m_fails;
 };
 
-// ── URI helpers ───────────────────────────────────────────────────────────────
+// URI helpers
 
 /**
  * Extract the scheme+host+port prefix of a URI to use as the circuit-breaker
@@ -91,7 +91,7 @@ inline std::string cb_endpoint_key(const std::string& uri) {
   return (path_start == std::string::npos) ? uri : uri.substr(0, path_start);
 }
 
-// ── Retry-with-backoff ────────────────────────────────────────────────────────
+// Retry-with-backoff
 
 /**
  * Attempt `attempt_fn()` up to `max_attempts` times with exponential backoff
@@ -121,28 +121,27 @@ inline std::string cb_endpoint_key(const std::string& uri) {
  * @return true on success (any 2xx response).
  */
 inline bool retry_with_backoff(
-    const std::string& endpoint,
-    std::function<int()> attempt_fn,
-    retry_log_fn log_fn,
-    std::function<void(std::chrono::seconds)> sleep_fn,
-    int max_attempts,
-    circuit_breaker_registry& cb) {
-  // ── Circuit-breaker fast path ─────────────────────────────────────────────
+    const std::string& endpoint, std::function<int()> attempt_fn,
+    retry_log_fn log_fn, std::function<void(std::chrono::seconds)> sleep_fn,
+    int max_attempts, circuit_breaker_registry& cb) {
+  // Circuit-breaker fast path
   if (cb.is_open(endpoint)) {
-    log_fn(retry_log_level::CRIT_LEVEL,
-           "[CRITICAL] Circuit breaker OPEN for endpoint " + endpoint +
-               " — dropping notification without sending");
+    log_fn(
+        retry_log_level::CRIT_LEVEL,
+        "[CRITICAL] Circuit breaker OPEN for endpoint " + endpoint +
+            " — dropping notification without sending");
     return false;
   }
 
-  // ── Attempt loop ──────────────────────────────────────────────────────────
+  // Attempt loop
   for (int attempt = 0; attempt < max_attempts; ++attempt) {
     // Exponential backoff before retry attempts (not before the first try).
     if (attempt > 0) {
       const int delay_secs = 1 << (attempt - 1);  // 1 s, 2 s, 4 s ...
-      log_fn(retry_log_level::WARN_LEVEL,
-             "Retry attempt " + std::to_string(attempt + 1) +
-                 " for endpoint " + endpoint);
+      log_fn(
+          retry_log_level::WARN_LEVEL, "Retry attempt " +
+                                           std::to_string(attempt + 1) +
+                                           " for endpoint " + endpoint);
       sleep_fn(std::chrono::seconds(delay_secs));
     }
 
@@ -163,14 +162,15 @@ inline bool retry_with_backoff(
     if (status >= 400 && status < 500) {
       const int fails = cb.record_failure(endpoint);
       if (fails >= circuit_breaker_registry::CB_THRESHOLD) {
-        log_fn(retry_log_level::CRIT_LEVEL,
-               "[CRITICAL] Circuit breaker OPENED for endpoint " + endpoint +
-                   " after " + std::to_string(fails) +
-                   " consecutive failures");
+        log_fn(
+            retry_log_level::CRIT_LEVEL,
+            "[CRITICAL] Circuit breaker OPENED for endpoint " + endpoint +
+                " after " + std::to_string(fails) + " consecutive failures");
       } else {
-        log_fn(retry_log_level::ERR_LEVEL,
-               "Permanent 4xx failure (status=" + std::to_string(status) +
-                   ") for endpoint " + endpoint + " — not retrying");
+        log_fn(
+            retry_log_level::ERR_LEVEL,
+            "Permanent 4xx failure (status=" + std::to_string(status) +
+                ") for endpoint " + endpoint + " — not retrying");
       }
       return false;
     }
@@ -178,16 +178,18 @@ inline bool retry_with_backoff(
     // 5xx or network failure (status == 0) → transient; loop continues
   }
 
-  // ── All attempts exhausted ────────────────────────────────────────────────
+  // All attempts exhausted
   const int fails = cb.record_failure(endpoint);
   if (fails >= circuit_breaker_registry::CB_THRESHOLD) {
-    log_fn(retry_log_level::CRIT_LEVEL,
-           "[CRITICAL] Circuit breaker OPENED for endpoint " + endpoint +
-               " after " + std::to_string(fails) + " consecutive failures");
+    log_fn(
+        retry_log_level::CRIT_LEVEL,
+        "[CRITICAL] Circuit breaker OPENED for endpoint " + endpoint +
+            " after " + std::to_string(fails) + " consecutive failures");
   } else {
-    log_fn(retry_log_level::ERR_LEVEL,
-           "All " + std::to_string(max_attempts) +
-               " attempts failed for endpoint " + endpoint);
+    log_fn(
+        retry_log_level::ERR_LEVEL, "All " + std::to_string(max_attempts) +
+                                        " attempts failed for endpoint " +
+                                        endpoint);
   }
   return false;
 }

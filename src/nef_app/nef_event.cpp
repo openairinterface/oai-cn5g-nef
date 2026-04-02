@@ -12,7 +12,8 @@
 using namespace oai::nef::app;
 namespace bs2 = boost::signals2;
 
-// Task tick 
+// Task tick
+//------------------------------------------------------------------------------
 bs2::connection nef_event::subscribe_task_tick(
     const task_sig_t::slot_type& sig, uint64_t period, uint64_t start) {
   auto f = [period, start, sig](uint64_t t) {
@@ -21,6 +22,7 @@ bs2::connection nef_event::subscribe_task_tick(
   return task_tick.connect(f);
 }
 
+//------------------------------------------------------------------------------
 bs2::connection nef_event::subscribe_task_tick_extended(
     const task_sig_t::extended_slot_type& sig, uint64_t period,
     uint64_t start) {
@@ -31,12 +33,14 @@ bs2::connection nef_event::subscribe_task_tick_extended(
 }
 
 // NF notification received from 5GC
+//------------------------------------------------------------------------------
 bs2::connection nef_event::subscribe_nf_notification(
     const nef_nf_notification_sig_t::slot_type& sig) {
   return nf_notification.connect(sig);
 }
 
 // Subscription validity expired
+//------------------------------------------------------------------------------
 bs2::connection nef_event::subscribe_subscription_expired(
     const nef_subscription_expired_sig_t::slot_type& sig) {
   return subscription_expired.connect(sig);

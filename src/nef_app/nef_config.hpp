@@ -7,9 +7,6 @@
 #include "config.hpp"
 #include "nef_config_types.hpp"
 
-// NEF config name used as YAML key and NF-list lookup key
-const std::string NEF_CONFIG_NAME = "nef";
-
 namespace oai::config::nef {
 
 class nef_config : public oai::config::config {
@@ -25,10 +22,15 @@ class nef_config : public oai::config::config {
     m_used_sbi_values = {NEF_CONFIG_NAME, NRF_CONFIG_NAME, AMF_CONFIG_NAME,
                          SMF_CONFIG_NAME, PCF_CONFIG_NAME, UDR_CONFIG_NAME};
 
-    auto nef = std::make_shared<nef_config_type>(
+    auto m_nef = std::make_shared<nef_config_type>(
         NEF_CONFIG_NAME, "oai-nef",
         sbi_interface("SBI", "oai-nef", 80, "v1", "eth0"));
-    add_nf(NEF_CONFIG_NAME, nef);
+    add_nf(NEF_CONFIG_NAME, m_nef);
+
+    auto m_nrf = std::make_shared<nf>(
+        NRF_CONFIG_NAME, "oai-nrf",
+        sbi_interface("SBI", "oai-nrf", 80, "v1", "eth0"));
+    add_nf(NRF_CONFIG_NAME, m_nrf);
   }
 
   std::shared_ptr<nef_config_type> nef() const {

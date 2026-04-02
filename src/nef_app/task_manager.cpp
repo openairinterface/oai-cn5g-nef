@@ -13,6 +13,7 @@
 
 using namespace oai::nef::app;
 
+//------------------------------------------------------------------------------
 task_manager::task_manager(nef_event& ev) : event_sub_(ev) {
   terminate  = false;
   terminated = false;
@@ -30,6 +31,7 @@ task_manager::task_manager(nef_event& ev) : event_sub_(ev) {
   }
 }
 
+//------------------------------------------------------------------------------
 task_manager::~task_manager() {
   terminate = true;
   while (!terminated) {
@@ -37,12 +39,14 @@ task_manager::~task_manager() {
   }
 }
 
+//------------------------------------------------------------------------------
 void task_manager::run() {
   terminate  = false;
   terminated = false;
   manage_tasks();
 }
 
+//------------------------------------------------------------------------------
 void task_manager::manage_tasks() {
   uint64_t t = std::chrono::duration_cast<std::chrono::milliseconds>(
                    std::chrono::system_clock::now().time_since_epoch())
@@ -60,9 +64,10 @@ void task_manager::manage_tasks() {
   }
 }
 
+//------------------------------------------------------------------------------
 void task_manager::wait_for_cycle() {
   uint64_t exp;
-  ssize_t  res;
+  ssize_t res;
 
   if (sfd > 0) {
     res = read(sfd, &exp, sizeof(exp));
