@@ -32,6 +32,7 @@ using namespace oai::common::sbi;
 // Helpers for NRF registration and discovery — build URIs, parse responses,
 // etc.
 
+//------------------------------------------------------------------------------
 /**
  * Build nf_addr_t from a shared_ptr<nf> config object.
  */
@@ -42,6 +43,7 @@ static nf_addr_t nf_to_addr(const std::shared_ptr<oai::config::nf>& nf_cfg) {
   return addr;
 }
 
+//------------------------------------------------------------------------------
 /**
  * Build the NRF NFManagement URI for this NEF instance:
  *   http://<nrf_host>:<port>/nnrf-nfm/v1/nf-instances/<instance_id>
@@ -54,6 +56,7 @@ static std::string build_nrf_nf_instance_uri(const std::string& instance_id) {
   return uri;
 }
 
+//------------------------------------------------------------------------------
 /**
  * Build the NRF NF-Discovery URI for searching a specific NF type:
  *   http://<nrf_host>:<port>/nnrf-disc/v1/nf-instances
@@ -61,11 +64,12 @@ static std::string build_nrf_nf_instance_uri(const std::string& instance_id) {
 static std::string build_nrf_disc_uri() {
   auto nrf_cfg       = nef_config_inst->get_nf(oai::config::NRF_CONFIG_NAME);
   nf_addr_t nrf_addr = nf_to_addr(nrf_cfg);
-  std::string uri;
+  std::string uri    = {};
   sbi_helper::get_nrf_disc_search_nf_instances_uri(nrf_addr, uri);
   return uri;
 }
 
+//------------------------------------------------------------------------------
 /**
  * Map our internal nf_type_t to the 3GPP NFType string for NRF queries.
  */
@@ -90,10 +94,13 @@ static std::string nf_type_to_str(nf_type_t t) {
   }
 }
 
+//------------------------------------------------------------------------------
 static bool is_2xx_status(const int status_code) {
-  return status_code >= 200 && status_code < 300;
+  return status_code >= http_status_code::OK &&
+         status_code < http_status_code::MULTIPLE_CHOICES;
 }
 
+//------------------------------------------------------------------------------
 static std::string get_header_case_insensitive(
     const cpr::Header& headers, const std::string& key) {
   for (const auto& [k, v] : headers) {
@@ -111,6 +118,7 @@ static std::string get_header_case_insensitive(
   return "";
 }
 
+//------------------------------------------------------------------------------
 static std::string extract_last_path_segment(const std::string& uri) {
   if (uri.empty()) return "";
 
@@ -270,7 +278,7 @@ bool nef_client::send_heartbeat_to_nrf() {
 bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
   // First, try to read the NF endpoint directly from local config
   // (for deployments that don't use dynamic NF discovery via NRF)
-  std::string cfg_key;
+  std::string cfg_key = {};
   switch (nf_type) {
     case NF_TYPE_AMF:
       cfg_key = AMF_CONFIG_NAME;
@@ -292,13 +300,9 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
     try {
       auto nf_cfg = nef_config_inst->get_nf(cfg_key);
       if (nf_cfg) {
-        auto& sbi          = nf_cfg->get_sbi();
-        std::string scheme = "http";
-        nf_endpoint = scheme + "://" + std::string(inet_ntoa(sbi.get_addr4())) +
-                      ":" + std::to_string(sbi.get_port());
+        nf_endpoint = nf_cfg->get_url(nef_config_inst->enable_tls());
         Logger::nef_app().debug(
-            "NF %s endpoint from config: %s", cfg_key.c_str(),
-            nf_endpoint.c_str());
+            "NF %s endpoint from config: %s", cfg_key.c_str(), nf_endpoint);
         return true;
       }
     } catch (...) {
@@ -318,7 +322,7 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
   // Cache check — if we have a cached endpoint for this NF type, use it without
   // querying NRF
   {
-    std::string cached_ep;
+    std::string cached_ep = {};
     if (nrf_discovery_cache::instance().get(nf_type_str, cached_ep)) {
       Logger::nef_app().debug(
           "NF discovery cache hit: %s → %s", nf_type_str.c_str(),
@@ -327,11 +331,13 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
       return true;
     }
   }
+
+  // Cache miss — query NRF for the NF type's endpoint
   std::string disc_uri = build_nrf_disc_uri() + "?" +
                          "target-nf-type=" + nf_type_str +
                          "&requester-nf-type=NEF";
 
-  Logger::nef_app().debug("NF discovery URI: %s", disc_uri.c_str());
+  Logger::nef_app().debug("NF discovery URI (NRF): %s", disc_uri.c_str());
 
   oai::http::response last_disc_resp{};
   auto sbi_sleep = [](std::chrono::milliseconds d) {

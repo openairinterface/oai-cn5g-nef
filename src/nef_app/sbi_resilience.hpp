@@ -12,6 +12,8 @@
 #include <thread>
 #include <unordered_map>
 
+#include "3gpp_29.500.h"
+
 namespace oai::nef::app {
 
 // Circuit-breaker state machine
@@ -185,7 +187,9 @@ class sbi_circuit_breaker_registry {
 inline bool sbi_should_retry(int status, bool is_post) {
   // Assumes caller has already handled 2xx (success) and 4xx (permanent error).
   if (is_post) return (status == 0);  // POST: only retry on connection failure
-  return (status == 0 || status == 503 || status == 429);
+  return (
+      status == 0 || status == http_status_code::SERVICE_UNAVAILABLE ||
+      status == http_status_code::TOO_MANY_REQUESTS);
 }
 
 // sbi_call_with_retry
@@ -271,13 +275,15 @@ int sbi_call_with_retry(
     }
 
     // 2xx: success
-    if (status >= 200 && status < 300) {
+    if (status >= http_status_code::OK &&
+        status < http_status_code::MULTIPLE_CHOICES) {
       cb.record_success(nf_type);
       return status;
     }
 
     // 4xx: permanent application-level error, no CB update
-    if (status >= 400 && status < 500) {
+    if (status >= http_status_code::BAD_REQUEST &&
+        status < http_status_code::INTERNAL_SERVER_ERROR) {
       return status;
     }
 

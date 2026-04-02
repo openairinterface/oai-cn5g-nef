@@ -13,6 +13,7 @@
 #include <sstream>
 #include <thread>
 
+#include "3gpp_29.500.h"
 #include "logger.hpp"
 #include "nef_audit_log.hpp"
 #include "nef_callback_uri_validator.hpp"
@@ -29,6 +30,7 @@
 
 using namespace oai::nef::app;
 using namespace boost::placeholders;
+using namespace oai::common::sbi;
 
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
@@ -37,35 +39,29 @@ static nlohmann::json make_problem_detail(
     const std::string& instance = "");
 
 static bool validate_nnef_event_exposure_subscription(
-  const nlohmann::json& body,
-  std::string& error_detail);
+    const nlohmann::json& body, std::string& error_detail);
 
 static std::string build_nnef_event_exposure_subscription_path(
-  const std::string& subscription_id);
+    const std::string& subscription_id);
 
 static void finalize_nnef_event_exposure_subscription(
-  nlohmann::json& subscription,
-  const std::string& subscription_id);
+    nlohmann::json& subscription, const std::string& subscription_id);
 
 static bool parse_monitor_expire_time(
     const std::string& value,
     std::chrono::system_clock::time_point& expire_time);
 
 static bool normalize_nnef_pfd_app_data(
-  const std::string& app_id,
-  const nlohmann::json& input,
-  nlohmann::json& output,
-  std::string& error_detail);
+    const std::string& app_id, const nlohmann::json& input,
+    nlohmann::json& output, std::string& error_detail);
 
 static bool extract_nnef_pfd_transaction_apps(
-  const nlohmann::json& body,
-  nlohmann::json& applications,
-  std::string& error_detail);
+    const nlohmann::json& body, nlohmann::json& applications,
+    std::string& error_detail);
 
 static nlohmann::json make_nnef_pfd_transaction(
-  const std::string& transaction_id,
-  const nlohmann::json& body,
-  const nlohmann::json& applications);
+    const std::string& transaction_id, const nlohmann::json& body,
+    const nlohmann::json& applications);
 
 namespace {
 thread_local std::string g_request_bearer_token;
@@ -73,18 +69,26 @@ thread_local std::string g_request_bearer_token;
 
 // Analytics /fetch endpoint
 //------------------------------------------------------------------------------
-void nef_app::handle_analytics_fetch(const std::string& scs_as_id, const nlohmann::json& body, nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+void nef_app::handle_analytics_fetch(
+    const std::string& scs_as_id, const nlohmann::json& body,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_ANALYTICS)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   if (!body.contains("analyEventsSubs")) {
-    http_code = 400;
-    response_body = make_problem_detail(400, "Bad Request", "Missing analyEventsSubs in request body");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "Missing analyEventsSubs in request body");
     return;
   }
-  Logger::nef_app().info("Analytics fetch requested by %s: %s", scs_as_id.c_str(), body.dump().c_str());
+  Logger::nef_app().info(
+      "Analytics fetch requested by %s: %s", scs_as_id.c_str(),
+      body.dump().c_str());
 
   // Option A: return locally cached analytics from existing subscriptions.
   // Collect subscription data for all ANALYTICS subscriptions owned by this AF
@@ -95,12 +99,13 @@ void nef_app::handle_analytics_fetch(const std::string& scs_as_id, const nlohman
   {
     std::shared_lock lock(m_af_subscriptions_mutex);
     for (const auto& [sub_id, sub] : m_af_sub_id2subscription) {
-      if (sub->get_service_type() != nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS)
+      if (sub->get_service_type() !=
+          nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS)
         continue;
-      if (sub->get_scs_as_id() != scs_as_id)
-        continue;
+      if (sub->get_scs_as_id() != scs_as_id) continue;
       const nlohmann::json sub_data = sub->get_subscription_data();
-      if (!sub_data.contains("analyEventsSubs") || !sub_data["analyEventsSubs"].is_array())
+      if (!sub_data.contains("analyEventsSubs") ||
+          !sub_data["analyEventsSubs"].is_array())
         continue;
       // Check if any requested event type overlaps with the stored subscription
       bool match = false;
@@ -117,29 +122,33 @@ void nef_app::handle_analytics_fetch(const std::string& scs_as_id, const nlohman
       }
       if (!match) continue;
 
-      nlohmann::json report      = nlohmann::json::object();
-      report["subId"]            = sub_id;
-      report["analyEventsSubs"]  = sub_data["analyEventsSubs"];
+      nlohmann::json report     = nlohmann::json::object();
+      report["subId"]           = sub_id;
+      report["analyEventsSubs"] = sub_data["analyEventsSubs"];
       if (sub_data.contains("notifUri"))
         report["notifUri"] = sub_data["notifUri"];
       reports.push_back(report);
     }
   }
 
-  response_body                      = nlohmann::json::object();
-  response_body["analyEventsSubs"]   = requested_events;
+  response_body                        = nlohmann::json::object();
+  response_body["analyEventsSubs"]     = requested_events;
   response_body["noNetworkSupportInd"] = reports.empty();
-  if (!reports.empty())
-    response_body["analyReports"] = reports;
+  if (!reports.empty()) response_body["analyReports"] = reports;
   http_code = 200;
 }
 
 // BDT PATCH
 //------------------------------------------------------------------------------
-void nef_app::handle_bdt_policy_patch(const std::string& af_id, const std::string& bdt_policy_id, const nlohmann::json& patch_body, nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+void nef_app::handle_bdt_policy_patch(
+    const std::string& af_id, const std::string& bdt_policy_id,
+    const nlohmann::json& patch_body, nlohmann::json& response_body,
+    int& http_code, uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   std::string pcf_bdt_id;
@@ -149,13 +158,16 @@ void nef_app::handle_bdt_policy_patch(const std::string& af_id, const std::strin
     auto session_it = m_bdt_sessions.find(bdt_policy_id);
     if (session_it == m_bdt_sessions.end()) {
       http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "BDT policy not found");
+      response_body =
+          make_problem_detail(404, "Not Found", "BDT policy not found");
       return;
     }
     auto owner_it = m_bdt_id2af_id.find(bdt_policy_id);
     if (owner_it == m_bdt_id2af_id.end() || owner_it->second != af_id) {
-      http_code = 403;
-      response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this resource");
+      http_code     = http_status_code::FORBIDDEN;
+      response_body = make_problem_detail(
+          http_status_code::FORBIDDEN, "Forbidden",
+          "AF is not allowed to access this resource");
       return;
     }
     auto pcf_it = m_bdt_id2pcf_policy_id.find(bdt_policy_id);
@@ -166,57 +178,73 @@ void nef_app::handle_bdt_policy_patch(const std::string& af_id, const std::strin
     patched_copy.merge_patch(patch_body);
   }
   if (pcf_bdt_id.empty()) {
-    http_code = 502;
-    response_body = make_problem_detail(502, "Bad Gateway", "Missing PCF BDT policy identifier");
+    http_code     = http_status_code::BAD_GATEWAY;
+    response_body = make_problem_detail(
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Missing PCF BDT policy identifier");
     return;
   }
   uint32_t http_code_pcf = 0;
-  if (!m_nef_client->update_pcf_bdt_policy(pcf_bdt_id, patched_copy, http_code_pcf, http_version)) {
-    http_code = 502;
-    response_body = make_problem_detail(502, "Bad Gateway", "Failed to update BDT policy in PCF");
+  if (!m_nef_client->update_pcf_bdt_policy(
+          pcf_bdt_id, patched_copy, http_code_pcf, http_version)) {
+    http_code     = http_status_code::BAD_GATEWAY;
+    response_body = make_problem_detail(
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to update BDT policy in PCF");
     return;
   }
   {
     std::unique_lock lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_policy_id);
     if (session_it == m_bdt_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "BDT policy not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "BDT policy not found");
       return;
     }
     session_it->second = patched_copy;
   }
-  response_body = patched_copy;
+  response_body             = patched_copy;
   response_body["bdtRefId"] = bdt_policy_id;
-  http_code = 200;
+  http_code                 = 200;
   nef_audit::log("PATCH", "BDT", af_id, bdt_policy_id, http_code);
 }
 
 // QoS UPDATE (PUT)
 //------------------------------------------------------------------------------
-void nef_app::handle_qos_subscription_update(const std::string& scs_as_id, const std::string& sub_id, const nlohmann::json& body, nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+void nef_app::handle_qos_subscription_update(
+    const std::string& scs_as_id, const std::string& sub_id,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+    uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_QOS_MONITORING)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   auto sub = find_subscription(sub_id);
   if (!sub) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "QoS subscription not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "QoS subscription not found");
     return;
   }
   if (!is_subscription_owner(sub, scs_as_id)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this subscription");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this subscription");
     return;
   }
   // Type and length validation (422 for semantic errors).
   {
-    const std::string err = validate_string_field(body, "notifUri", false, 2048);
+    const std::string err =
+        validate_string_field(body, "notifUri", false, 2048);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
@@ -225,9 +253,9 @@ void nef_app::handle_qos_subscription_update(const std::string& scs_as_id, const
     const std::string uri_err =
         validate_callback_uri(body["notifUri"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notifUri: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
       return;
     }
   }
@@ -236,92 +264,115 @@ void nef_app::handle_qos_subscription_update(const std::string& scs_as_id, const
     sub->set_notification_uri(body["notifUri"].get<std::string>());
   }
   // Optionally: re-subscribe to SMF if needed (not implemented here)
-  response_body = sub->get_subscription_data();
+  response_body          = sub->get_subscription_data();
   response_body["subId"] = sub_id;
-  http_code = 200;
+  http_code              = 200;
   nef_audit::log("UPDATE", "QOS", scs_as_id, sub_id, http_code);
 }
 
 // Monitoring Event UPDATE (PUT)
 //------------------------------------------------------------------------------
-void nef_app::handle_monitoring_event_subscription_update(const std::string& scs_as_id, const std::string& sub_id, const nlohmann::json& body, nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+void nef_app::handle_monitoring_event_subscription_update(
+    const std::string& scs_as_id, const std::string& sub_id,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
+    uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_MONITORING_EVENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   auto sub = find_subscription(sub_id);
   if (!sub) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "Subscription not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "Subscription not found");
     return;
   }
   if (!is_subscription_owner(sub, scs_as_id)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this subscription");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this subscription");
     return;
   }
   // SSRF protection: validate callback URI before updating stored state
   if (body.contains("notificationDestination") &&
       body["notificationDestination"].is_string()) {
-    const std::string uri_err =
-        validate_callback_uri(body["notificationDestination"].get<std::string>());
+    const std::string uri_err = validate_callback_uri(
+        body["notificationDestination"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notificationDestination: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "notificationDestination: " + uri_err);
       return;
     }
   }
   sub->set_subscription_data(body);
   if (body.contains("notificationDestination")) {
-    sub->set_notification_uri(body["notificationDestination"].get<std::string>());
+    sub->set_notification_uri(
+        body["notificationDestination"].get<std::string>());
   }
-  if (body.contains("monitorExpireTime") && body["monitorExpireTime"].is_string()) {
+  if (body.contains("monitorExpireTime") &&
+      body["monitorExpireTime"].is_string()) {
     std::chrono::system_clock::time_point expire_time;
-    if (parse_monitor_expire_time(body["monitorExpireTime"].get<std::string>(), expire_time)) {
+    if (parse_monitor_expire_time(
+            body["monitorExpireTime"].get<std::string>(), expire_time)) {
       sub->set_expire_time(expire_time);
     }
   }
   // Optionally: re-subscribe to AMF if needed (not implemented here)
-  response_body = sub->get_subscription_data();
+  response_body          = sub->get_subscription_data();
   response_body["subId"] = sub_id;
-  http_code = 200;
+  http_code              = http_status_code::OK;
   nef_audit::log("UPDATE", "ME", scs_as_id, sub_id, http_code);
 }
 
 // TI GET
 //------------------------------------------------------------------------------
-void nef_app::handle_traffic_influence_get(const std::string& af_id, const std::string& app_session_id, nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+void nef_app::handle_traffic_influence_get(
+    const std::string& af_id, const std::string& app_session_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   std::shared_lock lock(m_ti_mutex);
   auto it = m_ti_sessions.find(app_session_id);
   if (it == m_ti_sessions.end()) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "TI session not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "TI session not found");
     return;
   }
   auto owner_it = m_ti_id2af_id.find(app_session_id);
   if (owner_it == m_ti_id2af_id.end() || owner_it->second != af_id) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this resource");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this resource");
     return;
   }
-  response_body = it->second;
+  response_body              = it->second;
   response_body["afTransId"] = app_session_id;
-  http_code = 200;
+  http_code                  = http_status_code::OK;
 }
 
 // TI LIST
 //------------------------------------------------------------------------------
-void nef_app::handle_traffic_influence_list(const std::string& af_id, nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+void nef_app::handle_traffic_influence_list(
+    const std::string& af_id, nlohmann::json& response_body, int& http_code,
+    uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   std::shared_lock lock(m_ti_mutex);
@@ -330,10 +381,10 @@ void nef_app::handle_traffic_influence_list(const std::string& af_id, nlohmann::
     auto owner_it = m_ti_id2af_id.find(id);
     if (owner_it == m_ti_id2af_id.end() || owner_it->second != af_id) continue;
     nlohmann::json entry = session;
-    entry["afTransId"] = id;
+    entry["afTransId"]   = id;
     response_body.push_back(entry);
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 // RFC 7807 Problem Detail helper
@@ -350,8 +401,7 @@ static nlohmann::json make_problem_detail(
 }
 
 static bool validate_nnef_event_exposure_subscription(
-    const nlohmann::json& body,
-    std::string& error_detail) {
+    const nlohmann::json& body, std::string& error_detail) {
   if (!body.contains("eventsSubs") || !body["eventsSubs"].is_array() ||
       body["eventsSubs"].empty()) {
     error_detail = "eventsSubs is required and must be a non-empty array";
@@ -400,8 +450,7 @@ static std::string build_nnef_event_exposure_subscription_path(
 
 //------------------------------------------------------------------------------
 static void finalize_nnef_event_exposure_subscription(
-    nlohmann::json& subscription,
-    const std::string& subscription_id) {
+    nlohmann::json& subscription, const std::string& subscription_id) {
   subscription["subscriptionId"] = subscription_id;
   subscription["self"] =
       build_nnef_event_exposure_subscription_path(subscription_id);
@@ -435,8 +484,8 @@ static bool parse_monitor_expire_time(
   }
 
   try {
-    auto pt = boost::posix_time::from_iso_extended_string(normalized);
-    std::tm tm = boost::posix_time::to_tm(pt);
+    auto pt       = boost::posix_time::from_iso_extended_string(normalized);
+    std::tm tm    = boost::posix_time::to_tm(pt);
     const auto ts = timegm(&tm);
     if (ts < 0) return false;
     expire_time = std::chrono::system_clock::from_time_t(ts);
@@ -448,10 +497,8 @@ static bool parse_monitor_expire_time(
 
 //------------------------------------------------------------------------------
 static bool normalize_nnef_pfd_app_data(
-    const std::string& app_id,
-    const nlohmann::json& input,
-    nlohmann::json& output,
-    std::string& error_detail) {
+    const std::string& app_id, const nlohmann::json& input,
+    nlohmann::json& output, std::string& error_detail) {
   if (!input.is_object()) {
     error_detail = "Application PFD must be a JSON object";
     return false;
@@ -516,8 +563,7 @@ static bool normalize_nnef_pfd_app_data(
 
 //------------------------------------------------------------------------------
 static bool extract_nnef_pfd_transaction_apps(
-    const nlohmann::json& body,
-    nlohmann::json& applications,
+    const nlohmann::json& body, nlohmann::json& applications,
     std::string& error_detail) {
   applications = nlohmann::json::object();
 
@@ -528,7 +574,8 @@ static bool extract_nnef_pfd_transaction_apps(
       return false;
     }
     nlohmann::json normalized;
-    if (!normalize_nnef_pfd_app_data(app_id, app_body, normalized, error_detail)) {
+    if (!normalize_nnef_pfd_app_data(
+            app_id, app_body, normalized, error_detail)) {
       return false;
     }
     applications[app_id] = normalized;
@@ -537,7 +584,8 @@ static bool extract_nnef_pfd_transaction_apps(
 
   auto add_app_array = [&](const nlohmann::json& app_array) -> bool {
     if (!app_array.is_array()) {
-      error_detail = "applications must be an array when provided as a collection";
+      error_detail =
+          "applications must be an array when provided as a collection";
       return false;
     }
     for (const auto& app_body : app_array) {
@@ -571,8 +619,10 @@ static bool extract_nnef_pfd_transaction_apps(
       for (const auto& [app_id, app_body] : body["pfdDatas"].items()) {
         if (!add_app(app_id, app_body)) return false;
       }
-    } else if (body.contains("externalAppId") && body["externalAppId"].is_string()) {
-      if (!add_app(body["externalAppId"].get<std::string>(), body)) return false;
+    } else if (
+        body.contains("externalAppId") && body["externalAppId"].is_string()) {
+      if (!add_app(body["externalAppId"].get<std::string>(), body))
+        return false;
     } else {
       error_detail = "Transaction body must contain applications or pfdDatas";
       return false;
@@ -592,12 +642,12 @@ static bool extract_nnef_pfd_transaction_apps(
 
 //------------------------------------------------------------------------------
 static nlohmann::json make_nnef_pfd_transaction(
-    const std::string& transaction_id,
-    const nlohmann::json& body,
+    const std::string& transaction_id, const nlohmann::json& body,
     const nlohmann::json& applications) {
-  nlohmann::json transaction = body.is_object() ? body : nlohmann::json::object();
+  nlohmann::json transaction =
+      body.is_object() ? body : nlohmann::json::object();
   transaction["transactionId"] = transaction_id;
-  transaction["applications"] = applications;
+  transaction["applications"]  = applications;
   if (transaction.contains("pfdDatas")) {
     transaction.erase("pfdDatas");
   }
@@ -613,7 +663,7 @@ nef_app::nef_app(const std::string& config_file, nef_event& ev)
 
   // Security configuration check — fail-closed by default
   {
-    auto nef_cfg = nef_config_inst->nef();
+    auto nef_cfg               = nef_config_inst->nef();
     const bool whitelist_empty = nef_cfg->get_af_whitelist().empty();
     const bool jwt_empty       = nef_cfg->get_jwt_secret_key().empty();
     if (whitelist_empty && jwt_empty) {
@@ -638,10 +688,10 @@ nef_app::nef_app(const std::string& config_file, nef_event& ev)
 
   m_nef_client = std::make_shared<nef_client>();
 
-  // Bounded thread pool for notification forwarding (4 workers, 1000-task queue).
+  // Bounded thread pool for notification forwarding (4 workers, 1000-task
+  // queue).
   // TODO: expose num_threads / max_queue as nef_config parameters.
-  m_notification_pool =
-      std::make_unique<notification_thread_pool>(4, 1000);
+  m_notification_pool = std::make_unique<notification_thread_pool>(4, 1000);
 
   subscribe_nf_notification();
 
@@ -653,17 +703,18 @@ nef_app::nef_app(const std::string& config_file, nef_event& ev)
   // Periodic NRF heartbeat every 50 s (50000 ms ticks)
   constexpr uint64_t HEARTBEAT_MS = 50000;
   uint64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now().time_since_epoch()).count();
+                        std::chrono::system_clock::now().time_since_epoch())
+                        .count();
   auto hb_conn = m_event_sub.subscribe_task_tick(
       [this](uint64_t /*t*/) { m_nef_client->send_heartbeat_to_nrf(); },
       HEARTBEAT_MS, now_ms + HEARTBEAT_MS);
   m_connections.push_back(hb_conn);
 
-    constexpr uint64_t SUBSCRIPTION_EXPIRY_CHECK_MS = 1000;
-    auto expiry_conn = m_event_sub.subscribe_task_tick(
+  constexpr uint64_t SUBSCRIPTION_EXPIRY_CHECK_MS = 1000;
+  auto expiry_conn = m_event_sub.subscribe_task_tick(
       [this](uint64_t t) { handle_subscription_expiry_tick(t); },
       SUBSCRIPTION_EXPIRY_CHECK_MS, now_ms + SUBSCRIPTION_EXPIRY_CHECK_MS);
-    m_connections.push_back(expiry_conn);
+  m_connections.push_back(expiry_conn);
 
   Logger::nef_app().startup("NEF application started");
 }
@@ -685,7 +736,8 @@ nef_app::~nef_app() {
 
 //------------------------------------------------------------------------------
 void nef_app::deregister_from_nrf() {
-  if (m_deregistered.exchange(true, std::memory_order_acq_rel)) return;  // double-deregistration guard
+  if (m_deregistered.exchange(true, std::memory_order_acq_rel))
+    return;  // double-deregistration guard
   m_nef_client->deregister_from_nrf();
 }
 
@@ -705,13 +757,12 @@ void nef_app::generate_af_subscription_id(std::string& sub_id) {
   sub_id = oss.str();
 }
 
-// Authorization 
+// Authorization
 //------------------------------------------------------------------------------
 bool nef_app::authorize_af_request(
-    const std::string& scs_as_id,
-    const std::string& api_name) const {
-  auto nef_cfg = nef_config_inst->nef();
-  const auto& wl = nef_cfg->get_af_whitelist();
+    const std::string& scs_as_id, const std::string& api_name) const {
+  auto nef_cfg          = nef_config_inst->nef();
+  const auto& wl        = nef_cfg->get_af_whitelist();
   const auto jwt_secret = nef_cfg->get_jwt_secret_key();
 
   if (!g_request_bearer_token.empty()) {
@@ -719,8 +770,8 @@ bool nef_app::authorize_af_request(
     if (!jwt_validator.validate_af_token(
             g_request_bearer_token, api_name, scs_as_id)) {
       Logger::nef_app().warn(
-          "JWT validation failed for AF %s on API %s",
-          scs_as_id.c_str(), api_name.c_str());
+          "JWT validation failed for AF %s on API %s", scs_as_id.c_str(),
+          api_name.c_str());
       return false;
     }
     // JWT valid: allow immediately — do not fall through to whitelist check
@@ -752,8 +803,7 @@ bool nef_app::authorize_af_request(
   // Whitelist configured but empty of matching entries — deny.
   if (wl.empty()) {
     Logger::nef_app().warn(
-        "AF %s denied: whitelist is configured but empty",
-        scs_as_id.c_str());
+        "AF %s denied: whitelist is configured but empty", scs_as_id.c_str());
     return false;
   }
 
@@ -762,8 +812,7 @@ bool nef_app::authorize_af_request(
 
     // AF found in whitelist – check allowed APIs
     if (entry.allowed_apis.empty()) {
-      Logger::nef_app().debug(
-          "AF %s allowed on all APIs", scs_as_id.c_str());
+      Logger::nef_app().debug("AF %s allowed on all APIs", scs_as_id.c_str());
       return true;
     }
     bool allowed = std::find(
@@ -771,8 +820,8 @@ bool nef_app::authorize_af_request(
                        api_name) != entry.allowed_apis.end();
     if (!allowed) {
       Logger::nef_app().warn(
-          "AF %s is NOT allowed to access API %s",
-          scs_as_id.c_str(), api_name.c_str());
+          "AF %s is NOT allowed to access API %s", scs_as_id.c_str(),
+          api_name.c_str());
     }
     return allowed;
   }
@@ -853,8 +902,8 @@ bool nef_app::is_subscription_owner(
   }
   if (owner != af_id) {
     Logger::nef_app().warn(
-        "AF %s is not owner of subscription (owner=%s)",
-        af_id.c_str(), owner.c_str());
+        "AF %s is not owner of subscription (owner=%s)", af_id.c_str(),
+        owner.c_str());
     return false;
   }
   return true;
@@ -863,8 +912,7 @@ bool nef_app::is_subscription_owner(
 // AF Profile helpers
 //------------------------------------------------------------------------------
 bool nef_app::add_af_profile(
-    const std::string& af_id,
-    const std::shared_ptr<nef_af_profile>& p) {
+    const std::string& af_id, const std::shared_ptr<nef_af_profile>& p) {
   std::unique_lock lock(m_af_id2profile_mutex);
   m_af_id2profile[af_id] = p;
   Logger::nef_app().debug("AF profile added: %s", af_id.c_str());
@@ -959,8 +1007,7 @@ void nef_app::handle_nf_notification(
   // Find the AF subscription
   auto sub = find_subscription(af_sub_id);
   if (!sub) {
-    Logger::nef_app().warn(
-        "AF subscription %s not found", af_sub_id.c_str());
+    Logger::nef_app().warn("AF subscription %s not found", af_sub_id.c_str());
     return;
   }
 
@@ -969,7 +1016,7 @@ void nef_app::handle_nf_notification(
   if (!af_uri.empty()) {
     nlohmann::json t8_payload;
     bool mapped = false;
-    auto svc = sub->get_service_type();
+    auto svc    = sub->get_service_type();
     if (svc == nef_service_type_t::NEF_SERVICE_TYPE_MONITORING_EVENT) {
       mapped = nef_notification_mapper::amf_to_monitoring_notification(
           notif_payload, t8_payload, af_sub_id);
@@ -994,7 +1041,7 @@ void nef_app::handle_nf_notification(
 
     const uint8_t http_ver = sub->get_http_version();
     auto nef_client        = m_nef_client;
-    const bool enqueued = m_notification_pool->enqueue(
+    const bool enqueued    = m_notification_pool->enqueue(
         [nef_client, af_uri, t8_payload, http_ver]() {
           if (!nef_client->forward_notification_to_af(
                   af_uri, t8_payload, http_ver)) {
@@ -1016,22 +1063,23 @@ void nef_app::handle_nf_notification(
 // Nnef_EventExposure (TS 29.591)
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_subscribe(
-    const nlohmann::json& body,
-    nlohmann::json& response_body,
-    int& http_code,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   (void) http_version;
 
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
 
   std::string error_detail;
   if (!validate_nnef_event_exposure_subscription(body, error_detail)) {
-    http_code = 400;
-    response_body = make_problem_detail(400, "Bad Request", error_detail);
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", error_detail);
     return;
   }
 
@@ -1048,87 +1096,84 @@ void nef_app::handle_nnef_event_exposure_subscribe(
   }
 
   Logger::nef_app().info(
-      "Created Nnef_EventExposure subscription: %s",
-      subscription_id.c_str());
+      "Created Nnef_EventExposure subscription: %s", subscription_id.c_str());
 
   response_body = stored_subscription;
-  http_code = 201;
+  http_code     = http_status_code::CREATED;
   nef_audit::log("CREATE", "EE", "", subscription_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_unsubscribe(
-    const std::string& subscription_id,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& subscription_id, int& http_code, uint8_t http_version) {
   (void) http_version;
 
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
   std::unique_lock lock(m_nnef_event_subscriptions_mutex);
   auto it = m_nnef_event_subscriptions.find(subscription_id);
   if (it == m_nnef_event_subscriptions.end()) {
-    http_code = 404;
+    http_code = http_status_code::NOT_FOUND;
     return;
   }
 
   m_nnef_event_subscriptions.erase(it);
   Logger::nef_app().info(
-      "Deleted Nnef_EventExposure subscription: %s",
-      subscription_id.c_str());
-  http_code = 204;
+      "Deleted Nnef_EventExposure subscription: %s", subscription_id.c_str());
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "EE", "", subscription_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_get(
-    const std::string& subscription_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& subscription_id, nlohmann::json& response_body,
+    int& http_code, uint8_t http_version) {
   (void) http_version;
 
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
 
   std::shared_lock lock(m_nnef_event_subscriptions_mutex);
   auto it = m_nnef_event_subscriptions.find(subscription_id);
   if (it == m_nnef_event_subscriptions.end()) {
-    http_code = 404;
+    http_code     = http_status_code::NOT_FOUND;
     response_body = make_problem_detail(
-        404, "Not Found", "Nnef_EventExposure subscription not found");
+        http_status_code::NOT_FOUND, "Not Found",
+        "Nnef_EventExposure subscription not found");
     return;
   }
 
   response_body = it->second;
-  http_code = 200;
+  http_code     = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_update(
-    const std::string& subscription_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& subscription_id, const nlohmann::json& body,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   (void) http_version;
 
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
 
   std::string error_detail;
   if (!validate_nnef_event_exposure_subscription(body, error_detail)) {
-    http_code = 400;
-    response_body = make_problem_detail(400, "Bad Request", error_detail);
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", error_detail);
     return;
   }
 
@@ -1140,9 +1185,10 @@ void nef_app::handle_nnef_event_exposure_update(
     std::unique_lock lock(m_nnef_event_subscriptions_mutex);
     auto it = m_nnef_event_subscriptions.find(subscription_id);
     if (it == m_nnef_event_subscriptions.end()) {
-      http_code = 404;
+      http_code     = http_status_code::NOT_FOUND;
       response_body = make_problem_detail(
-          404, "Not Found", "Nnef_EventExposure subscription not found");
+          http_status_code::NOT_FOUND, "Not Found",
+          "Nnef_EventExposure subscription not found");
       return;
     }
 
@@ -1150,40 +1196,37 @@ void nef_app::handle_nnef_event_exposure_update(
   }
 
   Logger::nef_app().info(
-      "Updated Nnef_EventExposure subscription: %s",
-      subscription_id.c_str());
+      "Updated Nnef_EventExposure subscription: %s", subscription_id.c_str());
 
   response_body = updated_subscription;
-  http_code = 200;
+  http_code     = http_status_code::OK;
   nef_audit::log("UPDATE", "EE", "", subscription_id, http_code);
 }
 
 // Monitoring Event Exposure (TS 29.122) API handlers
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_create(
-    const std::string& scs_as_id,
-    const nlohmann::json& body,
-    std::string& sub_id,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& scs_as_id, const nlohmann::json& body,
+    std::string& sub_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   Logger::nef_app().info(
-      "Create monitoring event subscription for SCS/AS: %s",
-      scs_as_id.c_str());
+      "Create monitoring event subscription for SCS/AS: %s", scs_as_id.c_str());
 
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_MONITORING_EVENT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   // Validate required fields
   if (!body.contains("monitoringType") ||
       !body.contains("notificationDestination")) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "monitoringType and notificationDestination are required");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "monitoringType and notificationDestination are required");
     return;
   }
 
@@ -1191,31 +1234,44 @@ void nef_app::handle_monitoring_event_subscription_create(
   {
     // Valid MonitoringType values per 3GPP TS 29.122 clause 5.2.4
     static const std::unordered_set<std::string> kMonitoringTypes = {
-        "LOSS_OF_CONNECTIVITY", "UE_REACHABILITY", "LOCATION_REPORTING",
-        "CHANGE_OF_IMSI_IMEI_ASSOCIATION", "ROAMING_STATUS",
-        "COMMUNICATION_FAILURE", "AVAILABILITY_AFTER_DDN_FAILURE",
-        "NUMBER_OF_UES_IN_AN_AREA", "PDN_CONNECTIVITY_STATUS",
-        "DOWNLINK_DATA_DELIVERY_STATUS", "API_SUPPORT_CAPABILITY",
-        "NUM_OF_REGD_UES", "NUM_OF_ESTD_PDU_SESSIONS", "AREA_OF_INTEREST"};
+        "LOSS_OF_CONNECTIVITY",
+        "UE_REACHABILITY",
+        "LOCATION_REPORTING",
+        "CHANGE_OF_IMSI_IMEI_ASSOCIATION",
+        "ROAMING_STATUS",
+        "COMMUNICATION_FAILURE",
+        "AVAILABILITY_AFTER_DDN_FAILURE",
+        "NUMBER_OF_UES_IN_AN_AREA",
+        "PDN_CONNECTIVITY_STATUS",
+        "DOWNLINK_DATA_DELIVERY_STATUS",
+        "API_SUPPORT_CAPABILITY",
+        "NUM_OF_REGD_UES",
+        "NUM_OF_ESTD_PDU_SESSIONS",
+        "AREA_OF_INTEREST"};
     std::string err;
     if (err.empty()) err = validate_string_param(scs_as_id, "scsAsId", 256);
-    if (err.empty()) err = validate_enum_field(body, "monitoringType", kMonitoringTypes, true);
-    if (err.empty()) err = validate_string_field(body, "notificationDestination", true, 2048);
+    if (err.empty())
+      err = validate_enum_field(body, "monitoringType", kMonitoringTypes, true);
+    if (err.empty())
+      err = validate_string_field(body, "notificationDestination", true, 2048);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
 
-  // SSRF protection: validate the callback URI before any storage or southbound calls
+  // SSRF protection: validate the callback URI before any storage or southbound
+  // calls
   {
-    const std::string uri_err =
-        validate_callback_uri(body["notificationDestination"].get<std::string>());
+    const std::string uri_err = validate_callback_uri(
+        body["notificationDestination"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notificationDestination: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "notificationDestination: " + uri_err);
       return;
     }
   }
@@ -1231,15 +1287,18 @@ void nef_app::handle_monitoring_event_subscription_create(
   sub->set_http_version(http_version);
   sub->set_subscription_data(body);
   if (body.contains("notificationDestination")) {
-    sub->set_notification_uri(body["notificationDestination"].get<std::string>());
+    sub->set_notification_uri(
+        body["notificationDestination"].get<std::string>());
   }
-  if (body.contains("monitorExpireTime") && body["monitorExpireTime"].is_string()) {
+  if (body.contains("monitorExpireTime") &&
+      body["monitorExpireTime"].is_string()) {
     std::chrono::system_clock::time_point expire_time;
     if (!parse_monitor_expire_time(
             body["monitorExpireTime"].get<std::string>(), expire_time)) {
-      http_code     = 400;
+      http_code     = http_status_code::BAD_REQUEST;
       response_body = make_problem_detail(
-          400, "Bad Request", "Invalid monitorExpireTime format");
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "Invalid monitorExpireTime format");
       return;
     }
     sub->set_expire_time(expire_time);
@@ -1250,14 +1309,15 @@ void nef_app::handle_monitoring_event_subscription_create(
 
   // Subscribe to AMF event-exposure southbound.
   std::string amf_sub_id;
-  if (!m_nef_client->subscribe_amf_event_exposure(body, amf_sub_id,
-                                                   http_version)) {
+  if (!m_nef_client->subscribe_amf_event_exposure(
+          body, amf_sub_id, http_version)) {
     Logger::nef_app().warn("Failed to subscribe to AMF event exposure");
     remove_subscription(sub_id);
     release_af_profile_subscription(scs_as_id, sub_id);
-    http_code     = 502;
-    response_body = make_problem_detail(502, "Bad Gateway",
-                        "Failed to create AMF monitoring subscription");
+    http_code     = http_status_code::BAD_GATEWAY;
+    response_body = make_problem_detail(
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to create AMF monitoring subscription");
     return;
   }
 
@@ -1267,34 +1327,32 @@ void nef_app::handle_monitoring_event_subscription_create(
     m_nf2af_sub_id[amf_sub_id] = sub_id;
   }
 
-  response_body            = body;
-  response_body["subId"]   = sub_id;
-  http_code                = 201;
+  response_body          = body;
+  response_body["subId"] = sub_id;
+  http_code              = http_status_code::CREATED;
   nef_audit::log("CREATE", "ME", scs_as_id, sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_delete(
-    const std::string& scs_as_id,
-    const std::string& sub_id,
-    int& http_code,
+    const std::string& scs_as_id, const std::string& sub_id, int& http_code,
     uint8_t http_version) {
   Logger::nef_app().info(
       "Delete monitoring event subscription: %s", sub_id.c_str());
 
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_MONITORING_EVENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
   auto sub = find_subscription(sub_id);
   if (!sub) {
-    http_code = 404;
+    http_code = http_status_code::NOT_FOUND;
     return;
   }
 
   if (!is_subscription_owner(sub, scs_as_id)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
@@ -1308,21 +1366,19 @@ void nef_app::handle_monitoring_event_subscription_delete(
 
   remove_subscription(sub_id);
   release_af_profile_subscription(scs_as_id, sub_id);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "ME", scs_as_id, sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_get(
-    const std::string& scs_as_id,
-    const std::string& sub_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& scs_as_id, const std::string& sub_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_MONITORING_EVENT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -1339,54 +1395,54 @@ void nef_app::handle_monitoring_event_subscription_get(
       if (sub->get_scs_as_id() != scs_as_id) continue;
 
       nlohmann::json entry = sub->get_subscription_data();
-      entry["subId"]      = id;
+      entry["subId"]       = id;
       response_body.push_back(entry);
     }
-    http_code = 200;
+    http_code = http_status_code::OK;
     return;
   }
 
   auto sub = find_subscription(sub_id);
   if (!sub) {
-    http_code = 404;
+    http_code = http_status_code::NOT_FOUND;
     return;
   }
 
   if (!is_subscription_owner(sub, scs_as_id)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF is not allowed to access this subscription");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this subscription");
     return;
   }
 
   response_body = sub->get_subscription_data();
-  http_code     = 200;
+  http_code     = http_status_code::OK;
 }
 
 // Traffic Influence (TS 29.122) API handlers
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_create(
-    const std::string& af_id,
-    const nlohmann::json& body,
-    std::string& ti_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const nlohmann::json& body, std::string& ti_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   Logger::nef_app().info("Create TI subscription for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   // Validate required fields: at least one traffic filter must be present
   if (!body.contains("afAppId") && !body.contains("trafficFilters") &&
       !body.contains("ethTrafficFilters")) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "At least one of afAppId, trafficFilters, or ethTrafficFilters is required");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "At least one of afAppId, trafficFilters, or ethTrafficFilters is "
+        "required");
     return;
   }
 
@@ -1396,10 +1452,12 @@ void nef_app::handle_traffic_influence_create(
     if (err.empty()) err = validate_string_param(af_id, "afId", 256);
     if (err.empty()) err = validate_string_field(body, "afAppId", false, 256);
     if (err.empty()) err = validate_string_field(body, "dnn", false, 100);
-    if (err.empty()) err = validate_string_field(body, "notificationDestination", false, 2048);
+    if (err.empty())
+      err = validate_string_field(body, "notificationDestination", false, 2048);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
@@ -1407,12 +1465,13 @@ void nef_app::handle_traffic_influence_create(
   // SSRF protection: validate notification callback URI if provided
   if (body.contains("notificationDestination") &&
       body["notificationDestination"].is_string()) {
-    const std::string uri_err =
-        validate_callback_uri(body["notificationDestination"].get<std::string>());
+    const std::string uri_err = validate_callback_uri(
+        body["notificationDestination"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notificationDestination: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "notificationDestination: " + uri_err);
       return;
     }
   }
@@ -1429,7 +1488,8 @@ void nef_app::handle_traffic_influence_create(
   auto ti_sub = std::make_shared<nef_subscription>(m_event_sub);
   ti_sub->set_af_subscription_id(ti_id);
   ti_sub->set_scs_as_id(af_id);
-  ti_sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE);
+  ti_sub->set_service_type(
+      nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE);
   ti_sub->set_http_version(http_version);
   ti_sub->set_subscription_data(body);
   if (body.contains("notificationDestination") &&
@@ -1441,11 +1501,13 @@ void nef_app::handle_traffic_influence_create(
 
   std::string pcf_policy_id;
   uint32_t http_code_pcf = 0;
-  const bool pcf_ok = m_nef_client->create_pcf_policy_auth(
+  const bool pcf_ok      = m_nef_client->create_pcf_policy_auth(
       body, pcf_policy_id, http_code_pcf, http_version);
-  if (!pcf_ok || http_code_pcf < 200 || http_code_pcf >= 300) {
+  if (!pcf_ok || http_code_pcf < http_status_code::OK ||
+      http_code_pcf >= http_status_code::MULTIPLE_CHOICES) {
     Logger::nef_app().warn(
-        "PCF TI create failed for ti_id=%s (http=%u), rolling back local session",
+        "PCF TI create failed for ti_id=%s (http=%u), rolling back local "
+        "session",
         ti_id.c_str(), http_code_pcf);
     {
       std::unique_lock lock(m_ti_mutex);
@@ -1454,16 +1516,18 @@ void nef_app::handle_traffic_influence_create(
       m_ti_id2pcf_policy_id.erase(ti_id);
     }
     remove_subscription(ti_id);
-    http_code     = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Failed to create policy authorization in PCF");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to create policy authorization in PCF");
     return;
   }
 
   if (pcf_policy_id.empty()) {
     // PCF returned HTTP 2xx but no usable policy ID — treat as failure
     Logger::nef_app().error(
-        "handle_traffic_influence_create: PCF returned success but empty policy ID. "
+        "handle_traffic_influence_create: PCF returned success but empty "
+        "policy ID. "
         "Rolling back TI subscription ti_id='%s'.",
         ti_id.c_str());
     {
@@ -1473,9 +1537,9 @@ void nef_app::handle_traffic_influence_create(
       m_ti_id2pcf_policy_id.erase(ti_id);
     }
     remove_subscription(ti_id);
-    http_code     = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway",
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
         "Missing PCF policy identifier in create response");
     return;
   }
@@ -1499,36 +1563,36 @@ void nef_app::handle_traffic_influence_create(
   if (!m_nef_client->udr_put_influence_data(
           ti_id, body, http_code_udr, http_version)) {
     Logger::nef_app().warn(
-        "UDR influence PUT failed for ti_id=%s (http=%u)",
-        ti_id.c_str(), http_code_udr);
+        "UDR influence PUT failed for ti_id=%s (http=%u)", ti_id.c_str(),
+        http_code_udr);
   }
 
   response_body              = body;
   response_body["afTransId"] = ti_id;
-  http_code                  = 201;
+  http_code                  = http_status_code::CREATED;
   nef_audit::log("CREATE", "TI", af_id, ti_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_update(
-    const std::string& af_id,
-    const std::string& ti_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& af_id, const std::string& ti_id,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   if (!body.contains("afAppId") && !body.contains("trafficFilters") &&
       !body.contains("ethTrafficFilters")) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "At least one of afAppId, trafficFilters, or ethTrafficFilters is required");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "At least one of afAppId, trafficFilters, or ethTrafficFilters is "
+        "required");
     return;
   }
 
@@ -1537,10 +1601,12 @@ void nef_app::handle_traffic_influence_update(
     std::string err;
     if (err.empty()) err = validate_string_field(body, "afAppId", false, 256);
     if (err.empty()) err = validate_string_field(body, "dnn", false, 100);
-    if (err.empty()) err = validate_string_field(body, "notificationDestination", false, 2048);
+    if (err.empty())
+      err = validate_string_field(body, "notificationDestination", false, 2048);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
@@ -1548,12 +1614,13 @@ void nef_app::handle_traffic_influence_update(
   // SSRF protection: validate notification callback URI if provided in update
   if (body.contains("notificationDestination") &&
       body["notificationDestination"].is_string()) {
-    const std::string uri_err =
-        validate_callback_uri(body["notificationDestination"].get<std::string>());
+    const std::string uri_err = validate_callback_uri(
+        body["notificationDestination"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notificationDestination: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "notificationDestination: " + uri_err);
       return;
     }
   }
@@ -1563,16 +1630,18 @@ void nef_app::handle_traffic_influence_update(
     std::shared_lock lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(ti_id);
     if (session_it == m_ti_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "TI session not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "TI session not found");
       return;
     }
 
     auto owner_it = m_ti_id2af_id.find(ti_id);
     if (owner_it == m_ti_id2af_id.end() || owner_it->second != af_id) {
-      http_code     = 403;
-      response_body = make_problem_detail(403, "Forbidden",
-                          "AF is not allowed to access this resource");
+      http_code     = http_status_code::FORBIDDEN;
+      response_body = make_problem_detail(
+          http_status_code::FORBIDDEN, "Forbidden",
+          "AF is not allowed to access this resource");
       return;
     }
 
@@ -1585,9 +1654,10 @@ void nef_app::handle_traffic_influence_update(
   if (pcf_policy_id.empty()) {
     Logger::nef_app().warn(
         "No PCF policy ID found for TI session %s", ti_id.c_str());
-    http_code     = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Missing PCF policy identifier for TI session");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Missing PCF policy identifier for TI session");
     return;
   }
 
@@ -1597,9 +1667,10 @@ void nef_app::handle_traffic_influence_update(
     Logger::nef_app().warn(
         "PCF TI update failed for ti_id=%s policy_id=%s (http=%u)",
         ti_id.c_str(), pcf_policy_id.c_str(), http_code_pcf);
-    http_code     = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Failed to update policy authorization in PCF");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to update policy authorization in PCF");
     return;
   }
 
@@ -1607,26 +1678,25 @@ void nef_app::handle_traffic_influence_update(
     std::unique_lock lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(ti_id);
     if (session_it == m_ti_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "TI session not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "TI session not found");
       return;
     }
     session_it->second = body;
   }
 
   response_body = body;
-  http_code     = 200;
+  http_code     = http_status_code::OK;
   nef_audit::log("UPDATE", "TI", af_id, ti_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_delete(
-    const std::string& af_id,
-    const std::string& ti_id,
-    int& http_code,
+    const std::string& af_id, const std::string& ti_id, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
@@ -1635,13 +1705,13 @@ void nef_app::handle_traffic_influence_delete(
     std::shared_lock lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(ti_id);
     if (session_it == m_ti_sessions.end()) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
 
     auto owner_it = m_ti_id2af_id.find(ti_id);
     if (owner_it == m_ti_id2af_id.end() || owner_it->second != af_id) {
-      http_code = 403;
+      http_code = http_status_code::FORBIDDEN;
       return;
     }
 
@@ -1665,8 +1735,8 @@ void nef_app::handle_traffic_influence_delete(
   if (!m_nef_client->udr_delete_influence_data(
           ti_id, http_code_udr, http_version)) {
     Logger::nef_app().warn(
-        "UDR influence DELETE failed for ti_id=%s (http=%u)",
-        ti_id.c_str(), http_code_udr);
+        "UDR influence DELETE failed for ti_id=%s (http=%u)", ti_id.c_str(),
+        http_code_udr);
   }
 
   {
@@ -1681,31 +1751,30 @@ void nef_app::handle_traffic_influence_delete(
     m_nf2af_sub_id.erase(pcf_policy_id);
   }
   remove_subscription(ti_id);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "TI", af_id, ti_id, http_code);
 }
 
 // PFD Management (TS 29.122) API handlers
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_create(
-    const std::string& app_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& app_id, const nlohmann::json& body,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   Logger::nef_app().info("PFD create for app: %s", app_id.c_str());
 
   if (!authorize_af_request(app_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   if (!body.contains("pfdDatas")) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "Missing required field: pfdDatas");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "Missing required field: pfdDatas");
     return;
   }
 
@@ -1715,8 +1784,9 @@ void nef_app::handle_pfd_create(
     if (err.empty()) err = validate_string_param(app_id, "appId", 256);
     if (err.empty()) err = validate_object_field(body, "pfdDatas", false);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
@@ -1725,7 +1795,7 @@ void nef_app::handle_pfd_create(
     Logger::nef_app().warn("UDR PFD push failed for app: %s", app_id.c_str());
   }
   response_body = body;
-  http_code     = 201;
+  http_code     = http_status_code::CREATED;
   nef_audit::log("CREATE", "PFD", app_id, app_id, http_code);
 }
 
@@ -1733,25 +1803,24 @@ void nef_app::handle_pfd_create(
 void nef_app::handle_pfd_delete(
     const std::string& app_id, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(app_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
   m_nef_client->udr_delete_pfd_data(app_id, http_version);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "PFD", app_id, app_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_get(
-    const std::string& app_id,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& app_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(app_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -1761,44 +1830,43 @@ void nef_app::handle_pfd_get(
 
   if (http_code_udr == 200) {
     response_body = result;
-    http_code     = 200;
+    http_code     = http_status_code::OK;
     return;
   }
 
   if (http_code_udr == 404) {
     response_body = make_problem_detail(
-        404, "Not Found", "PFD data not found");
-    http_code = 404;
+        http_status_code::NOT_FOUND, "Not Found", "PFD data not found");
+    http_code = http_status_code::NOT_FOUND;
     return;
   }
 
   response_body = make_problem_detail(
-      502, "Bad Gateway", "UDR returned an unexpected response for PFD GET");
-  http_code = 502;
+      http_status_code::BAD_GATEWAY, "Bad Gateway",
+      "UDR returned an unexpected response for PFD GET");
+  http_code = http_status_code::BAD_GATEWAY;
 }
 
 // BDT Policy (TS 29.122) API handlers
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_create(
-    const std::string& af_id,
-    const nlohmann::json& body,
-    std::string& bdt_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const nlohmann::json& body, std::string& bdt_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   Logger::nef_app().info("BDT policy create for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   if (!body.contains("bdtPolData")) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "Missing required field: bdtPolData");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "Missing required field: bdtPolData");
     return;
   }
 
@@ -1808,8 +1876,9 @@ void nef_app::handle_bdt_policy_create(
     if (err.empty()) err = validate_string_param(af_id, "afId", 256);
     if (err.empty()) err = validate_object_field(body, "bdtPolData", false);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
@@ -1824,12 +1893,14 @@ void nef_app::handle_bdt_policy_create(
 
   std::string pcf_bdt_id;
   uint32_t http_code_pcf = 0;
-  const bool pcf_ok = m_nef_client->create_pcf_bdt_policy(
+  const bool pcf_ok      = m_nef_client->create_pcf_bdt_policy(
       body, pcf_bdt_id, http_code_pcf, http_version);
-  if (!pcf_ok || ((http_code_pcf < 200 || http_code_pcf >= 300) &&
-                  http_code_pcf != 303)) {
+  if (!pcf_ok || ((http_code_pcf < http_status_code::OK ||
+                   http_code_pcf >= http_status_code::MULTIPLE_CHOICES) &&
+                  http_code_pcf != http_status_code::SEE_OTHER)) {
     Logger::nef_app().warn(
-        "PCF BDT create failed for bdt_id=%s (http=%u), rolling back local session",
+        "PCF BDT create failed for bdt_id=%s (http=%u), rolling back local "
+        "session",
         bdt_id.c_str(), http_code_pcf);
     {
       std::unique_lock lock(m_bdt_mutex);
@@ -1837,9 +1908,10 @@ void nef_app::handle_bdt_policy_create(
       m_bdt_id2af_id.erase(bdt_id);
       m_bdt_id2pcf_policy_id.erase(bdt_id);
     }
-    http_code     = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Failed to create BDT policy in PCF");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to create BDT policy in PCF");
     return;
   }
 
@@ -1848,32 +1920,31 @@ void nef_app::handle_bdt_policy_create(
     m_bdt_id2pcf_policy_id[bdt_id] = pcf_bdt_id;
   }
 
-  response_body              = body;
+  response_body             = body;
   response_body["bdtRefId"] = bdt_id;
-  http_code                  = 201;
+  http_code                 = http_status_code::CREATED;
   nef_audit::log("CREATE", "BDT", af_id, bdt_id, http_code);
 }
 
 // BDT Policy (TS 29.122) API handlers
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_update(
-    const std::string& af_id,
-    const std::string& bdt_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& af_id, const std::string& bdt_id,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   if (!body.contains("bdtPolData")) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "Missing required field: bdtPolData");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "Missing required field: bdtPolData");
     return;
   }
 
@@ -1882,16 +1953,18 @@ void nef_app::handle_bdt_policy_update(
     std::shared_lock lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_id);
     if (session_it == m_bdt_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "BDT policy not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "BDT policy not found");
       return;
     }
 
     auto owner_it = m_bdt_id2af_id.find(bdt_id);
     if (owner_it == m_bdt_id2af_id.end() || owner_it->second != af_id) {
-      http_code     = 403;
-      response_body = make_problem_detail(403, "Forbidden",
-                          "AF is not allowed to access this resource");
+      http_code     = http_status_code::FORBIDDEN;
+      response_body = make_problem_detail(
+          http_status_code::FORBIDDEN, "Forbidden",
+          "AF is not allowed to access this resource");
       return;
     }
 
@@ -1904,9 +1977,10 @@ void nef_app::handle_bdt_policy_update(
   if (pcf_bdt_id.empty()) {
     Logger::nef_app().warn(
         "No PCF BDT policy ID found for BDT session %s", bdt_id.c_str());
-    http_code     = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Missing PCF BDT policy identifier");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Missing PCF BDT policy identifier");
     return;
   }
 
@@ -1916,9 +1990,10 @@ void nef_app::handle_bdt_policy_update(
     Logger::nef_app().warn(
         "PCF BDT update failed for bdt_id=%s policy_id=%s (http=%u)",
         bdt_id.c_str(), pcf_bdt_id.c_str(), http_code_pcf);
-    http_code     = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Failed to update BDT policy in PCF");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to update BDT policy in PCF");
     return;
   }
 
@@ -1926,26 +2001,25 @@ void nef_app::handle_bdt_policy_update(
     std::unique_lock lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_id);
     if (session_it == m_bdt_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "BDT policy not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "BDT policy not found");
       return;
     }
     session_it->second = body;
   }
 
   response_body = body;
-  http_code     = 200;
+  http_code     = http_status_code::OK;
   nef_audit::log("UPDATE", "BDT", af_id, bdt_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_delete(
-    const std::string& af_id,
-    const std::string& bdt_id,
-    int& http_code,
+    const std::string& af_id, const std::string& bdt_id, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
@@ -1954,13 +2028,13 @@ void nef_app::handle_bdt_policy_delete(
     std::shared_lock lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_id);
     if (session_it == m_bdt_sessions.end()) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
 
     auto owner_it = m_bdt_id2af_id.find(bdt_id);
     if (owner_it == m_bdt_id2af_id.end() || owner_it->second != af_id) {
-      http_code = 403;
+      http_code = http_status_code::FORBIDDEN;
       return;
     }
 
@@ -1986,20 +2060,19 @@ void nef_app::handle_bdt_policy_delete(
     m_bdt_id2af_id.erase(bdt_id);
     m_bdt_id2pcf_policy_id.erase(bdt_id);
   }
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "BDT", af_id, bdt_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_list(
-    const std::string& af_id,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& af_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -2014,68 +2087,67 @@ void nef_app::handle_bdt_policy_list(
     entry["bdtRefId"]    = id;
     response_body.push_back(entry);
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_get(
-    const std::string& af_id,
-    const std::string& bdt_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const std::string& bdt_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   std::shared_lock lock(m_bdt_mutex);
   auto it = m_bdt_sessions.find(bdt_id);
   if (it == m_bdt_sessions.end()) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "BDT policy not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "BDT policy not found");
     return;
   }
 
   auto owner_it = m_bdt_id2af_id.find(bdt_id);
   if (owner_it == m_bdt_id2af_id.end() || owner_it->second != af_id) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF is not allowed to access this resource");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this resource");
     return;
   }
 
-  response_body           = it->second;
+  response_body             = it->second;
   response_body["bdtRefId"] = bdt_id;
-  http_code = 200;
+  http_code                 = http_status_code::OK;
 }
 
 // QoS Provisioning (TS 29.122) API handlers
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_create(
-    const std::string& af_id,
-    const nlohmann::json& body,
-    std::string& qos_sub_id,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& af_id, const nlohmann::json& body,
+    std::string& qos_sub_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   Logger::nef_app().info("QoS subscription create for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   // Validate required fields
   if (!body.contains("notifUri") ||
       (!body.contains("flowInfo") && !body.contains("ethFlowInfo"))) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "notifUri and at least one of flowInfo or ethFlowInfo are required");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notifUri and at least one of flowInfo or ethFlowInfo are required");
     return;
   }
 
@@ -2086,20 +2158,22 @@ void nef_app::handle_qos_subscription_create(
     if (err.empty()) err = validate_string_field(body, "notifUri", true, 2048);
     if (err.empty()) err = validate_string_field(body, "afAppId", false, 256);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
 
-  // SSRF protection: validate the callback URI before any storage or southbound calls
+  // SSRF protection: validate the callback URI before any storage or southbound
+  // calls
   {
     const std::string uri_err =
         validate_callback_uri(body["notifUri"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notifUri: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
       return;
     }
   }
@@ -2115,10 +2189,12 @@ void nef_app::handle_qos_subscription_create(
 
   if (body.contains("requestExpiry") && body["requestExpiry"].is_string()) {
     std::chrono::system_clock::time_point expire_time;
-    if (parse_monitor_expire_time(body["requestExpiry"].get<std::string>(), expire_time)) {
+    if (parse_monitor_expire_time(
+            body["requestExpiry"].get<std::string>(), expire_time)) {
       sub->set_expire_time(expire_time);
-      Logger::nef_app().debug("F1.2: QoS subscription '%s' expiry set from requestExpiry",
-                              qos_sub_id.c_str());
+      Logger::nef_app().debug(
+          "F1.2: QoS subscription '%s' expiry set from requestExpiry",
+          qos_sub_id.c_str());
     }
   }
 
@@ -2126,14 +2202,15 @@ void nef_app::handle_qos_subscription_create(
   ensure_af_profile(af_id, qos_sub_id);
 
   std::string smf_sub_id;
-  const bool smf_ok =
-      m_nef_client->subscribe_smf_event_exposure(body, smf_sub_id, http_version);
+  const bool smf_ok = m_nef_client->subscribe_smf_event_exposure(
+      body, smf_sub_id, http_version);
   if (!smf_ok || smf_sub_id.empty()) {
     remove_subscription(qos_sub_id);
     release_af_profile_subscription(af_id, qos_sub_id);
-    http_code = 502;
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Failed to create SMF event exposure subscription");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to create SMF event exposure subscription");
     return;
   }
 
@@ -2147,31 +2224,29 @@ void nef_app::handle_qos_subscription_create(
     sub->set_notification_uri(body["notifUri"].get<std::string>());
   }
 
-  response_body            = body;
-  response_body["subId"]   = qos_sub_id;
-  http_code                = 201;
+  response_body          = body;
+  response_body["subId"] = qos_sub_id;
+  http_code              = http_status_code::CREATED;
   nef_audit::log("CREATE", "QOS", af_id, qos_sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_delete(
-    const std::string& af_id,
-    const std::string& qos_sub_id,
-    int& http_code,
+    const std::string& af_id, const std::string& qos_sub_id, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
   auto sub = find_subscription(qos_sub_id);
   if (!sub) {
-    http_code = 404;
+    http_code = http_status_code::NOT_FOUND;
     return;
   }
 
   if (!is_subscription_owner(sub, af_id)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
@@ -2184,52 +2259,51 @@ void nef_app::handle_qos_subscription_delete(
 
   remove_subscription(qos_sub_id);
   release_af_profile_subscription(af_id, qos_sub_id);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "QOS", af_id, qos_sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_get(
-    const std::string& af_id,
-    const std::string& qos_sub_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const std::string& qos_sub_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   auto sub = find_subscription(qos_sub_id);
   if (!sub) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "QoS subscription not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "QoS subscription not found");
     return;
   }
 
   if (!is_subscription_owner(sub, af_id)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF is not allowed to access this subscription");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this subscription");
     return;
   }
 
   response_body = sub->get_subscription_data();
-  http_code     = 200;
+  http_code     = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_list(
-    const std::string& af_id,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& af_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -2239,38 +2313,37 @@ void nef_app::handle_qos_subscription_list(
     if (sub->get_service_type() ==
             nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING &&
         sub->get_scs_as_id() == af_id) {
-      nlohmann::json entry  = sub->get_subscription_data();
-      entry["subId"]        = id;
+      nlohmann::json entry = sub->get_subscription_data();
+      entry["subId"]       = id;
       response_body.push_back(entry);
     }
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 // Analytics Subscription (TS 29.122) API handlers
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_create(
-    const std::string& af_id,
-    const nlohmann::json& body,
-    std::string& analytics_sub_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
-  Logger::nef_app().info("Analytics subscription create for AF: %s",
-                         af_id.c_str());
+    const std::string& af_id, const nlohmann::json& body,
+    std::string& analytics_sub_id, nlohmann::json& response_body,
+    int& http_code, uint8_t http_version) {
+  Logger::nef_app().info(
+      "Analytics subscription create for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_ANALYTICS)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   if (!body.contains("analyEventsSubs") || !body.contains("notifUri") ||
       !body.contains("notifId")) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request",
-                        "analyEventsSubs, notifUri, and notifId are required");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "analyEventsSubs, notifUri, and notifId are required");
     return;
   }
 
@@ -2280,10 +2353,12 @@ void nef_app::handle_analytics_subscription_create(
     if (err.empty()) err = validate_string_param(af_id, "afId", 256);
     if (err.empty()) err = validate_string_field(body, "notifUri", true, 2048);
     if (err.empty()) err = validate_string_field(body, "notifId", true, 256);
-    if (err.empty()) err = validate_array_field(body, "analyEventsSubs", false, 1);
+    if (err.empty())
+      err = validate_array_field(body, "analyEventsSubs", false, 1);
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
@@ -2293,9 +2368,9 @@ void nef_app::handle_analytics_subscription_create(
     const std::string uri_err =
         validate_callback_uri(body["notifUri"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notifUri: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
       return;
     }
   }
@@ -2310,82 +2385,83 @@ void nef_app::handle_analytics_subscription_create(
 
   add_subscription(analytics_sub_id, sub);
   ensure_af_profile(af_id, analytics_sub_id);
-  response_body           = body;
-  response_body["subId"]  = analytics_sub_id;
-  http_code               = 201;
+  response_body          = body;
+  response_body["subId"] = analytics_sub_id;
+  http_code              = http_status_code::CREATED;
   nef_audit::log("CREATE", "ANA", af_id, analytics_sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_delete(
-    const std::string& af_id,
-    const std::string& analytics_sub_id,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const std::string& analytics_sub_id,
+    int& http_code, uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_ANALYTICS)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
   auto sub = find_subscription(analytics_sub_id);
   if (!sub) {
-    http_code = 404;
+    http_code = http_status_code::NOT_FOUND;
     return;
   }
 
   if (!is_subscription_owner(sub, af_id)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
 
-  if (!remove_subscription(analytics_sub_id)) { http_code = 404; return; }
+  if (!remove_subscription(analytics_sub_id)) {
+    http_code = http_status_code::NOT_FOUND;
+    return;
+  }
   release_af_profile_subscription(af_id, analytics_sub_id);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "ANA", af_id, analytics_sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_get(
-    const std::string& af_id,
-    const std::string& analytics_sub_id,
-    nlohmann::json& response_body,
-    int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const std::string& analytics_sub_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_ANALYTICS)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
   auto sub = find_subscription(analytics_sub_id);
   if (!sub) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "Analytics subscription not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found",
+        "Analytics subscription not found");
     return;
   }
 
   if (!is_subscription_owner(sub, af_id)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF is not allowed to access this subscription");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this subscription");
     return;
   }
 
   response_body = sub->get_subscription_data();
-  http_code     = 200;
+  http_code     = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_list(
-    const std::string& af_id,
-    nlohmann::json& response_body,
-    int& http_code,
+    const std::string& af_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_ANALYTICS)) {
-    http_code     = 403;
-    response_body = make_problem_detail(403, "Forbidden",
-                        "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -2400,7 +2476,7 @@ void nef_app::handle_analytics_subscription_list(
       response_body.push_back(entry);
     }
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
@@ -2458,7 +2534,8 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
 
     // Service-specific southbound cleanup before removing local state.
     // TI subscriptions store the PCF policy ID in nf_sub_id and must call
-    // delete_pcf_policy_auth rather than the NF event-exposure unsubscribe paths.
+    // delete_pcf_policy_auth rather than the NF event-exposure unsubscribe
+    // paths.
     if (svc_type == nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE) {
       if (!nf_sub_id.empty()) {
         uint32_t http_code_pcf = 0;
@@ -2501,7 +2578,8 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
 
     remove_subscription(sub_id);
     release_af_profile_subscription(sub->get_scs_as_id(), sub_id);
-    Logger::nef_app().info("Subscription %s expired - cleaning up", sub_id.c_str());
+    Logger::nef_app().info(
+        "Subscription %s expired - cleaning up", sub_id.c_str());
   }
 }
 
@@ -2509,12 +2587,13 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_patch(
     const std::string& af_id, const std::string& app_session_id,
-    const nlohmann::json& patch_body,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& patch_body, nlohmann::json& response_body,
+    int& http_code, uint8_t http_version) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -2524,14 +2603,17 @@ void nef_app::handle_traffic_influence_patch(
     std::shared_lock lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(app_session_id);
     if (session_it == m_ti_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "TI session not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "TI session not found");
       return;
     }
     auto owner_it = m_ti_id2af_id.find(app_session_id);
     if (owner_it == m_ti_id2af_id.end() || owner_it->second != af_id) {
-      http_code = 403;
-      response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this resource");
+      http_code     = http_status_code::FORBIDDEN;
+      response_body = make_problem_detail(
+          http_status_code::FORBIDDEN, "Forbidden",
+          "AF is not allowed to access this resource");
       return;
     }
     auto pcf_it = m_ti_id2pcf_policy_id.find(app_session_id);
@@ -2543,8 +2625,10 @@ void nef_app::handle_traffic_influence_patch(
   }
 
   if (pcf_policy_id.empty()) {
-    http_code = 502;
-    response_body = make_problem_detail(502, "Bad Gateway", "Missing PCF policy identifier for TI session");
+    http_code     = http_status_code::BAD_GATEWAY;
+    response_body = make_problem_detail(
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Missing PCF policy identifier for TI session");
     return;
   }
 
@@ -2552,11 +2636,12 @@ void nef_app::handle_traffic_influence_patch(
   if (!m_nef_client->update_pcf_policy_auth(
           pcf_policy_id, patched_copy, http_code_pcf, http_version)) {
     Logger::nef_app().warn(
-        "PCF TI patch failed for ti_id=%s (http=%u)",
-        app_session_id.c_str(), http_code_pcf);
-    http_code = 502;
+        "PCF TI patch failed for ti_id=%s (http=%u)", app_session_id.c_str(),
+        http_code_pcf);
+    http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
-        502, "Bad Gateway", "Failed to update policy authorization in PCF");
+        http_status_code::BAD_GATEWAY, "Bad Gateway",
+        "Failed to update policy authorization in PCF");
     return;
   }
 
@@ -2564,40 +2649,45 @@ void nef_app::handle_traffic_influence_patch(
     std::unique_lock lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(app_session_id);
     if (session_it == m_ti_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "TI session not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "TI session not found");
       return;
     }
     session_it->second = patched_copy;
   }
 
-  response_body = patched_copy;
+  response_body              = patched_copy;
   response_body["afTransId"] = app_session_id;
-  http_code = 200;
+  http_code                  = http_status_code::OK;
   nef_audit::log("PATCH", "TI", af_id, app_session_id, http_code);
 }
 
-// QoS PATCH handler (TS 29.122) 
+// QoS PATCH handler (TS 29.122)
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_patch(
     const std::string& scs_as_id, const std::string& sub_id,
-    const nlohmann::json& patch_body,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& patch_body, nlohmann::json& response_body,
+    int& http_code, uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_QOS_MONITORING)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   auto sub = find_subscription(sub_id);
   if (!sub) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "QoS subscription not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "QoS subscription not found");
     return;
   }
   if (!is_subscription_owner(sub, scs_as_id)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this subscription");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this subscription");
     return;
   }
   nlohmann::json patched = sub->get_subscription_data();
@@ -2607,9 +2697,9 @@ void nef_app::handle_qos_subscription_patch(
     const std::string uri_err =
         validate_callback_uri(patched["notifUri"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notifUri: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
       return;
     }
   }
@@ -2617,56 +2707,63 @@ void nef_app::handle_qos_subscription_patch(
   if (patched.contains("notifUri")) {
     sub->set_notification_uri(patched["notifUri"].get<std::string>());
   }
-  response_body = patched;
+  response_body          = patched;
   response_body["subId"] = sub_id;
-  http_code = 200;
+  http_code              = http_status_code::OK;
   nef_audit::log("PATCH", "QOS", scs_as_id, sub_id, http_code);
 }
 
 // PFD transaction-level and app-level endpoints (TS 29.122)
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_transaction_list(
-    const std::string& scs_as_id,
-    nlohmann::json& response_body, int& http_code,
+    const std::string& scs_as_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   std::shared_lock lock(m_pfd_mutex);
   response_body = nlohmann::json::array();
   for (const auto& [tid, body] : m_pfd_trans_sessions) {
     auto owner_it = m_pfd_trans2scs_id.find(tid);
-    if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id) continue;
+    if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id)
+      continue;
     nlohmann::json entry = body;
-    entry["transId"] = tid;
+    entry["transId"]     = tid;
     response_body.push_back(entry);
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_transaction_put(
     const std::string& scs_as_id, const std::string& trans_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   if (!body.contains("pfdDatas")) {
-    http_code = 400;
-    response_body = make_problem_detail(400, "Bad Request", "Missing required field: pfdDatas");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "Missing required field: pfdDatas");
     return;
   }
 
   // Type validation (422 for semantic errors).
   if (!body["pfdDatas"].is_object()) {
-    http_code     = 422;
-    response_body = make_problem_detail(422, "Unprocessable Entity", "pfdDatas: must be an object");
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        "pfdDatas: must be an object");
     return;
   }
 
@@ -2674,7 +2771,8 @@ void nef_app::handle_pfd_transaction_put(
   bool is_create;
   {
     std::shared_lock lock(m_pfd_mutex);
-    is_create = (m_pfd_trans_sessions.find(trans_id) == m_pfd_trans_sessions.end());
+    is_create =
+        (m_pfd_trans_sessions.find(trans_id) == m_pfd_trans_sessions.end());
   }
 
   // Write each app to UDR atomically — rollback committed apps on failure
@@ -2696,12 +2794,13 @@ void nef_app::handle_pfd_transaction_put(
           });
       if (rb_failures > 0) {
         Logger::nef_app().error(
-            "F1.10: %d rollback failure(s) in trans '%s' — UDR may retain orphan data",
+            "F1.10: %d rollback failure(s) in trans '%s' — UDR may retain "
+            "orphan data",
             rb_failures, trans_id.c_str());
       }
-      http_code     = 500;
+      http_code     = http_status_code::INTERNAL_SERVER_ERROR;
       response_body = make_problem_detail(
-          500, "Internal Server Error",
+          http_status_code::INTERNAL_SERVER_ERROR, "Internal Server Error",
           "PFD transaction aborted: UDR write failed for app " + app_id);
       return;
     }
@@ -2711,22 +2810,24 @@ void nef_app::handle_pfd_transaction_put(
   // All UDR writes succeeded — commit local state (deferred commit)
   {
     std::unique_lock lock(m_pfd_mutex);
-    m_pfd_trans_sessions[trans_id]  = body;
-    m_pfd_trans2scs_id[trans_id]    = scs_as_id;
+    m_pfd_trans_sessions[trans_id] = body;
+    m_pfd_trans2scs_id[trans_id]   = scs_as_id;
   }
 
-  response_body              = body;
-  response_body["transId"]   = trans_id;
-  http_code                  = is_create ? 201 : 200;
-  nef_audit::log(is_create ? "CREATE" : "UPDATE", "PFD_TX", scs_as_id, trans_id, http_code);
+  response_body            = body;
+  response_body["transId"] = trans_id;
+  http_code = is_create ? http_status_code::CREATED : http_status_code::OK;
+  nef_audit::log(
+      is_create ? "CREATE" : "UPDATE", "PFD_TX", scs_as_id, trans_id,
+      http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_transaction_delete(
-    const std::string& scs_as_id, const std::string& trans_id,
-    int& http_code, uint8_t http_version) {
+    const std::string& scs_as_id, const std::string& trans_id, int& http_code,
+    uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
   nlohmann::json trans_body;
@@ -2734,12 +2835,12 @@ void nef_app::handle_pfd_transaction_delete(
     std::unique_lock lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
     auto owner_it = m_pfd_trans2scs_id.find(trans_id);
     if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id) {
-      http_code = 403;
+      http_code = http_status_code::FORBIDDEN;
       return;
     }
     trans_body = it->second;
@@ -2753,54 +2854,62 @@ void nef_app::handle_pfd_transaction_delete(
       m_nef_client->udr_delete_pfd_data(app_id, http_version);
     }
   }
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "PFD_TX", scs_as_id, trans_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_app_get(
     const std::string& scs_as_id, const std::string& trans_id,
-    const std::string& app_id,
-    nlohmann::json& response_body, int& http_code,
+    const std::string& app_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   std::shared_lock lock(m_pfd_mutex);
   auto it = m_pfd_trans_sessions.find(trans_id);
   if (it == m_pfd_trans_sessions.end()) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "PFD transaction not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "PFD transaction not found");
     return;
   }
   auto owner_it = m_pfd_trans2scs_id.find(trans_id);
   if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this resource");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this resource");
     return;
   }
-  const auto& pfd_datas = it->second.value("pfdDatas", nlohmann::json::object());
+  const auto& pfd_datas =
+      it->second.value("pfdDatas", nlohmann::json::object());
   if (!pfd_datas.contains(app_id)) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "Application PFD not found in transaction");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found",
+        "Application PFD not found in transaction");
     return;
   }
-  response_body = pfd_datas[app_id];
+  response_body          = pfd_datas[app_id];
   response_body["appId"] = app_id;
-  http_code = 200;
+  http_code              = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_app_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -2809,42 +2918,50 @@ void nef_app::handle_pfd_app_put(
     std::unique_lock lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "PFD transaction not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found",
+          "PFD transaction not found");
       return;
     }
     auto owner_it = m_pfd_trans2scs_id.find(trans_id);
     if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id) {
-      http_code = 403;
-      response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this resource");
+      http_code     = http_status_code::FORBIDDEN;
+      response_body = make_problem_detail(
+          http_status_code::FORBIDDEN, "Forbidden",
+          "AF is not allowed to access this resource");
       return;
     }
-    if (!it->second.contains("pfdDatas") || !it->second["pfdDatas"].is_object()) {
+    if (!it->second.contains("pfdDatas") ||
+        !it->second["pfdDatas"].is_object()) {
       it->second["pfdDatas"] = nlohmann::json::object();
     }
-    is_create = !it->second["pfdDatas"].contains(app_id);
+    is_create                      = !it->second["pfdDatas"].contains(app_id);
     it->second["pfdDatas"][app_id] = body;
   }
 
   if (!m_nef_client->udr_put_pfd_data(app_id, body, http_version)) {
-    Logger::nef_app().warn("UDR PFD app PUT failed for app: %s", app_id.c_str());
+    Logger::nef_app().warn(
+        "UDR PFD app PUT failed for app: %s", app_id.c_str());
   }
 
-  response_body = body;
+  response_body          = body;
   response_body["appId"] = app_id;
-  http_code = is_create ? 201 : 200;
-  nef_audit::log(is_create ? "CREATE" : "UPDATE", "PFD_APP", scs_as_id, app_id, http_code);
+  http_code = is_create ? http_status_code::CREATED : http_status_code::OK;
+  nef_audit::log(
+      is_create ? "CREATE" : "UPDATE", "PFD_APP", scs_as_id, app_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_app_patch(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const nlohmann::json& patch_body,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
 
@@ -2853,20 +2970,27 @@ void nef_app::handle_pfd_app_patch(
     std::unique_lock lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "PFD transaction not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found",
+          "PFD transaction not found");
       return;
     }
     auto owner_it = m_pfd_trans2scs_id.find(trans_id);
     if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id) {
-      http_code = 403;
-      response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this resource");
+      http_code     = http_status_code::FORBIDDEN;
+      response_body = make_problem_detail(
+          http_status_code::FORBIDDEN, "Forbidden",
+          "AF is not allowed to access this resource");
       return;
     }
-    const auto& pfd_datas = it->second.value("pfdDatas", nlohmann::json::object());
+    const auto& pfd_datas =
+        it->second.value("pfdDatas", nlohmann::json::object());
     if (!pfd_datas.contains(app_id)) {
-      http_code = 404;
-      response_body = make_problem_detail(404, "Not Found", "Application PFD not found in transaction");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found",
+          "Application PFD not found in transaction");
       return;
     }
     patched = it->second["pfdDatas"][app_id];
@@ -2875,55 +2999,56 @@ void nef_app::handle_pfd_app_patch(
   }
 
   if (!m_nef_client->udr_put_pfd_data(app_id, patched, http_version)) {
-    Logger::nef_app().warn("UDR PFD app PATCH failed for app: %s", app_id.c_str());
+    Logger::nef_app().warn(
+        "UDR PFD app PATCH failed for app: %s", app_id.c_str());
   }
 
-  response_body = patched;
+  response_body          = patched;
   response_body["appId"] = app_id;
-  http_code = 200;
+  http_code              = http_status_code::OK;
   nef_audit::log("PATCH", "PFD_APP", scs_as_id, app_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_app_delete(
     const std::string& scs_as_id, const std::string& trans_id,
-    const std::string& app_id, int& http_code,
-    uint8_t http_version) {
+    const std::string& app_id, int& http_code, uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
   {
     std::unique_lock lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
     auto owner_it = m_pfd_trans2scs_id.find(trans_id);
     if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id) {
-      http_code = 403;
+      http_code = http_status_code::FORBIDDEN;
       return;
     }
     if (!it->second.contains("pfdDatas") ||
         !it->second["pfdDatas"].contains(app_id)) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
     it->second["pfdDatas"].erase(app_id);
   }
   m_nef_client->udr_delete_pfd_data(app_id, http_version);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "PFD_APP", scs_as_id, app_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_list_transactions(
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   std::shared_lock lock(m_nnef_pfd_transactions_mutex);
@@ -2931,25 +3056,26 @@ void nef_app::handle_nnef_pfd_list_transactions(
   for (const auto& [transaction_id, transaction] : m_nnef_pfd_transactions) {
     response_body.push_back(transaction);
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_put_transaction(
-    const std::string& transaction_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& transaction_id, const nlohmann::json& body,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   nlohmann::json applications;
   std::string error_detail;
   if (!extract_nnef_pfd_transaction_apps(body, applications, error_detail)) {
-    http_code = 400;
-    response_body = make_problem_detail(400, "Bad Request", error_detail);
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", error_detail);
     return;
   }
 
@@ -2961,7 +3087,7 @@ void nef_app::handle_nnef_pfd_put_transaction(
   nlohmann::json previous_transaction;
   {
     std::shared_lock lock(m_nnef_pfd_transactions_mutex);
-    auto it = m_nnef_pfd_transactions.find(transaction_id);
+    auto it   = m_nnef_pfd_transactions.find(transaction_id);
     is_create = (it == m_nnef_pfd_transactions.end());
     if (!is_create) {
       previous_transaction = it->second;
@@ -2975,7 +3101,8 @@ void nef_app::handle_nnef_pfd_put_transaction(
       Logger::nef_app().error(
           "UDR PFD write failed for Nnef app '%s' in trans '%s'; "
           "rolling back %zu committed app(s)",
-          app_id.c_str(), transaction_id.c_str(), pfd_rollback.committed_count());
+          app_id.c_str(), transaction_id.c_str(),
+          pfd_rollback.committed_count());
       const int rb_failures = pfd_rollback.execute(
           [this, http_version](const std::string& rid) {
             return m_nef_client->udr_delete_pfd_data(rid, http_version);
@@ -2987,12 +3114,13 @@ void nef_app::handle_nnef_pfd_put_transaction(
           });
       if (rb_failures > 0) {
         Logger::nef_app().error(
-            "%d rollback failure(s) in Nnef trans '%s' — UDR may retain orphan data",
+            "%d rollback failure(s) in Nnef trans '%s' — UDR may retain orphan "
+            "data",
             rb_failures, transaction_id.c_str());
       }
-      http_code     = 500;
+      http_code     = http_status_code::INTERNAL_SERVER_ERROR;
       response_body = make_problem_detail(
-          500, "Internal Server Error",
+          http_status_code::INTERNAL_SERVER_ERROR, "Internal Server Error",
           "PFD transaction aborted: UDR write failed for app " + app_id);
       return;
     }
@@ -3007,19 +3135,23 @@ void nef_app::handle_nnef_pfd_put_transaction(
 
   if (!is_create && previous_transaction.contains("applications") &&
       previous_transaction["applications"].is_object()) {
-    for (const auto& [app_id, _] : previous_transaction["applications"].items()) {
+    for (const auto& [app_id, _] :
+         previous_transaction["applications"].items()) {
       if (applications.contains(app_id)) continue;
       if (!m_nef_client->udr_delete_pfd_data(app_id, http_version)) {
         Logger::nef_app().warn(
-            "UDR PFD delete failed for removed Nnef_PFDmanagement app: %s in transaction: %s",
+            "UDR PFD delete failed for removed Nnef_PFDmanagement app: %s in "
+            "transaction: %s",
             app_id.c_str(), transaction_id.c_str());
       }
     }
   }
 
   response_body = transaction;
-  http_code = is_create ? 201 : 200;
-  nef_audit::log(is_create ? "CREATE" : "UPDATE", "NNEF_PFD_TX", "", transaction_id, http_code);
+  http_code     = is_create ? http_status_code::CREATED : http_status_code::OK;
+  nef_audit::log(
+      is_create ? "CREATE" : "UPDATE", "NNEF_PFD_TX", "", transaction_id,
+      http_code);
 
   // Notify SBI PFD subscribers about the PFD change
   if (transaction.contains("applications") &&
@@ -3032,32 +3164,32 @@ void nef_app::handle_nnef_pfd_put_transaction(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_get_transaction(
-    const std::string& transaction_id,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& transaction_id, nlohmann::json& response_body,
+    int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   std::shared_lock lock(m_nnef_pfd_transactions_mutex);
   auto it = m_nnef_pfd_transactions.find(transaction_id);
   if (it == m_nnef_pfd_transactions.end()) {
-    http_code = 404;
+    http_code     = http_status_code::NOT_FOUND;
     response_body = make_problem_detail(
-        404, "Not Found", "PFD transaction not found");
+        http_status_code::NOT_FOUND, "Not Found", "PFD transaction not found");
     return;
   }
   response_body = it->second;
-  http_code = 200;
+  http_code     = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_delete_transaction(
-    const std::string& transaction_id,
-    int& http_code, uint8_t http_version) {
+    const std::string& transaction_id, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
   nlohmann::json transaction;
@@ -3065,7 +3197,7 @@ void nef_app::handle_nnef_pfd_delete_transaction(
     std::unique_lock lock(m_nnef_pfd_transactions_mutex);
     auto it = m_nnef_pfd_transactions.find(transaction_id);
     if (it == m_nnef_pfd_transactions.end()) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
     transaction = it->second;
@@ -3077,32 +3209,33 @@ void nef_app::handle_nnef_pfd_delete_transaction(
     for (const auto& [app_id, _] : transaction["applications"].items()) {
       if (!m_nef_client->udr_delete_pfd_data(app_id, http_version)) {
         Logger::nef_app().warn(
-            "UDR PFD delete failed for Nnef_PFDmanagement app: %s in transaction: %s",
+            "UDR PFD delete failed for Nnef_PFDmanagement app: %s in "
+            "transaction: %s",
             app_id.c_str(), transaction_id.c_str());
       }
     }
   }
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "NNEF_PFD_TX", "", transaction_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_get_app(
-    const std::string& transaction_id,
-    const std::string& app_id,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& transaction_id, const std::string& app_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   std::shared_lock lock(m_nnef_pfd_transactions_mutex);
   auto transaction_it = m_nnef_pfd_transactions.find(transaction_id);
   if (transaction_it == m_nnef_pfd_transactions.end()) {
-    http_code = 404;
+    http_code     = http_status_code::NOT_FOUND;
     response_body = make_problem_detail(
-        404, "Not Found", "PFD transaction not found");
+        http_status_code::NOT_FOUND, "Not Found", "PFD transaction not found");
     return;
   }
 
@@ -3110,33 +3243,36 @@ void nef_app::handle_nnef_pfd_get_app(
   if (!transaction.contains("applications") ||
       !transaction["applications"].is_object() ||
       !transaction["applications"].contains(app_id)) {
-    http_code = 404;
+    http_code     = http_status_code::NOT_FOUND;
     response_body = make_problem_detail(
-        404, "Not Found", "Application PFD not found in transaction");
+        http_status_code::NOT_FOUND, "Not Found",
+        "Application PFD not found in transaction");
     return;
   }
 
   response_body = transaction["applications"][app_id];
-  http_code = 200;
+  http_code     = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_put_app(
-    const std::string& transaction_id,
-    const std::string& app_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code,
+    const std::string& transaction_id, const std::string& app_id,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   std::string error_detail;
   nlohmann::json normalized_app;
-  if (!normalize_nnef_pfd_app_data(app_id, body, normalized_app, error_detail)) {
-    http_code = 400;
-    response_body = make_problem_detail(400, "Bad Request", error_detail);
+  if (!normalize_nnef_pfd_app_data(
+          app_id, body, normalized_app, error_detail)) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", error_detail);
     return;
   }
 
@@ -3168,33 +3304,33 @@ void nef_app::handle_nnef_pfd_put_app(
   }
 
   response_body = transaction_snapshot["applications"][app_id];
-  http_code = is_create ? 201 : 200;
-  nef_audit::log(is_create ? "CREATE" : "UPDATE", "NNEF_PFD_APP", "", app_id, http_code);
+  http_code     = is_create ? http_status_code::CREATED : http_status_code::OK;
+  nef_audit::log(
+      is_create ? "CREATE" : "UPDATE", "NNEF_PFD_APP", "", app_id, http_code);
   // Notify SBI PFD subscribers
   notify_nnef_pfd_subscribers("PFD_CHANGE", app_id, normalized_app);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_delete_app(
-    const std::string& transaction_id,
-    const std::string& app_id,
+    const std::string& transaction_id, const std::string& app_id,
     int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
   {
     std::unique_lock lock(m_nnef_pfd_transactions_mutex);
     auto transaction_it = m_nnef_pfd_transactions.find(transaction_id);
     if (transaction_it == m_nnef_pfd_transactions.end()) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
     auto& transaction = transaction_it->second;
     if (!transaction.contains("applications") ||
         !transaction["applications"].is_object() ||
         !transaction["applications"].contains(app_id)) {
-      http_code = 404;
+      http_code = http_status_code::NOT_FOUND;
       return;
     }
     transaction["applications"].erase(app_id);
@@ -3207,7 +3343,7 @@ void nef_app::handle_nnef_pfd_delete_app(
   }
   // Notify SBI PFD subscribers about removal
   notify_nnef_pfd_subscribers("PFD_REMOVE", app_id, nullptr);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "NNEF_PFD_APP", "", app_id, http_code);
 }
 
@@ -3215,11 +3351,12 @@ void nef_app::handle_nnef_pfd_delete_app(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_get_applications(
     const std::vector<std::string>& app_ids_filter,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   // Returns all PFD apps across all transactions, filtered by app-ids param.
@@ -3233,27 +3370,31 @@ void nef_app::handle_nnef_pfd_get_applications(
       if (!app_ids_filter.empty()) {
         bool found = false;
         for (const auto& f : app_ids_filter) {
-          if (f == app_id) { found = true; break; }
+          if (f == app_id) {
+            found = true;
+            break;
+          }
         }
         if (!found) continue;
       }
       nlohmann::json entry = app_data;
-      entry["transId"] = trans_id;
+      entry["transId"]     = trans_id;
       response_body.push_back(entry);
     }
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 // Nnef_PFDmanagement — POST /applications/partial-pull
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_partial_pull(
-    const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   // Partial-pull: client supplies optional list of appIds and optional
@@ -3276,45 +3417,50 @@ void nef_app::handle_nnef_pfd_partial_pull(
       if (!requested_ids.empty()) {
         bool found = false;
         for (const auto& f : requested_ids)
-          if (f == app_id) { found = true; break; }
+          if (f == app_id) {
+            found = true;
+            break;
+          }
         if (!found) continue;
       }
       // Attempt to refresh from UDR for accurate data
       nlohmann::json udr_result;
       uint32_t udr_code = 0;
       m_nef_client->udr_get_pfd_data(app_id, udr_result, udr_code);
-      nlohmann::json entry = (udr_code == 200) ? udr_result : app_data;
+      nlohmann::json entry   = (udr_code == 200) ? udr_result : app_data;
       entry["applicationId"] = app_id;
       response_body.push_back(entry);
     }
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 // Nnef_PFDmanagement — subscription CRUD
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_create(
-    const nlohmann::json& body,
-    std::string& sub_id,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, std::string& sub_id,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   // Validate required fields
   if (!body.contains("notifUri") || !body["notifUri"].is_string() ||
       body["notifUri"].get<std::string>().empty()) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request", "notifUri is required");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri is required");
     return;
   }
   const std::string notif_uri = body["notifUri"].get<std::string>();
   const std::string uri_err   = validate_callback_uri(notif_uri);
   if (!uri_err.empty()) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request", "notifUri: " + uri_err);
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
     return;
   }
 
@@ -3327,62 +3473,68 @@ void nef_app::handle_nnef_pfd_subscription_create(
     m_nnef_pfd_subscriptions[sub_id] = stored;
   }
   response_body = stored;
-  http_code     = 201;
+  http_code     = http_status_code::CREATED;
   nef_audit::log("CREATE", "NNEF_PFD_SUB", "", sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_get(
-    const std::string& sub_id,
-    nlohmann::json& response_body, int& http_code,
+    const std::string& sub_id, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   std::shared_lock lock(m_nnef_pfd_subscriptions_mutex);
   auto it = m_nnef_pfd_subscriptions.find(sub_id);
   if (it == m_nnef_pfd_subscriptions.end()) {
-    http_code     = 404;
-    response_body = make_problem_detail(404, "Not Found", "PFD subscription not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found", "PFD subscription not found");
     return;
   }
   response_body = it->second;
-  http_code     = 200;
+  http_code     = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_put(
-    const std::string& sub_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& sub_id, const nlohmann::json& body,
+    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "NF not authorized for this Nnef service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "NF not authorized for this Nnef service");
     return;
   }
   // Full replace semantics (PUT)
   if (!body.contains("notifUri") || !body["notifUri"].is_string() ||
       body["notifUri"].get<std::string>().empty()) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request", "notifUri is required");
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri is required");
     return;
   }
-  const std::string uri_err = validate_callback_uri(
-      body["notifUri"].get<std::string>());
+  const std::string uri_err =
+      validate_callback_uri(body["notifUri"].get<std::string>());
   if (!uri_err.empty()) {
-    http_code     = 400;
-    response_body = make_problem_detail(400, "Bad Request", "notifUri: " + uri_err);
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
     return;
   }
   {
     std::unique_lock lock(m_nnef_pfd_subscriptions_mutex);
     auto it = m_nnef_pfd_subscriptions.find(sub_id);
     if (it == m_nnef_pfd_subscriptions.end()) {
-      http_code     = 404;
-      response_body = make_problem_detail(404, "Not Found", "PFD subscription not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found",
+          "PFD subscription not found");
       return;
     }
     // Full replace: discard old data, write new body entirely
@@ -3391,41 +3543,41 @@ void nef_app::handle_nnef_pfd_subscription_put(
     it->second            = stored;
     response_body         = stored;
   }
-  http_code = 200;
+  http_code = http_status_code::OK;
   nef_audit::log("UPDATE", "NNEF_PFD_SUB", "", sub_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_delete(
-    const std::string& sub_id,
-    int& http_code, uint8_t http_version) {
+    const std::string& sub_id, int& http_code, uint8_t http_version) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
-    http_code = 403;
+    http_code = http_status_code::FORBIDDEN;
     return;
   }
   std::unique_lock lock(m_nnef_pfd_subscriptions_mutex);
   auto it = m_nnef_pfd_subscriptions.find(sub_id);
   if (it == m_nnef_pfd_subscriptions.end()) {
-    http_code = 404;
+    http_code = http_status_code::NOT_FOUND;
     return;
   }
   m_nnef_pfd_subscriptions.erase(it);
-  http_code = 204;
+  http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "NNEF_PFD_SUB", "", sub_id, http_code);
 }
 
 // Notify Nnef_PFDmanagement subscribers
 //------------------------------------------------------------------------------
 void nef_app::notify_nnef_pfd_subscribers(
-    const std::string& event_type,
-    const std::string& app_id,
+    const std::string& event_type, const std::string& app_id,
     const nlohmann::json& pfd_data) {
-  std::vector<std::pair<std::string, std::string>> targets; // (sub_id, notifUri)
+  std::vector<std::pair<std::string, std::string>>
+      targets;  // (sub_id, notifUri)
   {
     std::shared_lock lock(m_nnef_pfd_subscriptions_mutex);
     for (const auto& [sid, sub] : m_nnef_pfd_subscriptions) {
       if (!sub.contains("notifUri") || !sub["notifUri"].is_string()) continue;
-      // Use shared helper (checks "applicationIds" key — canonical TS 29.551 name)
+      // Use shared helper (checks "applicationIds" key — canonical TS 29.551
+      // name)
       if (!nnef_pfd_subscription_matches(sub, app_id)) continue;
       targets.emplace_back(sid, sub["notifUri"].get<std::string>());
     }
@@ -3448,29 +3600,35 @@ void nef_app::notify_nnef_pfd_subscribers(
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_update(
     const std::string& scs_as_id, const std::string& sub_id,
-    const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code,
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
     uint8_t http_version) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_ANALYTICS)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF not authorized for this service");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF not authorized for this service");
     return;
   }
   auto sub = find_subscription(sub_id);
   if (!sub) {
-    http_code = 404;
-    response_body = make_problem_detail(404, "Not Found", "Analytics subscription not found");
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found",
+        "Analytics subscription not found");
     return;
   }
   if (!is_subscription_owner(sub, scs_as_id)) {
-    http_code = 403;
-    response_body = make_problem_detail(403, "Forbidden", "AF is not allowed to access this subscription");
+    http_code     = http_status_code::FORBIDDEN;
+    response_body = make_problem_detail(
+        http_status_code::FORBIDDEN, "Forbidden",
+        "AF is not allowed to access this subscription");
     return;
   }
   if (!body.contains("analyEventsSubs") || !body.contains("notifUri") ||
       !body.contains("notifId")) {
-    http_code = 400;
-    response_body = make_problem_detail(400, "Bad Request",
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
         "analyEventsSubs, notifUri, and notifId are required");
     return;
   }
@@ -3482,8 +3640,9 @@ void nef_app::handle_analytics_subscription_update(
     if (err.empty() && !body["analyEventsSubs"].is_array())
       err = "analyEventsSubs: must be an array";
     if (!err.empty()) {
-      http_code     = 422;
-      response_body = make_problem_detail(422, "Unprocessable Entity", err);
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity", err);
       return;
     }
   }
@@ -3492,9 +3651,9 @@ void nef_app::handle_analytics_subscription_update(
     const std::string uri_err =
         validate_callback_uri(body["notifUri"].get<std::string>());
     if (!uri_err.empty()) {
-      http_code     = 400;
-      response_body = make_problem_detail(400, "Bad Request",
-                          "notifUri: " + uri_err);
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
       return;
     }
   }
@@ -3502,8 +3661,8 @@ void nef_app::handle_analytics_subscription_update(
   if (body.contains("notifUri") && body["notifUri"].is_string()) {
     sub->set_notification_uri(body["notifUri"].get<std::string>());
   }
-  response_body = body;
+  response_body          = body;
   response_body["subId"] = sub_id;
-  http_code = 200;
+  http_code              = http_status_code::OK;
   nef_audit::log("UPDATE", "ANA", scs_as_id, sub_id, http_code);
 }

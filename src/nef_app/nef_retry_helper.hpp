@@ -11,6 +11,8 @@
 #include <thread>
 #include <unordered_map>
 
+#include "3gpp_29.500.h"
+
 namespace oai::nef::app {
 
 // Log level used by the retry helper
@@ -153,13 +155,15 @@ inline bool retry_with_backoff(
     }
 
     // 2xx → success: reset circuit breaker and return
-    if (status >= 200 && status < 300) {
+    if (status >= http_status_code::OK &&
+        status < http_status_code::MULTIPLE_CHOICES) {
       cb.record_success(endpoint);
       return true;
     }
 
     // 4xx → permanent application-level error: no point retrying
-    if (status >= 400 && status < 500) {
+    if (status >= http_status_code::BAD_REQUEST &&
+        status < http_status_code::INTERNAL_SERVER_ERROR) {
       const int fails = cb.record_failure(endpoint);
       if (fails >= circuit_breaker_registry::CB_THRESHOLD) {
         log_fn(
