@@ -2,12 +2,12 @@
 
 # RELEASE NOTES:
 
-## v2.2.1 -- March 2026
+## v2.2.1 -- April 2026
 
-* Change of license from OAI Public License v1.1 to CSSL v1.0
-* Re-license documentation to the CC-BY-4.0 License
-* Re-license orchestration files (docker compose yaml files, health scripts, openshift build files)
-  and CI-scripts under the MIT License
+* Licensing and documentation
+  - Re-license the project from OAI Public License v1.1 to CSSL v1.0
+  - Re-license documentation under CC-BY-4.0 and orchestration/CI assets under MIT
+  - Add `NOTICE`, `LICENSES/`, and related contribution/documentation updates
 * Add support for RHEL 9 and drop support for RHEL 8
 
 ## v1.5.1 -- May 2023
