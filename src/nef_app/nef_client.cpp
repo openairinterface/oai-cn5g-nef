@@ -132,8 +132,8 @@ static std::string extract_last_path_segment(const std::string& uri) {
   return uri.substr(begin + 1, end - begin - 1);
 }
 
-// Constructor / Destructor
 //------------------------------------------------------------------------------
+// Constructor
 nef_client::nef_client() {
   m_nef_instance_id =
       boost::uuids::to_string(boost::uuids::random_generator()());
@@ -142,6 +142,7 @@ nef_client::nef_client() {
 }
 
 //------------------------------------------------------------------------------
+// Destructor
 nef_client::~nef_client() {
   Logger::nef_app().debug("Delete NEF Client instance...");
 }
@@ -157,10 +158,14 @@ bool nef_client::register_to_nrf() {
   Logger::nef_app().info(
       "Registering NEF to NRF (instance: %s)...", m_nef_instance_id.c_str());
 
-  // Build the NF Profile
+  // Build the NF Profile`
   // Obtain NEF's own SBI address from config
   auto local_nf         = nef_config_inst->get_local();
   const auto& local_sbi = local_nf->get_sbi();
+
+  if (!local_nf) {
+    return false;
+  }
 
   nlohmann::json profile;
   profile["nfInstanceId"]   = m_nef_instance_id;
@@ -169,7 +174,7 @@ bool nef_client::register_to_nrf() {
   profile["heartBeatTimer"] = 50;
   profile["priority"]       = 1;
   profile["capacity"]       = 100;
-  profile["nfInstanceName"] = "oai-nef";
+  profile["nfInstanceName"] = local_nf->get_host();
 
   // IPv4 address + SBI port
   struct in_addr addr4     = local_sbi.get_addr4();
@@ -181,7 +186,7 @@ bool nef_client::register_to_nrf() {
                          const std::string& api_name,
                          const std::string& version) {
     nlohmann::json svc;
-    svc["serviceInstanceId"] = svc_name;
+    svc["serviceInstanceId"] = m_nef_instance_id;
     svc["serviceName"]       = svc_name;
     svc["versions"]          = nlohmann::json::array({nlohmann::json{
         {"apiVersionInUri", version}, {"apiFullVersion", version}}});
@@ -208,21 +213,35 @@ bool nef_client::register_to_nrf() {
   std::string nrf_uri = build_nrf_nf_instance_uri(m_nef_instance_id);
   Logger::nef_app().debug("NRF registration URI: %s", nrf_uri.c_str());
 
-  oai::http::request req =
-      http_client_inst->prepare_json_request(nrf_uri, profile.dump());
-  auto resp =
-      http_client_inst->send_http_request(oai::common::sbi::method_e::PUT, req);
+  oai::http::response nrf_register_resp{};
+  auto sbi_sleep_nrf = [](std::chrono::milliseconds d) {
+    std::this_thread::sleep_for(d);
+  };
+  auto sbi_log_nrf = [](const std::string& m) {
+    Logger::nef_app().warn("%s", m.c_str());
+  };
+  sbi_call_with_retry(
+      "NRF", /*is_post=*/true,
+      [&]() -> int {
+        oai::http::request req =
+            http_client_inst->prepare_json_request(nrf_uri, profile.dump());
+        nrf_register_resp = http_client_inst->send_http_request(
+            oai::common::sbi::method_e::PUT, req);
+        return static_cast<int>(nrf_register_resp.status_code);
+      },
+      sbi_circuit_breaker_registry::instance(), sbi_sleep_nrf, sbi_log_nrf);
 
-  if (resp.status_code == http_status_code::OK ||
-      resp.status_code == http_status_code::CREATED) {
+  if (nrf_register_resp.status_code == http_status_code::OK ||
+      nrf_register_resp.status_code == http_status_code::CREATED) {
     Logger::nef_app().info(
-        "NEF successfully registered to NRF (status %d)", resp.status_code);
+        "NEF successfully registered to NRF (status %d)",
+        nrf_register_resp.status_code);
     return true;
   }
 
   Logger::nef_app().warn(
-      "NEF NRF registration failed (status %d): %s", resp.status_code,
-      resp.body.c_str());
+      "NEF NRF registration failed (status %d): %s",
+      nrf_register_resp.status_code, nrf_register_resp.body.c_str());
   return false;
 }
 
@@ -373,26 +392,37 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
           "NF discovery: no instances found for %s", nf_type_str.c_str());
       return false;
     }
-    auto& inst         = instances[0];
-    std::string scheme = "http";
 
-    if (inst.contains("nfServices") && !inst["nfServices"].empty()) {
-      auto& ep    = inst["nfServices"][0].at("ipEndPoints")[0];
-      nf_endpoint = scheme + "://" + ep.value("ipv4Address", "") + ":" +
-                    std::to_string(ep.value("port", 8080));
-    } else if (
-        inst.contains("ipv4Addresses") && !inst["ipv4Addresses"].empty()) {
-      nf_endpoint =
-          "http://" + inst["ipv4Addresses"][0].get<std::string>() + ":8080";
-    } else {
-      return false;
+    // NF selection
+    bool found = false;
+    for (auto& inst : instances) {
+      Logger::nef_app().debug(
+          "NF discovery candidate: instanceId=%s, nfType=%s",
+          inst.value("instanceId", "").c_str(),
+          inst.value("nfType", "").c_str());
+
+      std::string scheme = "http";
+
+      if (inst.contains("nfServices") && !inst["nfServices"].empty()) {
+        auto& ep    = inst["nfServices"][0].at("ipEndPoints")[0];
+        nf_endpoint = scheme + "://" + ep.value("ipv4Address", "") + ":" +
+                      std::to_string(ep.value("port", 8080));
+        found = true;
+      } else if (
+          inst.contains("ipv4Addresses") && !inst["ipv4Addresses"].empty()) {
+        nf_endpoint =
+            "http://" + inst["ipv4Addresses"][0].get<std::string>() + ":8080";
+        found = true;
+      }
+      // TODO: for now, do not do NF selection, just take the first valid one
+      if (found) break;
     }
 
     Logger::nef_app().debug(
         "NF discovery: %s → %s", nf_type_str.c_str(), nf_endpoint.c_str());
     // Cache the result
     nrf_discovery_cache::instance().put(nf_type_str, nf_endpoint);
-    return true;
+    return found;
   } catch (nlohmann::json::exception& e) {
     Logger::nef_app().warn("NF discovery parse error: %s", e.what());
     return false;
@@ -404,7 +434,7 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
 bool nef_client::subscribe_amf_event_exposure(
     const nlohmann::json& subscription_data, std::string& amf_sub_id,
     uint8_t http_version) {
-  std::string amf_url;
+  std::string amf_url = {};
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) {
     Logger::nef_app().warn(
         "AMF not found — cannot subscribe to event exposure");
@@ -415,14 +445,17 @@ bool nef_client::subscribe_amf_event_exposure(
 
   // Inject NEF's own callback URL so AMF knows where to send event
   // notifications. We use a placeholder sub-id here; after creation we update
-  // the NF→AF mapping. TS 29.518: field is "notificationDestination"
+  // the NF→AF mapping. TS 29.518: field is "subsChangeNotifyUri"
+  // This subscription is created by an NEF on behalf of AF
   nlohmann::json sub_body             = subscription_data;
-  const std::string nef_callback_base = get_nef_notify_uri("__placeholder__");
+  const std::string nef_callback_base = get_nef_notify_uri("_2");
   // Strip the placeholder; AMF will POST to base + sub-id suffix if needed,
   // but we set a fixed URL that the HTTP/2 server parses by path segment.
-  sub_body["notificationDestination"] =
-      nef_config_inst->get_local()->get_url() + nef_sbi_helper::NefNotifyBase +
-      "v1/notify/amf";
+  sub_body["eventNotifyUri"] = nef_config_inst->get_local()->get_url() +
+                               nef_sbi_helper::NefNotifyBase + "v1/notify/amf";
+  // TODO: sub_body["notifyCorrelationId"] = ;
+  // TODO: verify whether we need to set subsChangeNotifyUri,
+  // subsChangeNotifyCorrelationId (from AF)
 
   std::string body = sub_body.dump();
 
@@ -460,7 +493,7 @@ bool nef_client::subscribe_amf_event_exposure(
     }
   }
   // Invalidate discovery cache on connection failure or 503 so next
-  // discover_nf() call re-queries NRF instead of serving stale endpoint (F4.1).
+  // discover_nf() call re-queries NRF instead of serving stale endpoint.
   if (amf_sub_resp.status_code == 0 ||
       amf_sub_resp.status_code == http_status_code::SERVICE_UNAVAILABLE) {
     nrf_discovery_cache::instance().invalidate("AMF");
@@ -486,9 +519,8 @@ bool nef_client::unsubscribe_amf_event_exposure(
       resp.status_code == http_status_code::OK);
 }
 
-// SMF event-exposure
-
 //------------------------------------------------------------------------------
+// SMF event-exposure
 bool nef_client::subscribe_smf_event_exposure(
     const nlohmann::json& subscription_data, std::string& smf_sub_id,
     uint8_t http_version) {

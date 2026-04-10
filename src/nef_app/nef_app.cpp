@@ -194,7 +194,7 @@ void nef_app::handle_bdt_policy_patch(
     return;
   }
   {
-    std::unique_lock lock(m_bdt_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_policy_id);
     if (session_it == m_bdt_sessions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -695,20 +695,24 @@ nef_app::nef_app(const std::string& config_file, nef_event& ev)
 
   subscribe_nf_notification();
 
-  // Register to NRF
-  if (m_nef_client->register_to_nrf()) {
-    Logger::nef_app().info("NEF registered to NRF");
-  }
-
-  // Periodic NRF heartbeat every 50 s (50000 ms ticks)
-  constexpr uint64_t HEARTBEAT_MS = 50000;
   uint64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::system_clock::now().time_since_epoch())
                         .count();
-  auto hb_conn = m_event_sub.subscribe_task_tick(
-      [this](uint64_t /*t*/) { m_nef_client->send_heartbeat_to_nrf(); },
-      HEARTBEAT_MS, now_ms + HEARTBEAT_MS);
-  m_connections.push_back(hb_conn);
+
+  // Register to NRF
+  if (m_nef_client->register_to_nrf()) {
+    Logger::nef_app().info("NEF registered to NRF");
+    // Periodic NRF heartbeat every 50 s (50000 ms ticks)
+    // TODO: get heartbeat interval from NRF response
+    constexpr uint64_t HEARTBEAT_MS = 50000;
+    auto hb_conn                    = m_event_sub.subscribe_task_tick(
+        [this](uint64_t /*t*/) { m_nef_client->send_heartbeat_to_nrf(); },
+        HEARTBEAT_MS, now_ms + HEARTBEAT_MS);
+    m_connections.push_back(hb_conn);
+  } else {
+    Logger::nef_app().error("Failed to register NEF to NRF");
+    // Exist?
+  }
 
   constexpr uint64_t SUBSCRIPTION_EXPIRY_CHECK_MS = 1000;
   auto expiry_conn = m_event_sub.subscribe_task_tick(
@@ -1091,7 +1095,8 @@ void nef_app::handle_nnef_event_exposure_subscribe(
       stored_subscription, subscription_id);
 
   {
-    std::unique_lock lock(m_nnef_event_subscriptions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_event_subscriptions_mutex);
     m_nnef_event_subscriptions[subscription_id] = stored_subscription;
   }
 
@@ -1113,7 +1118,8 @@ void nef_app::handle_nnef_event_exposure_unsubscribe(
     return;
   }
 
-  std::unique_lock lock(m_nnef_event_subscriptions_mutex);
+  const std::lock_guard<std::shared_mutex> lock(
+      m_nnef_event_subscriptions_mutex);
   auto it = m_nnef_event_subscriptions.find(subscription_id);
   if (it == m_nnef_event_subscriptions.end()) {
     http_code = http_status_code::NOT_FOUND;
@@ -1182,7 +1188,8 @@ void nef_app::handle_nnef_event_exposure_update(
       updated_subscription, subscription_id);
 
   {
-    std::unique_lock lock(m_nnef_event_subscriptions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_event_subscriptions_mutex);
     auto it = m_nnef_event_subscriptions.find(subscription_id);
     if (it == m_nnef_event_subscriptions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -1309,6 +1316,7 @@ void nef_app::handle_monitoring_event_subscription_create(
 
   // Subscribe to AMF event-exposure southbound.
   std::string amf_sub_id;
+  // TODO: should pass sub_id as well?
   if (!m_nef_client->subscribe_amf_event_exposure(
           body, amf_sub_id, http_version)) {
     Logger::nef_app().warn("Failed to subscribe to AMF event exposure");
@@ -1323,7 +1331,7 @@ void nef_app::handle_monitoring_event_subscription_create(
 
   sub->set_nf_subscription_id(amf_sub_id);
   if (!amf_sub_id.empty()) {
-    std::unique_lock lock(m_nf2af_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id[amf_sub_id] = sub_id;
   }
 
@@ -1360,7 +1368,7 @@ void nef_app::handle_monitoring_event_subscription_delete(
   std::string nf_sub_id = sub->get_nf_subscription_id();
   if (!nf_sub_id.empty()) {
     m_nef_client->unsubscribe_amf_event_exposure(nf_sub_id, http_version);
-    std::unique_lock lock(m_nf2af_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id.erase(nf_sub_id);
   }
 
@@ -1479,7 +1487,7 @@ void nef_app::handle_traffic_influence_create(
   generate_af_subscription_id(ti_id);
 
   {
-    std::unique_lock lock(m_ti_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
     m_ti_sessions[ti_id] = body;
     m_ti_id2af_id[ti_id] = af_id;
   }
@@ -1510,7 +1518,7 @@ void nef_app::handle_traffic_influence_create(
         "session",
         ti_id.c_str(), http_code_pcf);
     {
-      std::unique_lock lock(m_ti_mutex);
+      const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
       m_ti_sessions.erase(ti_id);
       m_ti_id2af_id.erase(ti_id);
       m_ti_id2pcf_policy_id.erase(ti_id);
@@ -1531,7 +1539,7 @@ void nef_app::handle_traffic_influence_create(
         "Rolling back TI subscription ti_id='%s'.",
         ti_id.c_str());
     {
-      std::unique_lock lock(m_ti_mutex);
+      const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
       m_ti_sessions.erase(ti_id);
       m_ti_id2af_id.erase(ti_id);
       m_ti_id2pcf_policy_id.erase(ti_id);
@@ -1545,14 +1553,14 @@ void nef_app::handle_traffic_influence_create(
   }
 
   {
-    std::unique_lock lock(m_ti_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
     m_ti_id2pcf_policy_id[ti_id] = pcf_policy_id;
   }
 
   // Wire PCF policy ID → NEF sub ID for notification return path
   ti_sub->set_nf_subscription_id(pcf_policy_id);
   {
-    std::unique_lock lock(m_nf2af_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id[pcf_policy_id] = ti_id;
   }
   Logger::nef_app().debug(
@@ -1675,7 +1683,7 @@ void nef_app::handle_traffic_influence_update(
   }
 
   {
-    std::unique_lock lock(m_ti_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(ti_id);
     if (session_it == m_ti_sessions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -1740,14 +1748,14 @@ void nef_app::handle_traffic_influence_delete(
   }
 
   {
-    std::unique_lock lock(m_ti_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
     m_ti_sessions.erase(ti_id);
     m_ti_id2af_id.erase(ti_id);
     m_ti_id2pcf_policy_id.erase(ti_id);
   }
   // Clean up notification routing state
   if (!pcf_policy_id.empty()) {
-    std::unique_lock lock(m_nf2af_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id.erase(pcf_policy_id);
   }
   remove_subscription(ti_id);
@@ -1886,7 +1894,7 @@ void nef_app::handle_bdt_policy_create(
   generate_af_subscription_id(bdt_id);
 
   {
-    std::unique_lock lock(m_bdt_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
     m_bdt_sessions[bdt_id] = body;
     m_bdt_id2af_id[bdt_id] = af_id;
   }
@@ -1903,7 +1911,7 @@ void nef_app::handle_bdt_policy_create(
         "session",
         bdt_id.c_str(), http_code_pcf);
     {
-      std::unique_lock lock(m_bdt_mutex);
+      const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
       m_bdt_sessions.erase(bdt_id);
       m_bdt_id2af_id.erase(bdt_id);
       m_bdt_id2pcf_policy_id.erase(bdt_id);
@@ -1916,7 +1924,7 @@ void nef_app::handle_bdt_policy_create(
   }
 
   {
-    std::unique_lock lock(m_bdt_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
     m_bdt_id2pcf_policy_id[bdt_id] = pcf_bdt_id;
   }
 
@@ -1998,7 +2006,7 @@ void nef_app::handle_bdt_policy_update(
   }
 
   {
-    std::unique_lock lock(m_bdt_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_id);
     if (session_it == m_bdt_sessions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -2055,7 +2063,7 @@ void nef_app::handle_bdt_policy_delete(
   }
 
   {
-    std::unique_lock lock(m_bdt_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
     m_bdt_sessions.erase(bdt_id);
     m_bdt_id2af_id.erase(bdt_id);
     m_bdt_id2pcf_policy_id.erase(bdt_id);
@@ -2217,7 +2225,7 @@ void nef_app::handle_qos_subscription_create(
   sub->set_nf_subscription_id(smf_sub_id);
 
   if (!smf_sub_id.empty()) {
-    std::unique_lock lock(m_nf2af_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id[smf_sub_id] = qos_sub_id;
   }
   if (body.contains("notifUri")) {
@@ -2253,7 +2261,7 @@ void nef_app::handle_qos_subscription_delete(
   std::string nf_sub_id = sub->get_nf_subscription_id();
   if (!nf_sub_id.empty()) {
     m_nef_client->unsubscribe_smf_event_exposure(nf_sub_id, http_version);
-    std::unique_lock lock(m_nf2af_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id.erase(nf_sub_id);
   }
 
@@ -2501,7 +2509,8 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
       }
     }
     if (!nnef_expired.empty()) {
-      std::unique_lock lock(m_nnef_event_subscriptions_mutex);
+      const std::lock_guard<std::shared_mutex> lock(
+          m_nnef_event_subscriptions_mutex);
       for (const auto& sub_id : nnef_expired) {
         m_nnef_event_subscriptions.erase(sub_id);
         Logger::nef_app().info(
@@ -2553,12 +2562,12 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
               sub_id.c_str(), http_code_udr);
         }
         {
-          std::unique_lock nf_lock(m_nf2af_mutex);
+          const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
           m_nf2af_sub_id.erase(nf_sub_id);
         }
       }
       {
-        std::unique_lock ti_lock(m_ti_mutex);
+        const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
         m_ti_sessions.erase(sub_id);
         m_ti_id2af_id.erase(sub_id);
         m_ti_id2pcf_policy_id.erase(sub_id);
@@ -2571,8 +2580,10 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
         } else if (nf_type == nf_type_t::NF_TYPE_SMF) {
           m_nef_client->unsubscribe_smf_event_exposure(nf_sub_id, http_version);
         }
-        std::unique_lock lock(m_nf2af_mutex);
-        m_nf2af_sub_id.erase(nf_sub_id);
+        {
+          const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
+          m_nf2af_sub_id.erase(nf_sub_id);
+        }
       }
     }
 
@@ -2646,7 +2657,7 @@ void nef_app::handle_traffic_influence_patch(
   }
 
   {
-    std::unique_lock lock(m_ti_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(app_session_id);
     if (session_it == m_ti_sessions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -2809,7 +2820,7 @@ void nef_app::handle_pfd_transaction_put(
 
   // All UDR writes succeeded — commit local state (deferred commit)
   {
-    std::unique_lock lock(m_pfd_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
     m_pfd_trans_sessions[trans_id] = body;
     m_pfd_trans2scs_id[trans_id]   = scs_as_id;
   }
@@ -2832,7 +2843,7 @@ void nef_app::handle_pfd_transaction_delete(
   }
   nlohmann::json trans_body;
   {
-    std::unique_lock lock(m_pfd_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
       http_code = http_status_code::NOT_FOUND;
@@ -2915,7 +2926,7 @@ void nef_app::handle_pfd_app_put(
 
   bool is_create = false;
   {
-    std::unique_lock lock(m_pfd_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -2967,7 +2978,7 @@ void nef_app::handle_pfd_app_patch(
 
   nlohmann::json patched;
   {
-    std::unique_lock lock(m_pfd_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -3018,7 +3029,7 @@ void nef_app::handle_pfd_app_delete(
     return;
   }
   {
-    std::unique_lock lock(m_pfd_mutex);
+    const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
     if (it == m_pfd_trans_sessions.end()) {
       http_code = http_status_code::NOT_FOUND;
@@ -3127,9 +3138,10 @@ void nef_app::handle_nnef_pfd_put_transaction(
     pfd_rollback.mark_committed(app_id);
   }
 
-  // All UDR writes succeeded — commit local state (F1.10: deferred commit)
+  // All UDR writes succeeded — commit local state
   {
-    std::unique_lock lock(m_nnef_pfd_transactions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_pfd_transactions_mutex);
     m_nnef_pfd_transactions[transaction_id] = transaction;
   }
 
@@ -3194,7 +3206,8 @@ void nef_app::handle_nnef_pfd_delete_transaction(
   }
   nlohmann::json transaction;
   {
-    std::unique_lock lock(m_nnef_pfd_transactions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_pfd_transactions_mutex);
     auto it = m_nnef_pfd_transactions.find(transaction_id);
     if (it == m_nnef_pfd_transactions.end()) {
       http_code = http_status_code::NOT_FOUND;
@@ -3279,7 +3292,8 @@ void nef_app::handle_nnef_pfd_put_app(
   bool is_create = false;
   nlohmann::json transaction_snapshot;
   {
-    std::unique_lock lock(m_nnef_pfd_transactions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_pfd_transactions_mutex);
     auto& transaction = m_nnef_pfd_transactions[transaction_id];
     if (!transaction.is_object()) {
       transaction = nlohmann::json::object();
@@ -3320,7 +3334,8 @@ void nef_app::handle_nnef_pfd_delete_app(
     return;
   }
   {
-    std::unique_lock lock(m_nnef_pfd_transactions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_pfd_transactions_mutex);
     auto transaction_it = m_nnef_pfd_transactions.find(transaction_id);
     if (transaction_it == m_nnef_pfd_transactions.end()) {
       http_code = http_status_code::NOT_FOUND;
@@ -3469,7 +3484,8 @@ void nef_app::handle_nnef_pfd_subscription_create(
   stored["subId"]       = sub_id;
 
   {
-    std::unique_lock lock(m_nnef_pfd_subscriptions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_pfd_subscriptions_mutex);
     m_nnef_pfd_subscriptions[sub_id] = stored;
   }
   response_body = stored;
@@ -3528,7 +3544,8 @@ void nef_app::handle_nnef_pfd_subscription_put(
     return;
   }
   {
-    std::unique_lock lock(m_nnef_pfd_subscriptions_mutex);
+    const std::lock_guard<std::shared_mutex> lock(
+        m_nnef_pfd_subscriptions_mutex);
     auto it = m_nnef_pfd_subscriptions.find(sub_id);
     if (it == m_nnef_pfd_subscriptions.end()) {
       http_code     = http_status_code::NOT_FOUND;
@@ -3554,7 +3571,7 @@ void nef_app::handle_nnef_pfd_subscription_delete(
     http_code = http_status_code::FORBIDDEN;
     return;
   }
-  std::unique_lock lock(m_nnef_pfd_subscriptions_mutex);
+  const std::lock_guard<std::shared_mutex> lock(m_nnef_pfd_subscriptions_mutex);
   auto it = m_nnef_pfd_subscriptions.find(sub_id);
   if (it == m_nnef_pfd_subscriptions.end()) {
     http_code = http_status_code::NOT_FOUND;
