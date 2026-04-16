@@ -135,7 +135,7 @@ void nef_app::handle_analytics_fetch(
   response_body["analyEventsSubs"]     = requested_events;
   response_body["noNetworkSupportInd"] = reports.empty();
   if (!reports.empty()) response_body["analyReports"] = reports;
-  http_code = 200;
+  http_code = http_status_code::OK;
 }
 
 // BDT PATCH
@@ -157,9 +157,9 @@ void nef_app::handle_bdt_policy_patch(
     std::shared_lock lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_policy_id);
     if (session_it == m_bdt_sessions.end()) {
-      http_code = 404;
-      response_body =
-          make_problem_detail(404, "Not Found", "BDT policy not found");
+      http_code     = http_status_code::NOT_FOUND;
+      response_body = make_problem_detail(
+          http_status_code::NOT_FOUND, "Not Found", "BDT policy not found");
       return;
     }
     auto owner_it = m_bdt_id2af_id.find(bdt_policy_id);
@@ -206,7 +206,7 @@ void nef_app::handle_bdt_policy_patch(
   }
   response_body             = patched_copy;
   response_body["bdtRefId"] = bdt_policy_id;
-  http_code                 = 200;
+  http_code                 = http_status_code::OK;
   nef_audit::log("PATCH", "BDT", af_id, bdt_policy_id, http_code);
 }
 
@@ -266,7 +266,7 @@ void nef_app::handle_qos_subscription_update(
   // Optionally: re-subscribe to SMF if needed (not implemented here)
   response_body          = sub->get_subscription_data();
   response_body["subId"] = sub_id;
-  http_code              = 200;
+  http_code              = http_status_code::OK;
   nef_audit::log("UPDATE", "QOS", scs_as_id, sub_id, http_code);
 }
 
@@ -1836,13 +1836,13 @@ void nef_app::handle_pfd_get(
   uint32_t http_code_udr = 0;
   m_nef_client->udr_get_pfd_data(app_id, result, http_code_udr);
 
-  if (http_code_udr == 200) {
+  if (http_code_udr == http_status_code::OK) {
     response_body = result;
     http_code     = http_status_code::OK;
     return;
   }
 
-  if (http_code_udr == 404) {
+  if (http_code_udr == http_status_code::NOT_FOUND) {
     response_body = make_problem_detail(
         http_status_code::NOT_FOUND, "Not Found", "PFD data not found");
     http_code = http_status_code::NOT_FOUND;
@@ -3442,7 +3442,8 @@ void nef_app::handle_nnef_pfd_partial_pull(
       nlohmann::json udr_result;
       uint32_t udr_code = 0;
       m_nef_client->udr_get_pfd_data(app_id, udr_result, udr_code);
-      nlohmann::json entry   = (udr_code == 200) ? udr_result : app_data;
+      nlohmann::json entry =
+          (udr_code == http_status_code::OK) ? udr_result : app_data;
       entry["applicationId"] = app_id;
       response_body.push_back(entry);
     }
