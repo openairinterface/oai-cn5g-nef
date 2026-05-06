@@ -16,6 +16,10 @@
 #include <boost/signals2.hpp>
 #include <nlohmann/json.hpp>
 
+#include "BdtPolicy.h"
+#include "NefEventExposureSubsc.h"
+#include "PfdDataForApp.h"
+#include "PfdSubscription.h"
 #include "nef.h"
 #include "nef_af_profile.hpp"
 #include "nef_event.hpp"
@@ -344,14 +348,15 @@ class nef_app {
   std::map<std::string, std::string> m_ti_id2pcf_policy_id;
   mutable std::shared_mutex m_ti_mutex;
 
-  // BDT policy sessions (bdt_id → body)
-  std::map<std::string, nlohmann::json> m_bdt_sessions;
+  // BDT policy sessions (bdt_id → typed BdtPolicy)
+  std::map<std::string, oai::_3gpp::model::BdtPolicy> m_bdt_sessions;
   std::map<std::string, std::string> m_bdt_id2af_id;
   std::map<std::string, std::string> m_bdt_id2pcf_policy_id;
   mutable std::shared_mutex m_bdt_mutex;
 
-  // PFD transactions (trans_id → transaction body containing pfdDatas)
-  std::map<std::string, nlohmann::json> m_pfd_trans_sessions;
+  // PFD transactions (trans_id → typed app map)
+  std::map<std::string, std::map<std::string, oai::_3gpp::model::PfdDataForApp>>
+      m_pfd_trans_sessions;
   std::map<std::string, std::string> m_pfd_trans2scs_id;
   mutable std::shared_mutex m_pfd_mutex;
 
@@ -359,12 +364,15 @@ class nef_app {
   std::unordered_map<std::string, nlohmann::json> m_nnef_pfd_transactions;
   mutable std::shared_mutex m_nnef_pfd_transactions_mutex;
 
-  // F3.2: Nnef_PFDmanagement subscriptions (sub_id → subscription body)
-  std::unordered_map<std::string, nlohmann::json> m_nnef_pfd_subscriptions;
+  // F3.2: Nnef_PFDmanagement subscriptions (sub_id → typed PfdSubscription)
+  std::unordered_map<std::string, oai::_3gpp::model::PfdSubscription>
+      m_nnef_pfd_subscriptions;
   mutable std::shared_mutex m_nnef_pfd_subscriptions_mutex;
 
-  // Nnef_EventExposure subscriptions (subscription_id → subscription body)
-  std::unordered_map<std::string, nlohmann::json> m_nnef_event_subscriptions;
+  // Nnef_EventExposure subscriptions (subscription_id → typed
+  // NefEventExposureSubsc)
+  std::unordered_map<std::string, oai::_3gpp::model::NefEventExposureSubsc>
+      m_nnef_event_subscriptions;
   mutable std::shared_mutex m_nnef_event_subscriptions_mutex;
 
   nef_event& m_event_sub;

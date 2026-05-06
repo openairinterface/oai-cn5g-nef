@@ -10,7 +10,15 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <nlohmann/json.hpp>
 
+#include "AmfCreateEventSubscription.h"
+#include "AmfCreatedEventSubscription.h"
 #include "3gpp_29.500.h"
+#include "Helpers.h"
+#include "NFProfile.h"
+#include "NFType.h"
+#include "NFType_anyOf.h"
+#include "NFStatus.h"
+#include "NFStatus_anyOf.h"
 #include "http_client.hpp"
 #include "logger.hpp"
 #include "nef_config.hpp"
@@ -167,20 +175,35 @@ bool nef_client::register_to_nrf() {
     return false;
   }
 
+  // IPv4 address + SBI port (needed both for NFProfile and NFService)
+  struct in_addr addr4 = local_sbi.get_addr4();
+
   nlohmann::json profile;
-  profile["nfInstanceId"]   = m_nef_instance_id;
-  profile["nfType"]         = "NEF";
-  profile["nfStatus"]       = "REGISTERED";
-  profile["heartBeatTimer"] = 50;
-  profile["priority"]       = 1;
-  profile["capacity"]       = 100;
-  profile["nfInstanceName"] = local_nf->get_host();
+  {
+    // Build typed NFProfile for correct field serialization
+    oai::_3gpp::model::NFProfile nf_profile;
+    nf_profile.setNfInstanceId(m_nef_instance_id);
+    nf_profile.setNfInstanceName(local_nf->get_host());
+    nf_profile.setHeartBeatTimer(50);
+    nf_profile.setPriority(1);
+    nf_profile.setCapacity(100);
 
-  // IPv4 address + SBI port
-  struct in_addr addr4     = local_sbi.get_addr4();
-  profile["ipv4Addresses"] = nlohmann::json::array({inet_ntoa(addr4)});
+    oai::_3gpp::model::NFType nf_type;
+    nf_type.setEnumValue(oai::_3gpp::model::NFType_anyOf::eNFType_anyOf::NEF);
+    nf_profile.setNfType(nf_type);
 
-  // NF Services advertised by this NEF
+    oai::_3gpp::model::NFStatus nf_status;
+    nf_status.setEnumValue(
+        oai::_3gpp::model::NFStatus_anyOf::eNFStatus_anyOf::REGISTERED);
+    nf_profile.setNfStatus(nf_status);
+
+    nf_profile.setIpv4Addresses({inet_ntoa(addr4)});
+
+    to_json(profile, nf_profile);
+  }
+
+  // NF Services are built as raw JSON since the service name strings
+  // (nnef-trafficinfluence, nnef-bdt, etc.) are not in ServiceName_anyOf.
   nlohmann::json nf_services = nlohmann::json::array();
   auto add_service           = [&](const std::string& svc_name,
                          const std::string& api_name,
@@ -480,14 +503,23 @@ bool nef_client::subscribe_amf_event_exposure(
   if (amf_sub_resp.status_code == http_status_code::CREATED) {
     try {
       nlohmann::json j = nlohmann::json::parse(amf_sub_resp.body);
-      // Subscription ID is in body or Location header
-      amf_sub_id = j.value("subscriptionId", "");
-      if (amf_sub_id.empty() && j.contains("eventsSubscription")) {
-        amf_sub_id = j["eventsSubscription"].value("subscriptionId", "");
+      // Try typed parse first for accurate field access
+      oai::_3gpp::model::AmfCreatedEventSubscription created;
+      try {
+        from_json(j, created);
+        amf_sub_id = created.getSubscriptionId();
+      } catch (...) {
+        // Fall back to raw JSON on parse failure
+        amf_sub_id = j.value("subscriptionId", "");
+        if (amf_sub_id.empty() && j.contains("eventsSubscription")) {
+          amf_sub_id = j["eventsSubscription"].value("subscriptionId", "");
+        }
       }
-      Logger::nef_app().info(
-          "AMF event subscription created: %s", amf_sub_id.c_str());
-      return true;
+      if (!amf_sub_id.empty()) {
+        Logger::nef_app().info(
+            "AMF event subscription created: %s", amf_sub_id.c_str());
+        return true;
+      }
     } catch (...) {
       Logger::nef_app().warn("Failed to parse AMF subscription response");
     }

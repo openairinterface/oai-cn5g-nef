@@ -8,6 +8,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
+#include "PfdSubscription.h"
+
 namespace oai::nef::app {
 
 // Application-level filtering
@@ -80,7 +82,7 @@ inline std::string nnef_pfd_subscription_self_link(const std::string& sub_id) {
  */
 inline nlohmann::json nnef_pfd_subscription_make(
     const std::string& sub_id, const nlohmann::json& new_body) {
-  nlohmann::json stored    = new_body;          // full replacement — no merge
+  nlohmann::json stored    = new_body;  // full replacement — no merge
   stored["subscriptionId"] = sub_id;
   stored["self"]           = nnef_pfd_subscription_self_link(sub_id);
   return stored;
@@ -102,6 +104,18 @@ inline bool nnef_pfd_subscription_matches(
   }
   for (const auto& id : sub["applicationIds"]) {
     if (id.is_string() && id.get<std::string>() == app_id) return true;
+  }
+  return false;
+}
+
+// Typed overload for stored PfdSubscription objects
+inline bool nnef_pfd_subscription_matches(
+    const oai::_3gpp::model::PfdSubscription& sub, const std::string& app_id) {
+  if (!sub.applicationIdsIsSet() || sub.getApplicationIds().empty()) {
+    return true;  // wildcard — no filter means all apps
+  }
+  for (const auto& id : sub.getApplicationIds()) {
+    if (id == app_id) return true;
   }
   return false;
 }

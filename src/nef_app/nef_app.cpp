@@ -26,6 +26,19 @@
 #include "nef_jwt.hpp"
 #include "nef_notification_mapper.hpp"
 
+#include "AppSessionContextReqData.h"
+#include "AppSessionContextUpdateData.h"
+#include "AppSessionContextUpdateDataPatch.h"
+#include "ApplicationForPfdRequest.h"
+#include "BdtPolicy.h"
+#include "Helpers.h"
+#include "NefEvent_anyOf.h"
+#include "NefEventExposureSubsc.h"
+#include "PfdDataForApp.h"
+#include "PfdSubscription.h"
+#include "TrafficInfluData.h"
+#include "TrafficInfluDataPatch.h"
+
 #include <algorithm>
 
 using namespace oai::nef::app;
@@ -174,7 +187,8 @@ void nef_app::handle_bdt_policy_patch(
     if (pcf_it != m_bdt_id2pcf_policy_id.end()) {
       pcf_bdt_id = pcf_it->second;
     }
-    patched_copy = session_it->second;
+    // Serialize typed store to JSON, then apply merge-patch
+    to_json(patched_copy, session_it->second);
     patched_copy.merge_patch(patch_body);
   }
   if (pcf_bdt_id.empty()) {
@@ -202,7 +216,19 @@ void nef_app::handle_bdt_policy_patch(
           http_status_code::NOT_FOUND, "Not Found", "BDT policy not found");
       return;
     }
-    session_it->second = patched_copy;
+    // Re-parse merged JSON back to typed and store
+    oai::_3gpp::model::BdtPolicy patched_policy;
+    try {
+      from_json(patched_copy, patched_policy);
+      patched_policy.validate();
+    } catch (const std::exception& e) {
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+          std::string("Patched body invalid: ") + e.what());
+      return;
+    }
+    session_it->second = patched_policy;
   }
   response_body             = patched_copy;
   response_body["bdtRefId"] = bdt_policy_id;
@@ -223,6 +249,26 @@ void nef_app::handle_qos_subscription_update(
         "AF not authorized for this service");
     return;
   }
+
+  // Typed parse + validate
+  oai::_3gpp::model::AppSessionContextUpdateData update_data;
+  try {
+    from_json(body, update_data);
+    update_data.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
   auto sub = find_subscription(sub_id);
   if (!sub) {
     http_code     = http_status_code::NOT_FOUND;
@@ -1080,31 +1126,89 @@ void nef_app::handle_nnef_event_exposure_subscribe(
   }
 
   std::string error_detail;
-  if (!validate_nnef_event_exposure_subscription(body, error_detail)) {
+
+  // Typed parse + validate (replaces validate_nnef_event_exposure_subscription)
+  oai::_3gpp::model::NefEventExposureSubsc subsc;
+  try {
+    from_json(body, subsc);
+    subsc.validate();
+  } catch (const nlohmann::json::exception& e) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
-        http_status_code::BAD_REQUEST, "Bad Request", error_detail);
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
+  // TS 29.591 §5.4.2: each NefEventSubs must have a valid event
+  const auto& events_subs = subsc.getEventsSubs();
+  if (events_subs.empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "eventsSubs is required and must be a non-empty array");
+    return;
+  }
+  for (std::size_t i = 0; i < events_subs.size(); ++i) {
+    if (events_subs[i].getEvent().getEnumValue() ==
+        oai::_3gpp::model::NefEvent_anyOf::eNefEvent_anyOf::
+            INVALID_VALUE_OPENAPI_GENERATED) {
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "eventsSubs[" + std::to_string(i) +
+              "].event: required non-empty string");
+      return;
+    }
+  }
+
+  if (subsc.getNotifUri().empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notifUri is required and must be a non-empty string");
+    return;
+  }
+  if (subsc.getNotifId().empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notifId is required and must be a non-empty string");
+    return;
+  }
+
+  error_detail = validate_callback_uri(subsc.getNotifUri());
+  if (!error_detail.empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notifUri: " + error_detail);
     return;
   }
 
   std::string subscription_id;
   generate_af_subscription_id(subscription_id);
 
-  nlohmann::json stored_subscription = body;
-  finalize_nnef_event_exposure_subscription(
-      stored_subscription, subscription_id);
-
   {
     const std::lock_guard<std::shared_mutex> lock(
         m_nnef_event_subscriptions_mutex);
-    m_nnef_event_subscriptions[subscription_id] = stored_subscription;
+    m_nnef_event_subscriptions[subscription_id] = subsc;
   }
 
   Logger::nef_app().info(
       "Created Nnef_EventExposure subscription: %s", subscription_id.c_str());
 
-  response_body = stored_subscription;
-  http_code     = http_status_code::CREATED;
+  to_json(response_body, subsc);
+  response_body["subscriptionId"] = subscription_id;
+  response_body["self"] =
+      build_nnef_event_exposure_subscription_path(subscription_id);
+  http_code = http_status_code::CREATED;
   nef_audit::log("CREATE", "EE", "", subscription_id, http_code);
 }
 
@@ -1157,8 +1261,11 @@ void nef_app::handle_nnef_event_exposure_get(
     return;
   }
 
-  response_body = it->second;
-  http_code     = http_status_code::OK;
+  to_json(response_body, it->second);
+  response_body["subscriptionId"] = subscription_id;
+  response_body["self"] =
+      build_nnef_event_exposure_subscription_path(subscription_id);
+  http_code = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
@@ -1176,16 +1283,70 @@ void nef_app::handle_nnef_event_exposure_update(
   }
 
   std::string error_detail;
-  if (!validate_nnef_event_exposure_subscription(body, error_detail)) {
+
+  // Typed parse + validate
+  oai::_3gpp::model::NefEventExposureSubsc subsc;
+  try {
+    from_json(body, subsc);
+    subsc.validate();
+  } catch (const nlohmann::json::exception& e) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
-        http_status_code::BAD_REQUEST, "Bad Request", error_detail);
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
     return;
   }
 
-  nlohmann::json updated_subscription = body;
-  finalize_nnef_event_exposure_subscription(
-      updated_subscription, subscription_id);
+  const auto& events_subs = subsc.getEventsSubs();
+  if (events_subs.empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "eventsSubs is required and must be a non-empty array");
+    return;
+  }
+  for (std::size_t i = 0; i < events_subs.size(); ++i) {
+    if (events_subs[i].getEvent().getEnumValue() ==
+        oai::_3gpp::model::NefEvent_anyOf::eNefEvent_anyOf::
+            INVALID_VALUE_OPENAPI_GENERATED) {
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "eventsSubs[" + std::to_string(i) +
+              "].event: required non-empty string");
+      return;
+    }
+  }
+
+  if (subsc.getNotifUri().empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notifUri is required and must be a non-empty string");
+    return;
+  }
+  if (subsc.getNotifId().empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notifId is required and must be a non-empty string");
+    return;
+  }
+
+  error_detail = validate_callback_uri(subsc.getNotifUri());
+  if (!error_detail.empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notifUri: " + error_detail);
+    return;
+  }
 
   {
     const std::lock_guard<std::shared_mutex> lock(
@@ -1199,14 +1360,17 @@ void nef_app::handle_nnef_event_exposure_update(
       return;
     }
 
-    it->second = updated_subscription;
+    it->second = subsc;
   }
 
   Logger::nef_app().info(
       "Updated Nnef_EventExposure subscription: %s", subscription_id.c_str());
 
-  response_body = updated_subscription;
-  http_code     = http_status_code::OK;
+  to_json(response_body, subsc);
+  response_body["subscriptionId"] = subscription_id;
+  response_body["self"] =
+      build_nnef_event_exposure_subscription_path(subscription_id);
+  http_code = http_status_code::OK;
   nef_audit::log("UPDATE", "EE", "", subscription_id, http_code);
 }
 
@@ -1443,6 +1607,25 @@ void nef_app::handle_traffic_influence_create(
     return;
   }
 
+  // Typed parse + validate (ADR-6: raw store and SSRF check preserved below)
+  oai::_3gpp::model::TrafficInfluData ti;
+  try {
+    from_json(body, ti);
+    ti.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
   // Validate required fields: at least one traffic filter must be present
   if (!body.contains("afAppId") && !body.contains("trafficFilters") &&
       !body.contains("ethTrafficFilters")) {
@@ -1591,6 +1774,25 @@ void nef_app::handle_traffic_influence_update(
     response_body = make_problem_detail(
         http_status_code::FORBIDDEN, "Forbidden",
         "AF not authorized for this service");
+    return;
+  }
+
+  // Typed parse + validate (ADR-6: raw store and SSRF check preserved below)
+  oai::_3gpp::model::TrafficInfluData ti;
+  try {
+    from_json(body, ti);
+    ti.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
     return;
   }
 
@@ -1870,7 +2072,27 @@ void nef_app::handle_bdt_policy_create(
     return;
   }
 
-  if (!body.contains("bdtPolData")) {
+  // Typed parse + validate (replaces manual field checks)
+  oai::_3gpp::model::BdtPolicy bdt_policy;
+  try {
+    from_json(body, bdt_policy);
+    bdt_policy.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
+  // T8 NEF API requires bdtPolData; enforce manually (model treats it optional)
+  if (!bdt_policy.bdtPolDataIsSet()) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -1878,11 +2100,9 @@ void nef_app::handle_bdt_policy_create(
     return;
   }
 
-  // Path-parameter and type validation (422 for semantic errors).
+  // Path-parameter validation (422 for semantic errors).
   {
-    std::string err;
-    if (err.empty()) err = validate_string_param(af_id, "afId", 256);
-    if (err.empty()) err = validate_object_field(body, "bdtPolData", false);
+    const std::string err = validate_string_param(af_id, "afId", 256);
     if (!err.empty()) {
       http_code     = http_status_code::UNPROCESSABLE_ENTITY;
       response_body = make_problem_detail(
@@ -1895,7 +2115,7 @@ void nef_app::handle_bdt_policy_create(
 
   {
     const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
-    m_bdt_sessions[bdt_id] = body;
+    m_bdt_sessions[bdt_id] = bdt_policy;
     m_bdt_id2af_id[bdt_id] = af_id;
   }
 
@@ -1928,9 +2148,11 @@ void nef_app::handle_bdt_policy_create(
     m_bdt_id2pcf_policy_id[bdt_id] = pcf_bdt_id;
   }
 
-  response_body             = body;
-  response_body["bdtRefId"] = bdt_id;
-  http_code                 = http_status_code::CREATED;
+  nlohmann::json resp_json;
+  to_json(resp_json, bdt_policy);
+  resp_json["bdtRefId"] = bdt_id;
+  response_body         = resp_json;
+  http_code             = http_status_code::CREATED;
   nef_audit::log("CREATE", "BDT", af_id, bdt_id, http_code);
 }
 
@@ -1948,7 +2170,26 @@ void nef_app::handle_bdt_policy_update(
     return;
   }
 
-  if (!body.contains("bdtPolData")) {
+  // Typed parse + validate (replaces manual field checks)
+  oai::_3gpp::model::BdtPolicy bdt_policy;
+  try {
+    from_json(body, bdt_policy);
+    bdt_policy.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
+  if (!bdt_policy.bdtPolDataIsSet()) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -2014,10 +2255,12 @@ void nef_app::handle_bdt_policy_update(
           http_status_code::NOT_FOUND, "Not Found", "BDT policy not found");
       return;
     }
-    session_it->second = body;
+    session_it->second = bdt_policy;
   }
 
-  response_body = body;
+  nlohmann::json resp_json;
+  to_json(resp_json, bdt_policy);
+  response_body = resp_json;
   http_code     = http_status_code::OK;
   nef_audit::log("UPDATE", "BDT", af_id, bdt_id, http_code);
 }
@@ -2086,13 +2329,14 @@ void nef_app::handle_bdt_policy_list(
 
   std::shared_lock lock(m_bdt_mutex);
   response_body = nlohmann::json::array();
-  for (const auto& [id, body] : m_bdt_sessions) {
+  for (const auto& [id, policy] : m_bdt_sessions) {
     auto owner_it = m_bdt_id2af_id.find(id);
     if (owner_it == m_bdt_id2af_id.end() || owner_it->second != af_id) {
       continue;
     }
-    nlohmann::json entry = body;
-    entry["bdtRefId"]    = id;
+    nlohmann::json entry;
+    to_json(entry, policy);
+    entry["bdtRefId"] = id;
     response_body.push_back(entry);
   }
   http_code = http_status_code::OK;
@@ -2128,7 +2372,7 @@ void nef_app::handle_bdt_policy_get(
     return;
   }
 
-  response_body             = it->second;
+  to_json(response_body, it->second);
   response_body["bdtRefId"] = bdt_id;
   http_code                 = http_status_code::OK;
 }
@@ -2146,6 +2390,25 @@ void nef_app::handle_qos_subscription_create(
     response_body = make_problem_detail(
         http_status_code::FORBIDDEN, "Forbidden",
         "AF not authorized for this service");
+    return;
+  }
+
+  // Typed parse + validate
+  oai::_3gpp::model::AppSessionContextReqData req_data;
+  try {
+    from_json(body, req_data);
+    req_data.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
     return;
   }
 
@@ -2176,8 +2439,7 @@ void nef_app::handle_qos_subscription_create(
   // SSRF protection: validate the callback URI before any storage or southbound
   // calls
   {
-    const std::string uri_err =
-        validate_callback_uri(body["notifUri"].get<std::string>());
+    const std::string uri_err = validate_callback_uri(req_data.getNotifUri());
     if (!uri_err.empty()) {
       http_code     = http_status_code::BAD_REQUEST;
       response_body = make_problem_detail(
@@ -2498,13 +2760,11 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
     {
       std::shared_lock lock(m_nnef_event_subscriptions_mutex);
       for (const auto& [sub_id, sub] : m_nnef_event_subscriptions) {
-        if (!sub.contains("eventsRepInfo")) continue;
-        const auto& rep = sub["eventsRepInfo"];
-        if (!rep.contains("monDur") || !rep["monDur"].is_string()) continue;
+        if (!sub.eventsRepInfoIsSet()) continue;
+        const auto& rep = sub.getEventsRepInfo();
+        if (!rep.monDurIsSet()) continue;
         std::chrono::system_clock::time_point expire_tp;
-        if (!parse_monitor_expire_time(
-                rep["monDur"].get<std::string>(), expire_tp))
-          continue;
+        if (!parse_monitor_expire_time(rep.getMonDur(), expire_tp)) continue;
         if (expire_tp <= now) nnef_expired.push_back(sub_id);
       }
     }
@@ -2608,6 +2868,25 @@ void nef_app::handle_traffic_influence_patch(
     return;
   }
 
+  // Typed parse + validate patch body (ADR-6: raw store preserved below)
+  oai::_3gpp::model::TrafficInfluDataPatch ti_patch;
+  try {
+    from_json(patch_body, ti_patch);
+    ti_patch.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
   std::string pcf_policy_id;
   nlohmann::json patched_copy;
   {
@@ -2687,6 +2966,26 @@ void nef_app::handle_qos_subscription_patch(
         "AF not authorized for this service");
     return;
   }
+
+  // Typed parse + validate patch body
+  oai::_3gpp::model::AppSessionContextUpdateDataPatch patch_data;
+  try {
+    from_json(patch_body, patch_data);
+    patch_data.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
   auto sub = find_subscription(sub_id);
   if (!sub) {
     http_code     = http_status_code::NOT_FOUND;
@@ -2738,12 +3037,18 @@ void nef_app::handle_pfd_transaction_list(
   }
   std::shared_lock lock(m_pfd_mutex);
   response_body = nlohmann::json::array();
-  for (const auto& [tid, body] : m_pfd_trans_sessions) {
+  for (const auto& [tid, app_map] : m_pfd_trans_sessions) {
     auto owner_it = m_pfd_trans2scs_id.find(tid);
     if (owner_it == m_pfd_trans2scs_id.end() || owner_it->second != scs_as_id)
       continue;
-    nlohmann::json entry = body;
-    entry["transId"]     = tid;
+    nlohmann::json entry;
+    entry["transId"]  = tid;
+    entry["pfdDatas"] = nlohmann::json::object();
+    for (const auto& [app_id, app] : app_map) {
+      nlohmann::json app_json;
+      to_json(app_json, app);
+      entry["pfdDatas"][app_id] = app_json;
+    }
     response_body.push_back(entry);
   }
   http_code = http_status_code::OK;
@@ -2778,6 +3083,29 @@ void nef_app::handle_pfd_transaction_put(
     return;
   }
 
+  // Typed parse + validate each app's PFD data
+  std::map<std::string, oai::_3gpp::model::PfdDataForApp> app_map;
+  for (auto& [app_id, app_json] : body["pfdDatas"].items()) {
+    oai::_3gpp::model::PfdDataForApp app;
+    try {
+      from_json(app_json, app);
+      app.validate();
+    } catch (const nlohmann::json::exception& e) {
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request",
+          "pfdDatas." + app_id + ": " + e.what());
+      return;
+    } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+          "pfdDatas." + app_id + ": " + e.what());
+      return;
+    }
+    app_map[app_id] = std::move(app);
+  }
+
   // Determine create-vs-update before UDR writes (deferred local commit)
   bool is_create;
   {
@@ -2788,8 +3116,10 @@ void nef_app::handle_pfd_transaction_put(
 
   // Write each app to UDR atomically — rollback committed apps on failure
   PfdRollbackTracker pfd_rollback;
-  for (auto& [app_id, pfd_data] : body["pfdDatas"].items()) {
-    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_data, http_version)) {
+  for (auto& [app_id, app] : app_map) {
+    nlohmann::json pfd_json;
+    to_json(pfd_json, app);
+    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_json, http_version)) {
       Logger::nef_app().error(
           "F1.10: UDR PFD write failed for app '%s' in trans '%s'; "
           "rolling back %zu committed app(s)",
@@ -2821,7 +3151,7 @@ void nef_app::handle_pfd_transaction_put(
   // All UDR writes succeeded — commit local state (deferred commit)
   {
     const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
-    m_pfd_trans_sessions[trans_id] = body;
+    m_pfd_trans_sessions[trans_id] = std::move(app_map);
     m_pfd_trans2scs_id[trans_id]   = scs_as_id;
   }
 
@@ -2841,7 +3171,7 @@ void nef_app::handle_pfd_transaction_delete(
     http_code = http_status_code::FORBIDDEN;
     return;
   }
-  nlohmann::json trans_body;
+  std::map<std::string, oai::_3gpp::model::PfdDataForApp> trans_body;
   {
     const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
@@ -2860,10 +3190,8 @@ void nef_app::handle_pfd_transaction_delete(
   }
 
   // Delete each application's PFD data from UDR
-  if (trans_body.contains("pfdDatas") && trans_body["pfdDatas"].is_object()) {
-    for (auto& [app_id, _] : trans_body["pfdDatas"].items()) {
-      m_nef_client->udr_delete_pfd_data(app_id, http_version);
-    }
+  for (const auto& [app_id, _] : trans_body) {
+    m_nef_client->udr_delete_pfd_data(app_id, http_version);
   }
   http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "PFD_TX", scs_as_id, trans_id, http_code);
@@ -2897,16 +3225,16 @@ void nef_app::handle_pfd_app_get(
         "AF is not allowed to access this resource");
     return;
   }
-  const auto& pfd_datas =
-      it->second.value("pfdDatas", nlohmann::json::object());
-  if (!pfd_datas.contains(app_id)) {
+  const auto& app_map = it->second;
+  auto app_it         = app_map.find(app_id);
+  if (app_it == app_map.end()) {
     http_code     = http_status_code::NOT_FOUND;
     response_body = make_problem_detail(
         http_status_code::NOT_FOUND, "Not Found",
         "Application PFD not found in transaction");
     return;
   }
-  response_body          = pfd_datas[app_id];
+  to_json(response_body, app_it->second);
   response_body["appId"] = app_id;
   http_code              = http_status_code::OK;
 }
@@ -2943,20 +3271,39 @@ void nef_app::handle_pfd_app_put(
           "AF is not allowed to access this resource");
       return;
     }
-    if (!it->second.contains("pfdDatas") ||
-        !it->second["pfdDatas"].is_object()) {
-      it->second["pfdDatas"] = nlohmann::json::object();
+    // Typed parse + validate new app data
+    oai::_3gpp::model::PfdDataForApp new_app;
+    try {
+      from_json(body, new_app);
+      new_app.validate();
+    } catch (const nlohmann::json::exception& e) {
+      http_code     = http_status_code::BAD_REQUEST;
+      response_body = make_problem_detail(
+          http_status_code::BAD_REQUEST, "Bad Request", e.what());
+      return;
+    } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+          e.what());
+      return;
     }
-    is_create                      = !it->second["pfdDatas"].contains(app_id);
-    it->second["pfdDatas"][app_id] = body;
+    is_create          = (it->second.find(app_id) == it->second.end());
+    it->second[app_id] = new_app;
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, body, http_version)) {
+  nlohmann::json new_app_json;
+  {
+    std::shared_lock rlock(m_pfd_mutex);
+    to_json(new_app_json, m_pfd_trans_sessions.at(trans_id).at(app_id));
+  }
+
+  if (!m_nef_client->udr_put_pfd_data(app_id, new_app_json, http_version)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for app: %s", app_id.c_str());
   }
 
-  response_body          = body;
+  response_body          = new_app_json;
   response_body["appId"] = app_id;
   http_code = is_create ? http_status_code::CREATED : http_status_code::OK;
   nef_audit::log(
@@ -2995,18 +3342,30 @@ void nef_app::handle_pfd_app_patch(
           "AF is not allowed to access this resource");
       return;
     }
-    const auto& pfd_datas =
-        it->second.value("pfdDatas", nlohmann::json::object());
-    if (!pfd_datas.contains(app_id)) {
+    auto app_it = it->second.find(app_id);
+    if (app_it == it->second.end()) {
       http_code     = http_status_code::NOT_FOUND;
       response_body = make_problem_detail(
           http_status_code::NOT_FOUND, "Not Found",
           "Application PFD not found in transaction");
       return;
     }
-    patched = it->second["pfdDatas"][app_id];
+    // Serialize existing to JSON, apply patch, re-parse as typed
+    to_json(patched, app_it->second);
     patched.merge_patch(patch_body);
-    it->second["pfdDatas"][app_id] = patched;
+    // Re-parse patched JSON back to typed and update store
+    oai::_3gpp::model::PfdDataForApp patched_app;
+    try {
+      from_json(patched, patched_app);
+      patched_app.validate();
+    } catch (const std::exception& e) {
+      http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+      response_body = make_problem_detail(
+          http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+          std::string("Patched body invalid: ") + e.what());
+      return;
+    }
+    app_it->second = patched_app;
   }
 
   if (!m_nef_client->udr_put_pfd_data(app_id, patched, http_version)) {
@@ -3040,12 +3399,11 @@ void nef_app::handle_pfd_app_delete(
       http_code = http_status_code::FORBIDDEN;
       return;
     }
-    if (!it->second.contains("pfdDatas") ||
-        !it->second["pfdDatas"].contains(app_id)) {
+    if (it->second.find(app_id) == it->second.end()) {
       http_code = http_status_code::NOT_FOUND;
       return;
     }
-    it->second["pfdDatas"].erase(app_id);
+    it->second.erase(app_id);
   }
   m_nef_client->udr_delete_pfd_data(app_id, http_version);
   http_code = http_status_code::NO_CONTENT;
@@ -3463,7 +3821,7 @@ void nef_app::handle_nnef_pfd_subscription_create(
         "NF not authorized for this Nnef service");
     return;
   }
-  // Validate required fields
+  // Validate notifUri (wire key, before normalization)
   if (!body.contains("notifUri") || !body["notifUri"].is_string() ||
       body["notifUri"].get<std::string>().empty()) {
     http_code     = http_status_code::BAD_REQUEST;
@@ -3480,17 +3838,44 @@ void nef_app::handle_nnef_pfd_subscription_create(
     return;
   }
 
+  // Normalize: wire uses "notifUri", model uses "notifyUri"
+  nlohmann::json normalized = body;
+  normalized["notifyUri"]   = normalized["notifUri"];
+  normalized.erase("notifUri");
+
+  oai::_3gpp::model::PfdSubscription sub;
+  try {
+    from_json(normalized, sub);
+    sub.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        e.what());
+    return;
+  }
+
   generate_af_subscription_id(sub_id);
-  nlohmann::json stored = body;
-  stored["subId"]       = sub_id;
 
   {
     const std::lock_guard<std::shared_mutex> lock(
         m_nnef_pfd_subscriptions_mutex);
-    m_nnef_pfd_subscriptions[sub_id] = stored;
+    m_nnef_pfd_subscriptions[sub_id] = sub;
   }
-  response_body = stored;
-  http_code     = http_status_code::CREATED;
+
+  // Build response: serialize typed, denormalize back to wire key
+  to_json(response_body, sub);
+  if (response_body.contains("notifyUri")) {
+    response_body["notifUri"] = response_body["notifyUri"];
+    response_body.erase("notifyUri");
+  }
+  response_body["subId"] = sub_id;
+  http_code              = http_status_code::CREATED;
   nef_audit::log("CREATE", "NNEF_PFD_SUB", "", sub_id, http_code);
 }
 
@@ -3513,8 +3898,14 @@ void nef_app::handle_nnef_pfd_subscription_get(
         http_status_code::NOT_FOUND, "Not Found", "PFD subscription not found");
     return;
   }
-  response_body = it->second;
-  http_code     = http_status_code::OK;
+  // Serialize typed, denormalize wire key
+  to_json(response_body, it->second);
+  if (response_body.contains("notifyUri")) {
+    response_body["notifUri"] = response_body["notifyUri"];
+    response_body.erase("notifyUri");
+  }
+  response_body["subId"] = sub_id;
+  http_code              = http_status_code::OK;
 }
 
 //------------------------------------------------------------------------------
@@ -3544,6 +3935,29 @@ void nef_app::handle_nnef_pfd_subscription_put(
         http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
     return;
   }
+
+  // Normalize: wire uses "notifUri", model uses "notifyUri"
+  nlohmann::json normalized = body;
+  normalized["notifyUri"]   = normalized["notifUri"];
+  normalized.erase("notifUri");
+
+  oai::_3gpp::model::PfdSubscription sub;
+  try {
+    from_json(normalized, sub);
+    sub.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        e.what());
+    return;
+  }
+
   {
     const std::lock_guard<std::shared_mutex> lock(
         m_nnef_pfd_subscriptions_mutex);
@@ -3555,13 +3969,17 @@ void nef_app::handle_nnef_pfd_subscription_put(
           "PFD subscription not found");
       return;
     }
-    // Full replace: discard old data, write new body entirely
-    nlohmann::json stored = body;
-    stored["subId"]       = sub_id;
-    it->second            = stored;
-    response_body         = stored;
+    it->second = sub;
   }
-  http_code = http_status_code::OK;
+
+  // Build response: denormalize wire key
+  to_json(response_body, sub);
+  if (response_body.contains("notifyUri")) {
+    response_body["notifUri"] = response_body["notifyUri"];
+    response_body.erase("notifyUri");
+  }
+  response_body["subId"] = sub_id;
+  http_code              = http_status_code::OK;
   nef_audit::log("UPDATE", "NNEF_PFD_SUB", "", sub_id, http_code);
 }
 
@@ -3593,11 +4011,11 @@ void nef_app::notify_nnef_pfd_subscribers(
   {
     std::shared_lock lock(m_nnef_pfd_subscriptions_mutex);
     for (const auto& [sid, sub] : m_nnef_pfd_subscriptions) {
-      if (!sub.contains("notifUri") || !sub["notifUri"].is_string()) continue;
-      // Use shared helper (checks "applicationIds" key — canonical TS 29.551
-      // name)
+      const std::string& notify_uri = sub.getNotifyUri();
+      if (notify_uri.empty()) continue;
+      // Use typed overload: checks applicationIds filter
       if (!nnef_pfd_subscription_matches(sub, app_id)) continue;
-      targets.emplace_back(sid, sub["notifUri"].get<std::string>());
+      targets.emplace_back(sid, notify_uri);
     }
   }
 

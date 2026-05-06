@@ -128,6 +128,7 @@ include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/config/config.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/http/http.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger/logger.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils/utils.cmake)
+include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model/nef_model.cmake)
 
 target_link_libraries(nef ${ASAN}
     -Wl,--start-group
