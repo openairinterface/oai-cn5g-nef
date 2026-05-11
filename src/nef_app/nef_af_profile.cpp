@@ -5,6 +5,7 @@
 #include "nef_af_profile.hpp"
 
 #include <algorithm>
+#include <rfl/json.hpp>
 
 #include "logger.hpp"
 
@@ -100,14 +101,24 @@ bool nef_af_profile::has_no_subscriptions() const {
 }
 
 //------------------------------------------------------------------------------
-nlohmann::json nef_af_profile::to_json() const {
+// Internal typed struct — intentionally not exposed in the header.
+namespace {
+struct AfProfileData {
+  rfl::Rename<"afId", std::string> af_id;
+  rfl::Rename<"allowedApis", std::vector<std::string>> allowed_apis;
+  rfl::Rename<"subscriptionIds", std::vector<std::string>> subscription_ids;
+};
+}  // namespace
+
+//------------------------------------------------------------------------------
+std::string nef_af_profile::to_json_str() const {
   std::shared_lock lock(m_mutex);
-  nlohmann::json j;
-  j["afId"]            = m_af_id;
-  j["allowedApis"]     = m_allowed_apis;
-  j["subscriptionIds"] = m_subscription_ids;
+  AfProfileData data;
+  data.af_id            = m_af_id;
+  data.allowed_apis     = m_allowed_apis;
+  data.subscription_ids = m_subscription_ids;
   // api_key intentionally omitted from JSON representation
-  return j;
+  return rfl::json::write(data);
 }
 
 //------------------------------------------------------------------------------

@@ -9,6 +9,7 @@
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <nlohmann/json.hpp>
+#include <rfl/json.hpp>
 
 #include "3gpp_29.500.h"
 #include "http_client.hpp"
@@ -167,37 +168,47 @@ bool nef_client::register_to_nrf() {
     return false;
   }
 
-  nlohmann::json profile;
-  profile["nfInstanceId"]   = m_nef_instance_id;
-  profile["nfType"]         = "NEF";
-  profile["nfStatus"]       = "REGISTERED";
-  profile["heartBeatTimer"] = 50;
-  profile["priority"]       = 1;
-  profile["capacity"]       = 100;
-  profile["nfInstanceName"] = local_nf->get_host();
+  rfl::Generic::Object profile;
+  profile["nfInstanceId"]   = rfl::Generic(m_nef_instance_id);
+  profile["nfType"]         = rfl::Generic(std::string("NEF"));
+  profile["nfStatus"]       = rfl::Generic(std::string("REGISTERED"));
+  profile["heartBeatTimer"] = rfl::Generic(int64_t(50));
+  profile["priority"]       = rfl::Generic(int64_t(1));
+  profile["capacity"]       = rfl::Generic(int64_t(100));
+  profile["nfInstanceName"] = rfl::Generic(local_nf->get_host());
 
   // IPv4 address + SBI port
-  struct in_addr addr4     = local_sbi.get_addr4();
-  profile["ipv4Addresses"] = nlohmann::json::array({inet_ntoa(addr4)});
+  struct in_addr addr4 = local_sbi.get_addr4();
+  {
+    rfl::Generic::Array addrs;
+    addrs.push_back(rfl::Generic(std::string(inet_ntoa(addr4))));
+    profile["ipv4Addresses"] = rfl::Generic(std::move(addrs));
+  }
 
   // NF Services advertised by this NEF
-  nlohmann::json nf_services = nlohmann::json::array();
-  auto add_service           = [&](const std::string& svc_name,
+  rfl::Generic::Array nf_services;
+  auto add_service = [&](const std::string& svc_name,
                          const std::string& api_name,
                          const std::string& version) {
-    nlohmann::json svc;
-    svc["serviceInstanceId"] = m_nef_instance_id;
-    svc["serviceName"]       = svc_name;
-    svc["versions"]          = nlohmann::json::array({nlohmann::json{
-        {"apiVersionInUri", version}, {"apiFullVersion", version}}});
-    svc["scheme"]            = "http";
-    svc["nfServiceStatus"]   = "REGISTERED";
-    nlohmann::json ep;
-    ep["ipv4Address"]  = inet_ntoa(addr4);
-    ep["port"]         = local_sbi.get_port();
-    svc["ipEndPoints"] = nlohmann::json::array({ep});
-    svc["apiPrefix"]   = api_name;
-    nf_services.push_back(svc);
+    rfl::Generic::Object svc;
+    svc["serviceInstanceId"] = rfl::Generic(m_nef_instance_id);
+    svc["serviceName"]       = rfl::Generic(svc_name);
+    rfl::Generic::Object ver_entry;
+    ver_entry["apiVersionInUri"] = rfl::Generic(version);
+    ver_entry["apiFullVersion"]  = rfl::Generic(version);
+    rfl::Generic::Array versions;
+    versions.push_back(rfl::Generic(std::move(ver_entry)));
+    svc["versions"]        = rfl::Generic(std::move(versions));
+    svc["scheme"]          = rfl::Generic(std::string("http"));
+    svc["nfServiceStatus"] = rfl::Generic(std::string("REGISTERED"));
+    rfl::Generic::Object ep;
+    ep["ipv4Address"] = rfl::Generic(std::string(inet_ntoa(addr4)));
+    ep["port"]        = rfl::Generic(int64_t(local_sbi.get_port()));
+    rfl::Generic::Array endpoints;
+    endpoints.push_back(rfl::Generic(std::move(ep)));
+    svc["ipEndPoints"] = rfl::Generic(std::move(endpoints));
+    svc["apiPrefix"]   = rfl::Generic(api_name);
+    nf_services.push_back(rfl::Generic(std::move(svc)));
   };
 
   add_service("nnef-eventexposure", "/3gpp-monitoring-event/v1", "v1.0.0");
@@ -207,7 +218,10 @@ bool nef_client::register_to_nrf() {
   add_service("nnef-qosmonitoring", "/3gpp-as-session-with-qos/v1", "v1.0.0");
   add_service("nnef-analyticsexposure", "/3gpp-analyticsexposure/v1", "v1.0.0");
 
-  profile["nfServices"] = nf_services;
+  profile["nfServices"] = rfl::Generic(std::move(nf_services));
+
+  const std::string profile_json =
+      rfl::json::write(rfl::Generic(std::move(profile)));
 
   // PUT to NRF NF Management API
   std::string nrf_uri = build_nrf_nf_instance_uri(m_nef_instance_id);
@@ -224,7 +238,7 @@ bool nef_client::register_to_nrf() {
       "NRF", /*is_post=*/true,
       [&]() -> int {
         oai::http::request req =
-            http_client_inst->prepare_json_request(nrf_uri, profile.dump());
+            http_client_inst->prepare_json_request(nrf_uri, profile_json);
         nrf_register_resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::PUT, req);
         return static_cast<int>(nrf_register_resp.status_code);
@@ -384,10 +398,31 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
   }
 
   try {
-    nlohmann::json j = nlohmann::json::parse(last_disc_resp.body);
+    auto r_disc = rfl::json::read<rfl::Generic>(last_disc_resp.body);
+    if (!r_disc) {
+      Logger::nef_app().warn(
+          "NF discovery: failed to parse response JSON: %s",
+          r_disc.error().what());
+      return false;
+    }
+    const auto* root_obj =
+        std::get_if<rfl::Generic::Object>(&r_disc.value().variant());
+    if (!root_obj) {
+      Logger::nef_app().warn("NF discovery: response is not a JSON object");
+      return false;
+    }
+
     // SearchResult → nfInstances[0] → nfServices[0] → ipEndPoints[0]
-    auto& instances = j.at("nfInstances");
-    if (instances.empty()) {
+    auto inst_r = root_obj->get("nfInstances");
+    if (!inst_r) {
+      Logger::nef_app().warn(
+          "NF discovery: no 'nfInstances' in response for %s",
+          nf_type_str.c_str());
+      return false;
+    }
+    const auto* instances =
+        std::get_if<rfl::Generic::Array>(&inst_r.value().variant());
+    if (!instances || instances->empty()) {
       Logger::nef_app().warn(
           "NF discovery: no instances found for %s", nf_type_str.c_str());
       return false;
@@ -395,25 +430,83 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
 
     // NF selection
     bool found = false;
-    for (auto& inst : instances) {
+    for (const auto& inst_g : *instances) {
+      const auto* inst = std::get_if<rfl::Generic::Object>(&inst_g.variant());
+      if (!inst) continue;
+
+      // Log candidate
+      std::string inst_id, nf_type_val;
+      if (auto r = inst->get("instanceId")) {
+        if (auto* s = std::get_if<std::string>(&r.value().variant()))
+          inst_id = *s;
+      }
+      if (auto r = inst->get("nfType")) {
+        if (auto* s = std::get_if<std::string>(&r.value().variant()))
+          nf_type_val = *s;
+      }
       Logger::nef_app().debug(
-          "NF discovery candidate: instanceId=%s, nfType=%s",
-          inst.value("instanceId", "").c_str(),
-          inst.value("nfType", "").c_str());
+          "NF discovery candidate: instanceId=%s, nfType=%s", inst_id.c_str(),
+          nf_type_val.c_str());
 
       std::string scheme = "http";
 
-      if (inst.contains("nfServices") && !inst["nfServices"].empty()) {
-        auto& ep    = inst["nfServices"][0].at("ipEndPoints")[0];
-        nf_endpoint = scheme + "://" + ep.value("ipv4Address", "") + ":" +
-                      std::to_string(ep.value("port", 8080));
-        found = true;
-      } else if (
-          inst.contains("ipv4Addresses") && !inst["ipv4Addresses"].empty()) {
-        nf_endpoint =
-            "http://" + inst["ipv4Addresses"][0].get<std::string>() + ":8080";
-        found = true;
+      auto svc_r = inst->get("nfServices");
+      if (svc_r) {
+        const auto* svcs =
+            std::get_if<rfl::Generic::Array>(&svc_r.value().variant());
+        if (svcs && !svcs->empty()) {
+          const auto* svc0 =
+              std::get_if<rfl::Generic::Object>(&(*svcs)[0].variant());
+          if (svc0) {
+            auto ep_r = svc0->get("ipEndPoints");
+            if (ep_r) {
+              const auto* eps =
+                  std::get_if<rfl::Generic::Array>(&ep_r.value().variant());
+              if (eps && !eps->empty()) {
+                const auto* ep0 =
+                    std::get_if<rfl::Generic::Object>(&(*eps)[0].variant());
+                if (ep0) {
+                  std::string ipv4;
+                  int port = 8080;
+                  if (auto r = ep0->get("ipv4Address")) {
+                    if (auto* s =
+                            std::get_if<std::string>(&r.value().variant()))
+                      ipv4 = *s;
+                  }
+                  if (auto r = ep0->get("port")) {
+                    if (auto* iv = std::get_if<int64_t>(&r.value().variant()))
+                      port = *iv;
+                    else if (
+                        auto* dv = std::get_if<double>(&r.value().variant()))
+                      port = static_cast<int>(*dv);
+                    else if (
+                        auto* i64v = std::get_if<int64_t>(&r.value().variant()))
+                      port = static_cast<int>(*i64v);
+                  }
+                  nf_endpoint =
+                      scheme + "://" + ipv4 + ":" + std::to_string(port);
+                  found = true;
+                }
+              }
+            }
+          }
+        }
       }
+
+      if (!found) {
+        auto ip_r = inst->get("ipv4Addresses");
+        if (ip_r) {
+          const auto* addrs =
+              std::get_if<rfl::Generic::Array>(&ip_r.value().variant());
+          if (addrs && !addrs->empty()) {
+            if (auto* s = std::get_if<std::string>(&(*addrs)[0].variant())) {
+              nf_endpoint = "http://" + *s + ":8080";
+              found       = true;
+            }
+          }
+        }
+      }
+
       // TODO: for now, do not do NF selection, just take the first valid one
       if (found) break;
     }
@@ -423,7 +516,7 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
     // Cache the result
     nrf_discovery_cache::instance().put(nf_type_str, nf_endpoint);
     return found;
-  } catch (nlohmann::json::exception& e) {
+  } catch (const std::exception& e) {
     Logger::nef_app().warn("NF discovery parse error: %s", e.what());
     return false;
   }

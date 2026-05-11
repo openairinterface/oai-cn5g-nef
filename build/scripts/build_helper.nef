@@ -37,6 +37,7 @@ source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.nlohmann
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.nghttp2
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.yamlcpp
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.cpr
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.reflectcpp
 
 
 #-------------------------------------------------------------------------------
@@ -163,6 +164,9 @@ check_install_nef_deps() {
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
   install_nlohmann_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_reflectcpp_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
   install_nghttp2_from_git $1 $2

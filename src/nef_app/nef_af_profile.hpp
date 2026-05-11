@@ -6,7 +6,7 @@
 #define FILE_NEF_AF_PROFILE_HPP_SEEN
 
 #include <memory>
-#include <nlohmann/json.hpp>
+#include <rfl/json.hpp>
 #include <shared_mutex>
 #include <string>
 #include <vector>
@@ -105,7 +105,7 @@ class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
   bool has_no_subscriptions() const;
 
   // Serialization
-  nlohmann::json to_json() const;
+  std::string to_json_str() const;
 
   void display() const;
 

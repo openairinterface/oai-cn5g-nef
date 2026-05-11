@@ -31,7 +31,7 @@
 #---------------------------------------------------------------------
 # BASE IMAGE
 #---------------------------------------------------------------------
-ARG BASE_IMAGE=ubuntu:focal
+ARG BASE_IMAGE=ubuntu:jammy
 FROM $BASE_IMAGE as oai-nef-base
 
 ENV DEBIAN_FRONTEND=noninteractive

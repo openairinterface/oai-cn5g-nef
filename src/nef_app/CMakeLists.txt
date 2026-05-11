@@ -8,12 +8,13 @@ include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils)
 
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/config/config.cmake)
-include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model/common_model.cmake)
+#include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model/common_model.cmake)
 
 add_library(NEF STATIC
   nef_app.cpp
   nef_af_profile.cpp
   nef_jwt.cpp
+  nef_json_utils.cpp
   nef_notification_mapper.cpp
   nef_config_types.cpp
   nef_subscription.cpp
@@ -21,3 +22,4 @@ add_library(NEF STATIC
   task_manager.cpp
   nef_event.cpp
 )
+target_link_libraries(NEF PRIVATE reflectcpp)

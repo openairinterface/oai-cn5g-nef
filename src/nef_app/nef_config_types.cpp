@@ -7,10 +7,28 @@
 #include <algorithm>
 #include <sstream>
 
+#include <rfl/json.hpp>
+
 #include "logger.hpp"
 #include "nef_config.hpp"
 
 using namespace oai::config::nef;
+
+// Internal typed structs for reflect-cpp serialisation — NOT exposed in header.
+namespace {
+struct AfWhitelistEntryData {
+  rfl::Rename<"af_id", std::string> af_id;
+  rfl::Rename<"api_key", std::optional<std::string>> api_key;
+  rfl::Rename<"allowed_apis", std::optional<std::vector<std::string>>>
+      allowed_apis;
+};
+
+struct NefConfigData {
+  rfl::Rename<"Support Features", std::optional<std::string>> support_features;
+  rfl::Rename<"AF Whitelist", std::optional<std::vector<AfWhitelistEntryData>>>
+      af_whitelist;
+};
+}  // namespace
 
 //------------------------------------------------------------------------------
 nef_config_type::nef_config_type(
@@ -79,17 +97,23 @@ void nef_config_type::from_yaml(const YAML::Node& node) {
 nlohmann::json nef_config_type::to_json() {
   nlohmann::json j = nf::to_json();
 
-  j[m_support_features.get_config_name()] = m_support_features.to_json();
+  NefConfigData data;
+  data.support_features = m_support_features.get_value();
 
-  nlohmann::json wl_arr = nlohmann::json::array();
+  std::vector<AfWhitelistEntryData> wl;
+  wl.reserve(m_af_whitelist.size());
   for (const auto& entry : m_af_whitelist) {
-    nlohmann::json e;
-    e[NEF_CONFIG_AF_ID]      = entry.af_id;
-    e[NEF_CONFIG_AF_API_KEY] = entry.api_key;
-    e[NEF_CONFIG_AF_ALLOWED] = entry.allowed_apis;
-    wl_arr.push_back(e);
+    AfWhitelistEntryData e;
+    e.af_id        = entry.af_id;
+    e.api_key      = entry.api_key;
+    e.allowed_apis = entry.allowed_apis;
+    wl.push_back(std::move(e));
   }
-  j[NEF_CONFIG_AF_WHITELIST_LABEL] = wl_arr;
+  data.af_whitelist = std::move(wl);
+
+  const auto nef_partial = nlohmann::json::parse(rfl::json::write(data));
+  j[m_support_features.get_config_name()] = nef_partial["Support Features"];
+  j[NEF_CONFIG_AF_WHITELIST_LABEL]        = nef_partial["AF Whitelist"];
 
   return j;
 }
@@ -99,31 +123,30 @@ bool nef_config_type::from_json(const nlohmann::json& json_data) {
   try {
     nf::from_json(json_data);
 
-    if (json_data.contains(m_support_features.get_config_name())) {
-      m_support_features.from_json(
-          json_data[m_support_features.get_config_name()]);
+    const auto result = rfl::json::read<NefConfigData>(json_data.dump());
+    if (!result) return false;
+    const auto& d = *result;
+
+    if (d.support_features.get()) {
+      set_support_features(*d.support_features.get());
     }
 
-    if (json_data.contains(NEF_CONFIG_AF_WHITELIST_LABEL) &&
-        json_data[NEF_CONFIG_AF_WHITELIST_LABEL].is_array()) {
+    if (d.af_whitelist.get()) {
       m_af_whitelist.clear();
-      for (const auto& e : json_data[NEF_CONFIG_AF_WHITELIST_LABEL]) {
+      for (const auto& e : *d.af_whitelist.get()) {
+        const std::string& af_id_val = e.af_id.get();
+        if (af_id_val.empty()) continue;
         af_whitelist_entry_t entry;
-        if (e.contains(NEF_CONFIG_AF_ID))
-          entry.af_id = e[NEF_CONFIG_AF_ID].get<std::string>();
-        if (e.contains(NEF_CONFIG_AF_API_KEY))
-          entry.api_key = e[NEF_CONFIG_AF_API_KEY].get<std::string>();
-        if (e.contains(NEF_CONFIG_AF_ALLOWED) &&
-            e[NEF_CONFIG_AF_ALLOWED].is_array()) {
-          for (const auto& api : e[NEF_CONFIG_AF_ALLOWED])
-            entry.allowed_apis.push_back(api.get<std::string>());
-        }
-        if (!entry.af_id.empty()) m_af_whitelist.push_back(std::move(entry));
+        entry.af_id   = af_id_val;
+        entry.api_key = e.api_key.get().value_or("");
+        entry.allowed_apis =
+            e.allowed_apis.get().value_or(std::vector<std::string>{});
+        m_af_whitelist.push_back(std::move(entry));
       }
     }
+
     return true;
-  } catch (nlohmann::detail::exception&) {
-  } catch (std::exception&) {
+  } catch (const std::exception&) {
   }
   return false;
 }
@@ -137,14 +160,15 @@ std::string nef_config_type::to_string(const std::string& indent) const {
 
   out.append(inner_indent)
       .append(fmt::format(
-          BASE_FORMATTER, OUTER_LIST_ELEM, m_support_features.get_config_name(),
-          inner_width, m_support_features.get_value()));
+          fmt::runtime(BASE_FORMATTER), OUTER_LIST_ELEM,
+          m_support_features.get_config_name(), inner_width,
+          m_support_features.get_value()));
 
   // Whitelist summary
   out.append(inner_indent)
       .append(fmt::format(
-          BASE_FORMATTER, OUTER_LIST_ELEM, NEF_CONFIG_AF_WHITELIST_LABEL,
-          inner_width,
+          fmt::runtime(BASE_FORMATTER), OUTER_LIST_ELEM,
+          NEF_CONFIG_AF_WHITELIST_LABEL, inner_width,
           m_af_whitelist.empty() ?
               std::string("(open-access / dev mode)") :
               std::to_string(m_af_whitelist.size()) + " entry/entries"));

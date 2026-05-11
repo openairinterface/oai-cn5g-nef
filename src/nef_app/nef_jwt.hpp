@@ -38,9 +38,21 @@ class nef_jwt {
    * @return true if the token is valid for the requested scope and AF
    */
   bool validate_af_token(
-      const std::string& bearer_token,
-      const std::string& required_scope,
+      const std::string& bearer_token, const std::string& required_scope,
       const std::string& af_id) const;
+
+  /*
+   * Low-level token validation that accepts the HMAC key directly.
+   * Used internally by validate_af_token and also by unit tests.
+   * @param [const std::string &] bearer_token: JWT string (without "Bearer ")
+   * @param [const std::string &] required_scope: expected scope claim value
+   * @param [const std::string &] af_id: expected subject claim (AF identity)
+   * @param [const std::string &] key: HMAC-SHA256 secret
+   * @return true if the token is valid
+   */
+  bool validate_with_key(
+      const std::string& bearer_token, const std::string& required_scope,
+      const std::string& af_id, const std::string& key) const;
 
   /*
    * Extract the 'sub' (subject) claim from a bearer token WITHOUT validating
@@ -51,8 +63,7 @@ class nef_jwt {
    * @return true if the token was parseable and the sub claim was present
    */
   bool extract_sub_claim(
-      const std::string& bearer_token,
-      std::string& out_sub) const;
+      const std::string& bearer_token, std::string& out_sub) const;
 
   /*
    * Retrieve the HMAC secret for the given scope / NF pair.
@@ -74,8 +85,7 @@ class nef_jwt {
    * @return true on success
    */
   bool get_secret_key(
-      const std::string& scope,
-      const std::string& target_nf_instance_id,
+      const std::string& scope, const std::string& target_nf_instance_id,
       std::string& key) const;
 };
 

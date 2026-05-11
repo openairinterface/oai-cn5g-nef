@@ -7,7 +7,7 @@
 #include <chrono>
 #include <string>
 
-#include <nlohmann/json.hpp>
+#include <rfl/json.hpp>
 
 namespace oai::nef::app::nef_health_check {
 
@@ -21,24 +21,23 @@ namespace oai::nef::app::nef_health_check {
  * @return                JSON string for the response body.
  */
 inline std::string make_response(
-    bool draining,
-    const std::string& instance_id,
-    int uptime_seconds,
+    bool draining, const std::string& instance_id, int uptime_seconds,
     int& http_code) {
-  nlohmann::json j;
+  rfl::Generic::Object j;
   if (draining) {
     http_code    = 503;
-    j["status"]  = "draining";
-    j["nf_type"] = "NEF";
+    j["status"]  = rfl::Generic(std::string("draining"));
+    j["nf_type"] = rfl::Generic(std::string("NEF"));
   } else {
-    http_code              = 200;
-    j["status"]            = "ok";
-    j["nf_type"]           = "NEF";
-    j["instance_id"]       = instance_id;
-    j["uptime_seconds"]    = uptime_seconds >= 0 ? uptime_seconds : 0;
-    j["draining"]          = false;
+    http_code        = 200;
+    j["status"]      = rfl::Generic(std::string("ok"));
+    j["nf_type"]     = rfl::Generic(std::string("NEF"));
+    j["instance_id"] = rfl::Generic(instance_id);
+    j["uptime_seconds"] =
+        rfl::Generic(int64_t(uptime_seconds >= 0 ? uptime_seconds : 0));
+    j["draining"] = rfl::Generic(false);
   }
-  return j.dump();
+  return rfl::json::write(rfl::Generic(std::move(j)));
 }
 
 }  // namespace oai::nef::app::nef_health_check

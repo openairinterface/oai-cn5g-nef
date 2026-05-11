@@ -1,11 +1,7 @@
-/*
- * SPDX-License-Identifier: LicenseRef-CSSL-1.0
- */
-
 #ifndef FILE_NEF_NOTIFICATION_MAPPER_HPP_SEEN
 #define FILE_NEF_NOTIFICATION_MAPPER_HPP_SEEN
 
-#include <nlohmann/json.hpp>
+#include <rfl/json.hpp>
 #include <string>
 
 namespace oai {
@@ -14,7 +10,7 @@ namespace app {
 
 /*
  * nef_notification_mapper
- * 
+ *
  * Stateless utility class that converts southbound NF notification payloads
  * (AMF / SMF / PCF) into the northbound format that is sent to the AF via the
  * NEF T8 reference point.
@@ -28,8 +24,8 @@ namespace app {
  */
 class nef_notification_mapper {
  public:
-  nef_notification_mapper()                                     = delete;
-  nef_notification_mapper(const nef_notification_mapper&)       = delete;
+  nef_notification_mapper()                               = delete;
+  nef_notification_mapper(const nef_notification_mapper&) = delete;
   nef_notification_mapper& operator=(const nef_notification_mapper&) = delete;
 
   // Monitoring Event (AMF → NEF → AF)
@@ -43,8 +39,7 @@ class nef_notification_mapper {
    * @return true on success, false if mandatory fields are absent.
    */
   static bool amf_to_monitoring_notification(
-      const nlohmann::json& amf_notif,
-      nlohmann::json& t8_notif,
+      const rfl::Generic& amf_notif, rfl::Generic& t8_notif,
       const std::string& sub_id);
 
   // Session-with-QoS (SMF → NEF → AF)
@@ -57,8 +52,7 @@ class nef_notification_mapper {
    * @return true on success.
    */
   static bool smf_to_qos_notification(
-      const nlohmann::json& smf_notif,
-      nlohmann::json& t8_notif,
+      const rfl::Generic& smf_notif, rfl::Generic& t8_notif,
       const std::string& sub_id);
 
   // Traffic Influence / Policy (PCF → NEF → AF)
@@ -71,8 +65,7 @@ class nef_notification_mapper {
    * @return true on success.
    */
   static bool pcf_to_ti_notification(
-      const nlohmann::json& pcf_notif,
-      nlohmann::json& t8_notif,
+      const rfl::Generic& pcf_notif, rfl::Generic& t8_notif,
       const std::string& sub_id);
 };
 

@@ -33,6 +33,13 @@ FROM registry.access.redhat.com/ubi8/ubi:latest AS oai-nef-builder
 
 ENV IS_DOCKERFILE=1
 
+# GCC 11.4 is required for C++20 support (reflect-cpp v0.19.0).
+# gcc-toolset-11 requires codeready-builder-for-rhel-8 repo (enabled below).
+RUN microdnf install -y gcc-toolset-11 gcc-toolset-11-gcc gcc-toolset-11-gcc-c++ 2>/dev/null || true
+ENV CC=/opt/rh/gcc-toolset-11/root/usr/bin/gcc
+ENV CXX=/opt/rh/gcc-toolset-11/root/usr/bin/g++
+ENV PATH=/opt/rh/gcc-toolset-11/root/usr/bin:${PATH}
+
 # Copy the entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
 
