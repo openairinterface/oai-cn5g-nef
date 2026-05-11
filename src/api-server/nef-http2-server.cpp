@@ -22,6 +22,9 @@ static inline rfl::Generic j2g(const nlohmann::json& j) {
   auto r = rfl::json::read<rfl::Generic>(j.dump());
   return r ? r.value() : rfl::Generic(rfl::Generic::Object{});
 }
+static inline nlohmann::json g2j(const rfl::Generic& g) {
+  return nlohmann::json::parse(rfl::json::write(g));
+}
 using namespace oai::common::sbi;
 
 namespace {

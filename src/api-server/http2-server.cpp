@@ -3,10 +3,7 @@
  */
 
 /*! \file http2-server.cpp
- \brief Generic HTTP/2 server wrapper — implementation.
-        Uses nghttp2 v1.68.1 C API + libevent (cleartext h2c, no TLS).
-        Uses v2 API: nghttp2_submit_response2, nghttp2_session_mem_recv2,
-        nghttp2_data_provider2, nghttp2_ssize.
+ \brief Generic HTTP/2 server wrapper implementation using nghttp2 + libevent.
  */
 
 #include "http2-server.h"
@@ -16,7 +13,8 @@
 #include <string>
 #include <arpa/inet.h>   // inet_pton, inet_ntop, htons, AF_INET
 #include <netinet/in.h>  // sockaddr_in, INADDR_ANY
-#include <unistd.h>  // close() — used in accept_cb when max_connections exceeded
+#include <sys/types.h>   // ssize_t
+#include <unistd.h>  // close() used in accept_cb when max_connections exceeded
 #include <event2/thread.h>
 
 #include "logger.hpp"
@@ -169,9 +167,7 @@ struct thread_pool_work_item {
 // Called by nghttp2 to hand outgoing bytes to the transport layer.
 // Appends to the bufferevent output buffer; does NOT call bufferevent_write()
 // (which can trigger recursive write callbacks in some libevent configs).
-// v2 API (nghttp2 v1.68.1): returns nghttp2_ssize (typedef ptrdiff_t).
-
-static nghttp2_ssize send_callback(
+static ssize_t send_callback(
     nghttp2_session* /*session*/, const uint8_t* data, size_t length,
     int /*flags*/, void* user_data) {
   auto* conn              = static_cast<http2_connection*>(user_data);
@@ -179,7 +175,7 @@ static nghttp2_ssize send_callback(
   if (evbuffer_add(output, data, length) != 0) {
     return NGHTTP2_ERR_CALLBACK_FAILURE;
   }
-  return static_cast<nghttp2_ssize>(length);
+  return static_cast<ssize_t>(length);
 }
 
 // on_begin_headers_callback
@@ -443,8 +439,7 @@ static void initialize_nghttp2_session(
   nghttp2_session_callbacks* callbacks;
   nghttp2_session_callbacks_new(&callbacks);
 
-  // v2 API (nghttp2 v1.68.1): _set_send_callback2
-  nghttp2_session_callbacks_set_send_callback2(callbacks, send_callback);
+  nghttp2_session_callbacks_set_send_callback(callbacks, send_callback);
   nghttp2_session_callbacks_set_on_frame_recv_callback(
       callbacks, on_frame_recv_callback);
   nghttp2_session_callbacks_set_on_stream_close_callback(
@@ -461,24 +456,14 @@ static void initialize_nghttp2_session(
   // Limit outstanding unacknowledged PING frames — PING flood protection.
   nghttp2_option_set_max_outbound_ack(option, 1000);
 
-  // ── v1.68.1 security hardening ──
-
-  // CVE-2023-44487 (HTTP/2 Rapid Reset): Token-bucket rate limiter.
-  // burst=100: initial and maximum token count.
-  // rate=30: tokens regenerated per second.
-  // Each incoming RST_STREAM consumes one token. When tokens are exhausted,
-  // the library sends GOAWAY and closes the connection.
-  // This supplements the manual detection in on_stream_close_callback, which
-  // can be removed once library-level protection is validated in production.
-  // Library defaults: burst=1000, rate=33.
+  // Newer nghttp2 releases provide additional library-level flood protection.
+  // Keep these calls version-gated so NEF still builds against older distro
+  // headers; on older nghttp2, on_stream_close_callback keeps the manual rapid
+  // reset protection active.
+#if NGHTTP2_VERSION_NUM >= 0x014400
   nghttp2_option_set_stream_reset_rate_limit(option, 1000, 33);
-
-  // CVE-2024-28182 (CONTINUATION flood): Limit CONTINUATION frames per
-  // HEADERS sequence. Prevents HPACK bomb / memory exhaustion attacks.
-  // Library default is 8. We set 16 to be more permissive for legitimate
-  // clients that may split large header blocks across multiple CONTINUATION
-  // frames, while still blocking flood attacks.
   nghttp2_option_set_max_continuations(option, 16);
+#endif
 
   // NOTE: nghttp2_option_set_max_settings() is NOT called.
   // The library default is 32, which is appropriate (RFC 7540 defines 6
@@ -514,10 +499,7 @@ static void initialize_nghttp2_session(
 // http2_response implementation
 // ---------------------------------------------------------------------------
 
-// Forward declaration — response_body_read_callback must be declared before
-// http2_response::send() references it as a function pointer (feedback N8).
-// v2 API (nghttp2 v1.68.1): returns nghttp2_ssize.
-static nghttp2_ssize response_body_read_callback(
+static ssize_t response_body_read_callback(
     nghttp2_session*, int32_t, uint8_t*, size_t, uint32_t*,
     nghttp2_data_source*, void*);
 
@@ -575,13 +557,12 @@ void http2_response::send(
   }
 
   if (body.empty()) {
-    // No body — send HEADERS frame with END_STREAM.
-    // v2 API (nghttp2 v1.68.0+): nghttp2_submit_response2
-    int rv = nghttp2_submit_response2(
+    // No body: send HEADERS frame with END_STREAM.
+    int rv = nghttp2_submit_response(
         session_, stream_id_, nva.data(), nva.size(), nullptr);
     if (rv != 0) {
       Logger::nef_app().error(
-          "HTTP2 send: nghttp2_submit_response2 failed for stream {}: {}",
+          "HTTP2 send: nghttp2_submit_response failed for stream {}: {}",
           stream_id_, nghttp2_strerror(rv));
     }
   } else {
@@ -595,17 +576,15 @@ void http2_response::send(
       stream_->body_ptr = body_data;
     }
 
-    // v2 API (nghttp2 v1.68.0+): nghttp2_data_provider2
-    nghttp2_data_provider2 data_prd;
+    nghttp2_data_provider data_prd;
     data_prd.source.ptr    = body_data;
     data_prd.read_callback = response_body_read_callback;
 
-    // v2 API (nghttp2 v1.68.0+): nghttp2_submit_response2
-    int rv = nghttp2_submit_response2(
+    int rv = nghttp2_submit_response(
         session_, stream_id_, nva.data(), nva.size(), &data_prd);
     if (rv != 0) {
       Logger::nef_app().error(
-          "HTTP2 send: nghttp2_submit_response2 failed for stream {}: {}",
+          "HTTP2 send: nghttp2_submit_response failed for stream {}: {}",
           stream_id_, nghttp2_strerror(rv));
     }
   }
@@ -631,10 +610,9 @@ void http2_response::send(
 }
 
 // Response Body Data Provider
-// v2 API (nghttp2 v1.68.0+): read_callback returns nghttp2_ssize.
 // Called by nghttp2_session_send() to read body bytes into a DATA frame.
 
-static nghttp2_ssize response_body_read_callback(
+static ssize_t response_body_read_callback(
     nghttp2_session* /*session*/, int32_t /*stream_id*/, uint8_t* buf,
     size_t length, uint32_t* data_flags, nghttp2_data_source* source,
     void* /*user_data*/) {
@@ -651,7 +629,7 @@ static nghttp2_ssize response_body_read_callback(
     // http2_stream::~http2_stream() will delete body_ptr (feedback C2).
   }
 
-  return static_cast<nghttp2_ssize>(nread);
+  return static_cast<ssize_t>(nread);
 }
 
 // response_post_cb
@@ -1011,10 +989,7 @@ void http2_server::read_cb(struct bufferevent* bev, void* arg) {
   if (!raw) return;
   const uint8_t* data = reinterpret_cast<const uint8_t*>(raw);
 
-  // Feed data to nghttp2.
-  // v2 API (nghttp2 v1.68.1): nghttp2_session_mem_recv2 returns nghttp2_ssize.
-  nghttp2_ssize readlen =
-      nghttp2_session_mem_recv2(conn->session, data, datalen);
+  ssize_t readlen = nghttp2_session_mem_recv(conn->session, data, datalen);
   if (readlen < 0) {
     // Fatal session error — close connection.
     // SAFE to call delete conn here: BEV_OPT_DEFER_CALLBACKS ensures we are

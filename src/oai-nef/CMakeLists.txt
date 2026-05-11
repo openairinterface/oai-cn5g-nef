@@ -72,6 +72,9 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS} -std=c++20 -Os")
 
 add_definitions(-DCMAKER)
 add_definitions(-DBSTRLIB_CAN_USE_STL=1 -DBSTRLIB_CAN_USE_IOSTREAM=1)
+# OAI common sources build runtime format strings; keep fmt v9 from requiring
+# C++20 consteval format strings for those call sites.
+add_definitions(-DFMT_CONSTEVAL=)
 
 # Git version
 set(GIT_BRANCH "UNKNOWN")
@@ -131,7 +134,7 @@ include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils/utils.cmake)
 
 target_link_libraries(nef ${ASAN}
     -Wl,--start-group
-      NEF NEF_API
+      NEF NEF_API reflectcpp
       -lnettle ${NETTLE_LIBRARIES} ${CRYPTO_LIBRARIES}
       -lnghttp2 -lboost_system -lboost_thread -lboost_date_time
       -lfmt -lspdlog -lssl -lcrypto dl
