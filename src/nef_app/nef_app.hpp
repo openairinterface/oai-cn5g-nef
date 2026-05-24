@@ -14,7 +14,8 @@
 #include <vector>
 
 #include <boost/signals2.hpp>
-#include <nlohmann/json.hpp>
+#include <nlohmann/json.hpp>  // Required for nef_nf_notification_sig_t signal boundary (handle_nf_notification_event)
+#include <rfl/Generic.hpp>
 #include <rfl/json.hpp>
 
 #include "nef.h"
@@ -296,7 +297,7 @@ class nef_app {
 
   // Inbound notification from 5GC NF
   void handle_nf_notification(
-      const std::string& nf_sub_id, const nlohmann::json& notif_payload);
+      const std::string& nf_sub_id, const std::string& notif_payload);
 
   // Nnef_EventExposure (TS 29.591)
   void handle_nnef_event_exposure_subscribe(
@@ -341,32 +342,32 @@ class nef_app {
   mutable std::shared_mutex m_nf2af_mutex;
 
   // Traffic influence sessions (ti_id → body)
-  std::map<std::string, nlohmann::json> m_ti_sessions;
+  std::map<std::string, rfl::Generic> m_ti_sessions;
   std::map<std::string, std::string> m_ti_id2af_id;
   std::map<std::string, std::string> m_ti_id2pcf_policy_id;
   mutable std::shared_mutex m_ti_mutex;
 
   // BDT policy sessions (bdt_id → body)
-  std::map<std::string, nlohmann::json> m_bdt_sessions;
+  std::map<std::string, rfl::Generic> m_bdt_sessions;
   std::map<std::string, std::string> m_bdt_id2af_id;
   std::map<std::string, std::string> m_bdt_id2pcf_policy_id;
   mutable std::shared_mutex m_bdt_mutex;
 
   // PFD transactions (trans_id → transaction body containing pfdDatas)
-  std::map<std::string, nlohmann::json> m_pfd_trans_sessions;
+  std::map<std::string, rfl::Generic> m_pfd_trans_sessions;
   std::map<std::string, std::string> m_pfd_trans2scs_id;
   mutable std::shared_mutex m_pfd_mutex;
 
   // SBI PFD management storage (distinct from T8 PFD storage)
-  std::unordered_map<std::string, nlohmann::json> m_nnef_pfd_transactions;
+  std::unordered_map<std::string, rfl::Generic> m_nnef_pfd_transactions;
   mutable std::shared_mutex m_nnef_pfd_transactions_mutex;
 
   // F3.2: Nnef_PFDmanagement subscriptions (sub_id → subscription body)
-  std::unordered_map<std::string, nlohmann::json> m_nnef_pfd_subscriptions;
+  std::unordered_map<std::string, rfl::Generic> m_nnef_pfd_subscriptions;
   mutable std::shared_mutex m_nnef_pfd_subscriptions_mutex;
 
   // Nnef_EventExposure subscriptions (subscription_id → subscription body)
-  std::unordered_map<std::string, nlohmann::json> m_nnef_event_subscriptions;
+  std::unordered_map<std::string, rfl::Generic> m_nnef_event_subscriptions;
   mutable std::shared_mutex m_nnef_event_subscriptions_mutex;
 
   nef_event& m_event_sub;
@@ -400,7 +401,7 @@ class nef_app {
   // Dispatch PFD-change notifications to all matching SBI subscribers.
   void notify_nnef_pfd_subscribers(
       const std::string& event_type,  // "PFD_CHANGE" or "PFD_REMOVE"
-      const std::string& app_id, const nlohmann::json& pfd_data);
+      const std::string& app_id, const rfl::Generic& pfd_data);
 
   // Lifecycle helpers: create profile on first subscription, destroy on last
   void ensure_af_profile(const std::string& af_id, const std::string& sub_id);

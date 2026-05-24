@@ -5,7 +5,6 @@
 #include "nef-http2-server.h"
 
 #include <cctype>
-#include <nlohmann/json.hpp>
 #include <string>
 
 #include "3gpp_29.500.h"
@@ -17,28 +16,31 @@
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
 using namespace oai::nef::app;
-// Bridge: nlohmann::json -> rfl::Generic
-static inline rfl::Generic j2g(const nlohmann::json& j) {
-  auto r = rfl::json::read<rfl::Generic>(j.dump());
-  return r ? r.value() : rfl::Generic(rfl::Generic::Object{});
-}
-static inline nlohmann::json g2j(const rfl::Generic& g) {
-  return nlohmann::json::parse(rfl::json::write(g));
-}
 using namespace oai::common::sbi;
 
 namespace {
+
+// Helper: find a key in an rfl::Generic::Object.
+// rfl::Object::find() is private; use std::find_if over the public range.
+template<class Obj>
+static inline auto rfl_obj_find(Obj& obj, std::string_view key) noexcept
+    -> decltype(obj.begin()) {
+  return std::find_if(
+      obj.begin(), obj.end(), [key](const auto& p) { return p.first == key; });
+}
 
 //------------------------------------------------------------------------------
 static void end_http2_error(
     http2_response& res, int status, const std::string& title,
     const std::string& detail) {
-  nlohmann::json pd;
-  pd["type"]   = "about:blank";
-  pd["title"]  = title;
-  pd["status"] = status;
-  pd["detail"] = detail;
-  res.send(status, {{"content-type", "application/problem+json"}}, pd.dump());
+  rfl::Generic::Object pd;
+  pd["type"]   = rfl::Generic(std::string("about:blank"));
+  pd["title"]  = rfl::Generic(title);
+  pd["status"] = rfl::Generic(static_cast<double>(status));
+  pd["detail"] = rfl::Generic(detail);
+  res.send(
+      status, {{"content-type", "application/problem+json"}},
+      rfl::json::write(rfl::Generic(pd)));
 }
 
 // Inline bearer-token extraction helper (used in route lambdas)
@@ -97,20 +99,19 @@ void nef_http2_server::handle_monitoring_event_update(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   m_nef_app->set_request_bearer_token(bearer_token);
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->handle_monitoring_event_subscription_update(
-      scs_as_id, sub_id, j2g(json_body), rfl_resp, http_code, 2);
+      scs_as_id, sub_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -123,20 +124,19 @@ void nef_http2_server::handle_qos_update(
     const std::string& af_id, const std::string& sub_id,
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   m_nef_app->set_request_bearer_token(bearer_token);
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->handle_qos_subscription_update(
-      af_id, sub_id, j2g(json_body), rfl_resp, http_code, 2);
+      af_id, sub_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -149,20 +149,19 @@ void nef_http2_server::handle_bdt_patch(
     const std::string& af_id, const std::string& bdt_id,
     const std::string& patch_body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_patch = {};
-  try {
-    json_patch = nlohmann::json::parse(patch_body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(patch_body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   m_nef_app->set_request_bearer_token(bearer_token);
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->handle_bdt_policy_patch(
-      af_id, bdt_id, j2g(json_patch), rfl_resp, http_code, 2);
+      af_id, bdt_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -174,20 +173,18 @@ void nef_http2_server::handle_bdt_patch(
 void nef_http2_server::handle_analytics_fetch(
     const std::string& af_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   m_nef_app->set_request_bearer_token(bearer_token);
   rfl::Generic rfl_resp;
   int http_code = 0;
-  m_nef_app->handle_analytics_fetch(
-      af_id, j2g(json_body), rfl_resp, http_code, 2);
+  m_nef_app->handle_analytics_fetch(af_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -198,29 +195,33 @@ void nef_http2_server::handle_analytics_fetch(
 void nef_http2_server::handle_nnef_event_exposure_subscribe(
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
 
   m_nef_app->set_request_bearer_token(bearer_token);
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->handle_nnef_event_exposure_subscribe(
-      j2g(json_body), rfl_resp, http_code, 2);
+      rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
 
   std::map<std::string, std::string> headers;
   headers["content-type"] = "application/json";
   if (http_code == http_status_code::CREATED) {
-    const auto tmp_obj = g2j(rfl_resp);
-    if (tmp_obj.contains("self") && tmp_obj["self"].is_string()) {
-      headers["location"] = tmp_obj["self"].get<std::string>();
+    if (const auto* resp_obj =
+            std::get_if<rfl::Generic::Object>(&rfl_resp.variant())) {
+      auto it = rfl_obj_find(*resp_obj, "self");
+      if (it != resp_obj->end()) {
+        if (const auto* s = std::get_if<std::string>(&it->second.variant())) {
+          headers["location"] = *s;
+        }
+      }
     }
   }
   res.send(http_code, headers, rfl::json::write(rfl_resp));
@@ -257,21 +258,20 @@ void nef_http2_server::handle_nnef_event_exposure_get(
 void nef_http2_server::handle_nnef_event_exposure_update(
     const std::string& subscription_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
 
   m_nef_app->set_request_bearer_token(bearer_token);
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->handle_nnef_event_exposure_update(
-      subscription_id, j2g(json_body), rfl_resp, http_code, 2);
+      subscription_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1009,21 +1009,20 @@ void nef_http2_server::initiate_graceful_shutdown() {
 void nef_http2_server::handle_monitoring_event_subscribe(
     const std::string& scs_as_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   std::string sub_id;
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_monitoring_event_subscription_create(
-      scs_as_id, j2g(json_body), sub_id, rfl_resp, http_code, 2);
+      scs_as_id, rfl_body, sub_id, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1061,21 +1060,20 @@ void nef_http2_server::handle_monitoring_event_get(
 void nef_http2_server::handle_ti_create(
     const std::string& af_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   std::string ti_id;
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_traffic_influence_create(
-      af_id, j2g(json_body), ti_id, rfl_resp, http_code, 2);
+      af_id, rfl_body, ti_id, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1086,20 +1084,19 @@ void nef_http2_server::handle_ti_create(
 void nef_http2_server::handle_ti_update(
     const std::string& af_id, const std::string& ti_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_traffic_influence_update(
-      af_id, ti_id, j2g(json_body), rfl_resp, http_code, 2);
+      af_id, ti_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1121,19 +1118,18 @@ void nef_http2_server::handle_ti_delete(
 void nef_http2_server::handle_pfd_create(
     const std::string& app_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_create(app_id, j2g(json_body), rfl_resp, http_code, 2);
+  m_nef_app->handle_pfd_create(app_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1155,22 +1151,10 @@ void nef_http2_server::handle_pfd_delete(
 void nef_http2_server::handle_nf_notify(
     const std::string& nf_sub_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  if (!body.empty()) {
-    try {
-      json_body = nlohmann::json::parse(body);
-    } catch (const std::exception& e) {
-      Logger::nef_sbi().warn(
-          "Failed to parse NF notification body: {}", e.what());
-      end_http2_error(
-          res, http_status_code::BAD_REQUEST, "Bad Request",
-          "Missing or invalid request payload");
-      return;
-    }
-  }
   // Delegate to nef_app which looks up nf_sub_id → af_sub_id and forwards
+  // Pass raw body string directly — nef_app parses internally (task 3.7)
   m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nf_notification(nf_sub_id, json_body);
+  m_nef_app->handle_nf_notification(nf_sub_id, body);
   m_nef_app->clear_request_bearer_token();
   // Acknowledge to the NF
   res.send(204, {}, "");
@@ -1181,21 +1165,20 @@ void nef_http2_server::handle_nf_notify(
 void nef_http2_server::handle_bdt_create(
     const std::string& af_id, const std::string& body,
     const std::string& bearer_token, http2_response& res, bool deprecated) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   std::string bdt_id;
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_bdt_policy_create(
-      af_id, j2g(json_body), bdt_id, rfl_resp, http_code, 2);
+      af_id, rfl_body, bdt_id, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   std::map<std::string, std::string> h;
   h["content-type"] = "application/json";
@@ -1208,20 +1191,19 @@ void nef_http2_server::handle_bdt_update(
     const std::string& af_id, const std::string& bdt_id,
     const std::string& body, const std::string& bearer_token,
     http2_response& res, bool deprecated) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_bdt_policy_update(
-      af_id, bdt_id, j2g(json_body), rfl_resp, http_code, 2);
+      af_id, bdt_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   std::map<std::string, std::string> h;
   h["content-type"] = "application/json";
@@ -1266,21 +1248,20 @@ void nef_http2_server::handle_bdt_get(
 void nef_http2_server::handle_qos_create(
     const std::string& af_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   std::string sub_id;
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_qos_subscription_create(
-      af_id, j2g(json_body), sub_id, rfl_resp, http_code, 2);
+      af_id, rfl_body, sub_id, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1322,21 +1303,20 @@ void nef_http2_server::handle_qos_get(
 void nef_http2_server::handle_analytics_create(
     const std::string& af_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   std::string sub_id;
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_analytics_subscription_create(
-      af_id, j2g(json_body), sub_id, rfl_resp, http_code, 2);
+      af_id, rfl_body, sub_id, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1380,20 +1360,19 @@ void nef_http2_server::handle_ti_patch(
     const std::string& af_id, const std::string& ti_id,
     const std::string& patch_body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_patch = {};
-  try {
-    json_patch = nlohmann::json::parse(patch_body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(patch_body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_traffic_influence_patch(
-      af_id, ti_id, j2g(json_patch), rfl_resp, http_code, 2);
+      af_id, ti_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1406,20 +1385,19 @@ void nef_http2_server::handle_qos_patch(
     const std::string& af_id, const std::string& sub_id,
     const std::string& patch_body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_patch = {};
-  try {
-    json_patch = nlohmann::json::parse(patch_body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(patch_body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_qos_subscription_patch(
-      af_id, sub_id, j2g(json_patch), rfl_resp, http_code, 2);
+      af_id, sub_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1446,20 +1424,19 @@ void nef_http2_server::handle_pfd_transaction_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_transaction_put(
-      scs_as_id, trans_id, j2g(json_body), rfl_resp, http_code, 2);
+      scs_as_id, trans_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1498,20 +1475,19 @@ void nef_http2_server::handle_pfd_app_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_app_put(
-      scs_as_id, trans_id, app_id, j2g(json_body), rfl_resp, http_code, 2);
+      scs_as_id, trans_id, app_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1523,20 +1499,19 @@ void nef_http2_server::handle_pfd_app_patch(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const std::string& patch_body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_patch = {};
-  try {
-    json_patch = nlohmann::json::parse(patch_body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(patch_body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_app_patch(
-      scs_as_id, trans_id, app_id, j2g(json_patch), rfl_resp, http_code, 2);
+      scs_as_id, trans_id, app_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1572,20 +1547,19 @@ void nef_http2_server::handle_nnef_pfd_list_transactions(
 void nef_http2_server::handle_nnef_pfd_put_transaction(
     const std::string& trans_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_put_transaction(
-      trans_id, j2g(json_body), rfl_resp, http_code, 2);
+      trans_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1636,20 +1610,19 @@ void nef_http2_server::handle_nnef_pfd_put_app(
     const std::string& trans_id, const std::string& app_id,
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_put_app(
-      trans_id, app_id, j2g(json_body), rfl_resp, http_code, 2);
+      trans_id, app_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1673,20 +1646,19 @@ void nef_http2_server::handle_analytics_update(
     const std::string& af_id, const std::string& sub_id,
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_analytics_subscription_update(
-      af_id, sub_id, j2g(json_body), rfl_resp, http_code, 2);
+      af_id, sub_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1713,17 +1685,16 @@ void nef_http2_server::handle_nnef_pfd_get_applications(
 void nef_http2_server::handle_nnef_pfd_partial_pull(
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
-    json_body = {};
+  // Permissive parse: empty/missing body is valid for partial-pull (task 3.5)
+  rfl::Generic rfl_body(rfl::Generic::Object{});
+  if (!body.empty()) {
+    auto r = rfl::json::read<rfl::Generic>(body);
+    if (r) rfl_body = r.value();
   }
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_partial_pull(
-      j2g(json_body), rfl_resp, http_code, 2);
+  m_nef_app->handle_nnef_pfd_partial_pull(rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
@@ -1734,21 +1705,20 @@ void nef_http2_server::handle_nnef_pfd_partial_pull(
 void nef_http2_server::handle_nnef_pfd_subscription_create(
     const std::string& body, const std::string& bearer_token,
     http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   std::string sub_id;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_subscription_create(
-      j2g(json_body), sub_id, rfl_resp, http_code, 2);
+      rfl_body, sub_id, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   std::map<std::string, std::string> h;
   h["content-type"] = "application/json";
@@ -1778,20 +1748,19 @@ void nef_http2_server::handle_nnef_pfd_subscription_get(
 void nef_http2_server::handle_nnef_pfd_subscription_put(
     const std::string& sub_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
-  nlohmann::json json_body = {};
-  try {
-    json_body = nlohmann::json::parse(body);
-  } catch (...) {
+  auto rfl_body_r = rfl::json::read<rfl::Generic>(body);
+  if (!rfl_body_r) {
     end_http2_error(
         res, http_status_code::BAD_REQUEST, "Bad Request",
         "Missing or invalid request payload");
     return;
   }
+  const rfl::Generic rfl_body = rfl_body_r.value();
   rfl::Generic rfl_resp;
   int http_code = 0;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_subscription_put(
-      sub_id, j2g(json_body), rfl_resp, http_code, 2);
+      sub_id, rfl_body, rfl_resp, http_code, 2);
   m_nef_app->clear_request_bearer_token();
   res.send(
       http_code, {{"content-type", "application/json"}},
