@@ -14,7 +14,6 @@
 #include <vector>
 
 #include <boost/signals2.hpp>
-#include <nlohmann/json.hpp>  // Required for nef_nf_notification_sig_t signal boundary (handle_nf_notification_event)
 #include <rfl/Generic.hpp>
 #include <rfl/json.hpp>
 
@@ -394,7 +393,7 @@ class nef_app {
 
   void subscribe_nf_notification();
   void handle_nf_notification_event(
-      const std::string& nf_sub_id, const nlohmann::json& notif);
+      const std::string& nf_sub_id, const rfl::Generic& notif);
 
   void handle_subscription_expiry_tick(uint64_t t);
 

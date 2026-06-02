@@ -187,7 +187,7 @@ void nef_app::handle_analytics_fetch(
         continue;
       if (sub->get_scs_as_id() != scs_as_id) continue;
       const auto rfl_sub_r =
-          rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+          rfl::Result<rfl::Generic>(sub->get_subscription_data());
       if (!rfl_sub_r) continue;
       const rfl::Generic& rfl_sub_data = rfl_sub_r.value();
       const auto* sub_obj =
@@ -382,7 +382,7 @@ void nef_app::handle_qos_subscription_update(
     }
   }
   // Update stored subscription — out-of-scope boundary.
-  sub->set_subscription_data(nlohmann::json::parse(rfl::json::write(rfl_body)));
+  sub->set_subscription_data(rfl_body);
   if (body_obj) {
     auto it = rfl_obj_find(*body_obj, "notifUri");
     if (it != body_obj->end()) {
@@ -393,8 +393,7 @@ void nef_app::handle_qos_subscription_update(
   }
   // Optionally: re-subscribe to SMF if needed (not implemented here)
   {
-    auto rfl_r =
-        rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+    auto rfl_r   = rfl::Result<rfl::Generic>(sub->get_subscription_data());
     rfl_response = rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
   }
   if (auto* obj = std::get_if<rfl::Generic::Object>(&rfl_response.variant())) {
@@ -450,7 +449,7 @@ void nef_app::handle_monitoring_event_subscription_update(
     }
   }
   // Update stored subscription — out-of-scope boundary.
-  sub->set_subscription_data(nlohmann::json::parse(rfl::json::write(rfl_body)));
+  sub->set_subscription_data(rfl_body);
   if (body_obj) {
     auto it = rfl_obj_find(*body_obj, "notificationDestination");
     if (it != body_obj->end()) {
@@ -472,8 +471,7 @@ void nef_app::handle_monitoring_event_subscription_update(
   }
   // Optionally: re-subscribe to AMF if needed (not implemented here)
   {
-    auto rfl_r =
-        rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+    auto rfl_r   = rfl::Result<rfl::Generic>(sub->get_subscription_data());
     rfl_response = rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
   }
   if (auto* obj = std::get_if<rfl::Generic::Object>(&rfl_response.variant())) {
@@ -1237,8 +1235,8 @@ void nef_app::subscribe_nf_notification() {
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nf_notification_event(
-    const std::string& nf_sub_id, const nlohmann::json& notif) {
-  handle_nf_notification(nf_sub_id, notif.dump());
+    const std::string& nf_sub_id, const rfl::Generic& notif) {
+  handle_nf_notification(nf_sub_id, rfl::json::write(notif));
 }
 
 // Inbound notification from 5GC NF
@@ -1304,18 +1302,17 @@ void nef_app::handle_nf_notification(
       rfl_t8 = rfl_notif;
     }
 
-    const uint8_t http_ver   = sub->get_http_version();
-    auto nef_client          = m_nef_client;
-    const std::string t8_str = rfl::json::write(rfl_t8);
-    const bool enqueued =
-        m_notification_pool->enqueue([nef_client, af_uri, t8_str, http_ver]() {
-          if (!nef_client->forward_notification_to_af(
-                  af_uri, nlohmann::json::parse(t8_str), http_ver)) {
-            Logger::nef_app().warn(
-                "Failed forwarding notification to AF endpoint: %s",
-                af_uri.c_str());
-          }
-        });
+    const uint8_t http_ver    = sub->get_http_version();
+    auto nef_client           = m_nef_client;
+    const rfl::Generic t8_gen = rfl_t8;
+    const bool enqueued = m_notification_pool->enqueue([nef_client, af_uri,
+                                                        t8_gen, http_ver]() {
+      if (!nef_client->forward_notification_to_af(af_uri, t8_gen, http_ver)) {
+        Logger::nef_app().warn(
+            "Failed forwarding notification to AF endpoint: %s",
+            af_uri.c_str());
+      }
+    });
     if (!enqueued) {
       Logger::nef_app().error(
           "handle_nf_notification: notification queue full (>1000), "
@@ -1557,7 +1554,7 @@ void nef_app::handle_monitoring_event_subscription_create(
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_MONITORING_EVENT);
   sub->set_target_nf_type(nf_type_t::NF_TYPE_AMF);
   sub->set_http_version(http_version);
-  sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
+  sub->set_subscription_data(rfl::Generic(body_for_val));
   if (rfl_obj_has(body_for_val, "notificationDestination")) {
     sub->set_notification_uri(
         rfl_obj_get_string(body_for_val, "notificationDestination"));
@@ -1584,7 +1581,7 @@ void nef_app::handle_monitoring_event_subscription_create(
   std::string amf_sub_id;
   // TODO: should pass sub_id as well?
   if (!m_nef_client->subscribe_amf_event_exposure(
-          rfl_obj_to_nlohmann(body_for_val), amf_sub_id, http_version)) {
+          rfl::Generic(body_for_val), amf_sub_id, http_version)) {
     Logger::nef_app().warn("Failed to subscribe to AMF event exposure");
     remove_subscription(sub_id);
     release_af_profile_subscription(scs_as_id, sub_id);
@@ -1670,8 +1667,7 @@ void nef_app::handle_monitoring_event_subscription_get(
       }
       if (sub->get_scs_as_id() != scs_as_id) continue;
 
-      auto rfl_r =
-          rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+      auto rfl_r = rfl::Result<rfl::Generic>(sub->get_subscription_data());
       rfl::Generic entry =
           rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
       if (auto* e_obj = std::get_if<rfl::Generic::Object>(&entry.variant())) {
@@ -1701,8 +1697,7 @@ void nef_app::handle_monitoring_event_subscription_get(
   }
 
   {
-    auto rfl_r =
-        rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+    auto rfl_r   = rfl::Result<rfl::Generic>(sub->get_subscription_data());
     rfl_response = rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
   }
   http_code = http_status_code::OK;
@@ -1786,7 +1781,7 @@ void nef_app::handle_traffic_influence_create(
   ti_sub->set_service_type(
       nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE);
   ti_sub->set_http_version(http_version);
-  ti_sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
+  ti_sub->set_subscription_data(rfl::Generic(body_for_val));
   if (rfl_obj_has(body_for_val, "notificationDestination") &&
       rfl_obj_is_string(body_for_val, "notificationDestination")) {
     ti_sub->set_notification_uri(
@@ -1797,8 +1792,7 @@ void nef_app::handle_traffic_influence_create(
   std::string pcf_policy_id;
   uint32_t http_code_pcf = 0;
   const bool pcf_ok      = m_nef_client->create_pcf_policy_auth(
-      rfl_obj_to_nlohmann(body_for_val), pcf_policy_id, http_code_pcf,
-      http_version);
+      rfl::Generic(body_for_val), pcf_policy_id, http_code_pcf, http_version);
   if (!pcf_ok || http_code_pcf < http_status_code::OK ||
       http_code_pcf >= http_status_code::MULTIPLE_CHOICES) {
     Logger::nef_app().warn(
@@ -1857,8 +1851,7 @@ void nef_app::handle_traffic_influence_create(
 
   uint32_t http_code_udr = 0;
   if (!m_nef_client->udr_put_influence_data(
-          ti_id, rfl_obj_to_nlohmann(body_for_val), http_code_udr,
-          http_version)) {
+          ti_id, rfl::Generic(body_for_val), http_code_udr, http_version)) {
     Logger::nef_app().warn(
         "UDR influence PUT failed for ti_id=%s (http=%u)", ti_id.c_str(),
         http_code_udr);
@@ -1969,7 +1962,7 @@ void nef_app::handle_traffic_influence_update(
 
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_policy_auth(
-          pcf_policy_id, rfl_obj_to_nlohmann(body_for_val), http_code_pcf,
+          pcf_policy_id, rfl::Generic(body_for_val), http_code_pcf,
           http_version)) {
     Logger::nef_app().warn(
         "PCF TI update failed for ti_id=%s policy_id=%s (http=%u)",
@@ -2102,7 +2095,7 @@ void nef_app::handle_pfd_create(
   }
 
   if (!m_nef_client->udr_put_pfd_data(
-          app_id, rfl_obj_to_nlohmann(body_for_val), http_version)) {
+          app_id, rfl::Generic(body_for_val), http_version)) {
     Logger::nef_app().warn("UDR PFD push failed for app: %s", app_id.c_str());
   }
   rfl_response = rfl_body;
@@ -2135,13 +2128,12 @@ void nef_app::handle_pfd_get(
     return;
   }
 
-  nlohmann::json result;
+  rfl::Generic result;
   uint32_t http_code_udr = 0;
   m_nef_client->udr_get_pfd_data(app_id, result, http_code_udr);
 
   if (http_code_udr == http_status_code::OK) {
-    auto rfl_r   = rfl::json::read<rfl::Generic>(result.dump());
-    rfl_response = rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
+    rfl_response = result;
     http_code    = http_status_code::OK;
     return;
   }
@@ -2521,8 +2513,7 @@ void nef_app::handle_qos_subscription_create(
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING);
   sub->set_target_nf_type(nf_type_t::NF_TYPE_SMF);
   sub->set_http_version(http_version);
-  sub->set_subscription_data(
-      nlohmann::json::parse(rfl::json::write(body_for_val)));
+  sub->set_subscription_data(rfl_body);
 
   auto request_expiry =
       body_for_val.value().get("requestExpiry").and_then(rfl::to_string);
@@ -2541,8 +2532,7 @@ void nef_app::handle_qos_subscription_create(
 
   std::string smf_sub_id;
   const bool smf_ok = m_nef_client->subscribe_smf_event_exposure(
-      nlohmann::json::parse(rfl::json::write(body_for_val)), smf_sub_id,
-      http_version);
+      rfl_body, smf_sub_id, http_version);
   if (!smf_ok || smf_sub_id.empty()) {
     remove_subscription(qos_sub_id);
     release_af_profile_subscription(af_id, qos_sub_id);
@@ -2635,8 +2625,7 @@ void nef_app::handle_qos_subscription_get(
     return;
   }
 
-  auto rfl_r =
-      rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+  auto rfl_r   = rfl::Result<rfl::Generic>(sub->get_subscription_data());
   http_code    = http_status_code::OK;
   rfl_response = rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
 }
@@ -2659,8 +2648,7 @@ void nef_app::handle_qos_subscription_list(
     if (sub->get_service_type() ==
             nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING &&
         sub->get_scs_as_id() == af_id) {
-      auto rfl_r =
-          rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+      auto rfl_r = rfl::Result<rfl::Generic>(sub->get_subscription_data());
       rfl::Generic entry =
           rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
       if (auto* e_obj = std::get_if<rfl::Generic::Object>(&entry.variant())) {
@@ -2740,7 +2728,7 @@ void nef_app::handle_analytics_subscription_create(
   sub->set_scs_as_id(af_id);
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS);
   sub->set_http_version(http_version);
-  sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
+  sub->set_subscription_data(rfl::Generic(body_for_val));
 
   add_subscription(analytics_sub_id, sub);
   ensure_af_profile(af_id, analytics_sub_id);
@@ -2810,8 +2798,7 @@ void nef_app::handle_analytics_subscription_get(
     return;
   }
 
-  auto rfl_r =
-      rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+  auto rfl_r   = rfl::Result<rfl::Generic>(sub->get_subscription_data());
   http_code    = http_status_code::OK;
   rfl_response = rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
 }
@@ -2834,8 +2821,7 @@ void nef_app::handle_analytics_subscription_list(
     if (sub->get_service_type() ==
             nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS &&
         sub->get_scs_as_id() == af_id) {
-      auto rfl_r =
-          rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+      auto rfl_r = rfl::Result<rfl::Generic>(sub->get_subscription_data());
       rfl::Generic entry =
           rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
       if (auto* e_obj = std::get_if<rfl::Generic::Object>(&entry.variant())) {
@@ -2978,7 +2964,6 @@ void nef_app::handle_traffic_influence_patch(
 
   std::string pcf_policy_id;
   rfl::Generic r_result;
-  nlohmann::json patched_copy;
   {
     std::shared_lock lock(m_ti_mutex);
     auto session_it = m_ti_sessions.find(app_session_id);
@@ -3001,8 +2986,7 @@ void nef_app::handle_traffic_influence_patch(
       pcf_policy_id = pcf_it->second;
     }
     // session_it->second is already rfl::Generic — merge directly
-    r_result     = nef_merge_patch(session_it->second, patch_body);
-    patched_copy = nlohmann::json::parse(rfl::json::write(r_result));
+    r_result = nef_merge_patch(session_it->second, patch_body);
   }
 
   if (pcf_policy_id.empty()) {
@@ -3015,7 +2999,7 @@ void nef_app::handle_traffic_influence_patch(
 
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_policy_auth(
-          pcf_policy_id, patched_copy, http_code_pcf, http_version)) {
+          pcf_policy_id, r_result, http_code_pcf, http_version)) {
     Logger::nef_app().warn(
         "PCF TI patch failed for ti_id=%s (http=%u)", app_session_id.c_str(),
         http_code_pcf);
@@ -3073,8 +3057,7 @@ void nef_app::handle_qos_subscription_patch(
         "AF is not allowed to access this subscription");
     return;
   }
-  auto r_base =
-      rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+  auto r_base = rfl::Result<rfl::Generic>(sub->get_subscription_data());
   if (!r_base) {
     http_code    = http_status_code::INTERNAL_SERVER_ERROR;
     rfl_response = make_problem_detail(
@@ -3095,7 +3078,7 @@ void nef_app::handle_qos_subscription_patch(
       return;
     }
   }
-  sub->set_subscription_data(patched);
+  sub->set_subscription_data(r_result);
   if (patched.contains("notifUri")) {
     sub->set_notification_uri(patched["notifUri"].get<std::string>());
   }
@@ -3179,9 +3162,7 @@ void nef_app::handle_pfd_transaction_put(
   const auto* pfd_datas_obj =
       std::get_if<rfl::Generic::Object>(&pfd_datas_it->second.variant());
   for (const auto& [app_id, pfd_data] : *pfd_datas_obj) {
-    const nlohmann::json pfd_data_nj =
-        nlohmann::json::parse(rfl::json::write(pfd_data));
-    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_data_nj, http_version)) {
+    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_data, http_version)) {
       Logger::nef_app().error(
           "F1.10: UDR PFD write failed for app '%s' in trans '%s'; "
           "rolling back %zu committed app(s)",
@@ -3379,7 +3360,7 @@ void nef_app::handle_pfd_app_put(
   }
 
   if (!m_nef_client->udr_put_pfd_data(
-          app_id, rfl_obj_to_nlohmann(body_for_val), http_version)) {
+          app_id, rfl::Generic(body_for_val), http_version)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for app: %s", app_id.c_str());
   }
@@ -3407,7 +3388,6 @@ void nef_app::handle_pfd_app_patch(
   }
 
   rfl::Generic r_result;
-  nlohmann::json patched;
   {
     const std::lock_guard<std::shared_mutex> lock(m_pfd_mutex);
     auto it = m_pfd_trans_sessions.find(trans_id);
@@ -3447,7 +3427,6 @@ void nef_app::handle_pfd_app_patch(
       return;
     }
     r_result = nef_merge_patch(app_it->second, patch_body);
-    patched  = nlohmann::json::parse(rfl::json::write(r_result));
     // Store back
     if (trans_obj) {
       auto pfd_it = rfl_obj_find(*trans_obj, "pfdDatas");
@@ -3459,7 +3438,7 @@ void nef_app::handle_pfd_app_patch(
     }
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, patched, http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(app_id, r_result, http_version)) {
     Logger::nef_app().warn(
         "UDR PFD app PATCH failed for app: %s", app_id.c_str());
   }
@@ -3577,9 +3556,7 @@ void nef_app::handle_nnef_pfd_put_transaction(
   PfdRollbackTracker pfd_rollback;
   if (apps_obj) {
     for (const auto& [app_id, app_body] : *apps_obj) {
-      if (!m_nef_client->udr_put_pfd_data(
-              app_id, nlohmann::json::parse(rfl::json::write(app_body)),
-              http_version)) {
+      if (!m_nef_client->udr_put_pfd_data(app_id, app_body, http_version)) {
         Logger::nef_app().error(
             "UDR PFD write failed for Nnef app '%s' in trans '%s'; "
             "rolling back %zu committed app(s)",
@@ -3834,9 +3811,7 @@ void nef_app::handle_nnef_pfd_put_app(
     response_app = normalized_app;
   }
 
-  if (!m_nef_client->udr_put_pfd_data(
-          app_id, nlohmann::json::parse(rfl::json::write(normalized_app)),
-          http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(app_id, normalized_app, http_version)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for Nnef_PFDmanagement app: %s",
         app_id.c_str());
@@ -3996,13 +3971,12 @@ void nef_app::handle_nnef_pfd_partial_pull(
         if (!found) continue;
       }
       // Attempt to refresh from UDR for accurate data
-      nlohmann::json udr_result;
+      rfl::Generic udr_result;
       uint32_t udr_code = 0;
       m_nef_client->udr_get_pfd_data(app_id, udr_result, udr_code);
       rfl::Generic entry;
       if (udr_code == http_status_code::OK) {
-        auto rfl_r = rfl::json::read<rfl::Generic>(udr_result.dump());
-        entry      = rfl_r ? rfl_r.value() : app_data;
+        entry = udr_result;
       } else {
         entry = app_data;
       }
@@ -4184,10 +4158,8 @@ void nef_app::notify_nnef_pfd_subscribers(
       const auto* uri_str = std::get_if<std::string>(&uri_it->second.variant());
       if (!uri_str) continue;
       // Use shared helper (checks "applicationIds" key — canonical TS 29.551
-      // name) — boundary convert sub to nlohmann for this out-of-scope call
-      const nlohmann::json sub_nj =
-          nlohmann::json::parse(rfl::json::write(sub));
-      if (!nnef_pfd_subscription_matches(sub_nj, app_id)) continue;
+      // name)
+      if (!nnef_pfd_subscription_matches(sub, app_id)) continue;
       targets.emplace_back(sid, *uri_str);
     }
   }
@@ -4200,10 +4172,9 @@ void nef_app::notify_nnef_pfd_subscribers(
     if (!std::get_if<std::nullopt_t>(&pfd_data.variant())) {
       notif_obj["pfdData"] = pfd_data;
     }
-    const std::string notif_str = rfl::json::write(rfl::Generic(notif_obj));
-    m_notification_pool->enqueue([this, notif_uri, notif_str, sid]() {
-      m_nef_client->forward_notification_to_af(
-          notif_uri, nlohmann::json::parse(notif_str));
+    rfl::Generic notif_gen = rfl::Generic(notif_obj);
+    m_notification_pool->enqueue([this, notif_uri, notif_gen, sid]() {
+      m_nef_client->forward_notification_to_af(notif_uri, notif_gen);
     });
   }
 }
@@ -4275,14 +4246,13 @@ void nef_app::handle_analytics_subscription_update(
       return;
     }
   }
-  sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
+  sub->set_subscription_data(rfl::Generic(body_for_val));
   if (rfl_obj_has(body_for_val, "notifUri") &&
       rfl_obj_is_string(body_for_val, "notifUri")) {
     sub->set_notification_uri(rfl_obj_get_string(body_for_val, "notifUri"));
   }
   {
-    auto rfl_r =
-        rfl::json::read<rfl::Generic>(sub->get_subscription_data().dump());
+    auto rfl_r   = rfl::Result<rfl::Generic>(sub->get_subscription_data());
     rfl_response = rfl_r ? rfl_r.value() : rfl::Generic(rfl::Generic::Object{});
   }
   if (auto* obj = std::get_if<rfl::Generic::Object>(&rfl_response.variant())) {

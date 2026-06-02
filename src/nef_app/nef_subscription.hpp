@@ -9,7 +9,7 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #include <boost/signals2.hpp>
-#include <nlohmann/json.hpp>
+#include <rfl/Generic.hpp>
 #include <string>
 #include <vector>
 
@@ -78,8 +78,8 @@ class nef_subscription {
   std::string get_scs_as_id() const;
 
   // Subscription body (cached for retrieval / notifications)
-  void set_subscription_data(const nlohmann::json& data);
-  nlohmann::json get_subscription_data() const;
+  void set_subscription_data(const rfl::Generic& data);
+  rfl::Generic get_subscription_data() const;
 
   void display() const;
 
@@ -93,9 +93,9 @@ class nef_subscription {
   nf_type_t m_target_nf_type = nf_type_t::NF_TYPE_AMF;
   boost::posix_time::ptime m_validity_time;
   std::chrono::system_clock::time_point m_expire_time{};
-  bool m_has_expire_time             = false;
-  uint8_t m_http_version             = 1;
-  nlohmann::json m_subscription_data = {};
+  bool m_has_expire_time           = false;
+  uint8_t m_http_version           = 1;
+  rfl::Generic m_subscription_data = rfl::Generic(rfl::Generic::Object{});
 
   nef_event& m_event_sub;
   bs2::connection m_ev_connection;

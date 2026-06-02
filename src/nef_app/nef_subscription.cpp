@@ -121,12 +121,12 @@ std::string nef_subscription::get_scs_as_id() const {
 }
 
 //------------------------------------------------------------------------------
-void nef_subscription::set_subscription_data(const nlohmann::json& data) {
+void nef_subscription::set_subscription_data(const rfl::Generic& data) {
   m_subscription_data = data;
 }
 
 //------------------------------------------------------------------------------
-nlohmann::json nef_subscription::get_subscription_data() const {
+rfl::Generic nef_subscription::get_subscription_data() const {
   return m_subscription_data;
 }
 

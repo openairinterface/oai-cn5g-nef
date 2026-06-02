@@ -8,7 +8,6 @@
 #include <thread>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <nlohmann/json.hpp>
 #include <rfl/json.hpp>
 
 #include "3gpp_29.500.h"
@@ -117,6 +116,32 @@ static std::string get_header_case_insensitive(
     if (same) return v;
   }
   return "";
+}
+
+//------------------------------------------------------------------------------
+// Look up a key in an rfl::Generic::Object and return its string value, or ""
+// when the key is absent or the value is not a string.
+static std::string rfl_get_string(
+    const rfl::Generic::Object& obj, const std::string& key) {
+  auto r = obj.get(key);
+  if (!r) return "";
+  if (const auto* s = std::get_if<std::string>(&r.value().variant())) {
+    return *s;
+  }
+  return "";
+}
+
+//------------------------------------------------------------------------------
+// Parse a JSON body into an rfl::Generic::Object. Returns false if the body is
+// not valid JSON or not a JSON object.
+static bool rfl_parse_object(
+    const std::string& body, rfl::Generic::Object& out) {
+  auto r = rfl::json::read<rfl::Generic>(body);
+  if (!r) return false;
+  const auto* obj = std::get_if<rfl::Generic::Object>(&r.value().variant());
+  if (!obj) return false;
+  out = *obj;
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -287,13 +312,18 @@ bool nef_client::send_heartbeat_to_nrf() {
 
   // PATCH /nf-instances/<id>  with
   // [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
-  nlohmann::json patch_body = nlohmann::json::array();
-  patch_body.push_back(
-      {{"op", "replace"}, {"path", "/nfStatus"}, {"value", "REGISTERED"}});
+  rfl::Generic::Object patch_op;
+  patch_op["op"]    = rfl::Generic(std::string("replace"));
+  patch_op["path"]  = rfl::Generic(std::string("/nfStatus"));
+  patch_op["value"] = rfl::Generic(std::string("REGISTERED"));
+  rfl::Generic::Array patch_array;
+  patch_array.push_back(rfl::Generic(std::move(patch_op)));
+  const std::string patch_body =
+      rfl::json::write(rfl::Generic(std::move(patch_array)));
 
   std::string nrf_uri = build_nrf_nf_instance_uri(m_nef_instance_id);
   oai::http::request req =
-      http_client_inst->prepare_json_request(nrf_uri, patch_body.dump());
+      http_client_inst->prepare_json_request(nrf_uri, patch_body);
   auto resp = http_client_inst->send_http_request(
       oai::common::sbi::method_e::PATCH, req);
 
@@ -525,7 +555,7 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
 // AMF event-exposure
 //-----------------------------------------------------------------------------
 bool nef_client::subscribe_amf_event_exposure(
-    const nlohmann::json& subscription_data, std::string& amf_sub_id,
+    const rfl::Generic& subscription_data, std::string& amf_sub_id,
     uint8_t http_version) {
   std::string amf_url = {};
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) {
@@ -540,17 +570,22 @@ bool nef_client::subscribe_amf_event_exposure(
   // notifications. We use a placeholder sub-id here; after creation we update
   // the NF→AF mapping. TS 29.518: field is "subsChangeNotifyUri"
   // This subscription is created by an NEF on behalf of AF
-  nlohmann::json sub_body             = subscription_data;
+  rfl::Generic::Object sub_body;
+  if (const auto* o =
+          std::get_if<rfl::Generic::Object>(&subscription_data.variant())) {
+    sub_body = *o;
+  }
   const std::string nef_callback_base = get_nef_notify_uri("_2");
   // Strip the placeholder; AMF will POST to base + sub-id suffix if needed,
   // but we set a fixed URL that the HTTP/2 server parses by path segment.
-  sub_body["eventNotifyUri"] = nef_config_inst->get_local()->get_url() +
-                               nef_sbi_helper::NefNotifyBase + "v1/notify/amf";
+  sub_body["eventNotifyUri"] = rfl::Generic(
+      nef_config_inst->get_local()->get_url() + nef_sbi_helper::NefNotifyBase +
+      "v1/notify/amf");
   // TODO: sub_body["notifyCorrelationId"] = ;
   // TODO: verify whether we need to set subsChangeNotifyUri,
   // subsChangeNotifyCorrelationId (from AF)
 
-  std::string body = sub_body.dump();
+  std::string body = rfl::json::write(rfl::Generic(std::move(sub_body)));
 
   oai::http::response amf_sub_resp{};
   auto sbi_sleep_amf = [](std::chrono::milliseconds d) {
@@ -571,19 +606,23 @@ bool nef_client::subscribe_amf_event_exposure(
       sbi_circuit_breaker_registry::instance(), sbi_sleep_amf, sbi_log_amf);
 
   if (amf_sub_resp.status_code == http_status_code::CREATED) {
-    try {
-      nlohmann::json j = nlohmann::json::parse(amf_sub_resp.body);
+    rfl::Generic::Object j;
+    if (rfl_parse_object(amf_sub_resp.body, j)) {
       // Subscription ID is in body or Location header
-      amf_sub_id = j.value("subscriptionId", "");
-      if (amf_sub_id.empty() && j.contains("eventsSubscription")) {
-        amf_sub_id = j["eventsSubscription"].value("subscriptionId", "");
+      amf_sub_id = rfl_get_string(j, "subscriptionId");
+      if (amf_sub_id.empty()) {
+        if (auto r = j.get("eventsSubscription")) {
+          if (const auto* sub =
+                  std::get_if<rfl::Generic::Object>(&r.value().variant())) {
+            amf_sub_id = rfl_get_string(*sub, "subscriptionId");
+          }
+        }
       }
       Logger::nef_app().info(
           "AMF event subscription created: %s", amf_sub_id.c_str());
       return true;
-    } catch (...) {
-      Logger::nef_app().warn("Failed to parse AMF subscription response");
     }
+    Logger::nef_app().warn("Failed to parse AMF subscription response");
   }
   // Invalidate discovery cache on connection failure or 503 so next
   // discover_nf() call re-queries NRF instead of serving stale endpoint.
@@ -615,7 +654,7 @@ bool nef_client::unsubscribe_amf_event_exposure(
 //------------------------------------------------------------------------------
 // SMF event-exposure
 bool nef_client::subscribe_smf_event_exposure(
-    const nlohmann::json& subscription_data, std::string& smf_sub_id,
+    const rfl::Generic& subscription_data, std::string& smf_sub_id,
     uint8_t http_version) {
   std::string smf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
@@ -627,11 +666,16 @@ bool nef_client::subscribe_smf_event_exposure(
       smf_url + nef_sbi_helper::SmfEventExposureBase + "v1/subscriptions";
 
   // TS 29.508: field is "notifUri"
-  nlohmann::json sub_body = subscription_data;
-  sub_body["notifUri"]    = nef_config_inst->get_local()->get_url() +
-                         nef_sbi_helper::NefNotifyBase + "v1/notify/smf";
+  rfl::Generic::Object sub_body;
+  if (const auto* o =
+          std::get_if<rfl::Generic::Object>(&subscription_data.variant())) {
+    sub_body = *o;
+  }
+  sub_body["notifUri"] = rfl::Generic(
+      nef_config_inst->get_local()->get_url() + nef_sbi_helper::NefNotifyBase +
+      "v1/notify/smf");
 
-  std::string body = sub_body.dump();
+  std::string body = rfl::json::write(rfl::Generic(std::move(sub_body)));
 
   oai::http::response smf_sub_resp{};
   auto sbi_sleep_smf = [](std::chrono::milliseconds d) {
@@ -652,13 +696,12 @@ bool nef_client::subscribe_smf_event_exposure(
       sbi_circuit_breaker_registry::instance(), sbi_sleep_smf, sbi_log_smf);
 
   if (smf_sub_resp.status_code == http_status_code::CREATED) {
-    try {
-      nlohmann::json j = nlohmann::json::parse(smf_sub_resp.body);
-      smf_sub_id       = j.value("subscriptionId", "");
+    rfl::Generic::Object j;
+    if (rfl_parse_object(smf_sub_resp.body, j)) {
+      smf_sub_id = rfl_get_string(j, "subscriptionId");
       Logger::nef_app().info(
           "SMF event subscription created: %s", smf_sub_id.c_str());
       return true;
-    } catch (...) {
     }
   }
   Logger::nef_app().warn(
@@ -686,7 +729,7 @@ bool nef_client::unsubscribe_smf_event_exposure(
 
 //------------------------------------------------------------------------------
 bool nef_client::create_pcf_policy_auth(
-    const nlohmann::json& request_body, std::string& app_session_id,
+    const rfl::Generic& request_body, std::string& app_session_id,
     uint32_t& http_code, uint8_t http_version) {
   http_code = 0;
   std::string pcf_url;
@@ -696,7 +739,7 @@ bool nef_client::create_pcf_policy_auth(
   }
   std::string url =
       pcf_url + nef_sbi_helper::PcfPolicyAuthBase + "v1/app-sessions";
-  std::string body = request_body.dump();
+  std::string body = rfl::json::write(request_body);
 
   oai::http::response pcf_auth_resp{};
   auto sbi_sleep_pcf = [](std::chrono::milliseconds d) {
@@ -719,10 +762,9 @@ bool nef_client::create_pcf_policy_auth(
 
   if (pcf_auth_resp.status_code == http_status_code::CREATED ||
       pcf_auth_resp.status_code == http_status_code::OK) {
-    try {
-      nlohmann::json j = nlohmann::json::parse(pcf_auth_resp.body);
-      app_session_id   = j.value("appSessionId", "");
-    } catch (...) {
+    rfl::Generic::Object j;
+    if (rfl_parse_object(pcf_auth_resp.body, j)) {
+      app_session_id = rfl_get_string(j, "appSessionId");
     }
 
     if (app_session_id.empty()) {
@@ -738,7 +780,7 @@ bool nef_client::create_pcf_policy_auth(
 
 //------------------------------------------------------------------------------
 bool nef_client::update_pcf_policy_auth(
-    const std::string& app_session_id, const nlohmann::json& request_body,
+    const std::string& app_session_id, const rfl::Generic& request_body,
     uint32_t& http_code, uint8_t http_version) {
   http_code = 0;
   std::string pcf_url;
@@ -746,7 +788,7 @@ bool nef_client::update_pcf_policy_auth(
 
   std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
                     "v1/app-sessions/" + app_session_id + "/modify";
-  std::string body       = request_body.dump();
+  std::string body       = rfl::json::write(request_body);
   oai::http::request req = http_client_inst->prepare_json_request(url, body);
   auto resp              = http_client_inst->send_http_request(
       oai::common::sbi::method_e::POST, req);
@@ -802,14 +844,18 @@ bool nef_client::create_pcf_bdt_policy(
   pcf_bdt_id           = extract_last_path_segment(location);
 
   if (pcf_bdt_id.empty() && !resp.body.empty()) {
-    try {
-      nlohmann::json j = nlohmann::json::parse(resp.body);
-      pcf_bdt_id       = j.value("bdtPolicyId", "");
-      if (pcf_bdt_id.empty()) pcf_bdt_id = j.value("bdtRefId", "");
-      if (pcf_bdt_id.empty() && j.contains("bdtPolData")) {
-        pcf_bdt_id = j["bdtPolData"].value("bdtRefId", "");
+    rfl::Generic::Object j;
+    if (rfl_parse_object(resp.body, j)) {
+      pcf_bdt_id = rfl_get_string(j, "bdtPolicyId");
+      if (pcf_bdt_id.empty()) pcf_bdt_id = rfl_get_string(j, "bdtRefId");
+      if (pcf_bdt_id.empty()) {
+        if (auto r = j.get("bdtPolData")) {
+          if (const auto* pol =
+                  std::get_if<rfl::Generic::Object>(&r.value().variant())) {
+            pcf_bdt_id = rfl_get_string(*pol, "bdtRefId");
+          }
+        }
       }
-    } catch (...) {
     }
   }
 
@@ -860,7 +906,7 @@ bool nef_client::delete_pcf_bdt_policy(
 // UDR PFD data
 //------------------------------------------------------------------------------
 bool nef_client::udr_put_pfd_data(
-    const std::string& app_id, const nlohmann::json& pfd_data,
+    const std::string& app_id, const rfl::Generic& pfd_data,
     uint8_t http_version) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
@@ -870,7 +916,7 @@ bool nef_client::udr_put_pfd_data(
   // Nudr_DataRepository: PUT /nudr-dr/v1/application-data/pfds/{appId}
   std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                     "v1/application-data/pfds/" + app_id;
-  std::string body = pfd_data.dump();
+  std::string body = rfl::json::write(pfd_data);
 
   auto sbi_sleep_udr = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
@@ -922,8 +968,8 @@ bool nef_client::udr_delete_pfd_data(
 
 //------------------------------------------------------------------------------
 void nef_client::udr_get_pfd_data(
-    const std::string& app_id, nlohmann::json& result, uint32_t& http_code) {
-  result    = nlohmann::json::object();
+    const std::string& app_id, rfl::Generic& result, uint32_t& http_code) {
+  result    = rfl::Generic(rfl::Generic::Object{});
   http_code = 0;
 
   std::string udr_url;
@@ -956,16 +1002,17 @@ void nef_client::udr_get_pfd_data(
   http_code = last_get_resp.status_code;
   if (last_get_resp.body.empty()) return;
 
-  try {
-    result = nlohmann::json::parse(last_get_resp.body);
-  } catch (...) {
+  auto r = rfl::json::read<rfl::Generic>(last_get_resp.body);
+  if (r) {
+    result = r.value();
+  } else {
     Logger::nef_app().warn("Failed to parse UDR PFD GET response body");
   }
 }
 
 //------------------------------------------------------------------------------
 bool nef_client::udr_put_influence_data(
-    const std::string& ti_id, const nlohmann::json& data, uint32_t& http_code,
+    const std::string& ti_id, const rfl::Generic& data, uint32_t& http_code,
     uint8_t http_version) {
   http_code = 0;
   std::string udr_url;
@@ -977,7 +1024,7 @@ bool nef_client::udr_put_influence_data(
   const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/influenceData/" + ti_id;
   oai::http::request req =
-      http_client_inst->prepare_json_request(url, data.dump());
+      http_client_inst->prepare_json_request(url, rfl::json::write(data));
   auto resp =
       http_client_inst->send_http_request(oai::common::sbi::method_e::PUT, req);
   http_code = resp.status_code;
@@ -1019,12 +1066,12 @@ std::string nef_client::get_nef_notify_uri(const std::string& nf_sub_id) {
 // Forward notification to AF
 //------------------------------------------------------------------------------
 bool nef_client::forward_notification_to_af(
-    const std::string& af_notif_uri, const nlohmann::json& payload,
+    const std::string& af_notif_uri, const rfl::Generic& payload,
     uint8_t http_version) {
   Logger::nef_app().debug(
       "Forwarding notification to AF: %s", af_notif_uri.c_str());
 
-  const std::string body     = payload.dump();
+  const std::string body     = rfl::json::write(payload);
   const std::string endpoint = cb_endpoint_key(af_notif_uri);
 
   auto attempt_fn = [&]() -> int {
