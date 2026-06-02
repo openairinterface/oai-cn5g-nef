@@ -88,6 +88,68 @@ static inline void rfl_obj_erase(
   obj = std::move(tmp);
 }
 
+// Helper: return the underlying Object of a Generic, or a reference to a
+// shared empty Object when the Generic is not an object. Lets the rfl-native
+// input validators in nef_input_validation.hpp be fed directly from an
+// rfl::Generic request body without a round-trip through nlohmann::json.
+static inline const rfl::Generic::Object& rfl_obj_or_empty(
+    const rfl::Generic& g) noexcept {
+  static const rfl::Generic::Object kEmpty;
+  if (const auto* o = std::get_if<rfl::Generic::Object>(&g.variant())) {
+    return *o;
+  }
+  return kEmpty;
+}
+
+// Helper: true if the Object contains the given key.
+static inline bool rfl_obj_has(
+    const rfl::Generic::Object& obj, std::string_view key) noexcept {
+  return rfl_obj_find(obj, key) != obj.end();
+}
+
+// Helper: true if the value at key exists and is a string.
+static inline bool rfl_obj_is_string(
+    const rfl::Generic::Object& obj, std::string_view key) noexcept {
+  const auto it = rfl_obj_find(obj, key);
+  return it != obj.end() &&
+         std::get_if<std::string>(&it->second.variant()) != nullptr;
+}
+
+// Helper: true if the value at key exists and is an object.
+static inline bool rfl_obj_is_object(
+    const rfl::Generic::Object& obj, std::string_view key) noexcept {
+  const auto it = rfl_obj_find(obj, key);
+  return it != obj.end() &&
+         std::get_if<rfl::Generic::Object>(&it->second.variant()) != nullptr;
+}
+
+// Helper: true if the value at key exists and is an array.
+static inline bool rfl_obj_is_array(
+    const rfl::Generic::Object& obj, std::string_view key) noexcept {
+  const auto it = rfl_obj_find(obj, key);
+  return it != obj.end() &&
+         std::get_if<rfl::Generic::Array>(&it->second.variant()) != nullptr;
+}
+
+// Helper: return the string value at key, or empty string if absent / not a
+// string.
+static inline std::string rfl_obj_get_string(
+    const rfl::Generic::Object& obj, std::string_view key) {
+  const auto it = rfl_obj_find(obj, key);
+  if (it == obj.end()) return {};
+  if (const auto* s = std::get_if<std::string>(&it->second.variant())) {
+    return *s;
+  }
+  return {};
+}
+
+// Helper: convert an rfl::Generic::Object to nlohmann::json for southbound
+// APIs that still consume nlohmann::json.
+static inline nlohmann::json rfl_obj_to_nlohmann(
+    const rfl::Generic::Object& obj) {
+  return nlohmann::json::parse(rfl::json::write(rfl::Generic(obj)));
+}
+
 // Analytics /fetch endpoint
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_fetch(
@@ -201,7 +263,7 @@ void nef_app::handle_bdt_policy_patch(
   }
   std::string pcf_bdt_id;
   rfl::Generic r_result;
-  nlohmann::json patched_copy;
+  // std::string patched_copy;
   {
     std::shared_lock lock(m_bdt_mutex);
     auto session_it = m_bdt_sessions.find(bdt_policy_id);
@@ -224,8 +286,8 @@ void nef_app::handle_bdt_policy_patch(
       pcf_bdt_id = pcf_it->second;
     }
     // session_it->second is already rfl::Generic — no .dump() needed
-    r_result     = nef_merge_patch(session_it->second, patch_body);
-    patched_copy = nlohmann::json::parse(rfl::json::write(r_result));
+    r_result = nef_merge_patch(session_it->second, patch_body);
+    // patched_copy = rfl::json::write(r_result);
   }
   if (pcf_bdt_id.empty()) {
     http_code    = http_status_code::BAD_GATEWAY;
@@ -236,7 +298,8 @@ void nef_app::handle_bdt_policy_patch(
   }
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_bdt_policy(
-          pcf_bdt_id, patched_copy, http_code_pcf, http_version)) {
+          pcf_bdt_id, rfl::json::write(r_result), http_code_pcf,
+          http_version)) {
     http_code    = http_status_code::BAD_GATEWAY;
     rfl_response = make_problem_detail(
         http_status_code::BAD_GATEWAY, "Bad Gateway",
@@ -292,10 +355,8 @@ void nef_app::handle_qos_subscription_update(
   // Type and length validation (422 for semantic errors) — out-of-scope
   // boundary.
   {
-    const nlohmann::json body_nj =
-        nlohmann::json::parse(rfl::json::write(rfl_body));
-    const std::string err =
-        validate_string_field(body_nj, "notifUri", false, 2048);
+    const std::string err = validate_string_field(
+        rfl_obj_or_empty(rfl_body), "notifUri", false, 2048);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -1417,8 +1478,7 @@ void nef_app::handle_monitoring_event_subscription_create(
     const std::string& scs_as_id, const rfl::Generic& rfl_body,
     std::string& sub_id, rfl::Generic& rfl_response, int& http_code,
     uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   Logger::nef_app().info(
       "Create monitoring event subscription for SCS/AS: %s", scs_as_id.c_str());
 
@@ -1431,8 +1491,8 @@ void nef_app::handle_monitoring_event_subscription_create(
   }
 
   // Validate required fields
-  if (!body_for_val.contains("monitoringType") ||
-      !body_for_val.contains("notificationDestination")) {
+  if (!rfl_obj_has(body_for_val, "monitoringType") ||
+      !rfl_obj_has(body_for_val, "notificationDestination")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -1462,10 +1522,10 @@ void nef_app::handle_monitoring_event_subscription_create(
     if (err.empty()) err = validate_string_param(scs_as_id, "scsAsId", 256);
     if (err.empty())
       err = validate_enum_field(
-          body_for_val, "monitoringType", kMonitoringTypes, true);
+          rfl_obj_or_empty(rfl_body), "monitoringType", kMonitoringTypes, true);
     if (err.empty())
       err = validate_string_field(
-          body_for_val, "notificationDestination", true, 2048);
+          rfl_obj_or_empty(rfl_body), "notificationDestination", true, 2048);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -1478,7 +1538,7 @@ void nef_app::handle_monitoring_event_subscription_create(
   // calls
   {
     const std::string uri_err = validate_callback_uri(
-        body_for_val["notificationDestination"].get<std::string>());
+        rfl_obj_get_string(body_for_val, "notificationDestination"));
     if (!uri_err.empty()) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -1497,16 +1557,16 @@ void nef_app::handle_monitoring_event_subscription_create(
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_MONITORING_EVENT);
   sub->set_target_nf_type(nf_type_t::NF_TYPE_AMF);
   sub->set_http_version(http_version);
-  sub->set_subscription_data(body_for_val);
-  if (body_for_val.contains("notificationDestination")) {
+  sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
+  if (rfl_obj_has(body_for_val, "notificationDestination")) {
     sub->set_notification_uri(
-        body_for_val["notificationDestination"].get<std::string>());
+        rfl_obj_get_string(body_for_val, "notificationDestination"));
   }
-  if (body_for_val.contains("monitorExpireTime") &&
-      body_for_val["monitorExpireTime"].is_string()) {
+  if (rfl_obj_has(body_for_val, "monitorExpireTime") &&
+      rfl_obj_is_string(body_for_val, "monitorExpireTime")) {
     std::chrono::system_clock::time_point expire_time;
     if (!parse_monitor_expire_time(
-            body_for_val["monitorExpireTime"].get<std::string>(),
+            rfl_obj_get_string(body_for_val, "monitorExpireTime"),
             expire_time)) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -1524,7 +1584,7 @@ void nef_app::handle_monitoring_event_subscription_create(
   std::string amf_sub_id;
   // TODO: should pass sub_id as well?
   if (!m_nef_client->subscribe_amf_event_exposure(
-          body_for_val, amf_sub_id, http_version)) {
+          rfl_obj_to_nlohmann(body_for_val), amf_sub_id, http_version)) {
     Logger::nef_app().warn("Failed to subscribe to AMF event exposure");
     remove_subscription(sub_id);
     release_af_profile_subscription(scs_as_id, sub_id);
@@ -1653,8 +1713,7 @@ void nef_app::handle_monitoring_event_subscription_get(
 void nef_app::handle_traffic_influence_create(
     const std::string& af_id, const rfl::Generic& rfl_body, std::string& ti_id,
     rfl::Generic& rfl_response, int& http_code, uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   Logger::nef_app().info("Create TI subscription for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
@@ -1666,9 +1725,9 @@ void nef_app::handle_traffic_influence_create(
   }
 
   // Validate required fields: at least one traffic filter must be present
-  if (!body_for_val.contains("afAppId") &&
-      !body_for_val.contains("trafficFilters") &&
-      !body_for_val.contains("ethTrafficFilters")) {
+  if (!rfl_obj_has(body_for_val, "afAppId") &&
+      !rfl_obj_has(body_for_val, "trafficFilters") &&
+      !rfl_obj_has(body_for_val, "ethTrafficFilters")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -1682,12 +1741,14 @@ void nef_app::handle_traffic_influence_create(
     std::string err;
     if (err.empty()) err = validate_string_param(af_id, "afId", 256);
     if (err.empty())
-      err = validate_string_field(body_for_val, "afAppId", false, 256);
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "afAppId", false, 256);
     if (err.empty())
-      err = validate_string_field(body_for_val, "dnn", false, 100);
+      err =
+          validate_string_field(rfl_obj_or_empty(rfl_body), "dnn", false, 100);
     if (err.empty())
       err = validate_string_field(
-          body_for_val, "notificationDestination", false, 2048);
+          rfl_obj_or_empty(rfl_body), "notificationDestination", false, 2048);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -1697,10 +1758,10 @@ void nef_app::handle_traffic_influence_create(
   }
 
   // SSRF protection: validate notification callback URI if provided
-  if (body_for_val.contains("notificationDestination") &&
-      body_for_val["notificationDestination"].is_string()) {
+  if (rfl_obj_has(body_for_val, "notificationDestination") &&
+      rfl_obj_is_string(body_for_val, "notificationDestination")) {
     const std::string uri_err = validate_callback_uri(
-        body_for_val["notificationDestination"].get<std::string>());
+        rfl_obj_get_string(body_for_val, "notificationDestination"));
     if (!uri_err.empty()) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -1725,18 +1786,19 @@ void nef_app::handle_traffic_influence_create(
   ti_sub->set_service_type(
       nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE);
   ti_sub->set_http_version(http_version);
-  ti_sub->set_subscription_data(body_for_val);
-  if (body_for_val.contains("notificationDestination") &&
-      body_for_val["notificationDestination"].is_string()) {
+  ti_sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
+  if (rfl_obj_has(body_for_val, "notificationDestination") &&
+      rfl_obj_is_string(body_for_val, "notificationDestination")) {
     ti_sub->set_notification_uri(
-        body_for_val["notificationDestination"].get<std::string>());
+        rfl_obj_get_string(body_for_val, "notificationDestination"));
   }
   add_subscription(ti_id, ti_sub);
 
   std::string pcf_policy_id;
   uint32_t http_code_pcf = 0;
   const bool pcf_ok      = m_nef_client->create_pcf_policy_auth(
-      body_for_val, pcf_policy_id, http_code_pcf, http_version);
+      rfl_obj_to_nlohmann(body_for_val), pcf_policy_id, http_code_pcf,
+      http_version);
   if (!pcf_ok || http_code_pcf < http_status_code::OK ||
       http_code_pcf >= http_status_code::MULTIPLE_CHOICES) {
     Logger::nef_app().warn(
@@ -1795,7 +1857,8 @@ void nef_app::handle_traffic_influence_create(
 
   uint32_t http_code_udr = 0;
   if (!m_nef_client->udr_put_influence_data(
-          ti_id, body_for_val, http_code_udr, http_version)) {
+          ti_id, rfl_obj_to_nlohmann(body_for_val), http_code_udr,
+          http_version)) {
     Logger::nef_app().warn(
         "UDR influence PUT failed for ti_id=%s (http=%u)", ti_id.c_str(),
         http_code_udr);
@@ -1814,8 +1877,7 @@ void nef_app::handle_traffic_influence_update(
     const std::string& af_id, const std::string& ti_id,
     const rfl::Generic& rfl_body, rfl::Generic& rfl_response, int& http_code,
     uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
     http_code    = http_status_code::FORBIDDEN;
     rfl_response = make_problem_detail(
@@ -1824,9 +1886,9 @@ void nef_app::handle_traffic_influence_update(
     return;
   }
 
-  if (!body_for_val.contains("afAppId") &&
-      !body_for_val.contains("trafficFilters") &&
-      !body_for_val.contains("ethTrafficFilters")) {
+  if (!rfl_obj_has(body_for_val, "afAppId") &&
+      !rfl_obj_has(body_for_val, "trafficFilters") &&
+      !rfl_obj_has(body_for_val, "ethTrafficFilters")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -1839,12 +1901,14 @@ void nef_app::handle_traffic_influence_update(
   {
     std::string err;
     if (err.empty())
-      err = validate_string_field(body_for_val, "afAppId", false, 256);
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "afAppId", false, 256);
     if (err.empty())
-      err = validate_string_field(body_for_val, "dnn", false, 100);
+      err =
+          validate_string_field(rfl_obj_or_empty(rfl_body), "dnn", false, 100);
     if (err.empty())
       err = validate_string_field(
-          body_for_val, "notificationDestination", false, 2048);
+          rfl_obj_or_empty(rfl_body), "notificationDestination", false, 2048);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -1854,10 +1918,10 @@ void nef_app::handle_traffic_influence_update(
   }
 
   // SSRF protection: validate notification callback URI if provided in update
-  if (body_for_val.contains("notificationDestination") &&
-      body_for_val["notificationDestination"].is_string()) {
+  if (rfl_obj_has(body_for_val, "notificationDestination") &&
+      rfl_obj_is_string(body_for_val, "notificationDestination")) {
     const std::string uri_err = validate_callback_uri(
-        body_for_val["notificationDestination"].get<std::string>());
+        rfl_obj_get_string(body_for_val, "notificationDestination"));
     if (!uri_err.empty()) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -1905,7 +1969,8 @@ void nef_app::handle_traffic_influence_update(
 
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_policy_auth(
-          pcf_policy_id, body_for_val, http_code_pcf, http_version)) {
+          pcf_policy_id, rfl_obj_to_nlohmann(body_for_val), http_code_pcf,
+          http_version)) {
     Logger::nef_app().warn(
         "PCF TI update failed for ti_id=%s policy_id=%s (http=%u)",
         ti_id.c_str(), pcf_policy_id.c_str(), http_code_pcf);
@@ -2002,8 +2067,7 @@ void nef_app::handle_traffic_influence_delete(
 void nef_app::handle_pfd_create(
     const std::string& app_id, const rfl::Generic& rfl_body,
     rfl::Generic& rfl_response, int& http_code, uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   Logger::nef_app().info("PFD create for app: %s", app_id.c_str());
 
   if (!authorize_af_request(app_id, NEF_SERVICE_PFD_MANAGEMENT)) {
@@ -2014,7 +2078,7 @@ void nef_app::handle_pfd_create(
     return;
   }
 
-  if (!body_for_val.contains("pfdDatas")) {
+  if (!rfl_obj_has(body_for_val, "pfdDatas")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -2027,7 +2091,8 @@ void nef_app::handle_pfd_create(
     std::string err;
     if (err.empty()) err = validate_string_param(app_id, "appId", 256);
     if (err.empty())
-      err = validate_object_field(body_for_val, "pfdDatas", false);
+      err =
+          validate_object_field(rfl_obj_or_empty(rfl_body), "pfdDatas", false);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -2036,7 +2101,8 @@ void nef_app::handle_pfd_create(
     }
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, body_for_val, http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(
+          app_id, rfl_obj_to_nlohmann(body_for_val), http_version)) {
     Logger::nef_app().warn("UDR PFD push failed for app: %s", app_id.c_str());
   }
   rfl_response = rfl_body;
@@ -2098,8 +2164,7 @@ void nef_app::handle_pfd_get(
 void nef_app::handle_bdt_policy_create(
     const std::string& af_id, const rfl::Generic& rfl_body, std::string& bdt_id,
     rfl::Generic& rfl_response, int& http_code, uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   Logger::nef_app().info("BDT policy create for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
@@ -2110,7 +2175,7 @@ void nef_app::handle_bdt_policy_create(
     return;
   }
 
-  if (!body_for_val.contains("bdtPolData")) {
+  if (!rfl_obj_has(body_for_val, "bdtPolData")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -2123,7 +2188,8 @@ void nef_app::handle_bdt_policy_create(
     std::string err;
     if (err.empty()) err = validate_string_param(af_id, "afId", 256);
     if (err.empty())
-      err = validate_object_field(body_for_val, "bdtPolData", false);
+      err = validate_object_field(
+          rfl_obj_or_empty(rfl_body), "bdtPolData", false);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -2143,7 +2209,8 @@ void nef_app::handle_bdt_policy_create(
   std::string pcf_bdt_id;
   uint32_t http_code_pcf = 0;
   const bool pcf_ok      = m_nef_client->create_pcf_bdt_policy(
-      body_for_val, pcf_bdt_id, http_code_pcf, http_version);
+      rfl::json::write(rfl::Generic(body_for_val)), pcf_bdt_id, http_code_pcf,
+      http_version);
   if (!pcf_ok || ((http_code_pcf < http_status_code::OK ||
                    http_code_pcf >= http_status_code::MULTIPLE_CHOICES) &&
                   http_code_pcf != http_status_code::SEE_OTHER)) {
@@ -2182,8 +2249,7 @@ void nef_app::handle_bdt_policy_update(
     const std::string& af_id, const std::string& bdt_id,
     const rfl::Generic& rfl_body, rfl::Generic& rfl_response, int& http_code,
     uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
     http_code    = http_status_code::FORBIDDEN;
     rfl_response = make_problem_detail(
@@ -2192,7 +2258,7 @@ void nef_app::handle_bdt_policy_update(
     return;
   }
 
-  if (!body_for_val.contains("bdtPolData")) {
+  if (!rfl_obj_has(body_for_val, "bdtPolData")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -2238,7 +2304,8 @@ void nef_app::handle_bdt_policy_update(
 
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_bdt_policy(
-          pcf_bdt_id, body_for_val, http_code_pcf, http_version)) {
+          pcf_bdt_id, rfl::json::write(rfl::Generic(body_for_val)),
+          http_code_pcf, http_version)) {
     Logger::nef_app().warn(
         "PCF BDT update failed for bdt_id=%s policy_id=%s (http=%u)",
         bdt_id.c_str(), pcf_bdt_id.c_str(), http_code_pcf);
@@ -2388,8 +2455,11 @@ void nef_app::handle_qos_subscription_create(
     const std::string& af_id, const rfl::Generic& rfl_body,
     std::string& qos_sub_id, rfl::Generic& rfl_response, int& http_code,
     uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  auto body_for_val = rfl_body.to_object();
+  if (!body_for_val) {
+    return;
+  }
+
   Logger::nef_app().info("QoS subscription create for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
@@ -2401,9 +2471,9 @@ void nef_app::handle_qos_subscription_create(
   }
 
   // Validate required fields
-  if (!body_for_val.contains("notifUri") ||
-      (!body_for_val.contains("flowInfo") &&
-       !body_for_val.contains("ethFlowInfo"))) {
+  if (!body_for_val.value().get("notifUri") ||
+      (!body_for_val.value().get("flowInfo") &&
+       !body_for_val.value().get("ethFlowInfo"))) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -2416,9 +2486,11 @@ void nef_app::handle_qos_subscription_create(
     std::string err;
     if (err.empty()) err = validate_string_param(af_id, "afId", 256);
     if (err.empty())
-      err = validate_string_field(body_for_val, "notifUri", true, 2048);
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "notifUri", true, 2048);
     if (err.empty())
-      err = validate_string_field(body_for_val, "afAppId", false, 256);
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "afAppId", false, 256);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -2430,8 +2502,10 @@ void nef_app::handle_qos_subscription_create(
   // SSRF protection: validate the callback URI before any storage or southbound
   // calls
   {
-    const std::string uri_err =
-        validate_callback_uri(body_for_val["notifUri"].get<std::string>());
+    auto uri_err_rfl =
+        body_for_val.value().get("notifUri").and_then(rfl::to_string);
+    std::string uri_err = {};
+    if (uri_err_rfl) uri_err = validate_callback_uri(uri_err_rfl.value());
     if (!uri_err.empty()) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -2447,13 +2521,14 @@ void nef_app::handle_qos_subscription_create(
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING);
   sub->set_target_nf_type(nf_type_t::NF_TYPE_SMF);
   sub->set_http_version(http_version);
-  sub->set_subscription_data(body_for_val);
+  sub->set_subscription_data(
+      nlohmann::json::parse(rfl::json::write(body_for_val)));
 
-  if (body_for_val.contains("requestExpiry") &&
-      body_for_val["requestExpiry"].is_string()) {
+  auto request_expiry =
+      body_for_val.value().get("requestExpiry").and_then(rfl::to_string);
+  if (request_expiry) {
     std::chrono::system_clock::time_point expire_time;
-    if (parse_monitor_expire_time(
-            body_for_val["requestExpiry"].get<std::string>(), expire_time)) {
+    if (parse_monitor_expire_time(request_expiry.value(), expire_time)) {
       sub->set_expire_time(expire_time);
       Logger::nef_app().debug(
           "F1.2: QoS subscription '%s' expiry set from requestExpiry",
@@ -2466,7 +2541,8 @@ void nef_app::handle_qos_subscription_create(
 
   std::string smf_sub_id;
   const bool smf_ok = m_nef_client->subscribe_smf_event_exposure(
-      body_for_val, smf_sub_id, http_version);
+      nlohmann::json::parse(rfl::json::write(body_for_val)), smf_sub_id,
+      http_version);
   if (!smf_ok || smf_sub_id.empty()) {
     remove_subscription(qos_sub_id);
     release_af_profile_subscription(af_id, qos_sub_id);
@@ -2483,8 +2559,11 @@ void nef_app::handle_qos_subscription_create(
     const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id[smf_sub_id] = qos_sub_id;
   }
-  if (body_for_val.contains("notifUri")) {
-    sub->set_notification_uri(body_for_val["notifUri"].get<std::string>());
+
+  auto notif_uri =
+      body_for_val.value().get("notifUri").and_then(rfl::to_string);
+  if (notif_uri) {
+    sub->set_notification_uri(notif_uri.value());
   }
 
   rfl_response = rfl_body;
@@ -2600,8 +2679,7 @@ void nef_app::handle_analytics_subscription_create(
     const std::string& af_id, const rfl::Generic& rfl_body,
     std::string& analytics_sub_id, rfl::Generic& rfl_response, int& http_code,
     uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   Logger::nef_app().info(
       "Analytics subscription create for AF: %s", af_id.c_str());
 
@@ -2613,8 +2691,9 @@ void nef_app::handle_analytics_subscription_create(
     return;
   }
 
-  if (!body_for_val.contains("analyEventsSubs") ||
-      !body_for_val.contains("notifUri") || !body_for_val.contains("notifId")) {
+  if (!rfl_obj_has(body_for_val, "analyEventsSubs") ||
+      !rfl_obj_has(body_for_val, "notifUri") ||
+      !rfl_obj_has(body_for_val, "notifId")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -2627,11 +2706,14 @@ void nef_app::handle_analytics_subscription_create(
     std::string err;
     if (err.empty()) err = validate_string_param(af_id, "afId", 256);
     if (err.empty())
-      err = validate_string_field(body_for_val, "notifUri", true, 2048);
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "notifUri", true, 2048);
     if (err.empty())
-      err = validate_string_field(body_for_val, "notifId", true, 256);
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "notifId", true, 256);
     if (err.empty())
-      err = validate_array_field(body_for_val, "analyEventsSubs", false, 1);
+      err = validate_array_field(
+          rfl_obj_or_empty(rfl_body), "analyEventsSubs", false, 1);
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
       rfl_response = make_problem_detail(
@@ -2643,7 +2725,7 @@ void nef_app::handle_analytics_subscription_create(
   // SSRF protection: validate the callback URI before any storage
   {
     const std::string uri_err =
-        validate_callback_uri(body_for_val["notifUri"].get<std::string>());
+        validate_callback_uri(rfl_obj_get_string(body_for_val, "notifUri"));
     if (!uri_err.empty()) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -2658,7 +2740,7 @@ void nef_app::handle_analytics_subscription_create(
   sub->set_scs_as_id(af_id);
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS);
   sub->set_http_version(http_version);
-  sub->set_subscription_data(body_for_val);
+  sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
 
   add_subscription(analytics_sub_id, sub);
   ensure_af_profile(af_id, analytics_sub_id);
@@ -3058,8 +3140,7 @@ void nef_app::handle_pfd_transaction_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const rfl::Generic& rfl_body, rfl::Generic& rfl_response, int& http_code,
     uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code    = http_status_code::FORBIDDEN;
     rfl_response = make_problem_detail(
@@ -3067,7 +3148,7 @@ void nef_app::handle_pfd_transaction_put(
         "AF not authorized for this service");
     return;
   }
-  if (!body_for_val.contains("pfdDatas")) {
+  if (!rfl_obj_has(body_for_val, "pfdDatas")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -3076,7 +3157,7 @@ void nef_app::handle_pfd_transaction_put(
   }
 
   // Type validation (422 for semantic errors).
-  if (!body_for_val["pfdDatas"].is_object()) {
+  if (!rfl_obj_is_object(body_for_val, "pfdDatas")) {
     http_code    = http_status_code::UNPROCESSABLE_ENTITY;
     rfl_response = make_problem_detail(
         http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
@@ -3094,8 +3175,13 @@ void nef_app::handle_pfd_transaction_put(
 
   // Write each app to UDR atomically — rollback committed apps on failure
   PfdRollbackTracker pfd_rollback;
-  for (auto& [app_id, pfd_data] : body_for_val["pfdDatas"].items()) {
-    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_data, http_version)) {
+  const auto pfd_datas_it = rfl_obj_find(body_for_val, "pfdDatas");
+  const auto* pfd_datas_obj =
+      std::get_if<rfl::Generic::Object>(&pfd_datas_it->second.variant());
+  for (const auto& [app_id, pfd_data] : *pfd_datas_obj) {
+    const nlohmann::json pfd_data_nj =
+        nlohmann::json::parse(rfl::json::write(pfd_data));
+    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_data_nj, http_version)) {
       Logger::nef_app().error(
           "F1.10: UDR PFD write failed for app '%s' in trans '%s'; "
           "rolling back %zu committed app(s)",
@@ -3245,8 +3331,7 @@ void nef_app::handle_pfd_app_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const rfl::Generic& rfl_body,
     rfl::Generic& rfl_response, int& http_code, uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code    = http_status_code::FORBIDDEN;
     rfl_response = make_problem_detail(
@@ -3293,7 +3378,8 @@ void nef_app::handle_pfd_app_put(
     (*pfd_obj)[app_id] = rfl_body;
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, body_for_val, http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(
+          app_id, rfl_obj_to_nlohmann(body_for_val), http_version)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for app: %s", app_id.c_str());
   }
@@ -4128,8 +4214,7 @@ void nef_app::handle_analytics_subscription_update(
     const std::string& scs_as_id, const std::string& sub_id,
     const rfl::Generic& rfl_body, rfl::Generic& rfl_response, int& http_code,
     uint8_t http_version) {
-  const nlohmann::json body_for_val =
-      nlohmann::json::parse(rfl::json::write(rfl_body));
+  const rfl::Generic::Object body_for_val = rfl_obj_or_empty(rfl_body);
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_ANALYTICS)) {
     http_code    = http_status_code::FORBIDDEN;
     rfl_response = make_problem_detail(
@@ -4152,8 +4237,9 @@ void nef_app::handle_analytics_subscription_update(
         "AF is not allowed to access this subscription");
     return;
   }
-  if (!body_for_val.contains("analyEventsSubs") ||
-      !body_for_val.contains("notifUri") || !body_for_val.contains("notifId")) {
+  if (!rfl_obj_has(body_for_val, "analyEventsSubs") ||
+      !rfl_obj_has(body_for_val, "notifUri") ||
+      !rfl_obj_has(body_for_val, "notifId")) {
     http_code    = http_status_code::BAD_REQUEST;
     rfl_response = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -4164,10 +4250,12 @@ void nef_app::handle_analytics_subscription_update(
   {
     std::string err;
     if (err.empty())
-      err = validate_string_field(body_for_val, "notifUri", true, 2048);
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "notifUri", true, 2048);
     if (err.empty())
-      err = validate_string_field(body_for_val, "notifId", true, 256);
-    if (err.empty() && !body_for_val["analyEventsSubs"].is_array())
+      err = validate_string_field(
+          rfl_obj_or_empty(rfl_body), "notifId", true, 256);
+    if (err.empty() && !rfl_obj_is_array(body_for_val, "analyEventsSubs"))
       err = "analyEventsSubs: must be an array";
     if (!err.empty()) {
       http_code    = http_status_code::UNPROCESSABLE_ENTITY;
@@ -4179,7 +4267,7 @@ void nef_app::handle_analytics_subscription_update(
   // SSRF protection: validate the callback URI before updating stored state
   {
     const std::string uri_err =
-        validate_callback_uri(body_for_val["notifUri"].get<std::string>());
+        validate_callback_uri(rfl_obj_get_string(body_for_val, "notifUri"));
     if (!uri_err.empty()) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -4187,10 +4275,10 @@ void nef_app::handle_analytics_subscription_update(
       return;
     }
   }
-  sub->set_subscription_data(body_for_val);
-  if (body_for_val.contains("notifUri") &&
-      body_for_val["notifUri"].is_string()) {
-    sub->set_notification_uri(body_for_val["notifUri"].get<std::string>());
+  sub->set_subscription_data(rfl_obj_to_nlohmann(body_for_val));
+  if (rfl_obj_has(body_for_val, "notifUri") &&
+      rfl_obj_is_string(body_for_val, "notifUri")) {
+    sub->set_notification_uri(rfl_obj_get_string(body_for_val, "notifUri"));
   }
   {
     auto rfl_r =

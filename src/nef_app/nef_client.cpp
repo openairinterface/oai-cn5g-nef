@@ -777,7 +777,7 @@ bool nef_client::delete_pcf_policy_auth(
 
 //------------------------------------------------------------------------------
 bool nef_client::create_pcf_bdt_policy(
-    const nlohmann::json& bdt_req, std::string& pcf_bdt_id, uint32_t& http_code,
+    const std::string& bdt_req, std::string& pcf_bdt_id, uint32_t& http_code,
     uint8_t http_version) {
   http_code = 0;
   std::string pcf_url;
@@ -788,9 +788,8 @@ bool nef_client::create_pcf_bdt_policy(
 
   const std::string url =
       pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase + "v1/bdtpolicies";
-  oai::http::request req =
-      http_client_inst->prepare_json_request(url, bdt_req.dump());
-  auto resp = http_client_inst->send_http_request(
+  oai::http::request req = http_client_inst->prepare_json_request(url, bdt_req);
+  auto resp              = http_client_inst->send_http_request(
       oai::common::sbi::method_e::POST, req);
   http_code = resp.status_code;
 
@@ -819,7 +818,7 @@ bool nef_client::create_pcf_bdt_policy(
 
 //------------------------------------------------------------------------------
 bool nef_client::update_pcf_bdt_policy(
-    const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
+    const std::string& bdt_policy_id, const std::string& bdt_patch,
     uint32_t& http_code, uint8_t http_version) {
   http_code = 0;
   std::string pcf_url;
@@ -828,7 +827,7 @@ bool nef_client::update_pcf_bdt_policy(
   const std::string url = pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase +
                           "v1/bdtpolicies/" + bdt_policy_id;
   oai::http::request req =
-      http_client_inst->prepare_json_request(url, bdt_patch.dump());
+      http_client_inst->prepare_json_request(url, bdt_patch);
   auto resp = http_client_inst->send_http_request(
       oai::common::sbi::method_e::PATCH, req);
   http_code = resp.status_code;

@@ -41,8 +41,7 @@ class nef_client {
 
   // AMF — event-exposure subscription
   bool subscribe_amf_event_exposure(
-      const nlohmann::json& subscription_data,
-      std::string& amf_sub_id,
+      const nlohmann::json& subscription_data, std::string& amf_sub_id,
       uint8_t http_version = 1);
 
   bool unsubscribe_amf_event_exposure(
@@ -50,8 +49,7 @@ class nef_client {
 
   // SMF — event-exposure subscription
   bool subscribe_smf_event_exposure(
-      const nlohmann::json& subscription_data,
-      std::string& smf_sub_id,
+      const nlohmann::json& subscription_data, std::string& smf_sub_id,
       uint8_t http_version = 1);
 
   bool unsubscribe_smf_event_exposure(
@@ -59,63 +57,45 @@ class nef_client {
 
   // PCF — policy-authorization / BDT-policy
   bool create_pcf_policy_auth(
-      const nlohmann::json& request_body,
-      std::string& app_session_id,
-      uint32_t& http_code,
-      uint8_t http_version = 1);
+      const nlohmann::json& request_body, std::string& app_session_id,
+      uint32_t& http_code, uint8_t http_version = 1);
 
   bool update_pcf_policy_auth(
-      const std::string& app_session_id,
-      const nlohmann::json& request_body,
-      uint32_t& http_code,
-      uint8_t http_version = 1);
+      const std::string& app_session_id, const nlohmann::json& request_body,
+      uint32_t& http_code, uint8_t http_version = 1);
 
   bool delete_pcf_policy_auth(
-      const std::string& app_session_id,
-      uint32_t& http_code,
+      const std::string& app_session_id, uint32_t& http_code,
       uint8_t http_version = 1);
 
   bool create_pcf_bdt_policy(
-      const nlohmann::json& bdt_req,
-      std::string& pcf_bdt_id,
-      uint32_t& http_code,
+      const std::string& bdt_req, std::string& pcf_bdt_id, uint32_t& http_code,
       uint8_t http_version = 1);
 
   bool update_pcf_bdt_policy(
-      const std::string& bdt_policy_id,
-      const nlohmann::json& bdt_patch,
-      uint32_t& http_code,
-      uint8_t http_version = 1);
+      const std::string& bdt_policy_id, const std::string& bdt_patch,
+      uint32_t& http_code, uint8_t http_version = 1);
 
   bool delete_pcf_bdt_policy(
-      const std::string& bdt_policy_id,
-      uint32_t& http_code,
+      const std::string& bdt_policy_id, uint32_t& http_code,
       uint8_t http_version = 1);
 
   // UDR — PFD data
   bool udr_put_pfd_data(
-      const std::string& app_id,
-      const nlohmann::json& pfd_data,
+      const std::string& app_id, const nlohmann::json& pfd_data,
       uint8_t http_version = 1);
 
-  bool udr_delete_pfd_data(
-      const std::string& app_id, uint8_t http_version = 1);
+  bool udr_delete_pfd_data(const std::string& app_id, uint8_t http_version = 1);
 
   void udr_get_pfd_data(
-      const std::string& app_id,
-      nlohmann::json& result,
-      uint32_t& http_code);
+      const std::string& app_id, nlohmann::json& result, uint32_t& http_code);
 
   bool udr_put_influence_data(
-      const std::string& ti_id,
-      const nlohmann::json& data,
-      uint32_t& http_code,
+      const std::string& ti_id, const nlohmann::json& data, uint32_t& http_code,
       uint8_t http_version = 1);
 
   bool udr_delete_influence_data(
-      const std::string& ti_id,
-      uint32_t& http_code,
-      uint8_t http_version = 1);
+      const std::string& ti_id, uint32_t& http_code, uint8_t http_version = 1);
 
   // NEF own notification URL (used as callback in southbound subscriptions)
   /**
@@ -127,8 +107,7 @@ class nef_client {
 
   // Forward notification to AF
   bool forward_notification_to_af(
-      const std::string& af_notif_uri,
-      const nlohmann::json& payload,
+      const std::string& af_notif_uri, const nlohmann::json& payload,
       uint8_t http_version = 1);
 
  private:
