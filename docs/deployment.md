@@ -131,9 +131,8 @@ services:
       - UDR_HTTP2_PORT=9090
       - UDR_API_VERSION=v1
       - UDR_FQDN=oai-udr
-      # Protocol selection
+      # Address selection
       - USE_FQDN_DNS=no
-      - USE_HTTP2=yes
     volumes:
       - ./etc/config.yaml:/openair-nef/etc/config.yaml:ro
     networks:
@@ -209,7 +208,6 @@ Environment variables override the corresponding `etc/config.yaml` parameters wh
 | `UDR_API_VERSION` | `nfs.udr.sbi.api_version` | `v1` | UDR API version |
 | `UDR_FQDN` | `nfs.udr.host` | `cicd-oai-udr` | UDR FQDN |
 | `USE_FQDN_DNS` | — | `no` | Set to `yes` to resolve peer NF addresses by FQDN instead of static IP |
-| `USE_HTTP2` | `http_version` | `no` | Set to `yes` to use HTTP/2 for outbound SBI calls to peer NFs |
 
 ---
 

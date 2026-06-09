@@ -102,16 +102,6 @@ bool nef_subscription::has_expire_time() const {
 }
 
 //------------------------------------------------------------------------------
-void nef_subscription::set_http_version(uint8_t ver) {
-  m_http_version = ver;
-}
-
-//------------------------------------------------------------------------------
-uint8_t nef_subscription::get_http_version() const {
-  return m_http_version;
-}
-
-//------------------------------------------------------------------------------
 void nef_subscription::set_scs_as_id(const std::string& id) {
   m_scs_as_id = id;
 }

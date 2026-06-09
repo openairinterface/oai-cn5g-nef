@@ -555,8 +555,7 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
 // AMF event-exposure
 //-----------------------------------------------------------------------------
 bool nef_client::subscribe_amf_event_exposure(
-    const rfl::Generic& subscription_data, std::string& amf_sub_id,
-    uint8_t http_version) {
+    const rfl::Generic& subscription_data, std::string& amf_sub_id) {
   std::string amf_url = {};
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) {
     Logger::nef_app().warn(
@@ -636,8 +635,7 @@ bool nef_client::subscribe_amf_event_exposure(
 }
 
 //------------------------------------------------------------------------------
-bool nef_client::unsubscribe_amf_event_exposure(
-    const std::string& amf_sub_id, uint8_t http_version) {
+bool nef_client::unsubscribe_amf_event_exposure(const std::string& amf_sub_id) {
   std::string amf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) return false;
 
@@ -654,8 +652,7 @@ bool nef_client::unsubscribe_amf_event_exposure(
 //------------------------------------------------------------------------------
 // SMF event-exposure
 bool nef_client::subscribe_smf_event_exposure(
-    const rfl::Generic& subscription_data, std::string& smf_sub_id,
-    uint8_t http_version) {
+    const rfl::Generic& subscription_data, std::string& smf_sub_id) {
   std::string smf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
     Logger::nef_app().warn(
@@ -710,8 +707,7 @@ bool nef_client::subscribe_smf_event_exposure(
 }
 
 //------------------------------------------------------------------------------
-bool nef_client::unsubscribe_smf_event_exposure(
-    const std::string& smf_sub_id, uint8_t http_version) {
+bool nef_client::unsubscribe_smf_event_exposure(const std::string& smf_sub_id) {
   std::string smf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) return false;
 
@@ -730,7 +726,7 @@ bool nef_client::unsubscribe_smf_event_exposure(
 //------------------------------------------------------------------------------
 bool nef_client::create_pcf_policy_auth(
     const rfl::Generic& request_body, std::string& app_session_id,
-    uint32_t& http_code, uint8_t http_version) {
+    uint32_t& http_code) {
   http_code = 0;
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
@@ -781,7 +777,7 @@ bool nef_client::create_pcf_policy_auth(
 //------------------------------------------------------------------------------
 bool nef_client::update_pcf_policy_auth(
     const std::string& app_session_id, const rfl::Generic& request_body,
-    uint32_t& http_code, uint8_t http_version) {
+    uint32_t& http_code) {
   http_code = 0;
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) return false;
@@ -800,8 +796,7 @@ bool nef_client::update_pcf_policy_auth(
 
 //------------------------------------------------------------------------------
 bool nef_client::delete_pcf_policy_auth(
-    const std::string& app_session_id, uint32_t& http_code,
-    uint8_t http_version) {
+    const std::string& app_session_id, uint32_t& http_code) {
   http_code = 0;
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) return false;
@@ -819,8 +814,7 @@ bool nef_client::delete_pcf_policy_auth(
 
 //------------------------------------------------------------------------------
 bool nef_client::create_pcf_bdt_policy(
-    const std::string& bdt_req, std::string& pcf_bdt_id, uint32_t& http_code,
-    uint8_t http_version) {
+    const std::string& bdt_req, std::string& pcf_bdt_id, uint32_t& http_code) {
   http_code = 0;
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
@@ -865,7 +859,7 @@ bool nef_client::create_pcf_bdt_policy(
 //------------------------------------------------------------------------------
 bool nef_client::update_pcf_bdt_policy(
     const std::string& bdt_policy_id, const std::string& bdt_patch,
-    uint32_t& http_code, uint8_t http_version) {
+    uint32_t& http_code) {
   http_code = 0;
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) return false;
@@ -885,8 +879,7 @@ bool nef_client::update_pcf_bdt_policy(
 
 //------------------------------------------------------------------------------
 bool nef_client::delete_pcf_bdt_policy(
-    const std::string& bdt_policy_id, uint32_t& http_code,
-    uint8_t http_version) {
+    const std::string& bdt_policy_id, uint32_t& http_code) {
   http_code = 0;
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) return false;
@@ -906,8 +899,7 @@ bool nef_client::delete_pcf_bdt_policy(
 // UDR PFD data
 //------------------------------------------------------------------------------
 bool nef_client::udr_put_pfd_data(
-    const std::string& app_id, const rfl::Generic& pfd_data,
-    uint8_t http_version) {
+    const std::string& app_id, const rfl::Generic& pfd_data) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
     Logger::nef_app().warn("UDR not found");
@@ -939,8 +931,7 @@ bool nef_client::udr_put_pfd_data(
 }
 
 //------------------------------------------------------------------------------
-bool nef_client::udr_delete_pfd_data(
-    const std::string& app_id, uint8_t http_version) {
+bool nef_client::udr_delete_pfd_data(const std::string& app_id) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) return false;
 
@@ -1012,8 +1003,7 @@ void nef_client::udr_get_pfd_data(
 
 //------------------------------------------------------------------------------
 bool nef_client::udr_put_influence_data(
-    const std::string& ti_id, const rfl::Generic& data, uint32_t& http_code,
-    uint8_t http_version) {
+    const std::string& ti_id, const rfl::Generic& data, uint32_t& http_code) {
   http_code = 0;
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
@@ -1037,7 +1027,7 @@ bool nef_client::udr_put_influence_data(
 
 //------------------------------------------------------------------------------
 bool nef_client::udr_delete_influence_data(
-    const std::string& ti_id, uint32_t& http_code, uint8_t http_version) {
+    const std::string& ti_id, uint32_t& http_code) {
   http_code = 0;
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) return false;
@@ -1066,8 +1056,7 @@ std::string nef_client::get_nef_notify_uri(const std::string& nf_sub_id) {
 // Forward notification to AF
 //------------------------------------------------------------------------------
 bool nef_client::forward_notification_to_af(
-    const std::string& af_notif_uri, const rfl::Generic& payload,
-    uint8_t http_version) {
+    const std::string& af_notif_uri, const rfl::Generic& payload) {
   Logger::nef_app().debug(
       "Forwarding notification to AF: %s", af_notif_uri.c_str());
 

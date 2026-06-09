@@ -44,11 +44,6 @@ log_level:
 register_nf:
   general: yes
 
-# HTTP protocol version used for ALL SBI connections (both listening and
-# outbound client calls).  Valid values: 1 (HTTP/1.1) or 2 (HTTP/2 h2c).
-# HTTP/2 is strongly recommended and is required by most 5GC deployments.
-http_version: 2
-
 ############## SBI Interfaces — peer network functions
 
 nfs:
@@ -159,12 +154,6 @@ nef:
 | Parameter Path | Type | Default | Description | Constraints |
 |---|---|---|---|---|
 | `register_nf.general` | bool | `yes` | Register NEF with NRF on startup; deregister on graceful shutdown | `yes` or `no` |
-
-### HTTP Version
-
-| Parameter Path | Type | Default | Description | Constraints |
-|---|---|---|---|---|
-| `http_version` | int | `2` | HTTP protocol version for all SBI connections | `1` (HTTP/1.1) or `2` (HTTP/2 h2c) |
 
 ### Peer NF Endpoints — NRF
 
@@ -306,6 +295,5 @@ When deploying with Docker or Docker Compose, the entrypoint script maps contain
 | `UDM_API_VERSION` | `nfs.udr.sbi.api_version` | `v1` | UDR/UDM API version |
 | `UDM_FQDN` | `nfs.udr.host` | `cicd-oai-udm` | UDR/UDM hostname |
 | `USE_FQDN_DNS` | Selects host vs. IP for peer NFs | `no` | When `yes`, FQDN variables are used; when `no`, IPv4 address variables are used |
-| `USE_HTTP2` | Selects HTTP port mapping | `no` | When `yes`, HTTP/2 ports are active; when `no`, HTTP/1.1 ports are used |
 
 > **Note:** The Docker Compose template in `ci-scripts/docker-compose/docker-compose.tplt` demonstrates all of the above environment variables in context. Use that file as the starting point for a production Compose deployment.

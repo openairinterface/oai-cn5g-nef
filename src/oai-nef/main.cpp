@@ -38,7 +38,8 @@ nef_http2_server* nef_api_server_2                       = nullptr;
 task_manager* tm_inst                                    = nullptr;
 std::unique_ptr<oai::config::lttng_configuration> lttng_config_yaml;
 
-static int shutdown_efd_g = -1;
+static int shutdown_efd_g                   = -1;
+static constexpr uint8_t kNefSbiHttpVersion = 2;
 
 //------------------------------------------------------------------------------
 static void my_shutdown_signal_handler(int /*s*/) {
@@ -103,8 +104,7 @@ int main(int argc, char** argv) {
   // HTTP Client
   http_client_inst = oai::http::http_client::create_instance(
       Logger::nef_sbi(), oai::common::sbi::kNfDefaultHttpRequestTimeout,
-      nef_config_inst->local().get_sbi().get_if_name(),
-      nef_config_inst->get_http_version());
+      nef_config_inst->local().get_sbi().get_if_name(), kNefSbiHttpVersion);
 
   // Event subsystem
   nef_event ev;
