@@ -5,7 +5,6 @@
 #pragma once
 
 #include <rfl/Generic.hpp>
-#include <rfl/json.hpp>
 
 namespace oai::nef::app {
 

@@ -4,8 +4,9 @@
 
 #include "nef_config_types.hpp"
 
-#include <algorithm>
-#include <sstream>
+#include <exception>
+#include <optional>
+#include <utility>
 
 #include <rfl/json.hpp>
 

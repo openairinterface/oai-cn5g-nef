@@ -7,11 +7,16 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
+#include <string>
+#include <vector>
 
-#include "conversions.hpp"
 #include "http2-server.h"
-#include "nef_app.hpp"
 #include "uint_generator.hpp"
+
+namespace oai::nef::app {
+class nef_app;
+}
 
 using namespace oai::nef::app;
 

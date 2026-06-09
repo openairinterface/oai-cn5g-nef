@@ -5,13 +5,6 @@
 #ifndef TASK_MANAGER_H_
 #define TASK_MANAGER_H_
 
-#include "nef_event.hpp"
-
-#include <linux/types.h>
-#include <sys/timerfd.h>
-
-using namespace oai::nef::app;
-
 namespace oai {
 namespace nef {
 namespace app {
@@ -29,9 +22,9 @@ class task_manager {
   void wait_for_cycle();
 
   nef_event& event_sub_;
-  int        sfd;
-  bool       terminate;
-  bool       terminated;
+  int sfd;
+  bool terminate;
+  bool terminated;
 };
 
 }  // namespace app

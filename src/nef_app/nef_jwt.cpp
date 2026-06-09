@@ -4,9 +4,7 @@
 
 #include "nef_jwt.hpp"
 
-#include <ctime>
-#include <vector>
-#include <stdexcept>
+#include <memory>
 
 #include "nef_jwt_detail.hpp"  // JwtHeader, JwtPayload, jwt_validate_with_key_impl + pure helpers
 

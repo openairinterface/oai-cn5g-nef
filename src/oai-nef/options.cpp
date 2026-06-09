@@ -17,14 +17,13 @@
 #include <getopt.h>
 #include <iostream>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "options.hpp"
 
-int         Options::options          = 0;
-std::string Options::m_libconfigcfg   = {};
-bool        Options::m_log_rot_file_log = false;
-bool        Options::m_log_stdout       = false;
+int Options::options                = 0;
+std::string Options::m_libconfigcfg = {};
+bool Options::m_log_rot_file_log    = false;
+bool Options::m_log_stdout          = false;
 
 void Options::help() {
   std::cout << std::endl
@@ -53,9 +52,9 @@ bool Options::validateOptions() {
 }
 
 bool Options::parseInputOptions(int argc, char** argv) {
-  int  c;
-  int  option_index = 0;
-  bool result       = true;
+  int c;
+  int option_index = 0;
+  bool result      = true;
 
   struct option long_options[] = {
       {"help", no_argument, NULL, 'h'},

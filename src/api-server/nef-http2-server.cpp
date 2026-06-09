@@ -4,11 +4,13 @@
 
 #include "nef-http2-server.h"
 
+#include <algorithm>
 #include <cctype>
 #include <string>
 
 #include "3gpp_29.500.h"
 #include "logger.hpp"
+#include "nef_app.hpp"
 #include "nef_config.hpp"
 #include "nef_health_check.hpp"
 #include "nef_rate_limiter.hpp"

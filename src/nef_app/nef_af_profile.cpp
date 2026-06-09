@@ -5,6 +5,7 @@
 #include "nef_af_profile.hpp"
 
 #include <algorithm>
+#include <mutex>
 #include <rfl/json.hpp>
 
 #include "logger.hpp"

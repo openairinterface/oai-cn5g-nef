@@ -1,7 +1,7 @@
 #ifndef FILE_NEF_NOTIFICATION_MAPPER_HPP_SEEN
 #define FILE_NEF_NOTIFICATION_MAPPER_HPP_SEEN
 
-#include <rfl/json.hpp>
+#include <rfl/Generic.hpp>
 #include <string>
 
 namespace oai {

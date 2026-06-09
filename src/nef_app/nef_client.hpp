@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <rfl/Generic.hpp>
 #include <string>
-#include <vector>
 
 #include "nef.h"
 

@@ -7,21 +7,19 @@
 
 #include <chrono>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
-#include <boost/date_time/posix_time/time_parsers.hpp>
 #include <boost/signals2.hpp>
 #include <rfl/Generic.hpp>
 #include <string>
-#include <vector>
 
-#include "logger.hpp"
 #include "nef.h"
-#include "nef_event.hpp"
 
 namespace bs2 = boost::signals2;
 
 namespace oai {
 namespace nef {
 namespace app {
+
+class nef_event;
 
 /**
  * Represents an AF subscription to one of the NEF Northbound services.

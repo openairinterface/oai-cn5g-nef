@@ -4,11 +4,6 @@
 
 #include "nef_event.hpp"
 
-#include <boost/signals2.hpp>
-
-#include "nef_app.hpp"
-#include "nef_event_sig.hpp"
-
 using namespace oai::nef::app;
 namespace bs2 = boost::signals2;
 

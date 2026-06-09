@@ -13,8 +13,11 @@
 #include <sstream>
 #include <thread>
 
+#include <rfl/json.hpp>
+
 #include "3gpp_29.500.h"
 #include "logger.hpp"
+#include "nef_af_profile.hpp"
 #include "nef_audit_log.hpp"
 #include "nef_callback_uri_validator.hpp"
 #include "nef_input_validation.hpp"
@@ -23,9 +26,12 @@
 #include "nef_client.hpp"
 #include "nef_config.hpp"
 #include "nef_config_types.hpp"
+#include "nef_event.hpp"
 #include "nef_json_utils.hpp"
 #include "nef_jwt.hpp"
 #include "nef_notification_mapper.hpp"
+#include "nef_notification_queue.hpp"
+#include "nef_subscription.hpp"
 
 #include <algorithm>
 

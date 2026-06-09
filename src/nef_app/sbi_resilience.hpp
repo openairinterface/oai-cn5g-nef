@@ -9,7 +9,6 @@
 #include <mutex>
 #include <random>
 #include <string>
-#include <thread>
 #include <unordered_map>
 
 #include "3gpp_29.500.h"

@@ -17,7 +17,6 @@
 #ifndef __OPTIONS_H
 #define __OPTIONS_H
 
-#include <stdint.h>
 #include <string>
 
 class Options {
@@ -40,9 +39,9 @@ class Options {
 
   static void help();
 
-  static int         options;
-  static bool        m_log_rot_file_log;
-  static bool        m_log_stdout;
+  static int options;
+  static bool m_log_rot_file_log;
+  static bool m_log_stdout;
   static std::string m_libconfigcfg;
 };
 

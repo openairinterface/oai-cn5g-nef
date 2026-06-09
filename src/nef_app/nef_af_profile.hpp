@@ -6,17 +6,15 @@
 #define FILE_NEF_AF_PROFILE_HPP_SEEN
 
 #include <memory>
-#include <rfl/json.hpp>
 #include <shared_mutex>
 #include <string>
 #include <vector>
 
-#include "logger.hpp"
-#include "nef_event.hpp"
-
 namespace oai {
 namespace nef {
 namespace app {
+
+class nef_event;
 
 /**
  * Tracks a single registered AF (SCS/AS) inside NEF.

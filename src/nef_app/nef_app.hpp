@@ -15,13 +15,8 @@
 
 #include <boost/signals2.hpp>
 #include <rfl/Generic.hpp>
-#include <rfl/json.hpp>
 
 #include "nef.h"
-#include "nef_af_profile.hpp"
-#include "nef_event.hpp"
-#include "nef_notification_queue.hpp"
-#include "nef_subscription.hpp"
 #include "uint_generator.hpp"
 
 namespace bs2 = boost::signals2;
@@ -31,6 +26,10 @@ namespace nef {
 namespace app {
 
 class nef_client;
+class nef_event;
+class nef_af_profile;
+class nef_subscription;
+class notification_thread_pool;
 
 class nef_app {
  public:
