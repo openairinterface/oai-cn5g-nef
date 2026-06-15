@@ -69,10 +69,6 @@ class nef_subscription {
   std::chrono::system_clock::time_point get_expire_time() const;
   bool has_expire_time() const;
 
-  // HTTP version used by AF
-  void set_http_version(uint8_t ver);
-  uint8_t get_http_version() const;
-
   // SCS/AS identifier (external app-id from 3GPP)
   void set_scs_as_id(const std::string& id);
   std::string get_scs_as_id() const;
@@ -94,7 +90,6 @@ class nef_subscription {
   boost::posix_time::ptime m_validity_time;
   std::chrono::system_clock::time_point m_expire_time{};
   bool m_has_expire_time             = false;
-  uint8_t m_http_version             = 1;
   nlohmann::json m_subscription_data = {};
 
   nef_event& m_event_sub;

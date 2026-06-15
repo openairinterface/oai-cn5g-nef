@@ -84,7 +84,7 @@ thread_local std::string g_request_bearer_token;
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_fetch(
     const std::string& scs_as_id, const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_ANALYTICS)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -156,7 +156,7 @@ void nef_app::handle_analytics_fetch(
 void nef_app::handle_bdt_policy_patch(
     const std::string& af_id, const std::string& bdt_policy_id,
     const nlohmann::json& patch_body, nlohmann::json& response_body,
-    int& http_code, uint8_t http_version) {
+    int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -200,7 +200,7 @@ void nef_app::handle_bdt_policy_patch(
   }
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_bdt_policy(
-          pcf_bdt_id, patched_copy, http_code_pcf, http_version)) {
+          pcf_bdt_id, patched_copy, http_code_pcf)) {
     http_code     = http_status_code::BAD_GATEWAY;
     response_body = make_problem_detail(
         http_status_code::BAD_GATEWAY, "Bad Gateway",
@@ -240,8 +240,7 @@ void nef_app::handle_bdt_policy_patch(
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_update(
     const std::string& scs_as_id, const std::string& sub_id,
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_QOS_MONITORING)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -320,8 +319,7 @@ void nef_app::handle_qos_subscription_update(
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_update(
     const std::string& scs_as_id, const std::string& sub_id,
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_MONITORING_EVENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -380,7 +378,7 @@ void nef_app::handle_monitoring_event_subscription_update(
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_get(
     const std::string& af_id, const std::string& app_session_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -412,8 +410,7 @@ void nef_app::handle_traffic_influence_get(
 // TI LIST
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_list(
-    const std::string& af_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -1089,12 +1086,10 @@ void nef_app::handle_nf_notification(
       t8_payload = notif_payload;
     }
 
-    const uint8_t http_ver = sub->get_http_version();
-    auto nef_client        = m_nef_client;
-    const bool enqueued    = m_notification_pool->enqueue(
-        [nef_client, af_uri, t8_payload, http_ver]() {
-          if (!nef_client->forward_notification_to_af(
-                  af_uri, t8_payload, http_ver)) {
+    auto nef_client = m_nef_client;
+    const bool enqueued =
+        m_notification_pool->enqueue([nef_client, af_uri, t8_payload]() {
+          if (!nef_client->forward_notification_to_af(af_uri, t8_payload)) {
             Logger::nef_app().warn(
                 "Failed forwarding notification to AF endpoint: %s",
                 af_uri.c_str());
@@ -1113,10 +1108,7 @@ void nef_app::handle_nf_notification(
 // Nnef_EventExposure (TS 29.591)
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_subscribe(
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
-  (void) http_version;
-
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -1214,9 +1206,7 @@ void nef_app::handle_nnef_event_exposure_subscribe(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_unsubscribe(
-    const std::string& subscription_id, int& http_code, uint8_t http_version) {
-  (void) http_version;
-
+    const std::string& subscription_id, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -1240,9 +1230,7 @@ void nef_app::handle_nnef_event_exposure_unsubscribe(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_get(
     const std::string& subscription_id, nlohmann::json& response_body,
-    int& http_code, uint8_t http_version) {
-  (void) http_version;
-
+    int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -1271,9 +1259,7 @@ void nef_app::handle_nnef_event_exposure_get(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_event_exposure_update(
     const std::string& subscription_id, const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
-  (void) http_version;
-
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_MONITORING_EVENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -1378,8 +1364,7 @@ void nef_app::handle_nnef_event_exposure_update(
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_create(
     const std::string& scs_as_id, const nlohmann::json& body,
-    std::string& sub_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    std::string& sub_id, nlohmann::json& response_body, int& http_code) {
   Logger::nef_app().info(
       "Create monitoring event subscription for SCS/AS: %s", scs_as_id.c_str());
 
@@ -1455,7 +1440,6 @@ void nef_app::handle_monitoring_event_subscription_create(
   sub->set_scs_as_id(scs_as_id);
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_MONITORING_EVENT);
   sub->set_target_nf_type(nf_type_t::NF_TYPE_AMF);
-  sub->set_http_version(http_version);
   sub->set_subscription_data(body);
   if (body.contains("notificationDestination")) {
     sub->set_notification_uri(
@@ -1481,8 +1465,7 @@ void nef_app::handle_monitoring_event_subscription_create(
   // Subscribe to AMF event-exposure southbound.
   std::string amf_sub_id;
   // TODO: should pass sub_id as well?
-  if (!m_nef_client->subscribe_amf_event_exposure(
-          body, amf_sub_id, http_version)) {
+  if (!m_nef_client->subscribe_amf_event_exposure(body, amf_sub_id)) {
     Logger::nef_app().warn("Failed to subscribe to AMF event exposure");
     remove_subscription(sub_id);
     release_af_profile_subscription(scs_as_id, sub_id);
@@ -1507,8 +1490,7 @@ void nef_app::handle_monitoring_event_subscription_create(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_delete(
-    const std::string& scs_as_id, const std::string& sub_id, int& http_code,
-    uint8_t http_version) {
+    const std::string& scs_as_id, const std::string& sub_id, int& http_code) {
   Logger::nef_app().info(
       "Delete monitoring event subscription: %s", sub_id.c_str());
 
@@ -1531,7 +1513,7 @@ void nef_app::handle_monitoring_event_subscription_delete(
   // Unsubscribe from AMF
   std::string nf_sub_id = sub->get_nf_subscription_id();
   if (!nf_sub_id.empty()) {
-    m_nef_client->unsubscribe_amf_event_exposure(nf_sub_id, http_version);
+    m_nef_client->unsubscribe_amf_event_exposure(nf_sub_id);
     const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id.erase(nf_sub_id);
   }
@@ -1545,7 +1527,7 @@ void nef_app::handle_monitoring_event_subscription_delete(
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_get(
     const std::string& scs_as_id, const std::string& sub_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_MONITORING_EVENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -1596,7 +1578,7 @@ void nef_app::handle_monitoring_event_subscription_get(
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_create(
     const std::string& af_id, const nlohmann::json& body, std::string& ti_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   Logger::nef_app().info("Create TI subscription for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
@@ -1681,7 +1663,6 @@ void nef_app::handle_traffic_influence_create(
   ti_sub->set_scs_as_id(af_id);
   ti_sub->set_service_type(
       nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE);
-  ti_sub->set_http_version(http_version);
   ti_sub->set_subscription_data(body);
   if (body.contains("notificationDestination") &&
       body["notificationDestination"].is_string()) {
@@ -1692,8 +1673,8 @@ void nef_app::handle_traffic_influence_create(
 
   std::string pcf_policy_id;
   uint32_t http_code_pcf = 0;
-  const bool pcf_ok      = m_nef_client->create_pcf_policy_auth(
-      body, pcf_policy_id, http_code_pcf, http_version);
+  const bool pcf_ok =
+      m_nef_client->create_pcf_policy_auth(body, pcf_policy_id, http_code_pcf);
   if (!pcf_ok || http_code_pcf < http_status_code::OK ||
       http_code_pcf >= http_status_code::MULTIPLE_CHOICES) {
     Logger::nef_app().warn(
@@ -1751,8 +1732,7 @@ void nef_app::handle_traffic_influence_create(
       pcf_policy_id.c_str(), ti_id.c_str());
 
   uint32_t http_code_udr = 0;
-  if (!m_nef_client->udr_put_influence_data(
-          ti_id, body, http_code_udr, http_version)) {
+  if (!m_nef_client->udr_put_influence_data(ti_id, body, http_code_udr)) {
     Logger::nef_app().warn(
         "UDR influence PUT failed for ti_id=%s (http=%u)", ti_id.c_str(),
         http_code_udr);
@@ -1767,8 +1747,7 @@ void nef_app::handle_traffic_influence_create(
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_update(
     const std::string& af_id, const std::string& ti_id,
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -1873,7 +1852,7 @@ void nef_app::handle_traffic_influence_update(
 
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_policy_auth(
-          pcf_policy_id, body, http_code_pcf, http_version)) {
+          pcf_policy_id, body, http_code_pcf)) {
     Logger::nef_app().warn(
         "PCF TI update failed for ti_id=%s policy_id=%s (http=%u)",
         ti_id.c_str(), pcf_policy_id.c_str(), http_code_pcf);
@@ -1903,8 +1882,7 @@ void nef_app::handle_traffic_influence_update(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_delete(
-    const std::string& af_id, const std::string& ti_id, int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const std::string& ti_id, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -1933,8 +1911,7 @@ void nef_app::handle_traffic_influence_delete(
 
   if (!pcf_policy_id.empty()) {
     uint32_t http_code_pcf = 0;
-    if (!m_nef_client->delete_pcf_policy_auth(
-            pcf_policy_id, http_code_pcf, http_version)) {
+    if (!m_nef_client->delete_pcf_policy_auth(pcf_policy_id, http_code_pcf)) {
       Logger::nef_app().warn(
           "PCF TI delete failed for ti_id=%s policy_id=%s (http=%u)",
           ti_id.c_str(), pcf_policy_id.c_str(), http_code_pcf);
@@ -1942,8 +1919,7 @@ void nef_app::handle_traffic_influence_delete(
   }
 
   uint32_t http_code_udr = 0;
-  if (!m_nef_client->udr_delete_influence_data(
-          ti_id, http_code_udr, http_version)) {
+  if (!m_nef_client->udr_delete_influence_data(ti_id, http_code_udr)) {
     Logger::nef_app().warn(
         "UDR influence DELETE failed for ti_id=%s (http=%u)", ti_id.c_str(),
         http_code_udr);
@@ -1969,7 +1945,7 @@ void nef_app::handle_traffic_influence_delete(
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_create(
     const std::string& app_id, const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   Logger::nef_app().info("PFD create for app: %s", app_id.c_str());
 
   if (!authorize_af_request(app_id, NEF_SERVICE_PFD_MANAGEMENT)) {
@@ -2001,7 +1977,7 @@ void nef_app::handle_pfd_create(
     }
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, body, http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(app_id, body)) {
     Logger::nef_app().warn("UDR PFD push failed for app: %s", app_id.c_str());
   }
   response_body = body;
@@ -2010,22 +1986,20 @@ void nef_app::handle_pfd_create(
 }
 
 //------------------------------------------------------------------------------
-void nef_app::handle_pfd_delete(
-    const std::string& app_id, int& http_code, uint8_t http_version) {
+void nef_app::handle_pfd_delete(const std::string& app_id, int& http_code) {
   if (!authorize_af_request(app_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
   }
 
-  m_nef_client->udr_delete_pfd_data(app_id, http_version);
+  m_nef_client->udr_delete_pfd_data(app_id);
   http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "PFD", app_id, app_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_get(
-    const std::string& app_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& app_id, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(app_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2061,7 +2035,7 @@ void nef_app::handle_pfd_get(
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_create(
     const std::string& af_id, const nlohmann::json& body, std::string& bdt_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   Logger::nef_app().info("BDT policy create for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
@@ -2121,8 +2095,8 @@ void nef_app::handle_bdt_policy_create(
 
   std::string pcf_bdt_id;
   uint32_t http_code_pcf = 0;
-  const bool pcf_ok      = m_nef_client->create_pcf_bdt_policy(
-      body, pcf_bdt_id, http_code_pcf, http_version);
+  const bool pcf_ok =
+      m_nef_client->create_pcf_bdt_policy(body, pcf_bdt_id, http_code_pcf);
   if (!pcf_ok || ((http_code_pcf < http_status_code::OK ||
                    http_code_pcf >= http_status_code::MULTIPLE_CHOICES) &&
                   http_code_pcf != http_status_code::SEE_OTHER)) {
@@ -2160,8 +2134,7 @@ void nef_app::handle_bdt_policy_create(
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_update(
     const std::string& af_id, const std::string& bdt_id,
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2234,8 +2207,7 @@ void nef_app::handle_bdt_policy_update(
   }
 
   uint32_t http_code_pcf = 0;
-  if (!m_nef_client->update_pcf_bdt_policy(
-          pcf_bdt_id, body, http_code_pcf, http_version)) {
+  if (!m_nef_client->update_pcf_bdt_policy(pcf_bdt_id, body, http_code_pcf)) {
     Logger::nef_app().warn(
         "PCF BDT update failed for bdt_id=%s policy_id=%s (http=%u)",
         bdt_id.c_str(), pcf_bdt_id.c_str(), http_code_pcf);
@@ -2267,8 +2239,7 @@ void nef_app::handle_bdt_policy_update(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_delete(
-    const std::string& af_id, const std::string& bdt_id, int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const std::string& bdt_id, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -2297,8 +2268,7 @@ void nef_app::handle_bdt_policy_delete(
 
   if (!pcf_bdt_id.empty()) {
     uint32_t http_code_pcf = 0;
-    if (!m_nef_client->delete_pcf_bdt_policy(
-            pcf_bdt_id, http_code_pcf, http_version)) {
+    if (!m_nef_client->delete_pcf_bdt_policy(pcf_bdt_id, http_code_pcf)) {
       Logger::nef_app().warn(
           "PCF BDT delete failed for bdt_id=%s policy_id=%s (http=%u)",
           bdt_id.c_str(), pcf_bdt_id.c_str(), http_code_pcf);
@@ -2317,8 +2287,7 @@ void nef_app::handle_bdt_policy_delete(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_list(
-    const std::string& af_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2345,7 +2314,7 @@ void nef_app::handle_bdt_policy_list(
 //------------------------------------------------------------------------------
 void nef_app::handle_bdt_policy_get(
     const std::string& af_id, const std::string& bdt_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_BDT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2381,8 +2350,7 @@ void nef_app::handle_bdt_policy_get(
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_create(
     const std::string& af_id, const nlohmann::json& body,
-    std::string& qos_sub_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    std::string& qos_sub_id, nlohmann::json& response_body, int& http_code) {
   Logger::nef_app().info("QoS subscription create for AF: %s", af_id.c_str());
 
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
@@ -2454,7 +2422,6 @@ void nef_app::handle_qos_subscription_create(
   sub->set_scs_as_id(af_id);
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING);
   sub->set_target_nf_type(nf_type_t::NF_TYPE_SMF);
-  sub->set_http_version(http_version);
   sub->set_subscription_data(body);
 
   if (body.contains("requestExpiry") && body["requestExpiry"].is_string()) {
@@ -2472,8 +2439,8 @@ void nef_app::handle_qos_subscription_create(
   ensure_af_profile(af_id, qos_sub_id);
 
   std::string smf_sub_id;
-  const bool smf_ok = m_nef_client->subscribe_smf_event_exposure(
-      body, smf_sub_id, http_version);
+  const bool smf_ok =
+      m_nef_client->subscribe_smf_event_exposure(body, smf_sub_id);
   if (!smf_ok || smf_sub_id.empty()) {
     remove_subscription(qos_sub_id);
     release_af_profile_subscription(af_id, qos_sub_id);
@@ -2502,8 +2469,7 @@ void nef_app::handle_qos_subscription_create(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_delete(
-    const std::string& af_id, const std::string& qos_sub_id, int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, const std::string& qos_sub_id, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -2522,7 +2488,7 @@ void nef_app::handle_qos_subscription_delete(
 
   std::string nf_sub_id = sub->get_nf_subscription_id();
   if (!nf_sub_id.empty()) {
-    m_nef_client->unsubscribe_smf_event_exposure(nf_sub_id, http_version);
+    m_nef_client->unsubscribe_smf_event_exposure(nf_sub_id);
     const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id.erase(nf_sub_id);
   }
@@ -2536,7 +2502,7 @@ void nef_app::handle_qos_subscription_delete(
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_get(
     const std::string& af_id, const std::string& qos_sub_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2567,8 +2533,7 @@ void nef_app::handle_qos_subscription_get(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_qos_subscription_list(
-    const std::string& af_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_QOS_MONITORING)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2596,7 +2561,7 @@ void nef_app::handle_qos_subscription_list(
 void nef_app::handle_analytics_subscription_create(
     const std::string& af_id, const nlohmann::json& body,
     std::string& analytics_sub_id, nlohmann::json& response_body,
-    int& http_code, uint8_t http_version) {
+    int& http_code) {
   Logger::nef_app().info(
       "Analytics subscription create for AF: %s", af_id.c_str());
 
@@ -2650,7 +2615,6 @@ void nef_app::handle_analytics_subscription_create(
   sub->set_af_subscription_id(analytics_sub_id);
   sub->set_scs_as_id(af_id);
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS);
-  sub->set_http_version(http_version);
   sub->set_subscription_data(body);
 
   add_subscription(analytics_sub_id, sub);
@@ -2664,7 +2628,7 @@ void nef_app::handle_analytics_subscription_create(
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_delete(
     const std::string& af_id, const std::string& analytics_sub_id,
-    int& http_code, uint8_t http_version) {
+    int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_ANALYTICS)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -2693,7 +2657,7 @@ void nef_app::handle_analytics_subscription_delete(
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_get(
     const std::string& af_id, const std::string& analytics_sub_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_ANALYTICS)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2725,8 +2689,7 @@ void nef_app::handle_analytics_subscription_get(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_list(
-    const std::string& af_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& af_id, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_ANALYTICS)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2798,7 +2761,6 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
 
     const std::string nf_sub_id = sub->get_nf_subscription_id();
     const auto nf_type          = sub->get_target_nf_type();
-    const auto http_version     = sub->get_http_version();
     const auto svc_type         = sub->get_service_type();
 
     // Service-specific southbound cleanup before removing local state.
@@ -2808,15 +2770,13 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
     if (svc_type == nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE) {
       if (!nf_sub_id.empty()) {
         uint32_t http_code_pcf = 0;
-        if (!m_nef_client->delete_pcf_policy_auth(
-                nf_sub_id, http_code_pcf, http_version)) {
+        if (!m_nef_client->delete_pcf_policy_auth(nf_sub_id, http_code_pcf)) {
           Logger::nef_app().warn(
               "F1.3: PCF TI expiry delete failed for sub=%s (http=%u)",
               sub_id.c_str(), http_code_pcf);
         }
         uint32_t http_code_udr = 0;
-        if (!m_nef_client->udr_delete_influence_data(
-                sub_id, http_code_udr, http_version)) {
+        if (!m_nef_client->udr_delete_influence_data(sub_id, http_code_udr)) {
           Logger::nef_app().warn(
               "F1.3: UDR TI expiry delete failed for sub=%s (http=%u)",
               sub_id.c_str(), http_code_udr);
@@ -2836,9 +2796,9 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
       // Monitoring and QoS subscriptions: unsubscribe from the target NF.
       if (!nf_sub_id.empty()) {
         if (nf_type == nf_type_t::NF_TYPE_AMF) {
-          m_nef_client->unsubscribe_amf_event_exposure(nf_sub_id, http_version);
+          m_nef_client->unsubscribe_amf_event_exposure(nf_sub_id);
         } else if (nf_type == nf_type_t::NF_TYPE_SMF) {
-          m_nef_client->unsubscribe_smf_event_exposure(nf_sub_id, http_version);
+          m_nef_client->unsubscribe_smf_event_exposure(nf_sub_id);
         }
         {
           const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
@@ -2859,7 +2819,7 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
 void nef_app::handle_traffic_influence_patch(
     const std::string& af_id, const std::string& app_session_id,
     const nlohmann::json& patch_body, nlohmann::json& response_body,
-    int& http_code, uint8_t http_version) {
+    int& http_code) {
   if (!authorize_af_request(af_id, NEF_SERVICE_TRAFFIC_INFLUENCE)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -2924,7 +2884,7 @@ void nef_app::handle_traffic_influence_patch(
 
   uint32_t http_code_pcf = 0;
   if (!m_nef_client->update_pcf_policy_auth(
-          pcf_policy_id, patched_copy, http_code_pcf, http_version)) {
+          pcf_policy_id, patched_copy, http_code_pcf)) {
     Logger::nef_app().warn(
         "PCF TI patch failed for ti_id=%s (http=%u)", app_session_id.c_str(),
         http_code_pcf);
@@ -2958,7 +2918,7 @@ void nef_app::handle_traffic_influence_patch(
 void nef_app::handle_qos_subscription_patch(
     const std::string& scs_as_id, const std::string& sub_id,
     const nlohmann::json& patch_body, nlohmann::json& response_body,
-    int& http_code, uint8_t http_version) {
+    int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_QOS_MONITORING)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3026,8 +2986,8 @@ void nef_app::handle_qos_subscription_patch(
 // PFD transaction-level and app-level endpoints (TS 29.122)
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_transaction_list(
-    const std::string& scs_as_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& scs_as_id, nlohmann::json& response_body,
+    int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3057,8 +3017,7 @@ void nef_app::handle_pfd_transaction_list(
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_transaction_put(
     const std::string& scs_as_id, const std::string& trans_id,
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3119,14 +3078,14 @@ void nef_app::handle_pfd_transaction_put(
   for (auto& [app_id, app] : app_map) {
     nlohmann::json pfd_json;
     to_json(pfd_json, app);
-    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_json, http_version)) {
+    if (!m_nef_client->udr_put_pfd_data(app_id, pfd_json)) {
       Logger::nef_app().error(
           "F1.10: UDR PFD write failed for app '%s' in trans '%s'; "
           "rolling back %zu committed app(s)",
           app_id.c_str(), trans_id.c_str(), pfd_rollback.committed_count());
       const int rb_failures = pfd_rollback.execute(
-          [this, http_version](const std::string& rid) {
-            return m_nef_client->udr_delete_pfd_data(rid, http_version);
+          [this](const std::string& rid) {
+            return m_nef_client->udr_delete_pfd_data(rid);
           },
           [&trans_id](const std::string& rid) {
             Logger::nef_app().error(
@@ -3165,8 +3124,7 @@ void nef_app::handle_pfd_transaction_put(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_transaction_delete(
-    const std::string& scs_as_id, const std::string& trans_id, int& http_code,
-    uint8_t http_version) {
+    const std::string& scs_as_id, const std::string& trans_id, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -3191,7 +3149,7 @@ void nef_app::handle_pfd_transaction_delete(
 
   // Delete each application's PFD data from UDR
   for (const auto& [app_id, _] : trans_body) {
-    m_nef_client->udr_delete_pfd_data(app_id, http_version);
+    m_nef_client->udr_delete_pfd_data(app_id);
   }
   http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "PFD_TX", scs_as_id, trans_id, http_code);
@@ -3200,8 +3158,7 @@ void nef_app::handle_pfd_transaction_delete(
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_app_get(
     const std::string& scs_as_id, const std::string& trans_id,
-    const std::string& app_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& app_id, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3243,7 +3200,7 @@ void nef_app::handle_pfd_app_get(
 void nef_app::handle_pfd_app_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3298,7 +3255,7 @@ void nef_app::handle_pfd_app_put(
     to_json(new_app_json, m_pfd_trans_sessions.at(trans_id).at(app_id));
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, new_app_json, http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(app_id, new_app_json)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for app: %s", app_id.c_str());
   }
@@ -3314,7 +3271,7 @@ void nef_app::handle_pfd_app_put(
 void nef_app::handle_pfd_app_patch(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const nlohmann::json& patch_body,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3368,7 +3325,7 @@ void nef_app::handle_pfd_app_patch(
     app_it->second = patched_app;
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, patched, http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(app_id, patched)) {
     Logger::nef_app().warn(
         "UDR PFD app PATCH failed for app: %s", app_id.c_str());
   }
@@ -3382,7 +3339,7 @@ void nef_app::handle_pfd_app_patch(
 //------------------------------------------------------------------------------
 void nef_app::handle_pfd_app_delete(
     const std::string& scs_as_id, const std::string& trans_id,
-    const std::string& app_id, int& http_code, uint8_t http_version) {
+    const std::string& app_id, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -3405,14 +3362,14 @@ void nef_app::handle_pfd_app_delete(
     }
     it->second.erase(app_id);
   }
-  m_nef_client->udr_delete_pfd_data(app_id, http_version);
+  m_nef_client->udr_delete_pfd_data(app_id);
   http_code = http_status_code::NO_CONTENT;
   nef_audit::log("DELETE", "PFD_APP", scs_as_id, app_id, http_code);
 }
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_list_transactions(
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3431,7 +3388,7 @@ void nef_app::handle_nnef_pfd_list_transactions(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_put_transaction(
     const std::string& transaction_id, const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3466,15 +3423,15 @@ void nef_app::handle_nnef_pfd_put_transaction(
   // Write each app to UDR atomically — rollback committed apps on failure
   PfdRollbackTracker pfd_rollback;
   for (const auto& [app_id, app_body] : applications.items()) {
-    if (!m_nef_client->udr_put_pfd_data(app_id, app_body, http_version)) {
+    if (!m_nef_client->udr_put_pfd_data(app_id, app_body)) {
       Logger::nef_app().error(
           "UDR PFD write failed for Nnef app '%s' in trans '%s'; "
           "rolling back %zu committed app(s)",
           app_id.c_str(), transaction_id.c_str(),
           pfd_rollback.committed_count());
       const int rb_failures = pfd_rollback.execute(
-          [this, http_version](const std::string& rid) {
-            return m_nef_client->udr_delete_pfd_data(rid, http_version);
+          [this](const std::string& rid) {
+            return m_nef_client->udr_delete_pfd_data(rid);
           },
           [&transaction_id](const std::string& rid) {
             Logger::nef_app().error(
@@ -3508,7 +3465,7 @@ void nef_app::handle_nnef_pfd_put_transaction(
     for (const auto& [app_id, _] :
          previous_transaction["applications"].items()) {
       if (applications.contains(app_id)) continue;
-      if (!m_nef_client->udr_delete_pfd_data(app_id, http_version)) {
+      if (!m_nef_client->udr_delete_pfd_data(app_id)) {
         Logger::nef_app().warn(
             "UDR PFD delete failed for removed Nnef_PFDmanagement app: %s in "
             "transaction: %s",
@@ -3535,7 +3492,7 @@ void nef_app::handle_nnef_pfd_put_transaction(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_get_transaction(
     const std::string& transaction_id, nlohmann::json& response_body,
-    int& http_code, uint8_t http_version) {
+    int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3557,7 +3514,7 @@ void nef_app::handle_nnef_pfd_get_transaction(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_delete_transaction(
-    const std::string& transaction_id, int& http_code, uint8_t http_version) {
+    const std::string& transaction_id, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -3578,7 +3535,7 @@ void nef_app::handle_nnef_pfd_delete_transaction(
   if (transaction.contains("applications") &&
       transaction["applications"].is_object()) {
     for (const auto& [app_id, _] : transaction["applications"].items()) {
-      if (!m_nef_client->udr_delete_pfd_data(app_id, http_version)) {
+      if (!m_nef_client->udr_delete_pfd_data(app_id)) {
         Logger::nef_app().warn(
             "UDR PFD delete failed for Nnef_PFDmanagement app: %s in "
             "transaction: %s",
@@ -3593,7 +3550,7 @@ void nef_app::handle_nnef_pfd_delete_transaction(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_get_app(
     const std::string& transaction_id, const std::string& app_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3628,8 +3585,7 @@ void nef_app::handle_nnef_pfd_get_app(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_put_app(
     const std::string& transaction_id, const std::string& app_id,
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3669,7 +3625,7 @@ void nef_app::handle_nnef_pfd_put_app(
     transaction_snapshot = transaction;
   }
 
-  if (!m_nef_client->udr_put_pfd_data(app_id, normalized_app, http_version)) {
+  if (!m_nef_client->udr_put_pfd_data(app_id, normalized_app)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for Nnef_PFDmanagement app: %s",
         app_id.c_str());
@@ -3686,7 +3642,7 @@ void nef_app::handle_nnef_pfd_put_app(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_delete_app(
     const std::string& transaction_id, const std::string& app_id,
-    int& http_code, uint8_t http_version) {
+    int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -3709,7 +3665,7 @@ void nef_app::handle_nnef_pfd_delete_app(
     transaction["applications"].erase(app_id);
   }
 
-  if (!m_nef_client->udr_delete_pfd_data(app_id, http_version)) {
+  if (!m_nef_client->udr_delete_pfd_data(app_id)) {
     Logger::nef_app().warn(
         "UDR PFD app DELETE failed for Nnef_PFDmanagement app: %s",
         app_id.c_str());
@@ -3724,7 +3680,7 @@ void nef_app::handle_nnef_pfd_delete_app(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_get_applications(
     const std::vector<std::string>& app_ids_filter,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3761,8 +3717,7 @@ void nef_app::handle_nnef_pfd_get_applications(
 // Nnef_PFDmanagement — POST /applications/partial-pull
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_partial_pull(
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3813,7 +3768,7 @@ void nef_app::handle_nnef_pfd_partial_pull(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_create(
     const nlohmann::json& body, std::string& sub_id,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3881,8 +3836,7 @@ void nef_app::handle_nnef_pfd_subscription_create(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_get(
-    const std::string& sub_id, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const std::string& sub_id, nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3911,7 +3865,7 @@ void nef_app::handle_nnef_pfd_subscription_get(
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_put(
     const std::string& sub_id, const nlohmann::json& body,
-    nlohmann::json& response_body, int& http_code, uint8_t http_version) {
+    nlohmann::json& response_body, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(
@@ -3985,7 +3939,7 @@ void nef_app::handle_nnef_pfd_subscription_put(
 
 //------------------------------------------------------------------------------
 void nef_app::handle_nnef_pfd_subscription_delete(
-    const std::string& sub_id, int& http_code, uint8_t http_version) {
+    const std::string& sub_id, int& http_code) {
   if (!authorize_nnef_request(NEF_SERVICE_PFD_MANAGEMENT)) {
     http_code = http_status_code::FORBIDDEN;
     return;
@@ -4036,8 +3990,7 @@ void nef_app::notify_nnef_pfd_subscribers(
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_update(
     const std::string& scs_as_id, const std::string& sub_id,
-    const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-    uint8_t http_version) {
+    const nlohmann::json& body, nlohmann::json& response_body, int& http_code) {
   if (!authorize_af_request(scs_as_id, NEF_SERVICE_ANALYTICS)) {
     http_code     = http_status_code::FORBIDDEN;
     response_body = make_problem_detail(

@@ -68,233 +68,219 @@ class nef_app {
   // Monitoring Event Exposure (3GPP TS 29.122 §5.6)
   void handle_monitoring_event_subscription_create(
       const std::string& scs_as_id, const nlohmann::json& body,
-      std::string& sub_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      std::string& sub_id, nlohmann::json& response_body, int& http_code);
 
   void handle_monitoring_event_subscription_delete(
-      const std::string& scs_as_id, const std::string& sub_id, int& http_code,
-      uint8_t http_version);
+      const std::string& scs_as_id, const std::string& sub_id, int& http_code);
 
   void handle_monitoring_event_subscription_get(
       const std::string& scs_as_id, const std::string& sub_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   // Monitoring Event UPDATE (PUT)
   void handle_monitoring_event_subscription_update(
       const std::string& scs_as_id, const std::string& sub_id,
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   // Traffic Influence (3GPP TS 29.522 §5.3)
   void handle_traffic_influence_create(
       const std::string& af_id, const nlohmann::json& body, std::string& ti_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_traffic_influence_update(
       const std::string& af_id, const std::string& ti_id,
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   void handle_traffic_influence_delete(
-      const std::string& af_id, const std::string& ti_id, int& http_code,
-      uint8_t http_version);
+      const std::string& af_id, const std::string& ti_id, int& http_code);
 
   // TI GET and LIST
   void handle_traffic_influence_get(
       const std::string& af_id, const std::string& app_session_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
   void handle_traffic_influence_list(
-      const std::string& af_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const std::string& af_id, nlohmann::json& response_body, int& http_code);
 
   // TI PATCH
   void handle_traffic_influence_patch(
       const std::string& af_id, const std::string& app_session_id,
       const nlohmann::json& patch_body, nlohmann::json& response_body,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   // PFD Management (3GPP TS 29.122 §5.12)
   void handle_pfd_create(
       const std::string& app_id, const nlohmann::json& body,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
-  void handle_pfd_delete(
-      const std::string& app_id, int& http_code, uint8_t http_version);
+  void handle_pfd_delete(const std::string& app_id, int& http_code);
 
   void handle_pfd_get(
-      const std::string& app_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const std::string& app_id, nlohmann::json& response_body, int& http_code);
 
   // PFD transaction-level and app-level endpoints
   void handle_pfd_transaction_list(
       const std::string& scs_as_id, nlohmann::json& response_body,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   void handle_pfd_transaction_put(
       const std::string& scs_as_id, const std::string& trans_id,
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   void handle_pfd_transaction_delete(
-      const std::string& scs_as_id, const std::string& trans_id, int& http_code,
-      uint8_t http_version);
+      const std::string& scs_as_id, const std::string& trans_id,
+      int& http_code);
 
   void handle_pfd_app_get(
       const std::string& scs_as_id, const std::string& trans_id,
-      const std::string& app_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const std::string& app_id, nlohmann::json& response_body, int& http_code);
 
   void handle_pfd_app_put(
       const std::string& scs_as_id, const std::string& trans_id,
       const std::string& app_id, const nlohmann::json& body,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_pfd_app_patch(
       const std::string& scs_as_id, const std::string& trans_id,
       const std::string& app_id, const nlohmann::json& patch_body,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_pfd_app_delete(
       const std::string& scs_as_id, const std::string& trans_id,
-      const std::string& app_id, int& http_code, uint8_t http_version);
+      const std::string& app_id, int& http_code);
 
   // Nnef_PFDmanagement (TS 29.551)
   void handle_nnef_pfd_list_transactions(
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_nnef_pfd_put_transaction(
       const std::string& transaction_id, const nlohmann::json& body,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_nnef_pfd_get_transaction(
       const std::string& transaction_id, nlohmann::json& response_body,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   void handle_nnef_pfd_delete_transaction(
-      const std::string& transaction_id, int& http_code, uint8_t http_version);
+      const std::string& transaction_id, int& http_code);
 
   void handle_nnef_pfd_get_app(
       const std::string& transaction_id, const std::string& app_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_nnef_pfd_put_app(
       const std::string& transaction_id, const std::string& app_id,
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   void handle_nnef_pfd_delete_app(
       const std::string& transaction_id, const std::string& app_id,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   // GET /nnef-pfdmanagement/v1/applications
   void handle_nnef_pfd_get_applications(
       const std::vector<std::string>& app_ids_filter,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   // POST /nnef-pfdmanagement/v1/applications/partial-pull
   void handle_nnef_pfd_partial_pull(
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   // PFD management subscription CRUD
   void handle_nnef_pfd_subscription_create(
       const nlohmann::json& body, std::string& sub_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
   void handle_nnef_pfd_subscription_get(
-      const std::string& sub_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const std::string& sub_id, nlohmann::json& response_body, int& http_code);
   void handle_nnef_pfd_subscription_put(
       const std::string& sub_id, const nlohmann::json& body,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
   void handle_nnef_pfd_subscription_delete(
-      const std::string& sub_id, int& http_code, uint8_t http_version);
+      const std::string& sub_id, int& http_code);
 
   // Background Data Transfer (3GPP TS 29.122 §5.13)
   void handle_bdt_policy_create(
       const std::string& af_id, const nlohmann::json& body, std::string& bdt_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_bdt_policy_update(
       const std::string& af_id, const std::string& bdt_id,
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   void handle_bdt_policy_delete(
-      const std::string& af_id, const std::string& bdt_id, int& http_code,
-      uint8_t http_version);
+      const std::string& af_id, const std::string& bdt_id, int& http_code);
 
   void handle_bdt_policy_list(
-      const std::string& af_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const std::string& af_id, nlohmann::json& response_body, int& http_code);
 
   void handle_bdt_policy_get(
       const std::string& af_id, const std::string& bdt_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   // BDT PATCH
   void handle_bdt_policy_patch(
       const std::string& af_id, const std::string& bdt_policy_id,
       const nlohmann::json& patch_body, nlohmann::json& response_body,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   // QoS Provisioning / Monitoring (3GPP TS 29.122 §5.7)
   void handle_qos_subscription_create(
       const std::string& af_id, const nlohmann::json& body,
-      std::string& qos_sub_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      std::string& qos_sub_id, nlohmann::json& response_body, int& http_code);
 
   void handle_qos_subscription_delete(
-      const std::string& af_id, const std::string& qos_sub_id, int& http_code,
-      uint8_t http_version);
+      const std::string& af_id, const std::string& qos_sub_id, int& http_code);
 
   void handle_qos_subscription_get(
       const std::string& af_id, const std::string& qos_sub_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_qos_subscription_list(
-      const std::string& af_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const std::string& af_id, nlohmann::json& response_body, int& http_code);
 
   // QoS UPDATE (PUT)
   void handle_qos_subscription_update(
       const std::string& scs_as_id, const std::string& sub_id,
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   // QoS PATCH
   void handle_qos_subscription_patch(
       const std::string& scs_as_id, const std::string& sub_id,
       const nlohmann::json& patch_body, nlohmann::json& response_body,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   // Analytics (3GPP TS 29.520)
   void handle_analytics_subscription_create(
       const std::string& af_id, const nlohmann::json& body,
       std::string& analytics_sub_id, nlohmann::json& response_body,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   void handle_analytics_subscription_delete(
       const std::string& af_id, const std::string& analytics_sub_id,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   void handle_analytics_subscription_get(
       const std::string& af_id, const std::string& analytics_sub_id,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   void handle_analytics_subscription_list(
-      const std::string& af_id, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const std::string& af_id, nlohmann::json& response_body, int& http_code);
 
   // Analytics UPDATE (PUT)
   void handle_analytics_subscription_update(
       const std::string& scs_as_id, const std::string& sub_id,
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   // Analytics /fetch endpoint
   void handle_analytics_fetch(
       const std::string& scs_as_id, const nlohmann::json& body,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   // Inbound notification from 5GC NF
   void handle_nf_notification(
@@ -302,19 +288,19 @@ class nef_app {
 
   // Nnef_EventExposure (TS 29.591)
   void handle_nnef_event_exposure_subscribe(
-      const nlohmann::json& body, nlohmann::json& response_body, int& http_code,
-      uint8_t http_version);
+      const nlohmann::json& body, nlohmann::json& response_body,
+      int& http_code);
 
   void handle_nnef_event_exposure_unsubscribe(
-      const std::string& subscription_id, int& http_code, uint8_t http_version);
+      const std::string& subscription_id, int& http_code);
 
   void handle_nnef_event_exposure_get(
       const std::string& subscription_id, nlohmann::json& response_body,
-      int& http_code, uint8_t http_version);
+      int& http_code);
 
   void handle_nnef_event_exposure_update(
       const std::string& subscription_id, const nlohmann::json& body,
-      nlohmann::json& response_body, int& http_code, uint8_t http_version);
+      nlohmann::json& response_body, int& http_code);
 
   // AF Profile management (mirrors nrf_app NF profile management)
   bool add_af_profile(

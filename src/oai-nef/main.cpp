@@ -103,8 +103,7 @@ int main(int argc, char** argv) {
   // HTTP Client
   http_client_inst = oai::http::http_client::create_instance(
       Logger::nef_sbi(), oai::common::sbi::kNfDefaultHttpRequestTimeout,
-      nef_config_inst->local().get_sbi().get_if_name(),
-      nef_config_inst->get_http_version());
+      nef_config_inst->local().get_sbi().get_if_name(), 2);
 
   // Event subsystem
   nef_event ev;
