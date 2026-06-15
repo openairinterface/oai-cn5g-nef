@@ -8,7 +8,6 @@
 #include <atomic>
 #include <chrono>
 
-#include "conversions.hpp"
 #include "http2-server.h"
 #include "nef_app.hpp"
 #include "uint_generator.hpp"

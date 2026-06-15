@@ -5,18 +5,15 @@
 #ifndef FILE_NEF_SEEN
 #define FILE_NEF_SEEN
 
-#include <cstdint>
-#include <string>
-
-#define _unused(x) ((void)(x))
+#define _unused(x) ((void) (x))
 
 // NEF Service names (TS 29.522)
-#define NEF_SERVICE_MONITORING_EVENT  "nnef-eventexposure"
+#define NEF_SERVICE_MONITORING_EVENT "nnef-eventexposure"
 #define NEF_SERVICE_TRAFFIC_INFLUENCE "nnef-trafficinfluence"
-#define NEF_SERVICE_PFD_MANAGEMENT    "nnef-pfdmanagement"
-#define NEF_SERVICE_BDT               "nnef-bdt"
-#define NEF_SERVICE_QOS_MONITORING    "nnef-qosmonitoring"
-#define NEF_SERVICE_ANALYTICS         "nnef-analyticsexposure"
+#define NEF_SERVICE_PFD_MANAGEMENT "nnef-pfdmanagement"
+#define NEF_SERVICE_BDT "nnef-bdt"
+#define NEF_SERVICE_QOS_MONITORING "nnef-qosmonitoring"
+#define NEF_SERVICE_ANALYTICS "nnef-analyticsexposure"
 
 // NEF service types enum
 typedef enum nef_service_type_s {

@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "logger.hpp"
 #include "nef_event.hpp"
 
 namespace oai {

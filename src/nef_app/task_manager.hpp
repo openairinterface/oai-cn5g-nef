@@ -7,7 +7,6 @@
 
 #include "nef_event.hpp"
 
-#include <linux/types.h>
 #include <sys/timerfd.h>
 
 using namespace oai::nef::app;
@@ -29,9 +28,9 @@ class task_manager {
   void wait_for_cycle();
 
   nef_event& event_sub_;
-  int        sfd;
-  bool       terminate;
-  bool       terminated;
+  int sfd;
+  bool terminate;
+  bool terminated;
 };
 
 }  // namespace app

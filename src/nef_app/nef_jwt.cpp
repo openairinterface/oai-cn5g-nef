@@ -5,7 +5,6 @@
 #include "nef_jwt.hpp"
 
 #include <ctime>
-#include <vector>
 #include <stdexcept>
 
 #include "nef_jwt_detail.hpp"  // pure helpers, exposed for unit testing
@@ -17,7 +16,8 @@
 #include "nef_config_types.hpp"
 
 using namespace oai::nef::app;
-using namespace oai::nef::app::detail;  // base64url_decode, split_jwt, verify_hs256_signature
+using namespace oai::nef::app::detail;  // base64url_decode, split_jwt,
+                                        // verify_hs256_signature
 
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
@@ -110,8 +110,8 @@ bool nef_jwt::validate_af_token(
     const auto scope_val = payload["scope"].get<std::string>();
     if (scope_val != required_scope) {
       Logger::nef_app().warn(
-          "JWT scope mismatch: expected '%s', got '%s'",
-          required_scope.c_str(), scope_val.c_str());
+          "JWT scope mismatch: expected '%s', got '%s'", required_scope.c_str(),
+          scope_val.c_str());
       return false;
     }
 
@@ -122,8 +122,8 @@ bool nef_jwt::validate_af_token(
     const auto sub_val = payload["sub"].get<std::string>();
     if (sub_val != af_id) {
       Logger::nef_app().warn(
-          "JWT sub mismatch: expected '%s', got '%s'",
-          af_id.c_str(), sub_val.c_str());
+          "JWT sub mismatch: expected '%s', got '%s'", af_id.c_str(),
+          sub_val.c_str());
       return false;
     }
 
@@ -145,8 +145,7 @@ bool nef_jwt::validate_af_token(
 
 //------------------------------------------------------------------------------
 bool nef_jwt::extract_sub_claim(
-    const std::string& bearer_token,
-    std::string& out_sub) const {
+    const std::string& bearer_token, std::string& out_sub) const {
   using namespace oai::nef::app::detail;
   std::string hdr, pld, sig;
   if (!split_jwt(bearer_token, hdr, pld, sig)) return false;
@@ -158,7 +157,8 @@ bool nef_jwt::extract_sub_claim(
       out_sub = payload["sub"].get<std::string>();
       return !out_sub.empty();
     }
-  } catch (...) {}
+  } catch (...) {
+  }
   return false;
 }
 
@@ -178,8 +178,7 @@ bool nef_jwt::get_secret_key(
 
 //------------------------------------------------------------------------------
 bool nef_jwt::get_secret_key(
-    const std::string& /*scope*/,
-    const std::string& /*target_nf_instance_id*/,
+    const std::string& /*scope*/, const std::string& /*target_nf_instance_id*/,
     std::string& key) const {
   std::string secret = nef_config_inst->nef()->get_jwt_secret_key();
   if (secret.empty()) {

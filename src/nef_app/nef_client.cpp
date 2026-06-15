@@ -10,10 +10,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <nlohmann/json.hpp>
 
-#include "AmfCreateEventSubscription.h"
 #include "AmfCreatedEventSubscription.h"
-#include "3gpp_29.500.h"
-#include "Helpers.h"
 #include "NFProfile.h"
 #include "NFType.h"
 #include "NFType_anyOf.h"

@@ -6,7 +6,6 @@
 
 #include <unistd.h>
 #include <chrono>
-#include <iostream>
 #include <thread>
 
 #include "logger.hpp"

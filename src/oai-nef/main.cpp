@@ -3,10 +3,8 @@
  * contributor license agreements.
  */
 
-#include <algorithm>
 #include <cerrno>
 #include <signal.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
@@ -21,7 +19,6 @@
 #include "nef-http2-server.h"
 #include "nef_app.hpp"
 #include "task_manager.hpp"
-#include "nef_client.hpp"
 #include "nef_config.hpp"
 #include "options.hpp"
 #include "pid_file.hpp"

@@ -11,7 +11,6 @@
 #include <chrono>
 #include <ctime>
 #include <sstream>
-#include <thread>
 
 #include "3gpp_29.500.h"
 #include "logger.hpp"
@@ -22,20 +21,16 @@
 #include "nef_pfd_management_quality.hpp"
 #include "nef_client.hpp"
 #include "nef_config.hpp"
-#include "nef_config_types.hpp"
 #include "nef_jwt.hpp"
 #include "nef_notification_mapper.hpp"
 
 #include "AppSessionContextReqData.h"
 #include "AppSessionContextUpdateData.h"
 #include "AppSessionContextUpdateDataPatch.h"
-#include "ApplicationForPfdRequest.h"
 #include "BdtPolicy.h"
 #include "Helpers.h"
 #include "NefEvent_anyOf.h"
 #include "NefEventExposureSubsc.h"
-#include "PfdDataForApp.h"
-#include "PfdSubscription.h"
 #include "TrafficInfluData.h"
 #include "TrafficInfluDataPatch.h"
 

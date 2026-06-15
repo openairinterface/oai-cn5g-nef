@@ -5,6 +5,7 @@
 #include "nef_subscription.hpp"
 
 #include <boost/date_time/posix_time/time_formatters.hpp>
+#include <boost/date_time/posix_time/time_parsers.hpp>
 
 #include "logger.hpp"
 
