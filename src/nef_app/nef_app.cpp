@@ -95,9 +95,7 @@ static inline void rfl_obj_erase(
 }
 
 // Helper: return the underlying Object of a Generic, or a reference to a
-// shared empty Object when the Generic is not an object. Lets the rfl-native
-// input validators in nef_input_validation.hpp be fed directly from an
-// rfl::Generic request body without a round-trip through nlohmann::json.
+// shared empty Object when the Generic is not an object.
 static inline const rfl::Generic::Object& rfl_obj_or_empty(
     const rfl::Generic& g) noexcept {
   static const rfl::Generic::Object kEmpty;
@@ -3030,11 +3028,11 @@ void nef_app::handle_qos_subscription_patch(
     return;
   }
   const rfl::Generic r_result = nef_merge_patch(r_base.value(), patch_body);
-  nlohmann::json patched = nlohmann::json::parse(rfl::json::write(r_result));
+  const rfl::Generic::Object& patched = rfl_obj_or_empty(r_result);
   // SSRF protection: validate callback URI in the patched result if present
-  if (patched.contains("notifUri") && patched["notifUri"].is_string()) {
+  if (rfl_obj_is_string(patched, "notifUri")) {
     const std::string uri_err =
-        validate_callback_uri(patched["notifUri"].get<std::string>());
+        validate_callback_uri(rfl_obj_get_string(patched, "notifUri"));
     if (!uri_err.empty()) {
       http_code    = http_status_code::BAD_REQUEST;
       rfl_response = make_problem_detail(
@@ -3043,8 +3041,8 @@ void nef_app::handle_qos_subscription_patch(
     }
   }
   sub->set_subscription_data(r_result);
-  if (patched.contains("notifUri")) {
-    sub->set_notification_uri(patched["notifUri"].get<std::string>());
+  if (rfl_obj_has(patched, "notifUri")) {
+    sub->set_notification_uri(rfl_obj_get_string(patched, "notifUri"));
   }
   rfl_response = r_result;
   if (auto* obj = std::get_if<rfl::Generic::Object>(&rfl_response.variant())) {

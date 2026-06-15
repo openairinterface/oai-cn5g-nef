@@ -562,8 +562,7 @@ bool nef_client::subscribe_amf_event_exposure(
         "AMF not found — cannot subscribe to event exposure");
     return false;
   }
-  std::string url =
-      amf_url + nef_sbi_helper::AmfEventExposureBase + "v1/subscriptions";
+  std::string url = amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions";
 
   // Inject NEF's own callback URL so AMF knows where to send event
   // notifications. We use a placeholder sub-id here; after creation we update
@@ -575,7 +574,7 @@ bool nef_client::subscribe_amf_event_exposure(
     sub_body = *o;
   }
   const std::string nef_callback_base = get_nef_notify_uri("_2");
-  // Strip the placeholder; AMF will POST to base + sub-id suffix if needed,
+  // AMF will POST to base + sub-id suffix if needed,
   // but we set a fixed URL that the HTTP/2 server parses by path segment.
   sub_body["eventNotifyUri"] = rfl::Generic(
       nef_config_inst->get_local()->get_url() + nef_sbi_helper::NefNotifyBase +
@@ -639,8 +638,8 @@ bool nef_client::unsubscribe_amf_event_exposure(const std::string& amf_sub_id) {
   std::string amf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) return false;
 
-  std::string url = amf_url + nef_sbi_helper::AmfEventExposureBase +
-                    "v1/subscriptions/" + amf_sub_id;
+  std::string url =
+      amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions/" + amf_sub_id;
   oai::http::request req = http_client_inst->prepare_json_request(url, "");
   auto resp              = http_client_inst->send_http_request(
       oai::common::sbi::method_e::DELETE, req);
