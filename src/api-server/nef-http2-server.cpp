@@ -4,9 +4,12 @@
 
 #include "nef-http2-server.h"
 
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <cctype>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
 
 #include "3gpp_29.500.h"
 #include "Helpers.h"
@@ -14,11 +17,13 @@
 #include "nef_config.hpp"
 #include "nef_health_check.hpp"
 #include "nef_rate_limiter.hpp"
+#include "nef_sbi_helper.hpp"
 
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
 using namespace oai::nef::app;
 using namespace oai::common::sbi;
+using oai::nef::api::nef_sbi_helper;
 
 namespace {
 
@@ -34,6 +39,19 @@ static void end_http2_error(
   res.send(status, {{"content-type", "application/problem+json"}}, pd.dump());
 }
 
+//------------------------------------------------------------------------------
+static bool end_http2_if_draining(
+    const std::atomic<bool>& draining, http2_response& res) {
+  if (draining.load(std::memory_order_relaxed)) {
+    end_http2_error(
+        res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
+        "Server is draining");
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
 // Inline bearer-token extraction helper (used in route lambdas)
 // Extracts "Bearer <token>" from the Authorization header, case-insensitively
 // matching the "Bearer " prefix.
@@ -276,17 +294,34 @@ void nef_http2_server::start() {
   Logger::nef_sbi().info(
       "NEF HTTP/2 server listening on {}:{}", m_address, m_port);
 
+  const std::string api_version =
+      nef_config_inst->nef()->get_sbi().get_api_version();
+  const std::string nnef_event_exposure_base =
+      nef_sbi_helper::NnefEventExposureBase + api_version;
+  const std::string nef_monitoring_event_base =
+      nef_sbi_helper::NefMonitoringEventBase + api_version;
+  const std::string nef_traffic_influence_base =
+      nef_sbi_helper::NefTrafficInfluenceBase + api_version;
+  const std::string nef_pfd_management_base =
+      nef_sbi_helper::NefPfdManagementBase + api_version;
+  const std::string nnef_pfd_management_base =
+      nef_sbi_helper::NnefPfdManagementBase + api_version;
+  const std::string nef_bdt_base = nef_sbi_helper::NefBdtBase + api_version;
+  const std::string nef_qos_monitoring_base =
+      nef_sbi_helper::NefQosMonitoringBase + api_version;
+  const std::string nef_analytics_base =
+      nef_sbi_helper::NefAnalyticsBase + api_version;
+  const std::string nef_notify_base =
+      nef_sbi_helper::NefNotifyBase + api_version;
+
   // Nnef_EventExposure /nnef-eventexposure/v1/subscriptions[/{subscriptionId}]
   server_.handle(
-      "/nnef-eventexposure/",
-      [this](const http2_request& req, http2_response& res) {
+      nnef_event_exposure_base + nef_sbi_helper::NefPathSubscriptions,
+      [this, nnef_event_exposure_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
+
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -297,7 +332,7 @@ void nef_http2_server::start() {
           return;
         }
 
-        const std::string pfx = "/nnef-eventexposure/v1/";
+        const std::string pfx = nnef_event_exposure_base + "/";
         const auto pfx_pos    = req.path.find(pfx);
         if (pfx_pos == std::string::npos) {
           end_http2_error(
@@ -306,27 +341,27 @@ void nef_http2_server::start() {
           return;
         }
 
-        auto rest     = req.path.substr(pfx_pos + pfx.size());
-        auto s1       = rest.find('/');
-        auto resource = (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        auto subscription_id =
-            (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
+        auto rest = req.path.substr(pfx_pos + pfx.size());
+        std::vector<std::string> path_parts;
+        boost::split(path_parts, rest, boost::is_any_of("/"));
+        auto resource        = !path_parts.empty() ? path_parts[0] : "";
+        auto subscription_id = (path_parts.size() > 1) ? path_parts[1] : "";
 
-        if (resource != "subscriptions") {
+        if (resource != nef_sbi_helper::NefResourceSubscriptions) {
           end_http2_error(
               res, http_status_code::NOT_FOUND, "Not Found",
               "Requested resource was not found");
           return;
         }
 
-        if (req.method == "POST" && subscription_id.empty()) {
+        if (req.method == method_e::POST && subscription_id.empty()) {
           handle_nnef_event_exposure_subscribe(req.body, bearer_token, res);
-        } else if (req.method == "GET" && !subscription_id.empty()) {
+        } else if (req.method == method_e::GET && !subscription_id.empty()) {
           handle_nnef_event_exposure_get(subscription_id, bearer_token, res);
-        } else if (req.method == "PUT" && !subscription_id.empty()) {
+        } else if (req.method == method_e::PUT && !subscription_id.empty()) {
           handle_nnef_event_exposure_update(
               subscription_id, req.body, bearer_token, res);
-        } else if (req.method == "DELETE" && !subscription_id.empty()) {
+        } else if (req.method == method_e::DELETE && !subscription_id.empty()) {
           handle_nnef_event_exposure_unsubscribe(
               subscription_id, bearer_token, res);
         } else {
@@ -339,15 +374,12 @@ void nef_http2_server::start() {
   // Monitoring Event
   // /3gpp-monitoring-event/v1/{scsAsId}/subscriptions[/{subId}]
   server_.handle(
-      "/3gpp-monitoring-event/",
-      [this](const http2_request& req, http2_response& res) {
+      nef_monitoring_event_base + "/",
+      [this, nef_monitoring_event_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
+
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -358,26 +390,24 @@ void nef_http2_server::start() {
           return;
         }
         // /{base}/{ver}/{scsAsId}/subscriptions[/{subId}]
-        const std::string pfx = "/3gpp-monitoring-event/v1/";
+        const std::string pfx = nef_monitoring_event_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
         // rest = scsAsId[/subscriptions[/subId]]
-        auto s1        = rest.find('/');
-        auto scs_as_id = (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        auto after_scs = (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
-        // after_scs = "subscriptions" | "subscriptions/<subId>"
-        auto s2     = after_scs.find('/');
-        auto sub_id = (s2 != std::string::npos) ? after_scs.substr(s2 + 1) : "";
+        std::vector<std::string> path_parts;
+        boost::split(path_parts, rest, boost::is_any_of("/"));
+        auto scs_as_id = !path_parts.empty() ? path_parts[0] : "";
+        auto sub_id    = (path_parts.size() > 2) ? path_parts[2] : "";
 
-        if (req.method == "POST") {
+        if (req.method == method_e::POST) {
           handle_monitoring_event_subscribe(
               scs_as_id, req.body, bearer_token, res);
-        } else if (req.method == "DELETE" && !sub_id.empty()) {
+        } else if (req.method == method_e::DELETE && !sub_id.empty()) {
           handle_monitoring_event_unsubscribe(
               scs_as_id, sub_id, bearer_token, res);
-        } else if (req.method == "PUT" && !sub_id.empty()) {
+        } else if (req.method == method_e::PUT && !sub_id.empty()) {
           handle_monitoring_event_update(
               scs_as_id, sub_id, req.body, bearer_token, res);
-        } else if (req.method == "GET") {
+        } else if (req.method == method_e::GET) {
           handle_monitoring_event_get(scs_as_id, sub_id, bearer_token, res);
         } else {
           end_http2_error(
@@ -389,15 +419,12 @@ void nef_http2_server::start() {
   // Traffic Influence
   // /3gpp-traffic-influence/v1/{afId}/subscriptions[/{appSessionId}]
   server_.handle(
-      "/3gpp-traffic-influence/",
-      [this](const http2_request& req, http2_response& res) {
+      nef_traffic_influence_base + "/",
+      [this, nef_traffic_influence_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
+
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -407,31 +434,29 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        const std::string pfx = "/3gpp-traffic-influence/v1/";
-        auto rest  = req.path.substr(req.path.find(pfx) + pfx.size());
-        auto s1    = rest.find('/');
-        auto af_id = (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        auto after = (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
-        // after = "subscriptions" | "subscriptions/<appSessionId>"
-        auto s2 = after.find('/');
-        std::string sub_path =
-            (s2 != std::string::npos) ? after.substr(0, s2) : after;
+        const std::string pfx = nef_traffic_influence_base + "/";
+        auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
+        std::vector<std::string> path_parts;
+        boost::split(path_parts, rest, boost::is_any_of("/"));
+        auto af_id           = !path_parts.empty() ? path_parts[0] : "";
+        std::string sub_path = (path_parts.size() > 1) ? path_parts[1] : "";
         std::string app_session_id =
-            (s2 != std::string::npos) ? after.substr(s2 + 1) : "";
+            (path_parts.size() > 2) ? path_parts[2] : "";
 
-        if (sub_path == "subscriptions") {
-          if (req.method == "GET" && app_session_id.empty()) {
+        if (sub_path == nef_sbi_helper::NefResourceSubscriptions) {
+          if (req.method == method_e::GET && app_session_id.empty()) {
             handle_ti_list(af_id, bearer_token, res);
-          } else if (req.method == "GET" && !app_session_id.empty()) {
+          } else if (req.method == method_e::GET && !app_session_id.empty()) {
             handle_ti_get(af_id, app_session_id, bearer_token, res);
-          } else if (req.method == "POST" && app_session_id.empty()) {
+          } else if (req.method == method_e::POST && app_session_id.empty()) {
             handle_ti_create(af_id, req.body, bearer_token, res);
-          } else if (req.method == "PUT" && !app_session_id.empty()) {
+          } else if (req.method == method_e::PUT && !app_session_id.empty()) {
             handle_ti_update(
                 af_id, app_session_id, req.body, bearer_token, res);
-          } else if (req.method == "PATCH" && !app_session_id.empty()) {
+          } else if (req.method == method_e::PATCH && !app_session_id.empty()) {
             handle_ti_patch(af_id, app_session_id, req.body, bearer_token, res);
-          } else if (req.method == "DELETE" && !app_session_id.empty()) {
+          } else if (
+              req.method == method_e::DELETE && !app_session_id.empty()) {
             handle_ti_delete(af_id, app_session_id, bearer_token, res);
           } else {
             end_http2_error(
@@ -448,15 +473,11 @@ void nef_http2_server::start() {
   // PFD Management
   // /3gpp-pfd-management/v1/{scsAsId}/transactions[/{transId}[/applications/{appId}]]
   server_.handle(
-      "/3gpp-pfd-management/",
-      [this](const http2_request& req, http2_response& res) {
+      nef_pfd_management_base + "/",
+      [this, nef_pfd_management_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -466,30 +487,21 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        const std::string pfx = "/3gpp-pfd-management/v1/";
+        const std::string pfx = nef_pfd_management_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
         // rest = {scsAsId}/transactions[/{transId}[/applications/{appId}]]
-        auto s1        = rest.find('/');
-        auto scs_as_id = (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        auto after_scs = (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
-        auto s2        = after_scs.find('/');
-        auto top_seg =
-            (s2 != std::string::npos) ? after_scs.substr(0, s2) : after_scs;
-        auto after_trans_key =
-            (s2 != std::string::npos) ? after_scs.substr(s2 + 1) : "";
-        auto s3       = after_trans_key.find('/');
-        auto trans_id = (s3 != std::string::npos) ?
-                            after_trans_key.substr(0, s3) :
-                            after_trans_key;
-        auto after_trans_id =
-            (s3 != std::string::npos) ? after_trans_key.substr(s3 + 1) : "";
+        std::vector<std::string> path_parts;
+        boost::split(path_parts, rest, boost::is_any_of("/"));
+        auto scs_as_id = !path_parts.empty() ? path_parts[0] : "";
+        auto top_seg   = (path_parts.size() > 1) ? path_parts[1] : "";
+        auto trans_id  = (path_parts.size() > 2) ? path_parts[2] : "";
         std::string app_id;
-        const std::string apps_pfx = "applications/";
-        if (after_trans_id.find(apps_pfx) == 0) {
-          app_id = after_trans_id.substr(apps_pfx.size());
+        if (path_parts.size() > 4 &&
+            path_parts[3] == nef_sbi_helper::NefResourceApplications) {
+          app_id = path_parts[4];
         }
 
-        if (top_seg != "transactions") {
+        if (top_seg != nef_sbi_helper::NefResourceTransactions) {
           end_http2_error(
               res, http_status_code::NOT_FOUND, "Not Found",
               "Requested resource was not found");
@@ -497,7 +509,7 @@ void nef_http2_server::start() {
         }
 
         if (trans_id.empty()) {
-          if (req.method == "GET") {
+          if (req.method == method_e::GET) {
             handle_pfd_transaction_list(scs_as_id, bearer_token, res);
           } else {
             end_http2_error(
@@ -505,13 +517,13 @@ void nef_http2_server::start() {
                 "HTTP method is not supported for this resource");
           }
         } else if (app_id.empty()) {
-          if (req.method == "PUT") {
+          if (req.method == method_e::PUT) {
             handle_pfd_transaction_put(
                 scs_as_id, trans_id, req.body, bearer_token, res);
-          } else if (req.method == "DELETE") {
+          } else if (req.method == method_e::DELETE) {
             handle_pfd_transaction_delete(
                 scs_as_id, trans_id, bearer_token, res);
-          } else if (req.method == "GET") {
+          } else if (req.method == method_e::GET) {
             // Return transaction body via pfd_transaction_list (legacy
             // app-level)
             m_nef_app->set_request_bearer_token(bearer_token);
@@ -529,15 +541,15 @@ void nef_http2_server::start() {
                 "HTTP method is not supported for this resource");
           }
         } else {
-          if (req.method == "GET") {
+          if (req.method == method_e::GET) {
             handle_pfd_app_get(scs_as_id, trans_id, app_id, bearer_token, res);
-          } else if (req.method == "PUT") {
+          } else if (req.method == method_e::PUT) {
             handle_pfd_app_put(
                 scs_as_id, trans_id, app_id, req.body, bearer_token, res);
-          } else if (req.method == "PATCH") {
+          } else if (req.method == method_e::PATCH) {
             handle_pfd_app_patch(
                 scs_as_id, trans_id, app_id, req.body, bearer_token, res);
-          } else if (req.method == "DELETE") {
+          } else if (req.method == method_e::DELETE) {
             handle_pfd_app_delete(
                 scs_as_id, trans_id, app_id, bearer_token, res);
           } else {
@@ -551,15 +563,12 @@ void nef_http2_server::start() {
   // Nnef_PFDmanagement
   // /nnef-pfdmanagement/v1/transactions[/{transId}[/applications/{appId}]]
   server_.handle(
-      "/nnef-pfdmanagement/",
-      [this](const http2_request& req, http2_response& res) {
+      nnef_pfd_management_base +
+          nef_sbi_helper::NnefPfdManagementPathTransactions,
+      [this, nnef_pfd_management_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -569,8 +578,10 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        const std::string pfx = "/nnef-pfdmanagement/v1/";
-        const auto pfx_pos    = req.path.find(pfx);
+        const std::string pfx =
+            nnef_pfd_management_base +
+            nef_sbi_helper::NnefPfdManagementPathTransactions;
+        const auto pfx_pos = req.path.find(pfx);
         if (pfx_pos == std::string::npos) {
           end_http2_error(
               res, http_status_code::NOT_FOUND, "Not Found",
@@ -578,19 +589,14 @@ void nef_http2_server::start() {
           return;
         }
         auto rest = req.path.substr(pfx_pos + pfx.size());
-        auto s1   = rest.find('/');
-        const auto resource =
-            (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        const auto after_resource =
-            (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
-        if (resource != "transactions") {
-          end_http2_error(
-              res, http_status_code::NOT_FOUND, "Not Found",
-              "Requested resource was not found");
-          return;
+        std::vector<std::string> path_parts;
+        if (!rest.empty() && rest[0] == '/') {
+          boost::split(path_parts, rest.substr(1), boost::is_any_of("/"));
         }
-        if (after_resource.empty()) {
-          if (req.method == "GET") {
+        const bool has_transaction_tail =
+            !path_parts.empty() && !path_parts[0].empty();
+        if (!has_transaction_tail) {
+          if (req.method == method_e::GET) {
             handle_nnef_pfd_list_transactions(bearer_token, res);
           } else {
             end_http2_error(
@@ -599,25 +605,20 @@ void nef_http2_server::start() {
           }
           return;
         }
-        auto s2             = after_resource.find('/');
-        const auto trans_id = (s2 != std::string::npos) ?
-                                  after_resource.substr(0, s2) :
-                                  after_resource;
-        const auto after_trans_id =
-            (s2 != std::string::npos) ? after_resource.substr(s2 + 1) : "";
+        const auto trans_id = path_parts[0];
         if (trans_id.empty()) {
           end_http2_error(
               res, http_status_code::NOT_FOUND, "Not Found",
               "Requested resource was not found");
           return;
         }
-        if (after_trans_id.empty()) {
-          if (req.method == "GET") {
+        if (path_parts.size() <= 1) {
+          if (req.method == method_e::GET) {
             handle_nnef_pfd_get_transaction(trans_id, bearer_token, res);
-          } else if (req.method == "PUT") {
+          } else if (req.method == method_e::PUT) {
             handle_nnef_pfd_put_transaction(
                 trans_id, req.body, bearer_token, res);
-          } else if (req.method == "DELETE") {
+          } else if (req.method == method_e::DELETE) {
             handle_nnef_pfd_delete_transaction(trans_id, bearer_token, res);
           } else {
             end_http2_error(
@@ -626,26 +627,26 @@ void nef_http2_server::start() {
           }
           return;
         }
-        const std::string apps_pfx = "applications/";
-        if (after_trans_id.find(apps_pfx) != 0) {
+        if (path_parts.size() <= 2 ||
+            path_parts[1] != nef_sbi_helper::NefResourceApplications) {
           end_http2_error(
               res, http_status_code::NOT_FOUND, "Not Found",
               "Requested resource was not found");
           return;
         }
-        const auto app_id = after_trans_id.substr(apps_pfx.size());
+        const auto app_id = path_parts[2];
         if (app_id.empty()) {
           end_http2_error(
               res, http_status_code::NOT_FOUND, "Not Found",
               "Requested resource was not found");
           return;
         }
-        if (req.method == "GET") {
+        if (req.method == method_e::GET) {
           handle_nnef_pfd_get_app(trans_id, app_id, bearer_token, res);
-        } else if (req.method == "PUT") {
+        } else if (req.method == method_e::PUT) {
           handle_nnef_pfd_put_app(
               trans_id, app_id, req.body, bearer_token, res);
-        } else if (req.method == "DELETE") {
+        } else if (req.method == method_e::DELETE) {
           handle_nnef_pfd_delete_app(trans_id, app_id, bearer_token, res);
         } else {
           end_http2_error(
@@ -656,15 +657,11 @@ void nef_http2_server::start() {
 
   // Nnef_PFDmanagement — /nnef-pfdmanagement/v1/applications[/partial-pull]
   server_.handle(
-      "/nnef-pfdmanagement/v1/applications",
+      nnef_pfd_management_base +
+          nef_sbi_helper::NnefPfdManagementPathApplications,
       [this](const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -674,9 +671,12 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        if (req.path.size() >= 13 &&
-            req.path.substr(req.path.size() - 13) == "/partial-pull") {
-          if (req.method == "POST") {
+        const std::string partial_pull_path =
+            nef_sbi_helper::NnefPfdManagementPathPartialPull;
+        if (req.path.size() >= partial_pull_path.size() &&
+            req.path.substr(req.path.size() - partial_pull_path.size()) ==
+                partial_pull_path) {
+          if (req.method == method_e::POST) {
             handle_nnef_pfd_partial_pull(req.body, bearer_token, res);
           } else {
             end_http2_error(
@@ -685,7 +685,7 @@ void nef_http2_server::start() {
           }
           return;
         }
-        if (req.method == "GET") {
+        if (req.method == method_e::GET) {
           std::vector<std::string> ids;
           std::string q = req.raw_query;
           while (!q.empty()) {
@@ -706,15 +706,12 @@ void nef_http2_server::start() {
 
   // Nnef_PFDmanagement — /nnef-pfdmanagement/v1/subscriptions[/{subId}]
   server_.handle(
-      "/nnef-pfdmanagement/v1/subscriptions",
-      [this](const http2_request& req, http2_response& res) {
+      nnef_pfd_management_base +
+          nef_sbi_helper::NnefPfdManagementPathSubscriptions,
+      [this, nnef_pfd_management_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -724,10 +721,16 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        const std::string pfx = "/nnef-pfdmanagement/v1/subscriptions";
-        auto rest             = req.path.substr(pfx.size());
+        const std::string pfx =
+            nnef_pfd_management_base +
+            nef_sbi_helper::NnefPfdManagementPathSubscriptions;
+        auto rest = req.path.substr(pfx.size());
+        std::vector<std::string> path_parts;
+        if (!rest.empty() && rest[0] == '/') {
+          boost::split(path_parts, rest.substr(1), boost::is_any_of("/"));
+        }
         if (rest.empty() || rest == "/") {
-          if (req.method == "POST") {
+          if (req.method == method_e::POST) {
             handle_nnef_pfd_subscription_create(req.body, bearer_token, res);
           } else {
             end_http2_error(
@@ -736,18 +739,18 @@ void nef_http2_server::start() {
           }
           return;
         }
-        const auto sub_id = (rest[0] == '/') ? rest.substr(1) : rest;
+        const auto sub_id = !path_parts.empty() ? path_parts[0] : rest;
         if (sub_id.empty()) {
           end_http2_error(
               res, http_status_code::NOT_FOUND, "Not Found",
               "Requested resource was not found");
           return;
         }
-        if (req.method == "GET") {
+        if (req.method == method_e::GET) {
           handle_nnef_pfd_subscription_get(sub_id, bearer_token, res);
-        } else if (req.method == "PUT") {
+        } else if (req.method == method_e::PUT) {
           handle_nnef_pfd_subscription_put(sub_id, req.body, bearer_token, res);
-        } else if (req.method == "DELETE") {
+        } else if (req.method == method_e::DELETE) {
           handle_nnef_pfd_subscription_delete(sub_id, bearer_token, res);
         } else {
           end_http2_error(
@@ -758,14 +761,10 @@ void nef_http2_server::start() {
 
   // BDT  /3gpp-bdt/v1/{scsAsId}/[policies|bdtPolicies][/{polId}]
   server_.handle(
-      "/3gpp-bdt/", [this](const http2_request& req, http2_response& res) {
+      nef_bdt_base + "/",
+      [this, nef_bdt_base](const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -775,16 +774,14 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        const std::string pfx = "/3gpp-bdt/v1/";
-        auto rest  = req.path.substr(req.path.find(pfx) + pfx.size());
-        auto s1    = rest.find('/');
-        auto af_id = (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        auto after = (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
-        auto s2    = after.find('/');
-        auto policy_path =
-            (s2 != std::string::npos) ? after.substr(0, s2) : after;
-        auto pol_id = (s2 != std::string::npos) ? after.substr(s2 + 1) : "";
-        bool legacy_path = (policy_path == "policies");
+        const std::string pfx = nef_bdt_base + "/";
+        auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
+        std::vector<std::string> path_parts;
+        boost::split(path_parts, rest, boost::is_any_of("/"));
+        auto af_id       = !path_parts.empty() ? path_parts[0] : "";
+        auto policy_path = (path_parts.size() > 1) ? path_parts[1] : "";
+        auto pol_id      = (path_parts.size() > 2) ? path_parts[2] : "";
+        bool legacy_path = (policy_path == nef_sbi_helper::NefResourcePolicies);
         if (legacy_path) {
           Logger::nef_sbi().warn(
               "HTTP/2: BDT request on deprecated path '/policies' "
@@ -793,19 +790,20 @@ void nef_http2_server::start() {
               "§5.13)",
               af_id);
         }
-        if (req.method == "PATCH" && policy_path == "bdtPolicies" &&
+        if (req.method == method_e::PATCH &&
+            policy_path == nef_sbi_helper::NefResourceBdtPolicies &&
             !pol_id.empty()) {
           handle_bdt_patch(af_id, pol_id, req.body, bearer_token, res);
-        } else if (req.method == "POST") {
+        } else if (req.method == method_e::POST) {
           handle_bdt_create(af_id, req.body, bearer_token, res, legacy_path);
-        } else if (req.method == "GET" && pol_id.empty()) {
+        } else if (req.method == method_e::GET && pol_id.empty()) {
           handle_bdt_get(af_id, "", bearer_token, res, legacy_path);
-        } else if (req.method == "GET" && !pol_id.empty()) {
+        } else if (req.method == method_e::GET && !pol_id.empty()) {
           handle_bdt_get(af_id, pol_id, bearer_token, res, legacy_path);
-        } else if (req.method == "PUT" && !pol_id.empty()) {
+        } else if (req.method == method_e::PUT && !pol_id.empty()) {
           handle_bdt_update(
               af_id, pol_id, req.body, bearer_token, res, legacy_path);
-        } else if (req.method == "DELETE" && !pol_id.empty()) {
+        } else if (req.method == method_e::DELETE && !pol_id.empty()) {
           handle_bdt_delete(af_id, pol_id, bearer_token, res, legacy_path);
         } else {
           end_http2_error(
@@ -816,15 +814,11 @@ void nef_http2_server::start() {
 
   // QoS  /3gpp-as-session-with-qos/v1/{afId}/subscriptions[/{subId}]
   server_.handle(
-      "/3gpp-as-session-with-qos/",
-      [this](const http2_request& req, http2_response& res) {
+      nef_qos_monitoring_base + "/",
+      [this, nef_qos_monitoring_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -834,26 +828,25 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        const std::string pfx = "/3gpp-as-session-with-qos/v1/";
-        auto rest     = req.path.substr(req.path.find(pfx) + pfx.size());
-        auto s1       = rest.find('/');
-        auto af_id    = (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        auto after    = (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
-        auto s2       = after.find('/');
-        auto sub_path = (s2 != std::string::npos) ? after.substr(0, s2) : after;
-        auto sub_id   = (s2 != std::string::npos) ? after.substr(s2 + 1) : "";
-        if (sub_path == "subscriptions") {
-          if (req.method == "POST" && sub_id.empty()) {
+        const std::string pfx = nef_qos_monitoring_base + "/";
+        auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
+        std::vector<std::string> path_parts;
+        boost::split(path_parts, rest, boost::is_any_of("/"));
+        auto af_id    = !path_parts.empty() ? path_parts[0] : "";
+        auto sub_path = (path_parts.size() > 1) ? path_parts[1] : "";
+        auto sub_id   = (path_parts.size() > 2) ? path_parts[2] : "";
+        if (sub_path == nef_sbi_helper::NefResourceSubscriptions) {
+          if (req.method == method_e::POST && sub_id.empty()) {
             handle_qos_create(af_id, req.body, bearer_token, res);
-          } else if (req.method == "GET" && sub_id.empty()) {
+          } else if (req.method == method_e::GET && sub_id.empty()) {
             handle_qos_get(af_id, "", bearer_token, res);
-          } else if (req.method == "GET" && !sub_id.empty()) {
+          } else if (req.method == method_e::GET && !sub_id.empty()) {
             handle_qos_get(af_id, sub_id, bearer_token, res);
-          } else if (req.method == "PUT" && !sub_id.empty()) {
+          } else if (req.method == method_e::PUT && !sub_id.empty()) {
             handle_qos_update(af_id, sub_id, req.body, bearer_token, res);
-          } else if (req.method == "PATCH" && !sub_id.empty()) {
+          } else if (req.method == method_e::PATCH && !sub_id.empty()) {
             handle_qos_patch(af_id, sub_id, req.body, bearer_token, res);
-          } else if (req.method == "DELETE" && !sub_id.empty()) {
+          } else if (req.method == method_e::DELETE && !sub_id.empty()) {
             handle_qos_delete(af_id, sub_id, bearer_token, res);
           } else {
             end_http2_error(
@@ -869,15 +862,11 @@ void nef_http2_server::start() {
 
   // Analytics /3gpp-analyticsexposure/v1/{afId}/[fetch|subscriptions[/{subId}]]
   server_.handle(
-      "/3gpp-analyticsexposure/",
-      [this](const http2_request& req, http2_response& res) {
+      nef_analytics_base + "/",
+      [this, nef_analytics_base](
+          const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -887,26 +876,27 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        const std::string pfx = "/3gpp-analyticsexposure/v1/";
-        auto rest     = req.path.substr(req.path.find(pfx) + pfx.size());
-        auto s1       = rest.find('/');
-        auto af_id    = (s1 != std::string::npos) ? rest.substr(0, s1) : rest;
-        auto after    = (s1 != std::string::npos) ? rest.substr(s1 + 1) : "";
-        auto s2       = after.find('/');
-        auto sub_path = (s2 != std::string::npos) ? after.substr(0, s2) : after;
-        auto sub_id   = (s2 != std::string::npos) ? after.substr(s2 + 1) : "";
-        if (after == "fetch" && req.method == "POST") {
+        const std::string pfx = nef_analytics_base + "/";
+        auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
+        std::vector<std::string> path_parts;
+        boost::split(path_parts, rest, boost::is_any_of("/"));
+        auto af_id    = !path_parts.empty() ? path_parts[0] : "";
+        auto sub_path = (path_parts.size() > 1) ? path_parts[1] : "";
+        auto sub_id   = (path_parts.size() > 2) ? path_parts[2] : "";
+        if (path_parts.size() == 2 &&
+            sub_path == nef_sbi_helper::NefResourceFetch &&
+            req.method == method_e::POST) {
           handle_analytics_fetch(af_id, req.body, bearer_token, res);
-        } else if (sub_path == "subscriptions") {
-          if (req.method == "POST" && sub_id.empty()) {
+        } else if (sub_path == nef_sbi_helper::NefResourceSubscriptions) {
+          if (req.method == method_e::POST && sub_id.empty()) {
             handle_analytics_create(af_id, req.body, bearer_token, res);
-          } else if (req.method == "GET" && sub_id.empty()) {
+          } else if (req.method == method_e::GET && sub_id.empty()) {
             handle_analytics_get(af_id, "", bearer_token, res);
-          } else if (req.method == "GET" && !sub_id.empty()) {
+          } else if (req.method == method_e::GET && !sub_id.empty()) {
             handle_analytics_get(af_id, sub_id, bearer_token, res);
-          } else if (req.method == "PUT" && !sub_id.empty()) {
+          } else if (req.method == method_e::PUT && !sub_id.empty()) {
             handle_analytics_update(af_id, sub_id, req.body, bearer_token, res);
-          } else if (req.method == "DELETE" && !sub_id.empty()) {
+          } else if (req.method == method_e::DELETE && !sub_id.empty()) {
             handle_analytics_delete(af_id, sub_id, bearer_token, res);
           } else {
             end_http2_error(
@@ -923,14 +913,10 @@ void nef_http2_server::start() {
   // Inbound NF notification receive endpoint
   // AMF/SMF/PCF POST to: /nef-notify/v1/notify/{nf_sub_id}
   server_.handle(
-      "/nef-notify/", [this](const http2_request& req, http2_response& res) {
+      nef_notify_base + nef_sbi_helper::NefNotifyPathNotify,
+      [this, nef_notify_base](const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
-        if (m_draining.load(std::memory_order_relaxed)) {
-          end_http2_error(
-              res, http_status_code::SERVICE_UNAVAILABLE, "Service Unavailable",
-              "Server is shutting down");
-          return;
-        }
+        if (end_http2_if_draining(m_draining, res)) return;
         const std::string& rate_key =
             !bearer_token.empty() ? bearer_token : req.peer_address;
         if (!rate_key.empty() &&
@@ -940,8 +926,9 @@ void nef_http2_server::start() {
               "Rate limit exceeded");
           return;
         }
-        if (req.method == "POST") {
-          const std::string prefix = "/nef-notify/v1/notify/";
+        if (req.method == method_e::POST) {
+          const std::string prefix =
+              nef_notify_base + nef_sbi_helper::NefNotifyPathNotify + "/";
           std::string nf_sub_id;
           auto pos = req.path.find(prefix);
           if (pos != std::string::npos) {
@@ -961,8 +948,9 @@ void nef_http2_server::start() {
 
   // Health check endpoint
   server_.handle(
-      "/health", [this](const http2_request& req, http2_response& res) {
-        if (req.method != "GET") {
+      nef_sbi_helper::NefHealthPath,
+      [this](const http2_request& req, http2_response& res) {
+        if (req.method != method_e::GET) {
           end_http2_error(
               res, http_status_code::METHOD_NOT_ALLOWED, "Method Not Allowed",
               "HTTP method is not supported for this resource");
@@ -1738,7 +1726,9 @@ void nef_http2_server::handle_nnef_pfd_subscription_create(
   h["content-type"] = "application/json";
   if (http_code == 201 && !sub_id.empty()) {
     const std::string loc =
-        m_address + "/nnef-pfdmanagement/v1/subscriptions/" + sub_id;
+        m_address + nef_sbi_helper::NnefPfdManagementBase +
+        nef_config_inst->nef()->get_sbi().get_api_version() +
+        nef_sbi_helper::NnefPfdManagementPathSubscriptions + "/" + sub_id;
     h["location"] = loc;
   }
   res.send(http_code, h, resp_body.dump());

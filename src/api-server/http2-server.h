@@ -26,6 +26,7 @@
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 
+#include "3gpp_29.500.h"
 #include "thread-pool.h"
 
 // Forward declarations
@@ -38,8 +39,9 @@ struct response_body;
 
 // Public Request Type
 struct http2_request {
-  std::string method;  // GET, PUT, POST, DELETE, PATCH
-  std::string path;    // path component only (before '?')
+  oai::common::sbi::method_e method =
+      oai::common::sbi::method_e::GET;  // GET, PUT, POST, DELETE, PATCH
+  std::string path;                     // path component only (before '?')
   std::string
       raw_query;  // query string portion of path (after '?', no leading '?')
   std::string scheme;     // scheme

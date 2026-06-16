@@ -25,6 +25,23 @@
 // Internal types (not exposed in header)
 // ---------------------------------------------------------------------------
 
+namespace {
+
+static oai::common::sbi::method_e parse_http_method(const std::string& method) {
+  using oai::common::sbi::method_e;
+
+  if (method == "POST") return method_e::POST;
+  if (method == "GET") return method_e::GET;
+  if (method == "PUT") return method_e::PUT;
+  if (method == "PATCH") return method_e::PATCH;
+  if (method == "DELETE") return method_e::DELETE;
+  if (method == "OPTIONS") return method_e::OPTIONS;
+
+  return method_e::OPTIONS;
+}
+
+}  // namespace
+
 // Response Body Provider
 // Heap-allocated by http2_response::send(); ownership transferred to
 // http2_stream so it is cleaned up even on RST_STREAM / connection drop.
@@ -227,7 +244,7 @@ static int on_header_callback(
   // Route HTTP/2 pseudo-headers to dedicated request fields.
   // Regular headers (already lowercase per HTTP/2 spec) go into the map.
   if (hname == ":method") {
-    stream->request.method = std::move(hval);
+    stream->request.method = parse_http_method(hval);
   } else if (hname == ":path") {
     auto qpos = hval.find('?');
     if (qpos != std::string::npos) {
