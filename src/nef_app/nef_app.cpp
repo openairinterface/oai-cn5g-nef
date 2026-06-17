@@ -24,11 +24,13 @@
 #include "nef_jwt.hpp"
 #include "nef_notification_mapper.hpp"
 
+#include "AsSessionWithQoSSubscription.h"
 #include "AppSessionContextReqData.h"
 #include "AppSessionContextUpdateData.h"
 #include "AppSessionContextUpdateDataPatch.h"
 #include "BdtPolicy.h"
 #include "Helpers.h"
+#include "MonitoringEventSubscription.h"
 #include "NefEvent_anyOf.h"
 #include "NefEventExposureSubsc.h"
 #include "TrafficInfluData.h"
@@ -245,7 +247,7 @@ void nef_app::handle_qos_subscription_update(
   }
 
   // Typed parse + validate
-  oai::_3gpp::model::AppSessionContextUpdateData update_data;
+  oai::_3gpp::model::AsSessionWithQoSSubscription update_data;
   try {
     from_json(body, update_data);
     update_data.validate();
@@ -289,9 +291,9 @@ void nef_app::handle_qos_subscription_update(
     }
   }
   // SSRF protection: validate callback URI before updating stored state
-  if (body.contains("notifUri") && body["notifUri"].is_string()) {
-    const std::string uri_err =
-        validate_callback_uri(body["notifUri"].get<std::string>());
+  if (update_data.evSubscIsSet() && update_data.getEvSubsc().notifUriIsSet()) {
+    const std::string notif_uri = update_data.getEvSubsc().getNotifUri();
+    const std::string uri_err   = validate_callback_uri(notif_uri);
     if (!uri_err.empty()) {
       http_code     = http_status_code::BAD_REQUEST;
       response_body = make_problem_detail(
@@ -300,8 +302,8 @@ void nef_app::handle_qos_subscription_update(
     }
   }
   sub->set_subscription_data(body);
-  if (body.contains("notifUri") && body["notifUri"].is_string()) {
-    sub->set_notification_uri(body["notifUri"].get<std::string>());
+  if (update_data.evSubscIsSet() && update_data.getEvSubsc().notifUriIsSet()) {
+    sub->set_notification_uri(update_data.getEvSubsc().getNotifUri());
   }
   // Optionally: re-subscribe to SMF if needed (not implemented here)
   response_body          = sub->get_subscription_data();
@@ -336,29 +338,44 @@ void nef_app::handle_monitoring_event_subscription_update(
         "AF is not allowed to access this subscription");
     return;
   }
+
+  // Typed parse + validate
+  oai::_3gpp::model::MonitoringEventSubscription update_data;
+  try {
+    from_json(body, update_data);
+    update_data.validate();
+  } catch (const nlohmann::json::exception& e) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        std::string("Invalid body: ") + e.what());
+    return;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
+    response_body = make_problem_detail(
+        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
+        std::string("Validation failed: ") + e.what());
+    return;
+  }
+
   // SSRF protection: validate callback URI before updating stored state
-  if (body.contains("notificationDestination") &&
-      body["notificationDestination"].is_string()) {
-    const std::string uri_err = validate_callback_uri(
-        body["notificationDestination"].get<std::string>());
-    if (!uri_err.empty()) {
-      http_code     = http_status_code::BAD_REQUEST;
-      response_body = make_problem_detail(
-          http_status_code::BAD_REQUEST, "Bad Request",
-          "notificationDestination: " + uri_err);
-      return;
-    }
+  const std::string uri_err =
+      validate_callback_uri(update_data.getNotificationDestination());
+  if (!uri_err.empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request",
+        "notificationDestination: " + uri_err);
+    return;
   }
-  sub->set_subscription_data(body);
-  if (body.contains("notificationDestination")) {
-    sub->set_notification_uri(
-        body["notificationDestination"].get<std::string>());
-  }
-  if (body.contains("monitorExpireTime") &&
-      body["monitorExpireTime"].is_string()) {
+
+  nlohmann::json update_body = update_data;
+  sub->set_subscription_data(update_body);
+  sub->set_notification_uri(update_data.getNotificationDestination());
+  if (update_data.monitorExpireTimeIsSet()) {
     std::chrono::system_clock::time_point expire_time;
     if (parse_monitor_expire_time(
-            body["monitorExpireTime"].get<std::string>(), expire_time)) {
+            update_data.getMonitorExpireTime(), expire_time)) {
       sub->set_expire_time(expire_time);
     }
   }
@@ -440,38 +457,46 @@ static nlohmann::json make_problem_detail(
 
 static bool validate_nnef_event_exposure_subscription(
     const nlohmann::json& body, std::string& error_detail) {
-  if (!body.contains("eventsSubs") || !body["eventsSubs"].is_array() ||
-      body["eventsSubs"].empty()) {
+  oai::_3gpp::model::NefEventExposureSubsc subsc;
+  try {
+    from_json(body, subsc);
+    subsc.validate();
+  } catch (const nlohmann::json::exception& e) {
+    error_detail = std::string("Invalid body: ") + e.what();
+    return false;
+  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
+    error_detail = std::string("Validation failed: ") + e.what();
+    return false;
+  }
+
+  const auto& events_subs = subsc.getEventsSubs();
+  if (events_subs.empty()) {
     error_detail = "eventsSubs is required and must be a non-empty array";
     return false;
   }
 
-  // TS 29.591 §5.4.2: each NefEventSubs item must have an "event" field.
-  std::size_t idx = 0;
-  for (const auto& item : body["eventsSubs"]) {
-    if (!item.is_object() || !item.contains("event") ||
-        !item["event"].is_string() ||
-        item["event"].get<std::string>().empty()) {
+  // TS 29.591 §5.4.2: each NefEventSubs item must have a valid event.
+  for (std::size_t idx = 0; idx < events_subs.size(); ++idx) {
+    if (events_subs[idx].getEvent().getEnumValue() ==
+        oai::_3gpp::model::NefEvent_anyOf::eNefEvent_anyOf::
+            INVALID_VALUE_OPENAPI_GENERATED) {
       error_detail = "eventsSubs[" + std::to_string(idx) +
                      "].event: required non-empty string";
       return false;
     }
-    ++idx;
   }
 
-  if (!body.contains("notifUri") || !body["notifUri"].is_string() ||
-      body["notifUri"].get<std::string>().empty()) {
+  if (subsc.getNotifUri().empty()) {
     error_detail = "notifUri is required and must be a non-empty string";
     return false;
   }
 
-  if (!body.contains("notifId") || !body["notifId"].is_string() ||
-      body["notifId"].get<std::string>().empty()) {
+  if (subsc.getNotifId().empty()) {
     error_detail = "notifId is required and must be a non-empty string";
     return false;
   }
 
-  error_detail = validate_callback_uri(body["notifUri"].get<std::string>());
+  error_detail = validate_callback_uri(subsc.getNotifUri());
   if (!error_detail.empty()) {
     error_detail = "notifUri: " + error_detail;
     return false;
@@ -1603,9 +1628,9 @@ void nef_app::handle_traffic_influence_create(
     return;
   }
 
-  // Validate required fields: at least one traffic filter must be present
-  if (!body.contains("afAppId") && !body.contains("trafficFilters") &&
-      !body.contains("ethTrafficFilters")) {
+  // Validate required fields from the typed request model.
+  if (!ti.afAppIdIsSet() && !ti.trafficFiltersIsSet() &&
+      !ti.ethTrafficFiltersIsSet()) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -1770,8 +1795,9 @@ void nef_app::handle_traffic_influence_update(
     return;
   }
 
-  if (!body.contains("afAppId") && !body.contains("trafficFilters") &&
-      !body.contains("ethTrafficFilters")) {
+  // Validate required fields from the typed request model.
+  if (!ti.afAppIdIsSet() && !ti.trafficFiltersIsSet() &&
+      !ti.ethTrafficFiltersIsSet()) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
@@ -2357,7 +2383,8 @@ void nef_app::handle_qos_subscription_create(
   }
 
   // Typed parse + validate
-  oai::_3gpp::model::AppSessionContextReqData req_data;
+  oai::_3gpp::model::AsSessionWithQoSSubscription
+      req_data;  // TODO: Update the code accordingly
   try {
     from_json(body, req_data);
     req_data.validate();
@@ -2375,13 +2402,13 @@ void nef_app::handle_qos_subscription_create(
     return;
   }
 
-  // Validate required fields
-  if (!body.contains("notifUri") ||
-      (!body.contains("flowInfo") && !body.contains("ethFlowInfo"))) {
+  // Validate required fields from the typed request model.
+  if (req_data.getNotifUri().empty() || !req_data.medComponentsIsSet() ||
+      req_data.getMedComponents().empty()) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
-        "notifUri and at least one of flowInfo or ethFlowInfo are required");
+        "notifUri and at least one media component are required");
     return;
   }
 
@@ -2957,10 +2984,13 @@ void nef_app::handle_qos_subscription_patch(
   }
   nlohmann::json patched = sub->get_subscription_data();
   patched.merge_patch(patch_body);
-  // SSRF protection: validate callback URI in the patched result if present
-  if (patched.contains("notifUri") && patched["notifUri"].is_string()) {
-    const std::string uri_err =
-        validate_callback_uri(patched["notifUri"].get<std::string>());
+  // SSRF protection: validate callback URI from the typed patch model.
+  if (patch_data.ascReqDataIsSet() &&
+      patch_data.getAscReqData().evSubscIsSet() &&
+      patch_data.getAscReqData().getEvSubsc().notifUriIsSet()) {
+    const std::string notif_uri =
+        patch_data.getAscReqData().getEvSubsc().getNotifUri();
+    const std::string uri_err = validate_callback_uri(notif_uri);
     if (!uri_err.empty()) {
       http_code     = http_status_code::BAD_REQUEST;
       response_body = make_problem_detail(
@@ -2969,8 +2999,11 @@ void nef_app::handle_qos_subscription_patch(
     }
   }
   sub->set_subscription_data(patched);
-  if (patched.contains("notifUri")) {
-    sub->set_notification_uri(patched["notifUri"].get<std::string>());
+  if (patch_data.ascReqDataIsSet() &&
+      patch_data.getAscReqData().evSubscIsSet() &&
+      patch_data.getAscReqData().getEvSubsc().notifUriIsSet()) {
+    sub->set_notification_uri(
+        patch_data.getAscReqData().getEvSubsc().getNotifUri());
   }
   response_body          = patched;
   response_body["subId"] = sub_id;
@@ -3771,27 +3804,12 @@ void nef_app::handle_nnef_pfd_subscription_create(
         "NF not authorized for this Nnef service");
     return;
   }
-  // Validate notifUri (wire key, before normalization)
-  if (!body.contains("notifUri") || !body["notifUri"].is_string() ||
-      body["notifUri"].get<std::string>().empty()) {
-    http_code     = http_status_code::BAD_REQUEST;
-    response_body = make_problem_detail(
-        http_status_code::BAD_REQUEST, "Bad Request", "notifUri is required");
-    return;
-  }
-  const std::string notif_uri = body["notifUri"].get<std::string>();
-  const std::string uri_err   = validate_callback_uri(notif_uri);
-  if (!uri_err.empty()) {
-    http_code     = http_status_code::BAD_REQUEST;
-    response_body = make_problem_detail(
-        http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
-    return;
-  }
-
   // Normalize: wire uses "notifUri", model uses "notifyUri"
   nlohmann::json normalized = body;
-  normalized["notifyUri"]   = normalized["notifUri"];
-  normalized.erase("notifUri");
+  if (normalized.contains("notifUri")) {
+    normalized["notifyUri"] = normalized["notifUri"];
+    normalized.erase("notifUri");
+  }
 
   oai::_3gpp::model::PfdSubscription sub;
   try {
@@ -3807,6 +3825,20 @@ void nef_app::handle_nnef_pfd_subscription_create(
     response_body = make_problem_detail(
         http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
         e.what());
+    return;
+  }
+
+  if (sub.getNotifyUri().empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri is required");
+    return;
+  }
+  const std::string uri_err = validate_callback_uri(sub.getNotifyUri());
+  if (!uri_err.empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
     return;
   }
 
@@ -3868,27 +3900,12 @@ void nef_app::handle_nnef_pfd_subscription_put(
         "NF not authorized for this Nnef service");
     return;
   }
-  // Full replace semantics (PUT)
-  if (!body.contains("notifUri") || !body["notifUri"].is_string() ||
-      body["notifUri"].get<std::string>().empty()) {
-    http_code     = http_status_code::BAD_REQUEST;
-    response_body = make_problem_detail(
-        http_status_code::BAD_REQUEST, "Bad Request", "notifUri is required");
-    return;
-  }
-  const std::string uri_err =
-      validate_callback_uri(body["notifUri"].get<std::string>());
-  if (!uri_err.empty()) {
-    http_code     = http_status_code::BAD_REQUEST;
-    response_body = make_problem_detail(
-        http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
-    return;
-  }
-
   // Normalize: wire uses "notifUri", model uses "notifyUri"
   nlohmann::json normalized = body;
-  normalized["notifyUri"]   = normalized["notifUri"];
-  normalized.erase("notifUri");
+  if (normalized.contains("notifUri")) {
+    normalized["notifyUri"] = normalized["notifUri"];
+    normalized.erase("notifUri");
+  }
 
   oai::_3gpp::model::PfdSubscription sub;
   try {
@@ -3904,6 +3921,20 @@ void nef_app::handle_nnef_pfd_subscription_put(
     response_body = make_problem_detail(
         http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
         e.what());
+    return;
+  }
+
+  if (sub.getNotifyUri().empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri is required");
+    return;
+  }
+  const std::string uri_err = validate_callback_uri(sub.getNotifyUri());
+  if (!uri_err.empty()) {
+    http_code     = http_status_code::BAD_REQUEST;
+    response_body = make_problem_detail(
+        http_status_code::BAD_REQUEST, "Bad Request", "notifUri: " + uri_err);
     return;
   }
 

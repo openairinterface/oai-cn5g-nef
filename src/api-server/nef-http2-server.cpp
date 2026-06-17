@@ -52,6 +52,21 @@ static bool end_http2_if_draining(
 }
 
 //------------------------------------------------------------------------------
+static bool end_http2_if_rate_limited(
+    const http2_request& req, const std::string& bearer_token,
+    http2_response& res) {
+  const std::string& rate_key =
+      !bearer_token.empty() ? bearer_token : req.peer_address;
+  if (!rate_key.empty() && !nef_rate_limiter::instance().allow(rate_key)) {
+    end_http2_error(
+        res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
+        "Rate limit exceeded");
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
 // Inline bearer-token extraction helper (used in route lambdas)
 // Extracts "Bearer <token>" from the Authorization header, case-insensitively
 // matching the "Bearer " prefix.
@@ -79,7 +94,7 @@ void nef_http2_server::handle_ti_get(
     const std::string& bearer_token, http2_response& res) {
   m_nef_app->set_request_bearer_token(bearer_token);
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->handle_traffic_influence_get(af_id, ti_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
   res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
@@ -92,7 +107,7 @@ void nef_http2_server::handle_ti_list(
     http2_response& res) {
   m_nef_app->set_request_bearer_token(bearer_token);
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->handle_traffic_influence_list(af_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
   res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
@@ -115,7 +130,7 @@ void nef_http2_server::handle_monitoring_event_update(
   }
   m_nef_app->set_request_bearer_token(bearer_token);
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->handle_monitoring_event_subscription_update(
       scs_as_id, sub_id, json_body, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -129,7 +144,7 @@ void nef_http2_server::handle_qos_update(
     http2_response& res) {
   nlohmann::json json_body = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -159,7 +174,7 @@ void nef_http2_server::handle_bdt_patch(
     http2_response& res) {
   nlohmann::json json_patch = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_patch = nlohmann::json::parse(patch_body);
@@ -197,7 +212,7 @@ void nef_http2_server::handle_analytics_fetch(
   }
   m_nef_app->set_request_bearer_token(bearer_token);
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->handle_analytics_fetch(af_id, json_body, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
   res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
@@ -209,7 +224,7 @@ void nef_http2_server::handle_nnef_event_exposure_subscribe(
     http2_response& res) {
   nlohmann::json json_body = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -242,7 +257,7 @@ void nef_http2_server::handle_nnef_event_exposure_unsubscribe(
     const std::string& subscription_id, const std::string& bearer_token,
     http2_response& res) {
   m_nef_app->set_request_bearer_token(bearer_token);
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->handle_nnef_event_exposure_unsubscribe(subscription_id, http_code);
   m_nef_app->clear_request_bearer_token();
   res.send(http_code, {});
@@ -254,7 +269,7 @@ void nef_http2_server::handle_nnef_event_exposure_get(
     http2_response& res) {
   m_nef_app->set_request_bearer_token(bearer_token);
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->handle_nnef_event_exposure_get(
       subscription_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -267,7 +282,7 @@ void nef_http2_server::handle_nnef_event_exposure_update(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_body = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -321,16 +336,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
 
         const std::string pfx = nnef_event_exposure_base + "/";
         const auto pfx_pos    = req.path.find(pfx);
@@ -379,16 +385,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         // /{base}/{ver}/{scsAsId}/subscriptions[/{subId}]
         const std::string pfx = nef_monitoring_event_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
@@ -424,16 +421,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string pfx = nef_traffic_influence_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
         std::vector<std::string> path_parts;
@@ -478,15 +466,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string pfx = nef_pfd_management_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
         // rest = {scsAsId}/transactions[/{transId}[/applications/{appId}]]
@@ -528,7 +508,7 @@ void nef_http2_server::start() {
             // app-level)
             m_nef_app->set_request_bearer_token(bearer_token);
             nlohmann::json resp_body;
-            int http_code = 0;
+            int http_code = http_status_code::NO_RESPONSE;
             m_nef_app->handle_pfd_transaction_list(
                 scs_as_id, resp_body, http_code);
             m_nef_app->clear_request_bearer_token();
@@ -569,15 +549,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string pfx =
             nnef_pfd_management_base +
             nef_sbi_helper::NnefPfdManagementPathTransactions;
@@ -662,15 +634,7 @@ void nef_http2_server::start() {
       [this](const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string partial_pull_path =
             nef_sbi_helper::NnefPfdManagementPathPartialPull;
         if (req.path.size() >= partial_pull_path.size() &&
@@ -712,15 +676,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string pfx =
             nnef_pfd_management_base +
             nef_sbi_helper::NnefPfdManagementPathSubscriptions;
@@ -765,15 +721,7 @@ void nef_http2_server::start() {
       [this, nef_bdt_base](const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string pfx = nef_bdt_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
         std::vector<std::string> path_parts;
@@ -819,15 +767,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string pfx = nef_qos_monitoring_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
         std::vector<std::string> path_parts;
@@ -867,15 +807,7 @@ void nef_http2_server::start() {
           const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         const std::string pfx = nef_analytics_base + "/";
         auto rest = req.path.substr(req.path.find(pfx) + pfx.size());
         std::vector<std::string> path_parts;
@@ -917,15 +849,7 @@ void nef_http2_server::start() {
       [this, nef_notify_base](const http2_request& req, http2_response& res) {
         const std::string bearer_token = extract_bearer(req);
         if (end_http2_if_draining(m_draining, res)) return;
-        const std::string& rate_key =
-            !bearer_token.empty() ? bearer_token : req.peer_address;
-        if (!rate_key.empty() &&
-            !nef_rate_limiter::instance().allow(rate_key)) {
-          end_http2_error(
-              res, http_status_code::TOO_MANY_REQUESTS, "Too Many Requests",
-              "Rate limit exceeded");
-          return;
-        }
+        if (end_http2_if_rate_limited(req, bearer_token, res)) return;
         if (req.method == method_e::POST) {
           const std::string prefix =
               nef_notify_base + nef_sbi_helper::NefNotifyPathNotify + "/";
@@ -963,7 +887,7 @@ void nef_http2_server::start() {
                 .count());
         const std::string instance_id =
             m_nef_app ? m_nef_app->get_nef_instance_id() : "";
-        int http_code          = 0;
+        int http_code          = http_status_code::NO_RESPONSE;
         const std::string body = oai::nef::app::nef_health_check::make_response(
             draining, instance_id, uptime, http_code);
         res.send(http_code, {{"content-type", "application/json"}}, body);
@@ -1001,7 +925,7 @@ void nef_http2_server::handle_monitoring_event_subscribe(
   }
   std::string sub_id;
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_monitoring_event_subscription_create(
       scs_as_id, json_body, sub_id, resp_body, http_code);
@@ -1013,7 +937,7 @@ void nef_http2_server::handle_monitoring_event_subscribe(
 void nef_http2_server::handle_monitoring_event_unsubscribe(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_monitoring_event_subscription_delete(
       scs_as_id, sub_id, http_code);
@@ -1026,7 +950,7 @@ void nef_http2_server::handle_monitoring_event_get(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_monitoring_event_subscription_get(
       scs_as_id, sub_id, resp_body, http_code);
@@ -1041,7 +965,7 @@ void nef_http2_server::handle_ti_create(
   nlohmann::json json_body = {};
   std::string ti_id;
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -1069,7 +993,7 @@ void nef_http2_server::handle_ti_update(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_body = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -1095,7 +1019,7 @@ void nef_http2_server::handle_ti_update(
 void nef_http2_server::handle_ti_delete(
     const std::string& af_id, const std::string& ti_id,
     const std::string& bearer_token, http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_traffic_influence_delete(af_id, ti_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1116,7 +1040,7 @@ void nef_http2_server::handle_pfd_create(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_create(app_id, json_body, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1127,7 +1051,7 @@ void nef_http2_server::handle_pfd_create(
 void nef_http2_server::handle_pfd_delete(
     const std::string& app_id, const std::string& bearer_token,
     http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_delete(app_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1156,7 +1080,7 @@ void nef_http2_server::handle_nf_notify(
   m_nef_app->handle_nf_notification(nf_sub_id, json_body);
   m_nef_app->clear_request_bearer_token();
   // Acknowledge to the NF
-  res.send(204, {}, "");
+  res.send(http_status_code::NO_CONTENT, {}, "");
 }
 
 //------------------------------------------------------------------------------
@@ -1167,7 +1091,7 @@ void nef_http2_server::handle_bdt_create(
   nlohmann::json json_body = {};
   std::string bdt_id;
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -1199,7 +1123,7 @@ void nef_http2_server::handle_bdt_update(
     http2_response& res, bool deprecated) {
   nlohmann::json json_body = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -1228,7 +1152,7 @@ void nef_http2_server::handle_bdt_update(
 void nef_http2_server::handle_bdt_delete(
     const std::string& af_id, const std::string& bdt_id,
     const std::string& bearer_token, http2_response& res, bool deprecated) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_bdt_policy_delete(af_id, bdt_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1242,7 +1166,7 @@ void nef_http2_server::handle_bdt_get(
     const std::string& af_id, const std::string& bdt_id,
     const std::string& bearer_token, http2_response& res, bool deprecated) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   if (bdt_id.empty()) {
     m_nef_app->handle_bdt_policy_list(af_id, resp_body, http_code);
@@ -1264,7 +1188,7 @@ void nef_http2_server::handle_qos_create(
   nlohmann::json json_body = {};
   std::string sub_id;
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_body = nlohmann::json::parse(body);
@@ -1290,7 +1214,7 @@ void nef_http2_server::handle_qos_create(
 void nef_http2_server::handle_qos_delete(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_qos_subscription_delete(af_id, sub_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1302,7 +1226,7 @@ void nef_http2_server::handle_qos_get(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   if (sub_id.empty()) {
     m_nef_app->handle_qos_subscription_list(af_id, resp_body, http_code);
@@ -1329,7 +1253,7 @@ void nef_http2_server::handle_analytics_create(
   }
   std::string sub_id;
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_analytics_subscription_create(
       af_id, json_body, sub_id, resp_body, http_code);
@@ -1341,7 +1265,7 @@ void nef_http2_server::handle_analytics_create(
 void nef_http2_server::handle_analytics_delete(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_analytics_subscription_delete(af_id, sub_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1353,7 +1277,7 @@ void nef_http2_server::handle_analytics_get(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   if (sub_id.empty()) {
     m_nef_app->handle_analytics_subscription_list(af_id, resp_body, http_code);
@@ -1373,7 +1297,7 @@ void nef_http2_server::handle_ti_patch(
     http2_response& res) {
   nlohmann::json json_patch = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_patch = nlohmann::json::parse(patch_body);
@@ -1403,7 +1327,7 @@ void nef_http2_server::handle_qos_patch(
     http2_response& res) {
   nlohmann::json json_patch = {};
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   try {
     json_patch = nlohmann::json::parse(patch_body);
@@ -1431,7 +1355,7 @@ void nef_http2_server::handle_pfd_transaction_list(
     const std::string& scs_as_id, const std::string& bearer_token,
     http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_transaction_list(scs_as_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1453,7 +1377,7 @@ void nef_http2_server::handle_pfd_transaction_put(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_transaction_put(
       scs_as_id, trans_id, json_body, resp_body, http_code);
@@ -1465,7 +1389,7 @@ void nef_http2_server::handle_pfd_transaction_put(
 void nef_http2_server::handle_pfd_transaction_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& bearer_token, http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_transaction_delete(scs_as_id, trans_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1478,7 +1402,7 @@ void nef_http2_server::handle_pfd_app_get(
     const std::string& app_id, const std::string& bearer_token,
     http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_app_get(
       scs_as_id, trans_id, app_id, resp_body, http_code);
@@ -1501,7 +1425,7 @@ void nef_http2_server::handle_pfd_app_put(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_app_put(
       scs_as_id, trans_id, app_id, json_body, resp_body, http_code);
@@ -1524,7 +1448,7 @@ void nef_http2_server::handle_pfd_app_patch(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_app_patch(
       scs_as_id, trans_id, app_id, json_patch, resp_body, http_code);
@@ -1537,7 +1461,7 @@ void nef_http2_server::handle_pfd_app_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const std::string& bearer_token,
     http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_pfd_app_delete(scs_as_id, trans_id, app_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1548,7 +1472,7 @@ void nef_http2_server::handle_pfd_app_delete(
 void nef_http2_server::handle_nnef_pfd_list_transactions(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_list_transactions(resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1569,7 +1493,7 @@ void nef_http2_server::handle_nnef_pfd_put_transaction(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_put_transaction(
       trans_id, json_body, resp_body, http_code);
@@ -1582,7 +1506,7 @@ void nef_http2_server::handle_nnef_pfd_get_transaction(
     const std::string& trans_id, const std::string& bearer_token,
     http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_get_transaction(trans_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1593,7 +1517,7 @@ void nef_http2_server::handle_nnef_pfd_get_transaction(
 void nef_http2_server::handle_nnef_pfd_delete_transaction(
     const std::string& trans_id, const std::string& bearer_token,
     http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_delete_transaction(trans_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1605,7 +1529,7 @@ void nef_http2_server::handle_nnef_pfd_get_app(
     const std::string& trans_id, const std::string& app_id,
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_get_app(trans_id, app_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1627,7 +1551,7 @@ void nef_http2_server::handle_nnef_pfd_put_app(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_put_app(
       trans_id, app_id, json_body, resp_body, http_code);
@@ -1639,7 +1563,7 @@ void nef_http2_server::handle_nnef_pfd_put_app(
 void nef_http2_server::handle_nnef_pfd_delete_app(
     const std::string& trans_id, const std::string& app_id,
     const std::string& bearer_token, http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_delete_app(trans_id, app_id, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1662,7 +1586,7 @@ void nef_http2_server::handle_analytics_update(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_analytics_subscription_update(
       af_id, sub_id, json_body, resp_body, http_code);
@@ -1676,7 +1600,7 @@ void nef_http2_server::handle_nnef_pfd_get_applications(
     const std::vector<std::string>& app_ids_filter,
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_get_applications(
       app_ids_filter, resp_body, http_code);
@@ -1695,7 +1619,7 @@ void nef_http2_server::handle_nnef_pfd_partial_pull(
     json_body = {};
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_partial_pull(json_body, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1717,14 +1641,14 @@ void nef_http2_server::handle_nnef_pfd_subscription_create(
   }
   nlohmann::json resp_body;
   std::string sub_id;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_subscription_create(
       json_body, sub_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
   std::map<std::string, std::string> h;
   h["content-type"] = "application/json";
-  if (http_code == 201 && !sub_id.empty()) {
+  if (http_code == http_status_code::CREATED && !sub_id.empty()) {
     const std::string loc =
         m_address + nef_sbi_helper::NnefPfdManagementBase +
         nef_config_inst->nef()->get_sbi().get_api_version() +
@@ -1739,7 +1663,7 @@ void nef_http2_server::handle_nnef_pfd_subscription_get(
     const std::string& sub_id, const std::string& bearer_token,
     http2_response& res) {
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_subscription_get(sub_id, resp_body, http_code);
   m_nef_app->clear_request_bearer_token();
@@ -1760,7 +1684,7 @@ void nef_http2_server::handle_nnef_pfd_subscription_put(
     return;
   }
   nlohmann::json resp_body;
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_subscription_put(
       sub_id, json_body, resp_body, http_code);
@@ -1772,7 +1696,7 @@ void nef_http2_server::handle_nnef_pfd_subscription_put(
 void nef_http2_server::handle_nnef_pfd_subscription_delete(
     const std::string& sub_id, const std::string& bearer_token,
     http2_response& res) {
-  int http_code = 0;
+  int http_code = http_status_code::NO_RESPONSE;
   m_nef_app->set_request_bearer_token(bearer_token);
   m_nef_app->handle_nnef_pfd_subscription_delete(sub_id, http_code);
   m_nef_app->clear_request_bearer_token();
