@@ -46,10 +46,23 @@ class nef_client {
   bool unsubscribe_amf_event_exposure(const std::string& amf_sub_id);
 
   // SMF — event-exposure subscription
+  // T5: callers build a fully-formed NsmfEventExposure body (with eventSubs,
+  // target filters, etc.). This function injects the NEF-chosen correlation id
+  // (notif_id) and inbound notification URI (notif_uri) before POSTing to the
+  // SMF.
   bool subscribe_smf_event_exposure(
-      const nlohmann::json& subscription_data, std::string& smf_sub_id);
+      const nlohmann::json& smf_body, const std::string& notif_id,
+      const std::string& notif_uri, std::string& smf_sub_id);
 
   bool unsubscribe_smf_event_exposure(const std::string& smf_sub_id);
+
+  // T8: full-replace an existing SMF event-exposure subscription. Issues
+  // PUT /nsmf-event-exposure/v1/subscriptions/{smf_sub_id} with a fully-formed
+  // NsmfEventExposure body (notifId/notifUri already embedded by the caller).
+  // Returns true on a 2xx response. Nsmf_EventExposure has no PATCH, so PUT is
+  // the conformant southbound update action for both T8 PUT and PATCH.
+  bool update_smf_event_exposure(
+      const std::string& smf_sub_id, const nlohmann::json& smf_body);
 
   // PCF — policy-authorization / BDT-policy
   bool create_pcf_policy_auth(

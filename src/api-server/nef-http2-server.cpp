@@ -1077,9 +1077,14 @@ void nef_http2_server::handle_nf_notify(
   }
   // Delegate to nef_app which looks up nf_sub_id → af_sub_id and forwards
   m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nf_notification(nf_sub_id, json_body);
+  const bool found = m_nef_app->handle_nf_notification(nf_sub_id, json_body);
   m_nef_app->clear_request_bearer_token();
-  // Acknowledge to the NF
+  if (!found) {
+    end_http2_error(
+        res, http_status_code::NOT_FOUND, "Not Found",
+        "No subscription found for notification id: " + nf_sub_id);
+    return;
+  }
   res.send(http_status_code::NO_CONTENT, {}, "");
 }
 
@@ -1207,7 +1212,18 @@ void nef_http2_server::handle_qos_create(
     return;
   }
   m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
+  std::map<std::string, std::string> h;
+  h["content-type"] = "application/json";
+  // On 201, the app layer stored a relative self-URI in resp_body["self"];
+  // prefix it with the server address for the absolute Location header and
+  // self field.
+  if (http_code == http_status_code::CREATED && resp_body.contains("self") &&
+      resp_body["self"].is_string()) {
+    const std::string loc = m_address + resp_body["self"].get<std::string>();
+    resp_body["self"]     = loc;
+    h["location"]         = loc;
+  }
+  res.send(http_code, h, resp_body.dump());
 }
 
 //------------------------------------------------------------------------------

@@ -549,7 +549,8 @@ bool nef_client::unsubscribe_amf_event_exposure(const std::string& amf_sub_id) {
 //------------------------------------------------------------------------------
 // SMF event-exposure
 bool nef_client::subscribe_smf_event_exposure(
-    const nlohmann::json& subscription_data, std::string& smf_sub_id) {
+    const nlohmann::json& smf_body, const std::string& notif_id,
+    const std::string& notif_uri, std::string& smf_sub_id) {
   std::string smf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
     Logger::nef_app().warn(
@@ -559,10 +560,12 @@ bool nef_client::subscribe_smf_event_exposure(
   std::string url =
       smf_url + nef_sbi_helper::SmfEventExposureBase + "v1/subscriptions";
 
-  // TS 29.508: field is "notifUri"
-  nlohmann::json sub_body = subscription_data;
-  sub_body["notifUri"]    = nef_config_inst->get_local()->get_url() +
-                         nef_sbi_helper::NefNotifyBase + "v1/notify/smf";
+  // T5: the caller (nef_app) builds the full NsmfEventExposure body (eventSubs,
+  // target filters). Here we inject the NEF-chosen correlation id (notifId) and
+  // the per-subscription inbound notification URI (notifUri, TS 29.508).
+  nlohmann::json sub_body = smf_body;
+  sub_body["notifId"]     = notif_id;
+  sub_body["notifUri"]    = notif_uri;
 
   std::string body = sub_body.dump();
 
@@ -612,6 +615,55 @@ bool nef_client::unsubscribe_smf_event_exposure(const std::string& smf_sub_id) {
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
       resp.status_code == http_status_code::OK);
+}
+
+//------------------------------------------------------------------------------
+bool nef_client::update_smf_event_exposure(
+    const std::string& smf_sub_id, const nlohmann::json& smf_body) {
+  if (smf_sub_id.empty()) {
+    Logger::nef_app().warn(
+        "SMF event-exposure update: empty subscription id — skipped");
+    return false;
+  }
+  std::string smf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
+    Logger::nef_app().warn("SMF not found — cannot update event exposure");
+    return false;
+  }
+  // T8: Nsmf_EventExposure has no PATCH; PUT does a full replace of the
+  // individual subscription resource. The caller has already embedded the
+  // notifId/notifUri in smf_body (via build_smf_qos_body).
+  std::string url = smf_url + nef_sbi_helper::SmfEventExposureBase +
+                    "v1/subscriptions/" + smf_sub_id;
+  std::string body = smf_body.dump();
+
+  oai::http::response smf_resp{};
+  auto sbi_sleep_smf = [](std::chrono::milliseconds d) {
+    std::this_thread::sleep_for(d);
+  };
+  auto sbi_log_smf = [](const std::string& m) {
+    Logger::nef_app().warn("%s", m.c_str());
+  };
+  sbi_call_with_retry(
+      "SMF", /*is_post=*/false,
+      [&]() -> int {
+        oai::http::request req =
+            http_client_inst->prepare_json_request(url, body);
+        smf_resp = http_client_inst->send_http_request(
+            oai::common::sbi::method_e::PUT, req);
+        return static_cast<int>(smf_resp.status_code);
+      },
+      sbi_circuit_breaker_registry::instance(), sbi_sleep_smf, sbi_log_smf);
+
+  const bool ok =
+      (smf_resp.status_code == http_status_code::OK ||
+       smf_resp.status_code == http_status_code::CREATED ||
+       smf_resp.status_code == http_status_code::NO_CONTENT);
+  if (!ok) {
+    Logger::nef_app().warn(
+        "SMF event-exposure update failed (status %d)", smf_resp.status_code);
+  }
+  return ok;
 }
 
 // PCF policy authorization

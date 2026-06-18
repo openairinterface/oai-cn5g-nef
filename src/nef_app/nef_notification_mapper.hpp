@@ -49,17 +49,20 @@ class nef_notification_mapper {
 
   // Session-with-QoS (SMF → NEF → AF)
   /*
-   * Map an SMF event notification into a T8 AsSessionWithQoSEventNotification.
+   * Map an SMF NsmfEventExposureNotification (TS 29.508) into a T8
+   * UserPlaneNotificationData (TS 29.122): { transaction, eventReports[] }.
    *
-   * @param [in]  smf_notif   Raw JSON from SMF Nsmf_EventExposure_Notify.
-   * @param [out] t8_notif    Mapped T8 notification JSON.
-   * @param [in]  sub_id      NEF subscription-id to embed.
-   * @return true on success.
+   * @param [in]  smf_notif    Raw JSON from SMF Nsmf_EventExposure_Notify.
+   * @param [out] t8_notif     Mapped T8 UserPlaneNotificationData JSON.
+   * @param [in]  transaction  Self-URI of the AF subscription (the resource
+   *                           URL returned in the CREATE Location/self header),
+   *                           used as the "transaction" reference.
+   * @return true on success, false if no event reports could be produced.
    */
   static bool smf_to_qos_notification(
       const nlohmann::json& smf_notif,
       nlohmann::json& t8_notif,
-      const std::string& sub_id);
+      const std::string& transaction);
 
   // Traffic Influence / Policy (PCF → NEF → AF)
   /*

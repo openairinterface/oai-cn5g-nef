@@ -54,6 +54,16 @@ std::string nef_subscription::get_notification_uri() const {
 }
 
 //------------------------------------------------------------------------------
+void nef_subscription::set_self(const std::string& uri) {
+  m_self = uri;
+}
+
+//------------------------------------------------------------------------------
+std::string nef_subscription::get_self() const {
+  return m_self;
+}
+
+//------------------------------------------------------------------------------
 void nef_subscription::set_service_type(nef_service_type_t svc) {
   m_service_type = svc;
 }

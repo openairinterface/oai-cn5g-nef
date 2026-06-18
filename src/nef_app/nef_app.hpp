@@ -254,6 +254,18 @@ class nef_app {
       const nlohmann::json& patch_body, nlohmann::json& response_body,
       int& http_code);
 
+  // T5/T8: translate a T8 AsSessionWithQoSSubscription into a southbound
+  // NsmfEventExposure JSON body (eventSubs[] derived from the requested
+  // UserPlaneEvent(s), de-duplicated; dnn/snssai targeting copied where the SMF
+  // model has matching fields). The caller-supplied notifId/notifUri are
+  // injected into the body. Returns true on success; on failure (no derivable
+  // SMF event) returns false and writes a human-readable reason into err.
+  // Shared by CREATE, PUT and PATCH so the translation lives in one place.
+  static bool build_smf_qos_body(
+      const oai::_3gpp::model::AsSessionWithQoSSubscription& req_data,
+      const std::string& notif_id, const std::string& notif_uri,
+      nlohmann::json& smf_body, std::string& err);
+
   // Analytics (3GPP TS 29.520)
   void handle_analytics_subscription_create(
       const std::string& af_id, const nlohmann::json& body,
@@ -282,8 +294,8 @@ class nef_app {
       const std::string& scs_as_id, const nlohmann::json& body,
       nlohmann::json& response_body, int& http_code);
 
-  // Inbound notification from 5GC NF
-  void handle_nf_notification(
+  // Inbound notification from 5GC NF; returns false if nf_sub_id is unknown.
+  bool handle_nf_notification(
       const std::string& nf_sub_id, const nlohmann::json& notif_payload);
 
   // Nnef_EventExposure (TS 29.591)

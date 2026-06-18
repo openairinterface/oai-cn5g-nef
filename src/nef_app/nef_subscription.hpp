@@ -50,6 +50,11 @@ class nef_subscription {
   void set_notification_uri(const std::string& uri);
   std::string get_notification_uri() const;
 
+  // Self URI (the resource URL of this subscription, used as the notification
+  // "transaction" reference in TS 29.122 UserPlaneNotificationData).
+  void set_self(const std::string& uri);
+  std::string get_self() const;
+
   // NEF service type
   void set_service_type(nef_service_type_t svc);
   nef_service_type_t get_service_type() const;
@@ -81,6 +86,7 @@ class nef_subscription {
   std::string m_af_sub_id;
   std::string m_nf_sub_id;  // obtained from AMF/SMF/PCF/UDR
   std::string m_notification_uri;
+  std::string m_self;  // resource self-URI of this subscription
   std::string m_scs_as_id;
   nef_service_type_t m_service_type =
       nef_service_type_t::NEF_SERVICE_TYPE_MONITORING_EVENT;

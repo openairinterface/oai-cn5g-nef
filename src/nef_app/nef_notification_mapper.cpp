@@ -79,26 +79,152 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
   return true;
 }
 
+// SMF SmfEvent → T8 UserPlaneEvent mapping (one UserPlaneEventReport)
+//------------------------------------------------------------------------------
+// Maps a single inbound SMF EventNotification entry (TS 29.508) to a single
+// T8 UserPlaneEventReport object (TS 29.122). The full eventNotif body is
+// needed because the QOS_MON event is split into QOS_GUARANTEED /
+// QOS_NOT_GUARANTEED / QOS_MONITORING based on the QoS-Notification-Control
+// type carried inside the body.
+//
+// SmfEvent enum (TS 29.508): AC_TY_CH, UP_PATH_CH, PDU_SES_REL, PLMN_CH,
+// UE_IP_CH, RAT_TY_CH, DDDS, COMM_FAIL, PDU_SES_EST, QFI_ALLOC, QOS_MON,
+// SMCC_EXP, ... — there is NO QOS_GUARANTEED/QOS_NOT_GUARANTEED SMF event.
+//
+// UserPlaneEvent enum (TS 29.122): SESSION_TERMINATION, LOSS_OF_BEARER,
+// RECOVERY_OF_BEARER, RELEASE_OF_BEARER, USAGE_REPORT,
+// FAILED_RESOURCES_ALLOCATION, QOS_GUARANTEED, QOS_NOT_GUARANTEED,
+// QOS_MONITORING, SUCCESSFUL_RESOURCES_ALLOCATION, ACCESS_TYPE_CHANGE,
+// PLMN_CHG.
+//
+// The returned JSON is shaped as a UserPlaneEventReport (built by hand to keep
+// the mapper free of a link dependency on the model classes; the model classes
+// serve as the schema/validate() oracle in tests).
+static json map_smf_event_to_userplane(
+    const std::string& smf_event, const json& event_notif) {
+  json report;
+
+  // Helper: copy qosMonReports from SMF delay measurements when present. The
+  // SMF QOS_MON EventNotification carries delay arrays (ulDelays/dlDelays/
+  // rtDelays) and a packet-delay-measurement-failure flag (pdmf). These map
+  // directly onto a single QosMonitoringReport entry.
+  auto build_qos_mon_reports = [&event_notif]() -> json {
+    json qmr = json::object();
+    bool any = false;
+    if (event_notif.contains("ulDelays")) {
+      qmr["ulDelays"] = event_notif["ulDelays"];
+      any             = true;
+    }
+    if (event_notif.contains("dlDelays")) {
+      qmr["dlDelays"] = event_notif["dlDelays"];
+      any             = true;
+    }
+    if (event_notif.contains("rtDelays")) {
+      qmr["rtDelays"] = event_notif["rtDelays"];
+      any             = true;
+    }
+    if (event_notif.contains("pdmf")) {
+      qmr["pdmf"] = event_notif["pdmf"];
+      any         = true;
+    }
+    json arr = json::array();
+    if (any) arr.push_back(qmr);
+    return arr;
+  };
+
+  if (smf_event == "QOS_MON") {
+    // Resolve the QoS-Notification-Control type. Per TS 29.508 the SMF
+    // EventNotification top-level properties are delay measurements only; the
+    // GUARANTEED/NOT_GUARANTEED indication (QosNotifType, TS 29.514) is not a
+    // standardized top-level field. We probe the common placements:
+    //   - qosNotifType (flat, OAI-SMF specific)
+    //   - notifType    (flat alias)
+    //   - qosNotificationControlInfo.notifType (nested, OAI-SMF specific)
+    // If none is present, this is a pure measurement report -> QOS_MONITORING.
+    std::string qos_notif_type;
+    if (event_notif.contains("qosNotifType") &&
+        event_notif["qosNotifType"].is_string()) {
+      qos_notif_type = event_notif["qosNotifType"].get<std::string>();
+    } else if (
+        event_notif.contains("notifType") &&
+        event_notif["notifType"].is_string()) {
+      qos_notif_type = event_notif["notifType"].get<std::string>();
+    } else if (
+        event_notif.contains("qosNotificationControlInfo") &&
+        event_notif["qosNotificationControlInfo"].is_object() &&
+        event_notif["qosNotificationControlInfo"].contains("notifType") &&
+        event_notif["qosNotificationControlInfo"]["notifType"].is_string()) {
+      qos_notif_type =
+          event_notif["qosNotificationControlInfo"]["notifType"]
+              .get<std::string>();
+    }
+
+    if (qos_notif_type == "GUARANTEED") {
+      report["event"] = "QOS_GUARANTEED";
+    } else if (qos_notif_type == "NOT_GUARANTEED") {
+      report["event"] = "QOS_NOT_GUARANTEED";
+    } else {
+      report["event"] = "QOS_MONITORING";
+    }
+
+    json qmr = build_qos_mon_reports();
+    if (!qmr.empty()) report["qosMonReports"] = qmr;
+    if (event_notif.contains("appliedQosRef"))
+      report["appliedQosRef"] = event_notif["appliedQosRef"];
+  } else if (smf_event == "PDU_SES_REL") {
+    report["event"] = "SESSION_TERMINATION";
+  } else if (smf_event == "AC_TY_CH") {
+    report["event"] = "ACCESS_TYPE_CHANGE";
+  } else if (smf_event == "PLMN_CH") {
+    report["event"] = "PLMN_CHG";
+    if (event_notif.contains("plmnId")) report["plmnId"] = event_notif["plmnId"];
+  } else if (smf_event == "UP_STATUS_INFO") {
+    // Best-effort: the SMF UP-status signal has no exact T8 analogue. Map to
+    // LOSS_OF_BEARER and forward any usage/flow context if present.
+    report["event"] = "LOSS_OF_BEARER";
+    if (event_notif.contains("accumulatedUsage"))
+      report["accumulatedUsage"] = event_notif["accumulatedUsage"];
+  } else if (smf_event == "RAT_TY_CH") {
+    // No T8 UserPlaneEvent analogue: pass the SMF string through unchanged for
+    // forward-compatibility and carry ratType if present.
+    report["event"] = smf_event;
+    if (event_notif.contains("ratType"))
+      report["ratType"] = event_notif["ratType"];
+  } else {
+    // Unknown / unmapped SMF event: pass the string through unchanged
+    // (forward-compat). Optional fields are not fabricated.
+    Logger::nef_app().debug(
+        "map_smf_event_to_userplane: passing through unmapped SMF event '%s'",
+        smf_event.c_str());
+    report["event"] = smf_event;
+  }
+
+  // flowIds applies across all mapped report types: when absent the report
+  // applies to all flows (spec note 9) — do not fabricate it.
+  if (event_notif.contains("flowIds"))
+    report["flowIds"] = event_notif["flowIds"];
+
+  return report;
+}
+
 // SMF → T8 Session-with-QoS Notification
 //------------------------------------------------------------------------------
 bool nef_notification_mapper::smf_to_qos_notification(
-    const json& smf_notif, json& t8_notif, const std::string& sub_id) {
-  // SMF EventExposure Notify (TS 29.508 §4.6.3):
-  //   { "subscriptionId": "...",
-  //     "notifId": "...",
-  //     "eventNotifs": [ { "event": "QOS_MONITORING",
-  //                         "qosMonitoringMeasurement": { ... },
-  //                         "supi": "...",
-  //                         "timeStamp": "..." } ] }
+    const json& smf_notif, json& t8_notif, const std::string& transaction) {
+  // Inbound: SMF NsmfEventExposureNotification (TS 29.508 §6.2.6):
+  //   { "notifId": "...",
+  //     "eventNotifs": [ { "event": "QOS_MON",
+  //                         "ulDelays": [...], "dlDelays": [...],
+  //                         "timeStamp": "..." }, ... ] }
   //
-  // T8 AsSessionWithQoSEventNotification (TS 29.122 §8.6.4.3.2):
-  //   { "subscription": "<sub_id>",
-  //     "evNotifs": [ { "event": "QOS_GUARANTEED",
-  //                      "qosMonInfo": { ... },
-  //                      "supi": "...",
-  //                      "timeStamp": "..." } ] }
-
-  t8_notif["subscription"] = sub_id;
+  // Outbound: T8 UserPlaneNotificationData (TS 29.122):
+  //   { "transaction": "<self-URI of the AF subscription>",
+  //     "eventReports": [ { "event": "QOS_GUARANTEED",
+  //                          "qosMonReports": [ ... ] }, ... ] }
+  //
+  // The "transaction" argument is the AF subscription's self-URI (the resource
+  // URL returned in the Location/self of the CREATE response), supplied by the
+  // caller from nef_subscription::get_self().
 
   if (!smf_notif.contains("eventNotifs") ||
       !smf_notif["eventNotifs"].is_array()) {
@@ -108,28 +234,22 @@ bool nef_notification_mapper::smf_to_qos_notification(
     return false;
   }
 
-  json ev_notifs = json::array();
+  json event_reports = json::array();
   for (const auto& e : smf_notif["eventNotifs"]) {
-    json t8_ev;
-
-    std::string smf_event = e.value("event", "UNKNOWN");
-    if (smf_event == "QOS_MONITORING") {
-      t8_ev["event"] = "QOS_GUARANTEED";
-      if (e.contains("qosMonitoringMeasurement"))
-        t8_ev["qosMonInfo"] = e["qosMonitoringMeasurement"];
-    } else if (smf_event == "PDU_SESSION_RELEASE") {
-      t8_ev["event"] = "SESSION_TERMINATION";
-    } else {
-      t8_ev["event"] = smf_event;
-    }
-
-    if (e.contains("supi")) t8_ev["supi"] = e["supi"];
-    if (e.contains("timeStamp")) t8_ev["timeStamp"] = e["timeStamp"];
-    if (e.contains("pduSeId")) t8_ev["pduSeId"] = e["pduSeId"];
-
-    ev_notifs.push_back(t8_ev);
+    const std::string smf_event = e.value("event", "UNKNOWN");
+    event_reports.push_back(map_smf_event_to_userplane(smf_event, e));
   }
-  t8_notif["evNotifs"] = ev_notifs;
+
+  if (event_reports.empty()) {
+    Logger::nef_app().warn(
+        "smf_to_qos_notification: no event reports produced");
+    t8_notif = make_problem("Bad SMF notification", "empty eventNotifs");
+    return false;
+  }
+
+  t8_notif                 = json::object();
+  t8_notif["transaction"]  = transaction;
+  t8_notif["eventReports"] = event_reports;
   return true;
 }
 
