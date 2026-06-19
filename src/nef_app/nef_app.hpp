@@ -16,6 +16,7 @@
 #include <boost/signals2.hpp>
 #include <nlohmann/json.hpp>
 
+#include "AsSessionWithQoSSubscription.h"
 #include "BdtPolicy.h"
 #include "NefEventExposureSubsc.h"
 #include "PfdDataForApp.h"
@@ -254,17 +255,18 @@ class nef_app {
       const nlohmann::json& patch_body, nlohmann::json& response_body,
       int& http_code);
 
-  // T5/T8: translate a T8 AsSessionWithQoSSubscription into a southbound
-  // NsmfEventExposure JSON body (eventSubs[] derived from the requested
-  // UserPlaneEvent(s), de-duplicated; dnn/snssai targeting copied where the SMF
-  // model has matching fields). The caller-supplied notifId/notifUri are
-  // injected into the body. Returns true on success; on failure (no derivable
-  // SMF event) returns false and writes a human-readable reason into err.
-  // Shared by CREATE, PUT and PATCH so the translation lives in one place.
-  static bool build_smf_qos_body(
-      const oai::_3gpp::model::AsSessionWithQoSSubscription& req_data,
-      const std::string& notif_id, const std::string& notif_uri,
-      nlohmann::json& smf_body, std::string& err);
+  // Translate a T8 AsSessionWithQoSSubscription (TS 29.122) into a PCF
+  // AppSessionContext{ascReqData} JSON body (TS 29.514) for
+  // create_pcf_policy_auth.
+  static bool build_pcf_qos_body(
+      const oai::_3gpp::model::AsSessionWithQoSSubscription& req,
+      const std::string& evsubsc_notif_uri, nlohmann::json& pcf_body,
+      std::string& err);
+
+  // Validate a PCF-returned appSessionId before storing / building URLs.
+  // Rejects empty, '/', '\\', "..", whitespace, control chars, or length > 253.
+  // (DELETE/PATCH concatenate it into ".../app-sessions/{id}" URLs.)
+  static bool is_valid_app_session_id(const std::string& id);
 
   // Analytics (3GPP TS 29.520)
   void handle_analytics_subscription_create(
@@ -345,6 +347,12 @@ class nef_app {
   std::map<std::string, std::string> m_ti_id2af_id;
   std::map<std::string, std::string> m_ti_id2pcf_policy_id;
   mutable std::shared_mutex m_ti_mutex;
+
+  // QoS AF-session → PCF appSessionId. Distinct from TI's m_ti_id2pcf_policy_id
+  // Keyed by the NEF qos_sub_id; value is the PCF-returned appSessionId.
+  // Guarded by m_qos_mutex.
+  std::map<std::string, std::string> m_qos_sub_id2pcf_app_session_id;
+  mutable std::shared_mutex m_qos_mutex;
 
   // BDT policy sessions (bdt_id → typed BdtPolicy)
   std::map<std::string, oai::_3gpp::model::BdtPolicy> m_bdt_sessions;

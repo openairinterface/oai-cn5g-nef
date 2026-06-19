@@ -76,6 +76,11 @@ class nef_client {
   bool delete_pcf_policy_auth(
       const std::string& app_session_id, uint32_t& http_code);
 
+  // PUT /npcf-policyauthorization/v1/app-sessions/{id}/events-subscription
+  bool subscribe_pcf_events(
+      const std::string& app_session_id, const nlohmann::json& ev_subsc_body,
+      uint32_t& http_code);
+
   bool create_pcf_bdt_policy(
       const nlohmann::json& bdt_req, std::string& pcf_bdt_id,
       uint32_t& http_code);

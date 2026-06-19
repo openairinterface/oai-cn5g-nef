@@ -8,6 +8,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <cctype>
 #include <chrono>
 #include <ctime>
 #include <sstream>
@@ -26,14 +27,9 @@
 #include "nef_sbi_helper.hpp"
 
 #include "AsSessionWithQoSSubscription.h"
-#include "NsmfEventExposure.h"
-#include "SmfEvent.h"
-#include "SmfEvent_anyOf.h"
-#include "SmfEventSubscription.h"
 #include "UserPlaneEvent.h"
 #include "BdtPolicy.h"
 #include "Helpers.h"
-#include "MonitoringEventSubscription.h"
 #include "NefEvent_anyOf.h"
 #include "NefEventExposureSubsc.h"
 #include "TrafficInfluData.h"
@@ -306,42 +302,67 @@ void nef_app::handle_qos_subscription_update(
       return;
     }
   }
+  // Immutability check (TS 29.122 §4.4.13): reject if any immutable field
+  // differs from the stored value.
+  {
+    const nlohmann::json& stored = sub->get_subscription_data();
+    for (const char* f :
+         {"ueIpv4Addr", "ueIpv6Addr", "macAddr", "ipDomain", "dnn", "snssai",
+          "supportedFeatures"}) {
+      const bool in_req    = body.contains(f);
+      const bool in_stored = stored.contains(f);
+      if ((in_req && in_stored && body[f] != stored[f]) ||
+          (in_req && !in_stored)) {
+        http_code     = http_status_code::BAD_REQUEST;
+        response_body = make_problem_detail(
+            http_status_code::BAD_REQUEST, "Bad Request",
+            std::string("Field '") + f + "' is immutable");
+        return;
+      }
+    }
+  }
+
+  // No PCF appSessionId means CREATE never completed successfully; reject
+  // rather than silently no-op and return 200.
+  std::string app_session_id;
+  {
+    std::shared_lock<std::shared_mutex> l(m_qos_mutex);
+    auto it = m_qos_sub_id2pcf_app_session_id.find(sub_id);
+    if (it != m_qos_sub_id2pcf_app_session_id.end())
+      app_session_id = it->second;
+  }
+  if (app_session_id.empty() || !is_valid_app_session_id(app_session_id)) {
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found",
+        "No active PCF application session for this subscription");
+    return;
+  }
+
   sub->set_subscription_data(body);
   if (!update_data.getNotificationDestination().empty()) {
     sub->set_notification_uri(update_data.getNotificationDestination());
   }
 
-  // T8: propagate the change to the SMF by re-translating the (now updated) T8
-  // body into an NsmfEventExposure and PUT-ing it to the existing SMF
-  // subscription. The notifId/notifUri remain the per-subscription correlation
-  // path keyed on the AF sub_id (T9), so routing is preserved. SMF propagation
-  // is best-effort here: the in-memory state has already been replaced, so a
-  // southbound failure is logged as a warning but does not fail the T8 PUT.
-  const std::string smf_sub_id = sub->get_nf_subscription_id();
-  if (!smf_sub_id.empty()) {
-    const std::string smf_notif_id = sub_id;
-    const std::string smf_notif_uri =
-        nef_config_inst->get_local()->get_url() +
-        oai::nef::api::nef_sbi_helper::NefNotifyBase +
-        nef_config_inst->nef()->get_sbi().get_api_version() + "/notify/" +
-        smf_notif_id;
-    nlohmann::json smf_body;
-    std::string smf_translate_err;
-    if (build_smf_qos_body(
-            update_data, smf_notif_id, smf_notif_uri, smf_body,
-            smf_translate_err)) {
-      if (!m_nef_client->update_smf_event_exposure(smf_sub_id, smf_body)) {
-        Logger::nef_app().warn(
-            "T8 PUT: SMF event-exposure update failed for sub=%s (smf_sub=%s); "
-            "in-memory state updated, SMF best-effort",
-            sub_id.c_str(), smf_sub_id.c_str());
-      }
-    } else {
+  nlohmann::json pcf_patch;
+  std::string pcf_err;
+  if (build_pcf_qos_body(
+          update_data, /*evsubsc_notif_uri=*/"", pcf_patch, pcf_err)) {
+    nlohmann::json merge =
+        pcf_patch.value("ascReqData", nlohmann::json::object());
+    merge.erase("evSubsc");  // subscription persists per §4.15.6.6a
+    uint32_t hc = 0;
+    if (!m_nef_client->update_pcf_policy_auth(app_session_id, merge, hc)) {
       Logger::nef_app().warn(
-          "T8 PUT: cannot re-translate SMF body for sub=%s (%s); SMF "
-          "subscription left unchanged",
-          sub_id.c_str(), smf_translate_err.c_str());
+          "T8 PUT: PCF update failed for sub=%s (app_session=%s, http=%u); "
+          "in-memory state updated, PCF best-effort",
+          sub_id.c_str(), app_session_id.c_str(), hc);
     }
+  } else {
+    Logger::nef_app().warn(
+        "T8 PUT: cannot translate PCF body for sub=%s (%s); PCF "
+        "subscription left unchanged",
+        sub_id.c_str(), pcf_err.c_str());
   }
 
   response_body = sub->get_subscription_data();
@@ -376,28 +397,20 @@ void nef_app::handle_monitoring_event_subscription_update(
     return;
   }
 
-  // Typed parse + validate
-  oai::_3gpp::model::MonitoringEventSubscription update_data;
-  try {
-    from_json(body, update_data);
-    update_data.validate();
-  } catch (const nlohmann::json::exception& e) {
+  // Parse + validate notificationDestination directly from JSON
+  if (!body.contains("notificationDestination") ||
+      !body["notificationDestination"].is_string()) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
         http_status_code::BAD_REQUEST, "Bad Request",
-        std::string("Invalid body: ") + e.what());
-    return;
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    http_code     = http_status_code::UNPROCESSABLE_ENTITY;
-    response_body = make_problem_detail(
-        http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        std::string("Validation failed: ") + e.what());
+        "Missing required field: notificationDestination");
     return;
   }
+  const std::string notif_dest =
+      body["notificationDestination"].get<std::string>();
 
   // SSRF protection: validate callback URI before updating stored state
-  const std::string uri_err =
-      validate_callback_uri(update_data.getNotificationDestination());
+  const std::string uri_err = validate_callback_uri(notif_dest);
   if (!uri_err.empty()) {
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
@@ -406,13 +419,13 @@ void nef_app::handle_monitoring_event_subscription_update(
     return;
   }
 
-  nlohmann::json update_body = update_data;
-  sub->set_subscription_data(update_body);
-  sub->set_notification_uri(update_data.getNotificationDestination());
-  if (update_data.monitorExpireTimeIsSet()) {
+  sub->set_subscription_data(body);
+  sub->set_notification_uri(notif_dest);
+  if (body.contains("monitorExpireTime") &&
+      body["monitorExpireTime"].is_string()) {
     std::chrono::system_clock::time_point expire_time;
     if (parse_monitor_expire_time(
-            update_data.getMonitorExpireTime(), expire_time)) {
+            body["monitorExpireTime"].get<std::string>(), expire_time)) {
       sub->set_expire_time(expire_time);
     }
   }
@@ -539,6 +552,17 @@ static bool validate_nnef_event_exposure_subscription(
     return false;
   }
 
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool nef_app::is_valid_app_session_id(const std::string& id) {
+  if (id.empty() || id.size() > 253) return false;
+  if (id.find("..") != std::string::npos) return false;
+  for (const unsigned char c : id) {
+    if (c == '/' || c == '\\') return false;
+    if (std::isspace(c) || std::iscntrl(c)) return false;
+  }
   return true;
 }
 
@@ -1095,11 +1119,22 @@ bool nef_app::handle_nf_notification(
   Logger::nef_app().debug(
       "Received NF notification for NF-sub-id: %s", nf_sub_id.c_str());
 
-  // Map NF sub-id → AF sub-id
+  // Map NF sub-id → AF sub-id.
+  // PCF QoS callback: PCF appends "/notify" to evSubsc.notifUri, so the
+  // extracted key is "{qos_sub_id}/notify".
   std::string af_sub_id;
   {
     std::shared_lock lock(m_nf2af_mutex);
-    auto it = m_nf2af_sub_id.find(nf_sub_id);
+    std::string key = nf_sub_id;
+    auto it         = m_nf2af_sub_id.find(key);
+    if (it == m_nf2af_sub_id.end()) {
+      static const std::string kSfx = "/notify";
+      if (key.size() > kSfx.size() &&
+          key.compare(key.size() - kSfx.size(), kSfx.size(), kSfx) == 0) {
+        key.erase(key.size() - kSfx.size());
+        it = m_nf2af_sub_id.find(key);
+      }
+    }
     if (it == m_nf2af_sub_id.end()) {
       Logger::nef_app().warn(
           "No AF subscription found for NF sub-id: %s", nf_sub_id.c_str());
@@ -1125,13 +1160,13 @@ bool nef_app::handle_nf_notification(
       mapped = nef_notification_mapper::amf_to_monitoring_notification(
           notif_payload, t8_payload, af_sub_id);
     } else if (svc == nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING) {
-      // T6: the UserPlaneNotificationData "transaction" is the AF
+      // The UserPlaneNotificationData "transaction" is the AF
       // subscription's self-URI. Fall back to the AF notification URI, then to
       // the bare af_sub_id if the self-URI was not stored.
       std::string transaction = sub->get_self();
       if (transaction.empty()) transaction = af_uri;
       if (transaction.empty()) transaction = af_sub_id;
-      mapped = nef_notification_mapper::smf_to_qos_notification(
+      mapped = nef_notification_mapper::pcf_to_qos_notification(
           notif_payload, t8_payload, transaction);
     } else if (svc == nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE) {
       mapped = nef_notification_mapper::pcf_to_ti_notification(
@@ -2413,77 +2448,147 @@ void nef_app::handle_bdt_policy_get(
 
 // QoS Provisioning (TS 29.122) API handlers
 //------------------------------------------------------------------------------
-// T5/T8: translate a T8 AsSessionWithQoSSubscription into a southbound
-// NsmfEventExposure JSON. Shared by CREATE, PUT and PATCH.
-bool nef_app::build_smf_qos_body(
-    const oai::_3gpp::model::AsSessionWithQoSSubscription& req_data,
-    const std::string& notif_id, const std::string& notif_uri,
-    nlohmann::json& smf_body, std::string& err) {
+// Translate a T8 AsSessionWithQoSSubscription (TS 29.122) into a PCF
+// AppSessionContext{ascReqData} JSON body (TS 29.514).
+bool nef_app::build_pcf_qos_body(
+    const oai::_3gpp::model::AsSessionWithQoSSubscription& req,
+    const std::string& evsubsc_notif_uri, nlohmann::json& pcf_body,
+    std::string& err) {
   err.clear();
-  oai::_3gpp::model::NsmfEventExposure smf_model;
+  nlohmann::json asc = nlohmann::json::object();
 
-  // Derive the set of SMF events (de-duplicated) from the requested T8 events.
-  // QOS_MONITORING/QOS_GUARANTEED/QOS_NOT_GUARANTEED -> QOS_MON (single entry).
-  // SESSION_TERMINATION/RELEASE_OF_BEARER          -> PDU_SES_REL (single).
-  bool want_qos_mon     = false;
-  bool want_pdu_ses_rel = false;
-  if (req_data.eventsIsSet()) {
-    for (const auto& ev : req_data.getEvents()) {
-      nlohmann::json ev_j;
-      to_json(ev_j, ev);
-      const std::string ev_str = ev_j.is_string() ? ev_j.get<std::string>() : "";
-      if (ev_str == "QOS_MONITORING" || ev_str == "QOS_GUARANTEED" ||
-          ev_str == "QOS_NOT_GUARANTEED") {
-        want_qos_mon = true;
-      } else if (
-          ev_str == "SESSION_TERMINATION" || ev_str == "RELEASE_OF_BEARER") {
-        want_pdu_ses_rel = true;
-      } else {
-        Logger::nef_app().debug(
-            "T5: T8 event '%s' has no SMF analogue — skipped at subscribe time",
-            ev_str.c_str());
+  // --- UE addressing (oneOf) -------------------------------------------------
+  if (req.ueIpv4AddrIsSet()) asc["ueIpv4"] = req.getUeIpv4Addr();
+  if (req.ueIpv6AddrIsSet()) asc["ueIpv6"] = req.getUeIpv6Addr();
+  if (req.macAddrIsSet()) asc["ueMac"] = req.getMacAddr();
+  if (req.ipDomainIsSet()) asc["ipDomain"] = req.getIpDomain();
+
+  // --- Feature negotiation (required by PCF; default "0" when absent) --------
+  asc["suppFeat"] = req.supportedFeaturesIsSet() ? req.getSupportedFeatures() :
+                                                   std::string("0");
+
+  // --- Targeting -------------------------------------------------------------
+  if (req.dnnIsSet()) asc["dnn"] = req.getDnn();
+  if (req.snssaiIsSet()) {
+    nlohmann::json snssai_j;
+    to_json(snssai_j, req.getSnssai());
+    asc["sliceInfo"] = snssai_j;
+  }
+  if (req.exterAppIdIsSet()) asc["afAppId"] = req.getExterAppId();
+  if (req.sponsorInfoIsSet()) {
+    const auto sponsor = req.getSponsorInfo();
+    asc["aspId"]       = sponsor.getAspId();
+    asc["sponId"]      = sponsor.getSponsorId();
+  }
+
+  // --- NEF inbound endpoint (NOT the AF notificationDestination) -------------
+  // PCF callback template is "{evSubsc/notifUri}/notify"; set both fields.
+  if (!evsubsc_notif_uri.empty()) asc["notifUri"] = evsubsc_notif_uri;
+
+  // --- Media components from flowInfo[]/qosReference -------------------------
+  nlohmann::json med_components = nlohmann::json::object();
+  if (req.flowInfoIsSet() && !req.getFlowInfo().empty()) {
+    for (const auto& fi : req.getFlowInfo()) {
+      // FlowId is int32_t in the typed model; safe to to_string as a key.
+      const int32_t flow_id = fi.getFlowId();
+      const std::string key = std::to_string(flow_id);
+      nlohmann::json mc     = nlohmann::json::object();
+      mc["medCompN"]        = flow_id;
+      if (req.qosReferenceIsSet()) mc["qosReference"] = req.getQosReference();
+      if (req.altQoSReferencesIsSet())
+        mc["altSerReqs"] = req.getAltQoSReferences();
+      if (fi.flowDescriptionsIsSet()) {
+        nlohmann::json sub_comp = nlohmann::json::object();
+        sub_comp["fDescs"]      = fi.getFlowDescriptions();
+        mc["medSubComps"][key]  = sub_comp;
       }
+      med_components[key] = mc;
     }
-  } else {
-    // Default-event rule (S5): no explicit events.
-    if (req_data.qosMonInfoIsSet()) {
-      want_qos_mon = true;  // QoS-monitoring use case
+  } else if (req.qosReferenceIsSet()) {
+    // No flows but a QoS reference present: emit a single default component.
+    nlohmann::json mc  = nlohmann::json::object();
+    mc["medCompN"]     = 0;
+    mc["qosReference"] = req.getQosReference();
+    if (req.altQoSReferencesIsSet())
+      mc["altSerReqs"] = req.getAltQoSReferences();
+    med_components["0"] = mc;
+  }
+  if (!med_components.empty()) asc["medComponents"] = med_components;
+
+  // --- Event subscription block -------------------------------------
+  // Only when an inbound NEF endpoint is supplied (CREATE/PUT, not PATCH).
+  if (!evsubsc_notif_uri.empty()) {
+    nlohmann::json ev_subsc = nlohmann::json::object();
+    ev_subsc["notifUri"]    = evsubsc_notif_uri;
+
+    // Translate requested T8 UserPlaneEvent -> PCF AfEvent, de-duplicating.
+    // SUCCESSFUL_/FAILED_RESOURCES_ALLOCATION are always present (step-6
+    // SHALL).
+    std::set<std::string> af_events;
+    af_events.insert("SUCCESSFUL_RESOURCES_ALLOCATION");
+    af_events.insert("FAILED_RESOURCES_ALLOCATION");
+
+    if (req.eventsIsSet()) {
+      for (const auto& ev : req.getEvents()) {
+        nlohmann::json ev_j;
+        to_json(ev_j, ev);
+        const std::string ev_str =
+            ev_j.is_string() ? ev_j.get<std::string>() : "";
+        if (ev_str == "SUCCESSFUL_RESOURCES_ALLOCATION" ||
+            ev_str == "FAILED_RESOURCES_ALLOCATION") {
+          // already injected
+        } else if (
+            ev_str == "QOS_GUARANTEED" || ev_str == "QOS_NOT_GUARANTEED") {
+          af_events.insert("QOS_NOTIF");
+        } else if (ev_str == "QOS_MONITORING") {
+          af_events.insert("QOS_MONITORING");
+        } else if (ev_str == "USAGE_REPORT") {
+          af_events.insert("USAGE_REPORT");
+        } else if (ev_str == "ACCESS_TYPE_CHANGE") {
+          af_events.insert("ACCESS_TYPE_CHANGE");
+        } else if (ev_str == "PLMN_CHG") {
+          af_events.insert("PLMN_CHG");
+        } else if (
+            ev_str == "SESSION_TERMINATION" || ev_str == "RELEASE_OF_BEARER") {
+          // PCF 'terminate' callback handles these; no AfEvent. Skip.
+          Logger::nef_app().debug(
+              "PCF: T8 event '%s' has no AfEvent analogue — skipped",
+              ev_str.c_str());
+        } else {
+          Logger::nef_app().debug(
+              "PCF: unrecognised T8 event '%s' — skipped", ev_str.c_str());
+        }
+      }
+    } else if (req.qosMonInfoIsSet()) {
+      // Default-event rule: no explicit events but QoS monitoring requested.
+      af_events.insert("QOS_MONITORING");
     }
+
+    nlohmann::json events_arr = nlohmann::json::array();
+    for (const auto& e : af_events) {
+      events_arr.push_back(nlohmann::json{{"event", e}});
+    }
+    ev_subsc["events"] = events_arr;
+
+    if (req.qosMonInfoIsSet()) {
+      nlohmann::json qos_mon_j;
+      to_json(qos_mon_j, req.getQosMonInfo());
+      ev_subsc["qosMon"] = qos_mon_j;
+    }
+    if (req.usageThresholdIsSet()) {
+      nlohmann::json usg_j;
+      to_json(usg_j, req.getUsageThreshold());
+      ev_subsc["usgThres"] = usg_j;
+    }
+    if (req.directNotifIndIsSet()) {
+      asc["directNotifInd"]      = req.isDirectNotifInd();
+      ev_subsc["directNotifInd"] = req.isDirectNotifInd();
+    }
+
+    asc["evSubsc"] = ev_subsc;
   }
 
-  std::vector<oai::_3gpp::model::SmfEventSubscription> event_subs;
-  if (want_qos_mon) {
-    oai::_3gpp::model::SmfEventSubscription es;
-    oai::_3gpp::model::SmfEvent smf_ev;
-    smf_ev.setEnumValue(
-        oai::_3gpp::model::SmfEvent_anyOf::eSmfEvent_anyOf::QOS_MON);
-    es.setEvent(smf_ev);
-    event_subs.push_back(es);
-  }
-  if (want_pdu_ses_rel) {
-    oai::_3gpp::model::SmfEventSubscription es;
-    oai::_3gpp::model::SmfEvent smf_ev;
-    smf_ev.setEnumValue(
-        oai::_3gpp::model::SmfEvent_anyOf::eSmfEvent_anyOf::PDU_SES_REL);
-    es.setEvent(smf_ev);
-    event_subs.push_back(es);
-  }
-
-  if (event_subs.empty()) {
-    err = "no derivable SMF events; supply events or qosMonInfo";
-    return false;
-  }
-  smf_model.setEventSubs(event_subs);
-
-  // Copy optional targeting filters where the SMF model has matching fields.
-  // NOTE: NsmfEventExposure has no UE-IP/MAC or qosMonInfo fields, so those T8
-  // filters cannot be forwarded here (see implementation summary).
-  if (req_data.dnnIsSet()) smf_model.setDnn(req_data.getDnn());
-  if (req_data.snssaiIsSet()) smf_model.setSnssai(req_data.getSnssai());
-
-  to_json(smf_body, smf_model);
-  smf_body["notifId"]  = notif_id;
-  smf_body["notifUri"] = notif_uri;
+  pcf_body = nlohmann::json{{"ascReqData", asc}};
   return true;
 }
 
@@ -2559,100 +2664,81 @@ void nef_app::handle_qos_subscription_create(
     }
   }
 
-
-  // not a correct implementation
-  // the subscription must be forwarded to PCF instead of SMF
-  
-
   generate_af_subscription_id(qos_sub_id);
   auto sub = std::make_shared<nef_subscription>(m_event_sub);
   sub->set_af_subscription_id(qos_sub_id);
   sub->set_scs_as_id(af_id);
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING);
-  sub->set_target_nf_type(nf_type_t::NF_TYPE_SMF);
+  sub->set_target_nf_type(nf_type_t::NF_TYPE_PCF);
   sub->set_subscription_data(body);
 
-  if (body.contains("requestExpiry") && body["requestExpiry"].is_string()) {
-    std::chrono::system_clock::time_point expire_time;
-    if (parse_monitor_expire_time(
-            body["requestExpiry"].get<std::string>(), expire_time)) {
-      sub->set_expire_time(expire_time);
-      Logger::nef_app().debug(
-          "F1.2: QoS subscription '%s' expiry set from requestExpiry",
-          qos_sub_id.c_str());
-    }
-  }
+  // TODO: verify Request Expiry
 
   add_subscription(qos_sub_id, sub);
   ensure_af_profile(af_id, qos_sub_id);
 
-  // T5: translate the T8 AsSessionWithQoSSubscription into a southbound
-  // NsmfEventExposure body for the SMF (TS 29.508). The mandatory eventSubs[]
-  // is derived from the requested UserPlaneEvent(s). The notifId is reused as
-  // the correlation id and the routing key for the inbound notification path
-  // (T9). The translation is shared with PUT/PATCH via build_smf_qos_body().
-  //
-  // Per-subscription inbound notification URI (T9): reuse qos_sub_id as the
-  // notifId / correlation id and embed it in the path so concurrent
-  // subscriptions are disambiguated on the inbound route.
-  const std::string smf_notif_id = qos_sub_id;
-  const std::string smf_notif_uri =
+  // evSubsc.notifUri is the NEF inbound endpoint keyed by qos_sub_id.
+  // PCF callback template (TS 29.514) appends "/notify", so inbound
+  // notifications arrive at ".../notify/{qos_sub_id}/notify"; the scoped
+  // fallback in handle_nf_notification strips that suffix.
+  const std::string evsubsc_notif_uri =
       nef_config_inst->get_local()->get_url() +
       oai::nef::api::nef_sbi_helper::NefNotifyBase +
       nef_config_inst->nef()->get_sbi().get_api_version() + "/notify/" +
-      smf_notif_id;
+      qos_sub_id;
 
-  nlohmann::json smf_body;
-  std::string smf_translate_err;
-  if (!build_smf_qos_body(
-          req_data, smf_notif_id, smf_notif_uri, smf_body, smf_translate_err)) {
-    // No derivable SMF event and no QoS-monitoring params -> reject. The SMF
-    // mandates a non-empty eventSubs[], so we cannot subscribe anything.
+  nlohmann::json pcf_body;
+  std::string pcf_translate_err;
+  if (!build_pcf_qos_body(
+          req_data, evsubsc_notif_uri, pcf_body, pcf_translate_err)) {
     remove_subscription(qos_sub_id);
     release_af_profile_subscription(af_id, qos_sub_id);
     http_code     = http_status_code::BAD_REQUEST;
     response_body = make_problem_detail(
-        http_status_code::BAD_REQUEST, "Bad Request", smf_translate_err);
+        http_status_code::BAD_REQUEST, "Bad Request", pcf_translate_err);
     return;
   }
 
-  std::string smf_sub_id;
-  const bool smf_ok = m_nef_client->subscribe_smf_event_exposure(
-      smf_body, smf_notif_id, smf_notif_uri, smf_sub_id);
-  if (!smf_ok || smf_sub_id.empty()) {
+  std::string pcf_app_session_id;
+  uint32_t http_code_pcf = 0;
+  const bool pcf_ok      = m_nef_client->create_pcf_policy_auth(
+      pcf_body, pcf_app_session_id, http_code_pcf);
+
+  // PCF must succeed AND return a valid appSessionId before storing.
+  if (!pcf_ok || !is_valid_app_session_id(pcf_app_session_id)) {
     remove_subscription(qos_sub_id);
     release_af_profile_subscription(af_id, qos_sub_id);
-    http_code     = http_status_code::BAD_GATEWAY;
+    http_code = http_status_code::INTERNAL_SERVER_ERROR;  // TS 29.522 §4.4.9
     response_body = make_problem_detail(
-        http_status_code::BAD_GATEWAY, "Bad Gateway",
-        "Failed to create SMF event exposure subscription");
+        http_status_code::INTERNAL_SERVER_ERROR, "Internal Server Error",
+        "Failed to create policy authorization in PCF");
     return;
   }
 
-  sub->set_nf_subscription_id(smf_sub_id);
-
-  // T9: key the reverse map by the notifId (== qos_sub_id) that we embedded in
-  // the SMF notifUri path, not by the SMF-returned smf_sub_id. The inbound
-  // notification route carries this notifId as the trailing path segment, so
-  // this lets handle_nf_notification resolve the correct AF subscription even
-  // with many concurrent QoS subscriptions. smf_sub_id remains on the
-  // subscription object for unsubscribe/PUT.
+  sub->set_nf_subscription_id(pcf_app_session_id);
+  {
+    const std::lock_guard<std::shared_mutex> lock(m_qos_mutex);
+    m_qos_sub_id2pcf_app_session_id[qos_sub_id] = pcf_app_session_id;
+  }
   {
     const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
-    m_nf2af_sub_id[smf_notif_id] = qos_sub_id;
+    m_nf2af_sub_id[qos_sub_id] = qos_sub_id;  // primary (path key)
+    m_nf2af_sub_id[pcf_app_session_id] =
+        qos_sub_id;  // secondary (appSessionId)
   }
   if (!req_data.getNotificationDestination().empty()) {
     sub->set_notification_uri(req_data.getNotificationDestination());
   }
 
-  // Build the resource self-URI and return the full AsSessionWithQoSSubscription
-  // as the response body (per TS 29.122). The self-URI is a relative path; the
-  // HTTP layer prefixes it with the server address for the Location header.
-  const std::string self_uri = oai::nef::api::nef_sbi_helper::NefQosMonitoringBase +
-                               nef_config_inst->nef()->get_sbi().get_api_version() +
-                               "/" + af_id + "/" +
-                               oai::nef::api::nef_sbi_helper::NefResourceSubscriptions +
-                               "/" + qos_sub_id;
+  // Build the resource self-URI and return the full
+  // AsSessionWithQoSSubscription as the response body (per TS 29.122). The
+  // self-URI is a relative path; the HTTP layer prefixes it with the server
+  // address for the Location header.
+  const std::string self_uri =
+      oai::nef::api::nef_sbi_helper::NefQosMonitoringBase +
+      nef_config_inst->nef()->get_sbi().get_api_version() + "/" + af_id + "/" +
+      oai::nef::api::nef_sbi_helper::NefResourceSubscriptions + "/" +
+      qos_sub_id;
   req_data.setSelf(self_uri);
   // Persist the self-URI on the subscription so the inbound QoS notification
   // path can use it as the UserPlaneNotificationData "transaction" reference
@@ -3190,39 +3276,64 @@ void nef_app::handle_qos_subscription_patch(
     }
   }
 
+  // Immutability check (TS 29.122 §4.4.13): the patched object must not
+  // change immutable fields relative to the stored original.
+  {
+    const nlohmann::json& stored = sub->get_subscription_data();
+    for (const char* f :
+         {"ueIpv4Addr", "ueIpv6Addr", "macAddr", "ipDomain", "dnn", "snssai",
+          "supportedFeatures"}) {
+      const bool in_patch  = patched.contains(f);
+      const bool in_stored = stored.contains(f);
+      if ((in_patch && in_stored && patched[f] != stored[f]) ||
+          (in_patch && !in_stored)) {
+        http_code     = http_status_code::BAD_REQUEST;
+        response_body = make_problem_detail(
+            http_status_code::BAD_REQUEST, "Bad Request",
+            std::string("Field '") + f + "' is immutable");
+        return;
+      }
+    }
+  }
+
+  // Update-before-Create guard
+  std::string app_session_id;
+  {
+    std::shared_lock<std::shared_mutex> l(m_qos_mutex);
+    auto it = m_qos_sub_id2pcf_app_session_id.find(sub_id);
+    if (it != m_qos_sub_id2pcf_app_session_id.end())
+      app_session_id = it->second;
+  }
+  if (app_session_id.empty() || !is_valid_app_session_id(app_session_id)) {
+    http_code     = http_status_code::NOT_FOUND;
+    response_body = make_problem_detail(
+        http_status_code::NOT_FOUND, "Not Found",
+        "No active PCF application session for this subscription");
+    return;
+  }
+
   sub->set_subscription_data(patched);
   sub->set_notification_uri(merged_data.getNotificationDestination());
 
-  // T8: re-translate the merged T8 body to NsmfEventExposure and PUT it to the
-  // existing SMF subscription (Nsmf_EventExposure has no PATCH — full-replace
-  // via PUT is the conformant southbound action). A removed qosMonInfo with no
-  // other QOS_*/SES events drops QOS_MON from eventSubs (S2). SMF propagation
-  // is best-effort: in-memory state is already updated.
-  const std::string smf_sub_id = sub->get_nf_subscription_id();
-  if (!smf_sub_id.empty()) {
-    const std::string smf_notif_id = sub_id;
-    const std::string smf_notif_uri =
-        nef_config_inst->get_local()->get_url() +
-        oai::nef::api::nef_sbi_helper::NefNotifyBase +
-        nef_config_inst->nef()->get_sbi().get_api_version() + "/notify/" +
-        smf_notif_id;
-    nlohmann::json smf_body;
-    std::string smf_translate_err;
-    if (build_smf_qos_body(
-            merged_data, smf_notif_id, smf_notif_uri, smf_body,
-            smf_translate_err)) {
-      if (!m_nef_client->update_smf_event_exposure(smf_sub_id, smf_body)) {
-        Logger::nef_app().warn(
-            "T8 PATCH: SMF event-exposure update failed for sub=%s (smf_sub=%s);"
-            " in-memory state updated, SMF best-effort",
-            sub_id.c_str(), smf_sub_id.c_str());
-      }
-    } else {
+  nlohmann::json pcf_patch;
+  std::string pcf_err;
+  if (build_pcf_qos_body(
+          merged_data, /*evsubsc_notif_uri=*/"", pcf_patch, pcf_err)) {
+    nlohmann::json merge =
+        pcf_patch.value("ascReqData", nlohmann::json::object());
+    merge.erase("evSubsc");  // subscription persists per §4.15.6.6a
+    uint32_t hc = 0;
+    if (!m_nef_client->update_pcf_policy_auth(app_session_id, merge, hc)) {
       Logger::nef_app().warn(
-          "T8 PATCH: no derivable SMF event after merge for sub=%s (%s); SMF "
-          "subscription left unchanged",
-          sub_id.c_str(), smf_translate_err.c_str());
+          "T8 PATCH: PCF update failed for sub=%s (app_session=%s, http=%u); "
+          "in-memory state updated",
+          sub_id.c_str(), app_session_id.c_str(), hc);
     }
+  } else {
+    Logger::nef_app().warn(
+        "T8 PATCH: cannot translate PCF body for sub=%s (%s); PCF "
+        "subscription left unchanged",
+        sub_id.c_str(), pcf_err.c_str());
   }
 
   response_body = patched;

@@ -14,7 +14,7 @@ namespace app {
 
 /*
  * nef_notification_mapper
- * 
+ *
  * Stateless utility class that converts southbound NF notification payloads
  * (AMF / SMF / PCF) into the northbound format that is sent to the AF via the
  * NEF T8 reference point.
@@ -28,8 +28,8 @@ namespace app {
  */
 class nef_notification_mapper {
  public:
-  nef_notification_mapper()                                     = delete;
-  nef_notification_mapper(const nef_notification_mapper&)       = delete;
+  nef_notification_mapper()                               = delete;
+  nef_notification_mapper(const nef_notification_mapper&) = delete;
   nef_notification_mapper& operator=(const nef_notification_mapper&) = delete;
 
   // Monitoring Event (AMF → NEF → AF)
@@ -43,8 +43,7 @@ class nef_notification_mapper {
    * @return true on success, false if mandatory fields are absent.
    */
   static bool amf_to_monitoring_notification(
-      const nlohmann::json& amf_notif,
-      nlohmann::json& t8_notif,
+      const nlohmann::json& amf_notif, nlohmann::json& t8_notif,
       const std::string& sub_id);
 
   // Session-with-QoS (SMF → NEF → AF)
@@ -60,8 +59,7 @@ class nef_notification_mapper {
    * @return true on success, false if no event reports could be produced.
    */
   static bool smf_to_qos_notification(
-      const nlohmann::json& smf_notif,
-      nlohmann::json& t8_notif,
+      const nlohmann::json& smf_notif, nlohmann::json& t8_notif,
       const std::string& transaction);
 
   // Traffic Influence / Policy (PCF → NEF → AF)
@@ -74,9 +72,31 @@ class nef_notification_mapper {
    * @return true on success.
    */
   static bool pcf_to_ti_notification(
-      const nlohmann::json& pcf_notif,
-      nlohmann::json& t8_notif,
+      const nlohmann::json& pcf_notif, nlohmann::json& t8_notif,
       const std::string& sub_id);
+
+  // Session-with-QoS (PCF → NEF → AF)
+  /*
+   * Map a PCF EventsNotification (TS 29.514 §5.6.2.6, type EventsNotification)
+   * into a T8 UserPlaneNotificationData (TS 29.122):
+   *   { transaction, eventReports[] }.
+   *
+   * PCF AfEvent values (TS 29.514) are translated to T8 UserPlaneEvent values
+   * (TS 29.122). The PCF "evNotifs" array carries only {event, flows[]}; the
+   * detail payloads (qncReports, usgRep, qosMonReports, plmnId, accessType,
+   * succ/failedResourcAllocReports) live at the TOP LEVEL of EventsNotification
+   * and are folded into each report here.
+   *
+   * @param [in]  pcf_notif    Raw JSON from PCF
+   * Npcf_PolicyAuthorization_Notify.
+   * @param [out] t8_notif     Mapped T8 UserPlaneNotificationData JSON.
+   * @param [in]  transaction  Self-URI of the AF subscription, used as the
+   *                           "transaction" reference.
+   * @return true on success, false if no event reports could be produced.
+   */
+  static bool pcf_to_qos_notification(
+      const nlohmann::json& pcf_notif, nlohmann::json& t8_notif,
+      const std::string& transaction);
 };
 
 }  // namespace app

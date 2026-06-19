@@ -729,11 +729,26 @@ bool nef_client::update_pcf_policy_auth(
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) return false;
 
   std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
-                    "v1/app-sessions/" + app_session_id + "/modify";
-  std::string body       = request_body.dump();
-  oai::http::request req = http_client_inst->prepare_json_request(url, body);
-  auto resp              = http_client_inst->send_http_request(
-      oai::common::sbi::method_e::POST, req);
+                    "v1/app-sessions/" + app_session_id;
+  std::string body = request_body.dump();
+
+  oai::http::response resp{};
+  auto sbi_sleep_pcf = [](std::chrono::milliseconds d) {
+    std::this_thread::sleep_for(d);
+  };
+  auto sbi_log_pcf = [](const std::string& m) {
+    Logger::nef_app().warn("%s", m.c_str());
+  };
+  sbi_call_with_retry(
+      "PCF", /*is_post=*/false,
+      [&]() -> int {
+        oai::http::request req = http_client_inst->prepare_json_request(
+            url, body, "application/merge-patch+json");
+        resp = http_client_inst->send_http_request(
+            oai::common::sbi::method_e::PATCH, req);
+        return static_cast<int>(resp.status_code);
+      },
+      sbi_circuit_breaker_registry::instance(), sbi_sleep_pcf, sbi_log_pcf);
   http_code = resp.status_code;
   return (
       resp.status_code == http_status_code::OK ||
@@ -756,6 +771,43 @@ bool nef_client::delete_pcf_policy_auth(
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
       resp.status_code == http_status_code::OK);
+}
+
+//------------------------------------------------------------------------------
+bool nef_client::subscribe_pcf_events(
+    const std::string& app_session_id, const nlohmann::json& ev_subsc_body,
+    uint32_t& http_code) {
+  http_code = 0;
+  std::string pcf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) return false;
+
+  const std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
+                          "v1/app-sessions/" + app_session_id +
+                          "/events-subscription";
+  const std::string body = ev_subsc_body.dump();
+
+  oai::http::response resp{};
+  auto sbi_sleep_pcf = [](std::chrono::milliseconds d) {
+    std::this_thread::sleep_for(d);
+  };
+  auto sbi_log_pcf = [](const std::string& m) {
+    Logger::nef_app().warn("%s", m.c_str());
+  };
+  sbi_call_with_retry(
+      "PCF", /*is_post=*/false,
+      [&]() -> int {
+        oai::http::request req =
+            http_client_inst->prepare_json_request(url, body);
+        resp = http_client_inst->send_http_request(
+            oai::common::sbi::method_e::PUT, req);
+        return static_cast<int>(resp.status_code);
+      },
+      sbi_circuit_breaker_registry::instance(), sbi_sleep_pcf, sbi_log_pcf);
+  http_code = resp.status_code;
+  return (
+      resp.status_code == http_status_code::CREATED ||
+      resp.status_code == http_status_code::OK ||
+      resp.status_code == http_status_code::NO_CONTENT);
 }
 
 //------------------------------------------------------------------------------
