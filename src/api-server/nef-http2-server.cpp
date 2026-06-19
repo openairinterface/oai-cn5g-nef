@@ -1213,7 +1213,8 @@ void nef_http2_server::handle_qos_create(
   }
   m_nef_app->clear_request_bearer_token();
   std::map<std::string, std::string> h;
-  h["content-type"] = "application/json";
+  h["content-type"] = "application/problem+json";
+
   // On 201, the app layer stored a relative self-URI in resp_body["self"];
   // prefix it with the server address for the absolute Location header and
   // self field.
@@ -1222,7 +1223,9 @@ void nef_http2_server::handle_qos_create(
     const std::string loc = m_address + resp_body["self"].get<std::string>();
     resp_body["self"]     = loc;
     h["location"]         = loc;
+    h["content-type"]     = "application/json";
   }
+
   res.send(http_code, h, resp_body.dump());
 }
 

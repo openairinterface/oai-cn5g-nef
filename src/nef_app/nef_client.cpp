@@ -107,19 +107,23 @@ static bool is_2xx_status(const int status_code) {
 
 //------------------------------------------------------------------------------
 static std::string get_header_case_insensitive(
-    const cpr::Header& headers, const std::string& key) {
-  for (const auto& [k, v] : headers) {
-    if (k.size() != key.size()) continue;
-    bool same = true;
-    for (size_t i = 0; i < k.size(); ++i) {
-      if (std::tolower(static_cast<unsigned char>(k[i])) !=
-          std::tolower(static_cast<unsigned char>(key[i]))) {
-        same = false;
-        break;
-      }
+    std::map<std::string, std::string>& headers, const std::string& key) {
+  // TODO Updated with new Client
+  /*
+for (const auto& [k, v] : headers) {
+  if (k.size() != key.size()) continue;
+  bool same = true;
+  for (size_t i = 0; i < k.size(); ++i) {
+    if (std::tolower(static_cast<unsigned char>(k[i])) !=
+        std::tolower(static_cast<unsigned char>(key[i]))) {
+      same = false;
+      break;
     }
-    if (same) return v;
   }
+  if (same) return v;
+}
+*/
+
   return "";
 }
 

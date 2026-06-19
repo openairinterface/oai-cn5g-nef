@@ -2607,7 +2607,7 @@ void nef_app::handle_qos_subscription_create(
   }
 
   // Typed parse + validate
-  oai::_3gpp::model::AsSessionWithQoSSubscription req_data;
+  oai::_3gpp::model::AsSessionWithQoSSubscription req_data = {};
   try {
     from_json(body, req_data);
     req_data.validate();
@@ -2671,7 +2671,6 @@ void nef_app::handle_qos_subscription_create(
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING);
   sub->set_target_nf_type(nf_type_t::NF_TYPE_PCF);
   sub->set_subscription_data(body);
-
   // TODO: verify Request Expiry
 
   add_subscription(qos_sub_id, sub);
@@ -2741,8 +2740,7 @@ void nef_app::handle_qos_subscription_create(
       qos_sub_id;
   req_data.setSelf(self_uri);
   // Persist the self-URI on the subscription so the inbound QoS notification
-  // path can use it as the UserPlaneNotificationData "transaction" reference
-  // (T6).
+  // path can use it as the UserPlaneNotificationData "transaction" reference.
   sub->set_self(self_uri);
   to_json(response_body, req_data);
   http_code = http_status_code::CREATED;
