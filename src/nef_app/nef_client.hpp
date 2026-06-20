@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "http_client.hpp"
 #include "nef.h"
 
 namespace oai {
@@ -39,9 +40,26 @@ class nef_client {
   // NF discovery
   bool discover_nf(nf_type_t nf_type, std::string& nf_endpoint);
 
+  // If the endpoint is resolvable without a network call (static config or
+  // discovery cache), the callback fires synchronously with a synthetic 200
+  // whose body is a single-instance SearchResult carrying the endpoint.
+  // Otherwise an async GET is issued to the NRF and the raw NRF SearchResult
+  // response is delivered to the callback. On failure to resolve a target, the
+  // callback fires with status_code 0. The callback does NOT mutate
+  // nef_app state; the caller parses the SearchResult.
+  void discover_nf_async(nf_type_t nf_type, oai::http::response_cb cb);
+
   // AMF — event-exposure subscription
   bool subscribe_amf_event_exposure(
       const nlohmann::json& subscription_data, std::string& amf_sub_id);
+
+  // Builds the same POST request as the sync version, then
+  // issues a single non-blocking request. The callback receives the raw AMF
+  // response (status_code/body); it does NOT mutate nef_app state nor parse the
+  // subscription id — the caller does. If AMF cannot be discovered the callback
+  // fires with status_code 0 and an empty body.
+  void subscribe_amf_event_exposure_async(
+      const nlohmann::json& subscription_data, oai::http::response_cb cb);
 
   bool unsubscribe_amf_event_exposure(const std::string& amf_sub_id);
 
@@ -53,6 +71,15 @@ class nef_client {
   bool subscribe_smf_event_exposure(
       const nlohmann::json& smf_body, const std::string& notif_id,
       const std::string& notif_uri, std::string& smf_sub_id);
+
+  // Builds the same POST request as the sync version
+  // (injecting notifId/notifUri into smf_body), then issues a single
+  // non-blocking request. The callback receives the raw SMF response; it does
+  // NOT mutate nef_app state nor parse the subscription id. If SMF cannot be
+  // discovered the callback fires with status_code 0 and an empty body.
+  void subscribe_smf_event_exposure_async(
+      const nlohmann::json& smf_body, const std::string& notif_id,
+      const std::string& notif_uri, oai::http::response_cb cb);
 
   bool unsubscribe_smf_event_exposure(const std::string& smf_sub_id);
 
@@ -69,9 +96,25 @@ class nef_client {
       const nlohmann::json& request_body, std::string& app_session_id,
       uint32_t& http_code);
 
+  // Builds the same POST request as the sync version, then
+  // issues a single non-blocking request. The callback receives the raw PCF
+  // response (status_code/body/headers); it does NOT mutate nef_app state nor
+  // parse appSessionId/Location. If PCF cannot be discovered the callback fires
+  // with status_code 0 and an empty body.
+  void create_pcf_policy_auth_async(
+      const nlohmann::json& request_body, oai::http::response_cb cb);
+
   bool update_pcf_policy_auth(
       const std::string& app_session_id, const nlohmann::json& request_body,
       uint32_t& http_code);
+
+  // Builds the same PATCH request (merge-patch+json) as the sync version, then
+  // issues a single non-blocking request. The callback receives the raw PCF
+  // response; it does NOT mutate nef_app state. If PCF cannot be discovered
+  // the callback fires with status_code 0.
+  void update_pcf_policy_auth_async(
+      const std::string& app_session_id, const nlohmann::json& request_body,
+      oai::http::response_cb cb);
 
   bool delete_pcf_policy_auth(
       const std::string& app_session_id, uint32_t& http_code);
@@ -96,6 +139,14 @@ class nef_client {
   bool udr_put_pfd_data(
       const std::string& app_id, const nlohmann::json& pfd_data);
 
+  // Builds the same PUT request as the sync version, then
+  // issues a single non-blocking request. The callback receives the raw UDR
+  // response; it does NOT mutate nef_app state. If UDR cannot be discovered the
+  // callback fires with status_code 0.
+  void udr_put_pfd_data_async(
+      const std::string& app_id, const nlohmann::json& pfd_data,
+      oai::http::response_cb cb);
+
   bool udr_delete_pfd_data(const std::string& app_id);
 
   void udr_get_pfd_data(
@@ -104,6 +155,14 @@ class nef_client {
   bool udr_put_influence_data(
       const std::string& ti_id, const nlohmann::json& data,
       uint32_t& http_code);
+
+  // Builds the same PUT request as the sync version, then
+  // issues a single non-blocking request. The callback receives the raw UDR
+  // response; it does NOT mutate nef_app state. If UDR cannot be discovered the
+  // callback fires with status_code 0.
+  void udr_put_influence_data_async(
+      const std::string& ti_id, const nlohmann::json& data,
+      oai::http::response_cb cb);
 
   bool udr_delete_influence_data(const std::string& ti_id, uint32_t& http_code);
 

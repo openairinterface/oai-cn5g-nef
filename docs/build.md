@@ -201,4 +201,22 @@ The root CMake entry point for the NEF binary is `build/nef/CMakeLists.txt`. Key
   - `src/common-src` — shared infrastructure submodule (config, logger)
 - **External libraries** are located via `find_package` (Boost, OpenSSL, libevent) or via pkg-config (nghttp2, spdlog, fmt). Libraries not available as system packages are built from source by the `build_nef` script and installed under `/usr/local`.
 - **Build artifacts** land in `build/nef/build/`. The final binary is `build/nef/build/oai_nef`.
+- **Test targets** are registered via `gtest_discover_tests` in `test/CMakeLists.txt`. The following automated test executables are available:
+  - `nef_jwt_test` — unit tests for JWT signing and validation (`src/nef_app/nef_jwt_auth.*`)
+  - `nef_request_dispatcher_test` — unit tests for the bounded MPSC dispatch queue (`src/nef_app/nef_request_dispatcher.hpp`): verifies task execution, queue-full back-pressure, stop/drain ordering, bearer-token thread-local isolation, undersize-constructor warning, and post-stop dispatch rejection
+
+  Run all tests after a successful build:
+
+  ```bash
+  cd build/nef/build
+  ctest --output-on-failure
+  ```
+
+  Or run a single target directly:
+
+  ```bash
+  ./build/nef/build/nef_request_dispatcher_test
+  ```
+
+  Both targets require C++20 (`cxx_std_20`) and link against the `NEF` static library, `reflectcpp`, and `GTest::gtest_main`.
 - **CTest** integration is available when `--auto-test` is passed to the build script; test executables are placed alongside the main binary.

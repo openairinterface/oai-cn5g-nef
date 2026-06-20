@@ -337,18 +337,27 @@ static int on_frame_recv_callback(
                 http2_response async_resp(item);
                 try {
                   (*handler)(item->request, async_resp);
-                  if (!async_resp.was_sent()) {
+                  if (!async_resp.was_deferred() && !async_resp.was_sent()) {
                     async_resp.send(
                         500, {{"content-type", "text/plain"}},
                         "Internal Server Error");
                   }
                 } catch (...) {
-                  if (!async_resp.was_sent()) {
+                  if (!async_resp.was_deferred() && !async_resp.was_sent()) {
                     async_resp.send(
                         500, {{"content-type", "text/plain"}},
                         "Internal Server Error");
                   }
                 }
+
+                // The handler obtained an http2_deferred_response and will (or
+                // its destructor will) post response_post_cb itself. The work
+                // item is now owned by the deferred handle — do NOT post or
+                // delete it here.
+                if (async_resp.was_deferred()) {
+                  return;
+                }
+
                 // Marshal the captured response back to the event loop thread.
                 // Thread-safe cross-thread post: relies on
                 // evthread_use_pthreads() having been called in
@@ -645,6 +654,102 @@ void http2_response::send(
 void http2_response::send(
     int status_code, const std::map<std::string, std::string>& headers) {
   send(status_code, headers, "");
+}
+
+bool http2_response::was_deferred() const noexcept {
+  return was_deferred_;
+}
+
+// Create a deferred response handle. Only meaningful in threaded mode, where
+// the response is backed by a heap work_item that outlives the worker lambda.
+// In synchronous mode there is no work_item to hand off, so an invalid handle
+// is returned and the caller must send() directly.
+http2_deferred_response http2_response::make_deferred() {
+  if (!work_item_ || sent_) {
+    // Not threaded mode, or already sent — cannot defer. Return invalid handle.
+    return http2_deferred_response{};
+  }
+  was_deferred_ = true;
+  // work_item_->server is the owning http2_server (set at dispatch time).
+  return http2_deferred_response(work_item_, work_item_->server);
+}
+
+// ---------------------------------------------------------------------------
+// http2_deferred_response implementation
+// ---------------------------------------------------------------------------
+
+http2_deferred_response::http2_deferred_response(
+    thread_pool_work_item* item, http2_server* srv) noexcept
+    : item_(item),
+      srv_(srv),
+      sent_(std::make_shared<std::atomic<bool>>(false)) {}
+
+http2_deferred_response::http2_deferred_response(
+    http2_deferred_response&& other) noexcept
+    : item_(other.item_), srv_(other.srv_), sent_(std::move(other.sent_)) {
+  // Disarm the moved-from handle so its destructor does not post a 500.
+  other.item_ = nullptr;
+  other.srv_  = nullptr;
+}
+
+http2_deferred_response& http2_deferred_response::operator=(
+    http2_deferred_response&& other) noexcept {
+  if (this != &other) {
+    // If this handle still owns an unsent work item, deliver a 500 before
+    // overwriting so the in-flight request is not abandoned.
+    if (item_ && sent_ && !sent_->load()) {
+      deliver(500, {{"content-type", "text/plain"}}, "Internal Server Error");
+    }
+    item_       = other.item_;
+    srv_        = other.srv_;
+    sent_       = std::move(other.sent_);
+    other.item_ = nullptr;
+    other.srv_  = nullptr;
+  }
+  return *this;
+}
+
+http2_deferred_response::~http2_deferred_response() {
+  // If a valid handle was never sent, post a 500 so the client does not hang.
+  if (item_ && sent_ && !sent_->load()) {
+    deliver(500, {{"content-type", "text/plain"}}, "Internal Server Error");
+  }
+}
+
+void http2_deferred_response::send(
+    int status, std::map<std::string, std::string> headers, std::string body) {
+  deliver(status, std::move(headers), std::move(body));
+}
+
+void http2_deferred_response::deliver(
+    int status, std::map<std::string, std::string> headers, std::string body) {
+  if (!item_ || !sent_) return;
+  // Exactly-once: only the first caller proceeds.
+  bool expected = false;
+  if (!sent_->compare_exchange_strong(expected, true)) return;
+
+  // Write the response into the work item exactly as a threaded-mode
+  // http2_response::send() would, then post response_post_cb onto the event
+  // loop. response_post_cb owns deletion of the work item and performs all the
+  // connection/stream lifetime guards on the event-loop thread.
+  item_->status_code  = status;
+  item_->resp_headers = std::move(headers);
+  item_->resp_body    = std::move(body);
+
+  struct timeval zero_tv = {0, 0};
+  if (event_base_once(
+          srv_->base(), -1, EV_TIMEOUT, http2_server::response_post_cb, item_,
+          &zero_tv) != 0) {
+    // Post failed — cannot reach the event loop from here. Delete the work
+    // item to avoid a leak; the client will time out. Mirrors the failure
+    // handling in the pool-worker lambda.
+    Logger::nef_app().error(
+        "HTTP2 conn %llu stream %d: deferred event_base_once failed,"
+        " response discarded",
+        static_cast<unsigned long long>(item_->conn_id), item_->stream_id);
+    delete item_;
+  }
+  item_ = nullptr;  // ownership transferred to response_post_cb (or deleted)
 }
 
 // Response Body Data Provider

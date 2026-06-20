@@ -244,6 +244,20 @@ nef:
 
 > **Warning:** Setting `insecure_dev_mode: true` disables authentication enforcement entirely when no JWT secret and no AF whitelist are configured. **Never use this setting in production.** All requests — including unauthenticated ones — will be accepted.
 
+### Async Dispatch
+
+| Parameter Path | Type | Default | Description | Constraints |
+|---|---|---|---|---|
+| `nef.use_async_dispatch` | bool | `false` | When `true`, incoming API requests are routed through a bounded `nef_request_dispatcher` thread pool instead of being handled inline on the libevent HTTP worker thread. Enables Option B deferred responses for six high-latency southbound handlers (monitoring-event, QoS, traffic-influence create/update/patch, PFD app PUT). | `true` or `false` |
+
+> **Note:** This parameter is safe to add without recompiling. The dispatcher pool size defaults to `std::thread::hardware_concurrency()`. Set `use_async_dispatch: false` (or omit the parameter) to keep legacy in-line execution — the behavior is identical to previous releases.
+>
+> **Pool sizing:** If `use_async_dispatch: true` is set on a host with fewer than 4 logical CPUs, NEF logs a warning at startup: `"dispatcher pool undersize — consider at least 4 workers for production traffic"`. The warning is advisory; the pool still starts and all dispatched tasks will run.
+>
+> **Queue back-pressure:** If all dispatcher workers are busy and the internal task queue is full, NEF returns `503 Service Unavailable` to the caller immediately. This is intentional — it protects the dispatcher from unbounded memory growth under extreme load. Tune the pool size (via CPU allocation) or reduce upstream request rate if you see frequent 503s with this configuration.
+
+See [Call Flows §6](call-flows.md#6-async-dispatch-nef_app_adapter) for sequence diagrams of both Option A and Option B delivery modes.
+
 ---
 
 ## AF Whitelist Example

@@ -7,10 +7,15 @@
 
 #include <atomic>
 #include <chrono>
+#include <memory>
 
 #include "http2-server.h"
 #include "nef_app.hpp"
 #include "uint_generator.hpp"
+
+#ifndef NEF_DISABLE_ASYNC_DISPATCH
+#include "nef_app_adapter.hpp"
+#endif
 
 using namespace oai::nef::app;
 
@@ -278,6 +283,9 @@ class nef_http2_server {
   uint32_t m_port;
   http2_server server_;
   nef_app* m_nef_app;
+#ifndef NEF_DISABLE_ASYNC_DISPATCH
+  std::unique_ptr<nef_app_adapter> m_adapter;
+#endif
   std::atomic<bool> m_draining{false};
   std::chrono::steady_clock::time_point m_start_time;
 

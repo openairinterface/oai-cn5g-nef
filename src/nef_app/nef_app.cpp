@@ -990,6 +990,11 @@ void nef_app::clear_request_bearer_token() const {
   g_request_bearer_token.clear();
 }
 
+//------------------------------------------------------------------------------
+std::string nef_app::get_request_bearer_token() const {
+  return g_request_bearer_token;
+}
+
 // Subscription helpers
 //------------------------------------------------------------------------------
 bool nef_app::add_subscription(

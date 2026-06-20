@@ -65,6 +65,7 @@ class nef_app {
   // Per-request auth context set by HTTP layer before dispatch.
   void set_request_bearer_token(const std::string& bearer_token) const;
   void clear_request_bearer_token() const;
+  [[nodiscard]] std::string get_request_bearer_token() const;
 
   // Monitoring Event Exposure (3GPP TS 29.122 §5.6)
   void handle_monitoring_event_subscription_create(

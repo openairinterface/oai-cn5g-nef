@@ -161,3 +161,97 @@ stateDiagram-v2
 - Circuit breaker state is scoped **per NF instance (NF ID)**. An open AMF circuit does not affect the PCF or UDR circuits.
 - When a circuit is OPEN, NEF returns `503 Service Unavailable` to the requesting AF immediately.
 - Configuration parameters (`failure_threshold`, `recovery_timeout`) are described in [Resilience](resilience.md#configuration) and the [Configuration Reference](configuration-reference.md).
+
+---
+
+## 6. Async Dispatch (nef_app_adapter)
+
+When `use_async_dispatch: true` is set in configuration, the HTTP/2 server routes requests through a bounded thread-pool dispatch queue instead of calling `nef_app` inline on the libevent worker thread. Two response delivery modes are available.
+
+### 6.1 Option A — Synchronous Handoff (blocking wait)
+
+Used by all 46 non-deferred handlers. The HTTP worker blocks on a `std::future` until the dispatcher worker completes the handler and resolves the promise.
+
+```mermaid
+sequenceDiagram
+    participant EL as libevent EL
+    participant HW as HTTP Worker
+    participant Adp as nef_app_adapter
+    participant DQ as Dispatcher Queue
+    participant DW as Dispatcher Worker
+    participant App as nef_app
+
+    EL->>HW: on_frame_recv_callback (request)
+    HW->>Adp: dispatch_*(params, bearer_token, sink)
+    Note over Adp: creates promise/future pair,<br/>captures token by value
+    Adp->>DQ: enqueue task lambda
+    Adp-->>HW: dispatch_status::ok
+    HW->>HW: fut.wait()  [blocks HW thread]
+    DQ->>DW: dequeue task
+    DW->>DW: execute_with_token(token, fn)
+    DW->>App: handle_*(params, status, body)
+    App-->>DW: return
+    DW->>DW: sink(status, body) → promise.set_value()
+    HW->>HW: fut.get() → unblocks
+    HW->>EL: event_base_once → response_post_cb
+    EL->>EL: send HTTP/2 response to client
+```
+
+**Key properties:**
+- HTTP worker thread is tied up for the full handler duration (database + southbound calls).
+- No extra synchronization beyond the `std::promise/future`. Suitable for all handlers where downstream latency is bounded.
+- On `queue_full` or `stopped`, `dispatch_*` returns the error status and the server helper sends `503 Service Unavailable`.
+
+### 6.2 Option B — Deferred Response (non-blocking)
+
+Used by 6 handlers with high southbound latency: `handle_monitoring_event_subscribe`, `handle_qos_create`, `handle_ti_create`, `handle_ti_update`, `handle_ti_patch`, `handle_pfd_app_put`.
+
+The HTTP worker returns immediately after enqueue. The dispatcher worker delivers the response by posting back to the libevent event loop via `event_base_once`.
+
+```mermaid
+sequenceDiagram
+    participant EL as libevent EL
+    participant HW as HTTP Worker
+    participant Adp as nef_app_adapter
+    participant DQ as Dispatcher Queue
+    participant DW as Dispatcher Worker
+    participant App as nef_app
+
+    EL->>HW: on_frame_recv_callback (request)
+    HW->>HW: res.make_deferred() → http2_deferred_response handle
+    HW->>Adp: dispatch_*_async(params, token, std::move(handle))
+    Note over Adp: wraps handle in shared_ptr,<br/>captures token by value
+    Adp->>DQ: enqueue task lambda
+    Adp-->>HW: returns immediately (no fut.wait())
+    HW-->>EL: handler returns — HW free for next request
+
+    DQ->>DW: dequeue task
+    DW->>DW: execute_with_token(token, fn)
+    DW->>App: handle_*(params, status, body)
+    App-->>DW: return
+    DW->>DW: sink(status, body) → deferred_handle.send()
+    DW->>EL: event_base_once → response_post_cb
+    EL->>EL: send HTTP/2 response to client
+
+    Note over Adp,DW: If handle destroyed before send():<br/>destructor posts 500 Internal Error
+```
+
+**Key properties:**
+- HTTP worker is freed immediately after `dispatch_*_async`; a busy southbound call does not block the worker thread pool.
+- `http2_deferred_response::send()` is exactly-once (atomic CAS). Calling `send()` twice silently no-ops the second call.
+- If the handle is dropped without calling `send()` (e.g., due to an exception in the dispatcher worker), the destructor posts a `500 Internal Server Error` to prevent the client from hanging.
+- The pool worker lambda skips the default was-sent/500 guard and `response_post_cb` post when `was_deferred()` is true — the deferred handle owns posting.
+- Bearer token is captured by value into the task lambda; `execute_with_token()` re-sets the thread-local on the dispatcher worker thread before calling the handler and clears it on exit. See [Security — Bearer Token Cross-Thread Safety](security.md#bearer-token-cross-thread-safety).
+
+### 6.3 Mode Selection
+
+| Handler | Dispatch mode | Reason |
+|---|---|---|
+| All DELETE, GET, and non-southbound POST | Option A (sync wait) | Bounded latency; simple |
+| `handle_monitoring_event_subscribe` | Option B (deferred) | AMF event exposure southbound call |
+| `handle_qos_create` | Option B (deferred) | PCF policy auth southbound call |
+| `handle_ti_create`, `_update`, `_patch` | Option B (deferred) | UDR influence data write + SMF notify |
+| `handle_pfd_app_put` | Option B (deferred) | UDR PFD data write |
+| `handle_ti_list` | Option A (sync wait) | Pure in-memory; no southbound call |
+
+Both modes share the same `nef_app_adapter` dispatch path and the same `nef_request_dispatcher` worker pool. Async dispatch is disabled by default (`use_async_dispatch: false`); when disabled the adapter calls `nef_app` inline on the HTTP worker thread, preserving legacy behavior.

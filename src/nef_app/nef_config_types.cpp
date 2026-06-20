@@ -118,6 +118,11 @@ bool nef_config_type::from_json(const nlohmann::json& json_data) {
         if (!entry.af_id.empty()) m_af_whitelist.push_back(std::move(entry));
       }
     }
+
+    if (json_data.contains("use_async_dispatch") &&
+        json_data["use_async_dispatch"].is_boolean()) {
+      m_use_async_dispatch = json_data["use_async_dispatch"].get<bool>();
+    }
     return true;
   } catch (nlohmann::detail::exception&) {
   } catch (std::exception&) {

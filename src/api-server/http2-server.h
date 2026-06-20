@@ -33,6 +33,7 @@
 struct http2_connection;
 struct http2_stream;
 struct thread_pool_work_item;
+class http2_server;
 
 // Response Body Provider
 struct response_body;
@@ -70,6 +71,19 @@ class http2_response {
   // Returns true if send() has already been called on this response.
   bool was_sent() const;
 
+  // Create a deferred response handle. Marks this response
+  // as deferred so the pool worker does NOT post response_post_cb after the
+  // handler returns — the returned handle takes over delivery and may be
+  // invoked once, from any thread, after the handler has returned.
+  //
+  // Only valid in threaded mode (work_item_ != nullptr). In synchronous mode
+  // the returned handle is invalid (valid() == false) and send() must be used
+  // directly on this response instead.
+  class http2_deferred_response make_deferred();
+
+  // Returns true if make_deferred() was called on this response.
+  bool was_deferred() const noexcept;
+
   // Synchronous constructor (event-loop-thread use — session/bev must remain
   // alive for the duration of send()).
   http2_response(
@@ -81,12 +95,65 @@ class http2_response {
   explicit http2_response(thread_pool_work_item* work_item);
 
  private:
-  nghttp2_session* session_         = nullptr;
-  int32_t stream_id_                = 0;
-  struct bufferevent* bev_          = nullptr;
-  http2_stream* stream_             = nullptr;  // for response_body ownership
-  bool sent_                        = false;    // guard against double-send
+  nghttp2_session* session_ = nullptr;
+  int32_t stream_id_        = 0;
+  struct bufferevent* bev_  = nullptr;
+  http2_stream* stream_     = nullptr;  // for response_body ownership
+  bool sent_                = false;    // guard against double-send
+  bool was_deferred_        = false;    // handler handed off the work item
   thread_pool_work_item* work_item_ = nullptr;  // non-null in threaded mode
+};
+
+// Deferred response handle (detached response).
+//
+// Created from a threaded-mode http2_response via make_deferred(). Takes over
+// the work_item so the route handler may RETURN before the response is
+// produced; delivery happens later via send(), which can be called exactly
+// once from ANY thread (in particular the http_client Asio I/O thread when a
+// southbound response arrives). Internally send() writes the response into the
+// work_item — exactly as response_post_cb expects — and posts response_post_cb
+// onto the libevent loop via event_base_once().
+//
+// If the handle is destroyed without send() ever being called, the destructor
+// posts a 500 so the client is not left hanging.
+//
+// Cooperation with the existing safety net: because make_deferred() sets
+// was_deferred() on the source response, the pool-worker lambda in
+// on_frame_recv_callback must NOT post response_post_cb nor trip the
+// was_sent()->500 guard for a deferred handler. The deferred handle owns the
+// single posting of response_post_cb. The stream-closed-while-pending /
+// connection-gone / deferred-destruction guards inside response_post_cb still
+// apply on the event-loop thread, so a stream that closed before send()
+// arrives is handled safely there.
+class http2_deferred_response {
+ public:
+  http2_deferred_response()                               = default;
+  http2_deferred_response(const http2_deferred_response&) = delete;
+  http2_deferred_response& operator=(const http2_deferred_response&) = delete;
+  http2_deferred_response(http2_deferred_response&&) noexcept;
+  http2_deferred_response& operator=(http2_deferred_response&&) noexcept;
+  ~http2_deferred_response();  // posts 500 if never sent
+
+  // Thread-safe, exactly-once. Subsequent calls are no-ops.
+  void send(
+      int status, std::map<std::string, std::string> headers, std::string body);
+
+  bool valid() const noexcept { return item_ != nullptr; }
+
+ private:
+  friend class http2_response;  // make_deferred() constructs these
+  http2_deferred_response(
+      thread_pool_work_item* item, http2_server* srv) noexcept;
+
+  // Shared implementation of send()/destructor delivery. Performs the CAS on
+  // sent_, writes the response into the work item, and posts response_post_cb.
+  void deliver(
+      int status, std::map<std::string, std::string> headers, std::string body);
+
+  thread_pool_work_item* item_ = nullptr;
+  http2_server* srv_           = nullptr;
+  std::shared_ptr<std::atomic<bool>>
+      sent_;  // shared so moves stay exactly-once
 };
 
 // Handler callback type: receives a fully accumulated request + response writer
@@ -112,6 +179,10 @@ struct http2_server_config {
   // Thread pool (0 = synchronous/event-loop-only mode)
   uint32_t num_worker_threads = 4;
   size_t max_pending_tasks    = 10000;
+
+  // When true: route request handling through the async dispatcher
+  // Default false (synchronous inline execution).
+  bool use_async_dispatch = false;
 };
 
 // Server Class

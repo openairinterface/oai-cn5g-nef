@@ -9,16 +9,16 @@
 
 #include "config.hpp"
 
-constexpr auto NEF_CONFIG_NAME_LABEL              = "NEF Config";
-constexpr auto NEF_CONFIG_SUPPORT_FEATURES        = "support_features";
-constexpr auto NEF_CONFIG_SUPPORT_FEATURES_LABEL  = "Support Features";
-constexpr auto NEF_CONFIG_AF_WHITELIST            = "af_whitelist";
-constexpr auto NEF_CONFIG_AF_WHITELIST_LABEL      = "AF Whitelist";
+constexpr auto NEF_CONFIG_NAME_LABEL             = "NEF Config";
+constexpr auto NEF_CONFIG_SUPPORT_FEATURES       = "support_features";
+constexpr auto NEF_CONFIG_SUPPORT_FEATURES_LABEL = "Support Features";
+constexpr auto NEF_CONFIG_AF_WHITELIST           = "af_whitelist";
+constexpr auto NEF_CONFIG_AF_WHITELIST_LABEL     = "AF Whitelist";
 
 // YAML sub-keys for a whitelist entry
-constexpr auto NEF_CONFIG_AF_ID          = "af_id";
-constexpr auto NEF_CONFIG_AF_API_KEY     = "api_key";
-constexpr auto NEF_CONFIG_AF_ALLOWED     = "allowed_apis";
+constexpr auto NEF_CONFIG_AF_ID      = "af_id";
+constexpr auto NEF_CONFIG_AF_API_KEY = "api_key";
+constexpr auto NEF_CONFIG_AF_ALLOWED = "allowed_apis";
 
 namespace oai::config::nef {
 
@@ -35,23 +35,27 @@ namespace oai::config::nef {
  *         - traffic_influence
  */
 struct af_whitelist_entry_t {
-  std::string              af_id;        ///< SCS/AS identifier
-  std::string              api_key;      ///< Pre-shared key (empty = unchecked)
-  std::vector<std::string> allowed_apis; ///< Allowed service names (empty = all)
+  std::string af_id;    ///< SCS/AS identifier
+  std::string api_key;  ///< Pre-shared key (empty = unchecked)
+  std::vector<std::string>
+      allowed_apis;  ///< Allowed service names (empty = all)
 };
 
 class nef_config_type : public oai::config::nf {
   friend class nef_config;
 
  private:
-  string_config_value                  m_support_features;
+  string_config_value m_support_features;
   // Structured whitelist – parsed from YAML sequence
-  std::vector<af_whitelist_entry_t>    m_af_whitelist;
+  std::vector<af_whitelist_entry_t> m_af_whitelist;
   // JWT HMAC shared secret (empty = JWT validation disabled)
-  std::string                          m_jwt_secret_key;
+  std::string m_jwt_secret_key;
   // When true: allow requests even when no JWT secret and no whitelist are
   // configured (fail-open).  DEFAULT false (fail-closed, safe).
-  bool                                 m_insecure_dev_mode{false};
+  bool m_insecure_dev_mode{false};
+  // When true: route NEF request handling through the async dispatcher/adapter
+  // DEFAULT false (synchronous inline execution).
+  bool m_use_async_dispatch{false};
 
  public:
   explicit nef_config_type(
@@ -88,6 +92,15 @@ class nef_config_type : public oai::config::nf {
    */
   [[nodiscard]] bool get_insecure_dev_mode() const {
     return m_insecure_dev_mode;
+  }
+
+  /**
+   * Returns true when async request dispatch is explicitly enabled in config.
+   * When true the NEF routes request handling through the async dispatcher.
+   * Default: false (synchronous inline execution).
+   */
+  [[nodiscard]] bool get_use_async_dispatch() const {
+    return m_use_async_dispatch;
   }
 };
 

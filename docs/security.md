@@ -109,6 +109,22 @@ curl -s --http2-prior-knowledge \
   http://oai-nef:8080/3gpp-monitoring-event/v1/my-af-1/subscriptions
 ```
 
+### Bearer Token Cross-Thread Safety {#bearer-token-cross-thread-safety}
+
+NEF stores the bearer token for an in-progress request in a `thread_local` variable (`g_request_bearer_token` in `nef_app.cpp`). When `use_async_dispatch: true` is set, the HTTP worker thread that extracts the token and the dispatcher worker thread that calls `nef_app` are **different threads** — the `thread_local` on the HTTP worker is invisible to the dispatcher worker.
+
+`nef_app_adapter` handles this correctly:
+
+1. The token is **captured by value** into the task lambda at dispatch time (on the HTTP worker thread).
+2. The dispatcher worker calls `execute_with_token(token, fn)`, which sets the `thread_local` on the worker thread, calls `fn`, then clears it in a RAII-style scope guard — even if `fn` throws.
+3. The HTTP worker thread never reads or clears the token after enqueue; there is no shared mutable state between threads for the token.
+
+**What this means in practice:**
+
+- The bearer token is never logged, stored to disk, or persisted beyond the lifetime of the task lambda. It is cleared before the dispatcher worker picks up the next task.
+- Two concurrent requests from different AFs cannot observe each other's tokens, even when both are dispatched to the same worker thread sequentially.
+- Do not bypass `execute_with_token` when adding new `execute_*` methods to `nef_app_adapter` — setting the `thread_local` directly without a scope guard would leave stale token state on the worker thread if an exception occurs.
+
 ---
 
 ## 4. API Key Authentication

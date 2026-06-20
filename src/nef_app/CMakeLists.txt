@@ -20,4 +20,5 @@ add_library(NEF STATIC
   nef_client.cpp
   task_manager.cpp
   nef_event.cpp
+  nef_app_adapter.cpp
 )

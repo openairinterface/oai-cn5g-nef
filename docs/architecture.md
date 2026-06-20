@@ -32,6 +32,13 @@ graph TB
         TP -->|"post response via\nevent_base_once"| HS
     end
 
+    subgraph Dispatch_Layer["Dispatch Layer (opt-in, default OFF)"]
+        ADP["nef_app_adapter\n(sole nef_app contact\nfrom request path)"]
+        DQ["nef_request_dispatcher\n(bounded MPSC queue\n+ worker pool)"]
+        ADP -->|"enqueue task (async mode)"| DQ
+        ADP -->|"execute inline (sync mode)"| ADP
+    end
+
     subgraph App_Layer["Application Layer (nef_app)"]
         APP["nef_app\n(business logic)"]
         CLI["nef_client\n(southbound SBI)"]
@@ -54,21 +61,27 @@ graph TB
         AFP["nef_af_profile\n(AF whitelist / allowed APIs)"]
     end
 
-    TP -->|"invoke handler"| APP
+    TP -->|"call dispatch_*()"| ADP
+    DQ -->|"execute task on\ndispatcher worker"| APP
     APP --- PFD
     APP --- AUD
     APP --- AFP
 ```
 
+> **Dispatch layer** is enabled by setting `use_async_dispatch: true` in the config (default `false`). When disabled, `nef_app_adapter` calls `nef_app` synchronously on the HTTP thread pool worker — identical runtime behavior to before the refactor. When enabled, calls are enqueued on the dedicated dispatcher pool so the HTTP worker is freed immediately (Option A: synchronous handoff via `std::future`; Option B for southbound-heavy handlers: non-blocking deferred response via `http2_deferred_response`).
+
 ### Module Reference
 
 | Module | Primary Files | Responsibility |
 |--------|---------------|----------------|
-| `nef-http2-server` | `api-server/nef-http2-server.h/cpp` | Registers all NEF routes; dispatches incoming HTTP/2 requests to `nef_app` handler methods via thread pool work items |
-| `http2-server` | `api-server/http2-server.h/cpp` | Generic HTTP/2 server built on nghttp2 v1.68.1 + libevent; manages connections, stream state, flow control, and CVE mitigations |
+| `nef-http2-server` | `api-server/nef-http2-server.h/cpp` | Registers all NEF routes; routes requests through `nef_app_adapter` (zero direct `nef_app` calls in handler bodies) |
+| `http2-server` | `api-server/http2-server.h/cpp` | Generic HTTP/2 server built on nghttp2 v1.68.1 + libevent; manages connections, stream state, flow control, CVE mitigations, and `http2_deferred_response` for non-blocking handlers |
 | `thread-pool` | `api-server/thread-pool.h` | Configurable worker thread pool; accepts work items from the libevent event loop and posts responses back via `event_base_once` |
+| `nef_app_adapter` | `nef_app/nef_app_adapter.hpp/cpp` | **Dispatch facade.** The sole class with direct `nef_app` access from the request path. Provides one typed `dispatch_*()` method per HTTP handler. Manages bearer-token re-set/clear (`execute_with_token`) and dual sync/async execution mode. Owns a `nef_request_dispatcher` instance. |
+| `nef_request_dispatcher` | `nef_app/nef_request_dispatcher.hpp` | Bounded MPSC task queue with a configurable worker pool. Executes `std::function<void()>` tasks enqueued by `nef_app_adapter`. Returns `queue_full` (→ 503) when the configured capacity is exceeded. Header-only. |
+| `nef_request_task` | `nef_app/nef_request_task.hpp` | Type alias: `response_sink = std::function<void(int status_code, std::string body)>`. The value-captured response callback that crosses the thread boundary safely. Header-only. |
 | `nef_app` | `nef_app/nef_app.hpp/cpp` | Central controller; executes all subscription CRUD, AF authorization, notification routing, and inter-NF coordination |
-| `nef_client` | `nef_app/nef_client.hpp/cpp` | HTTP/SBI client for NRF registration/discovery and all southbound calls (AMF, SMF, PCF, UDR) |
+| `nef_client` | `nef_app/nef_client.hpp/cpp` | HTTP/SBI client for NRF registration/discovery and all southbound calls (AMF, SMF, PCF, UDR). Provides both blocking (`send_http_request`) and non-blocking (`send_http_request_async`) overloads for southbound calls |
 | `nef_notification_mapper` | `nef_app/nef_notification_mapper.hpp/cpp` | Stateless utility; converts southbound NF notifications from internal SBI format into northbound T8 format for AFs |
 | `nef_jwt` | `nef_app/nef_jwt.hpp/cpp` | Parses and validates JWT Bearer tokens using HMAC-SHA256; extracts the `sub` claim as the AF identity |
 | `nef_rate_limiter` | `nef_app/nef_rate_limiter.hpp` | Token-bucket rate limiter keyed on AF/bearer identity; rejects requests that exceed the configured burst and refill rate |
@@ -114,15 +127,16 @@ The following steps describe how a single northbound AF request is handled from 
 1. **HTTP/2 connection accepted by libevent** — `libevent` monitors the listening socket with `evconnlistener`. When a new connection arrives a bufferevent is created and handed to the HTTP/2 server layer.
 2. **nghttp2 parses HTTP/2 frames** — The generic `http2-server` feeds received bytes to the nghttp2 session. nghttp2 reassembles HEADERS and DATA frames and fires the configured `on_request_recv` callback once a complete request stream is ready.
 3. **Thread pool worker picks up the request** — The `on_request_recv` callback submits a work item to the `thread_pool`. The event loop thread immediately returns to processing I/O, avoiding blocking.
-4. **nef-http2-server routes to matching handler** — The worker thread invokes the `nef_http2_server` dispatch logic, which performs longest-prefix matching on the request path to select the correct `nef_app` handler method.
+4. **nef-http2-server routes to matching handler** — The worker thread invokes the `nef_http2_server` dispatch logic, which performs longest-prefix matching on the request path to select the correct handler shim. The handler shim performs JSON body parsing (returning HTTP 400 on parse error) and then delegates all `nef_app` interaction to `nef_app_adapter` — there are zero direct `nef_app` calls in handler bodies.
 5. **nef_rate_limiter checks rate** — Before the handler body executes, `nef_rate_limiter` checks the token bucket for the requesting AF identity. If the bucket is exhausted the request is rejected immediately with HTTP 429.
 6. **nef_jwt validates Bearer token** — When a `jwt_secret` is configured, `nef_jwt` parses the `Authorization: Bearer` header, verifies the HMAC-SHA256 signature, checks expiry, and extracts the `sub` claim as the AF identity.
 7. **nef_af_profile validates whitelist and allowed APIs** — The resolved AF identity is looked up in `nef_af_profile`. If an `af_whitelist` is configured, the AF must appear in it with a matching optional `api_key`. The requested service must also be present in the AF's `allowed_apis` set (if non-empty).
 8. **nef_input_validation validates request body** — The parsed JSON body is checked for required fields, data types, string length limits, and enum values. Invalid requests are rejected with HTTP 400 before any state is mutated.
-9. **nef_app handler executes business logic** — The appropriate handler method (e.g., `handle_monitoring_event_subscription_create`) updates in-memory subscription state, routes events via `nef_event` Boost.Signals2 signals, and records an audit entry via `nef_audit_log`.
-10. **nef_client makes southbound call (with sbi_resilience circuit breaker)** — If the operation requires a call to AMF, SMF, PCF, or UDR, `nef_client` sends the SBI request. `sbi_resilience` wraps the call: if the target NF's circuit is OPEN the call is rejected immediately and `nef_retry_helper` schedules a backoff retry; a HALF_OPEN probe is used to test recovery.
-11. **Response posted back to event loop** — The worker thread constructs the HTTP response (status code, headers, JSON body) and submits it back to the event loop thread using `event_base_once`, which is the only thread-safe libevent API for cross-thread wakeup.
-12. **HTTP/2 response sent to AF** — The event loop thread serializes the response into HTTP/2 HEADERS and DATA frames via nghttp2 and writes them to the bufferevent. The stream is half-closed from the server side and the connection remains open for subsequent requests.
+9. **nef_app_adapter dispatches to nef_app** — The handler calls `m_adapter->dispatch_<op>(params, bearer_token, response_sink)`. The adapter extracts and re-sets the bearer token on the execution thread (`execute_with_token`) before calling `nef_app`. In **sync mode** (default), this runs on the HTTP pool worker directly. In **async mode** (`use_async_dispatch: true`), the task is enqueued on the `nef_request_dispatcher` pool and the HTTP worker either blocks on a `std::future` (Option A) or returns immediately with a `http2_deferred_response` handle (Option B, for southbound-heavy handlers). A full queue returns HTTP 503.
+10. **nef_app handler executes business logic** — The appropriate handler method (e.g., `handle_monitoring_event_subscription_create`) updates in-memory subscription state, routes events via `nef_event` Boost.Signals2 signals, and records an audit entry via `nef_audit_log`.
+11. **nef_client makes southbound call (with sbi_resilience circuit breaker)** — If the operation requires a call to AMF, SMF, PCF, or UDR, `nef_client` sends the SBI request. In synchronous mode `send_http_request()` blocks the caller; in async mode (Option B) `send_http_request_async()` submits to the Boost.Asio I/O service in `http_client_impl` and returns immediately — the completion callback delivers the response through `http2_deferred_response::send()`. `sbi_resilience` wraps calls: if a circuit is OPEN the call is rejected immediately and `nef_retry_helper` schedules backoff; a HALF_OPEN probe tests recovery.
+12. **Response posted back to event loop** — The execution thread (HTTP pool worker in sync mode, dispatcher worker in async mode, or Asio I/O thread in Option B) posts the HTTP response back to the libevent event loop via `event_base_once`, which is the only thread-safe libevent API for cross-thread wakeup.
+13. **HTTP/2 response sent to AF** — The event loop thread serializes the response into HTTP/2 HEADERS and DATA frames via nghttp2 and writes them to the bufferevent. The stream is half-closed from the server side and the connection remains open for subsequent requests.
 
 ## 5. Startup Sequence
 
@@ -166,17 +180,27 @@ sequenceDiagram
 
 ## 6. Threading Model
 
-OAI NEF uses a **two-tier threading model**:
+OAI NEF uses a **multi-tier threading model**. The base model is two tiers; an optional third tier is added when `use_async_dispatch: true`.
 
 - **Single event loop thread** — `libevent` runs in a dedicated thread started by `nef_http2_server::start`. All socket I/O, timer callbacks, and nghttp2 session state are handled exclusively on this thread. Because libevent's non-thread-safe APIs (`event_base_*`) are only called here, no mutex is required for the event loop itself.
 
-- **Thread pool workers** — A configurable number of worker threads (defaulting to `std::thread::hardware_concurrency()`, minimum 1) pick up request work items from a thread-safe queue. Workers execute the full request pipeline: routing, auth, input validation, business logic, and any blocking southbound SBI calls. This prevents a slow NF response from stalling the I/O loop.
+- **HTTP thread pool workers** — A configurable number of worker threads (defaulting to `std::thread::hardware_concurrency()`, minimum 1) pick up request work items from a thread-safe queue. Workers execute routing, auth, input validation, and dispatch to `nef_app_adapter`. In sync mode (default), `nef_app` business logic and all blocking southbound calls also execute on these workers. In async mode, workers hand off to the dispatcher pool after building the task.
 
-- **Cross-thread response posting** — After a worker constructs the response, it calls `event_base_once()` on the event loop's `event_base`. This is the sole thread-safe entry point into libevent, and it schedules a zero-delay callback on the event loop thread that writes the HTTP/2 response frames back to the client socket.
+- **Dispatcher worker pool (optional, `use_async_dispatch: true`)** — A dedicated `nef_request_dispatcher` pool (sized slightly larger than the HTTP pool by default) owns the execution of `nef_app` handler methods. This decouples the HTTP accept bandwidth from the southbound call latency. Workers re-set the bearer token on their own `thread_local` before calling `nef_app` (`execute_with_token` in `nef_app_adapter`) — cross-thread token propagation is never relied upon. Under **Option A** (synchronous handoff, all handlers), the HTTP worker parks on a `std::future` until the dispatcher worker completes; under **Option B** (non-blocking, southbound-heavy handlers), the HTTP worker returns immediately after posting an `http2_deferred_response` handle, and the response is delivered from a `http_client` Asio I/O thread.
 
-- **Task manager thread** — A third dedicated thread runs `task_manager` using Linux `timerfd` for periodic work (NRF heartbeat, subscription expiry checks). It communicates with `nef_app` via Boost.Signals2 `task_tick` signals, which are safe to fire across threads because signal slots are dispatched synchronously on the calling thread.
+- **http_client Asio I/O threads (4–16, internal to `http_client_impl`)** — An existing Boost.Asio `io_service` in the shared `http_client` library drives all outbound HTTP/2 streams asynchronously. Under Option B these threads deliver completed southbound responses and call `http2_deferred_response::send()` to post the inbound response back to the libevent event loop via `event_base_once`. These threads are infrastructure shared with NRF registration and heartbeat; they run regardless of `use_async_dispatch`.
 
-The net result is that only the event loop thread performs I/O; all CPU-bound work and blocking calls are isolated to the thread pool.
+- **Cross-thread response posting** — All paths (sync pool worker, dispatcher worker, Asio I/O thread) post the final response to the libevent event loop via `event_base_once`. This is the sole thread-safe libevent entry point.
+
+- **Task manager thread** — A dedicated thread runs `task_manager` using Linux `timerfd` for periodic work (NRF heartbeat, subscription expiry checks). It communicates with `nef_app` via Boost.Signals2 `task_tick` signals dispatched synchronously on the calling thread.
+
+| Mode | HTTP worker does | Dispatcher worker does | Asio I/O thread does |
+|------|-----------------|----------------------|----------------------|
+| Sync (default) | routing + auth + nef_app call + response | — | southbound I/O (all paths) |
+| Async Option A | routing + auth + enqueue + `fut.wait()` | nef_app call + response | southbound I/O |
+| Async Option B | routing + auth + enqueue + return | nef_app call + `send_http_request_async()` | deliver response via `deferred.send()` |
+
+The net result: only the event loop thread performs HTTP/2 I/O; CPU-bound work and blocking southbound calls are isolated from the I/O path in all modes.
 
 ## 7. In-Memory State (No Persistence)
 

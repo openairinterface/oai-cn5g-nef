@@ -453,6 +453,122 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
   }
 }
 
+//------------------------------------------------------------------------------
+// Async NF discovery.
+//
+// Mirrors discover_nf()'s endpoint-resolution logic but never blocks:
+//  - Static-config and discovery-cache hits are resolved without any network
+//    call; the callback fires synchronously with a synthetic 200 whose body is
+//    a minimal SearchResult ({"nfInstances":[{"nfServices":[{"ipEndPoints":
+//    [{ipv4Address,port}]}]}]}) carrying the resolved endpoint, so the caller
+//    can parse it exactly like a real NRF SearchResult.
+//  - On a cache miss with NRF discovery enabled, a single async GET is issued
+//    to the NRF; the raw NRF SearchResult response is delivered to the
+//    callback.
+//  - If the target cannot be resolved (NRF disabled with no static config),
+//    the callback fires with status_code 0 and an empty body.
+//
+// The callback does NOT mutate nef_app state and does NOT update the discovery
+// cache (the async path delivers the raw response; the caller owns parsing).
+void nef_client::discover_nf_async(
+    nf_type_t nf_type, oai::http::response_cb cb) {
+  auto deliver_endpoint = [&cb](const std::string& endpoint) {
+    nlohmann::json ep;
+    // Endpoint shape is "scheme://host:port" — split host/port for the
+    // synthetic ipEndPoints entry so the caller's parse path is unchanged.
+    std::string host = endpoint;
+    int port         = 8080;
+    auto scheme_pos  = endpoint.find("://");
+    std::string rest = (scheme_pos == std::string::npos) ?
+                           endpoint :
+                           endpoint.substr(scheme_pos + 3);
+    auto colon_pos   = rest.rfind(':');
+    if (colon_pos != std::string::npos) {
+      host = rest.substr(0, colon_pos);
+      try {
+        port = std::stoi(rest.substr(colon_pos + 1));
+      } catch (...) {
+      }
+    } else {
+      host = rest;
+    }
+    nlohmann::json ip_ep    = {{"ipv4Address", host}, {"port", port}};
+    nlohmann::json service  = {{"ipEndPoints", nlohmann::json::array({ip_ep})}};
+    nlohmann::json instance = {
+        {"nfServices", nlohmann::json::array({service})}};
+    nlohmann::json search_res = {
+        {"nfInstances", nlohmann::json::array({instance})}};
+    oai::http::response synth{};
+    synth.status_code = http_status_code::OK;
+    synth.body        = search_res.dump();
+    cb(std::move(synth));
+  };
+
+  // First, try to read the NF endpoint directly from local config.
+  std::string cfg_key = {};
+  switch (nf_type) {
+    case NF_TYPE_AMF:
+      cfg_key = AMF_CONFIG_NAME;
+      break;
+    case NF_TYPE_SMF:
+      cfg_key = SMF_CONFIG_NAME;
+      break;
+    case NF_TYPE_PCF:
+      cfg_key = PCF_CONFIG_NAME;
+      break;
+    case NF_TYPE_UDR:
+      cfg_key = UDR_CONFIG_NAME;
+      break;
+    default:
+      cfg_key = "";
+  }
+
+  if (!cfg_key.empty()) {
+    try {
+      auto nf_cfg = nef_config_inst->get_nf(cfg_key);
+      if (nf_cfg) {
+        deliver_endpoint(nf_cfg->get_url(nef_config_inst->enable_tls()));
+        return;
+      }
+    } catch (...) {
+    }
+  }
+
+  // Fall back to NRF discovery if config-based lookup failed.
+  if (!nef_config_inst->register_nrf()) {
+    Logger::nef_app().warn(
+        "NRF discovery disabled and no static config for NF type %d",
+        static_cast<int>(nf_type));
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+
+  std::string nf_type_str = nf_type_to_str(nf_type);
+
+  // Cache check.
+  {
+    std::string cached_ep = {};
+    if (nrf_discovery_cache::instance().get(nf_type_str, cached_ep)) {
+      deliver_endpoint(cached_ep);
+      return;
+    }
+  }
+
+  // Cache miss — async GET to NRF for the NF type's endpoint. The raw NRF
+  // SearchResult is delivered to the caller's callback (no retry loop on the
+  // async path — a single non-blocking request).
+  std::string disc_uri = build_nrf_disc_uri() + "?" +
+                         "target-nf-type=" + nf_type_str +
+                         "&requester-nf-type=NEF";
+  Logger::nef_app().debug("Async NF discovery URI (NRF): %s", disc_uri.c_str());
+
+  oai::http::request req = http_client_inst->prepare_json_request(disc_uri, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::GET, req, std::move(cb));
+}
+
 // AMF event-exposure
 //-----------------------------------------------------------------------------
 bool nef_client::subscribe_amf_event_exposure(
@@ -536,6 +652,37 @@ bool nef_client::subscribe_amf_event_exposure(
 }
 
 //------------------------------------------------------------------------------
+// Async variant of subscribe_amf_event_exposure. Builds the same POST
+// request (same URL, body with eventNotifyUri injected) as the sync version,
+// then issues a single non-blocking request. Endpoint resolution still uses the
+// blocking discover_nf() to keep the request-construction logic identical; the
+// southbound POST itself is async. The callback receives the raw AMF response
+// and does NOT mutate nef_app state nor parse the subscription id.
+void nef_client::subscribe_amf_event_exposure_async(
+    const nlohmann::json& subscription_data, oai::http::response_cb cb) {
+  std::string amf_url = {};
+  if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) {
+    Logger::nef_app().warn(
+        "AMF not found — cannot subscribe to event exposure (async)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url =
+      amf_url + nef_sbi_helper::AmfEventExposureBase + "v1/subscriptions";
+
+  nlohmann::json sub_body    = subscription_data;
+  sub_body["eventNotifyUri"] = nef_config_inst->get_local()->get_url() +
+                               nef_sbi_helper::NefNotifyBase + "v1/notify/amf";
+  std::string body = sub_body.dump();
+
+  oai::http::request req = http_client_inst->prepare_json_request(url, body);
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::POST, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::unsubscribe_amf_event_exposure(const std::string& amf_sub_id) {
   std::string amf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) return false;
@@ -604,6 +751,36 @@ bool nef_client::subscribe_smf_event_exposure(
   Logger::nef_app().warn(
       "SMF event subscription failed (status %d)", smf_sub_resp.status_code);
   return false;
+}
+
+//------------------------------------------------------------------------------
+// Async variant of subscribe_smf_event_exposure. Builds the same POST
+// request (same URL, body with notifId/notifUri injected) as the sync version,
+// then issues a single non-blocking request. The callback receives the raw SMF
+// response and does NOT mutate nef_app state nor parse the subscription id.
+void nef_client::subscribe_smf_event_exposure_async(
+    const nlohmann::json& smf_body, const std::string& notif_id,
+    const std::string& notif_uri, oai::http::response_cb cb) {
+  std::string smf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
+    Logger::nef_app().warn(
+        "SMF not found — cannot subscribe to event exposure (async)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url =
+      smf_url + nef_sbi_helper::SmfEventExposureBase + "v1/subscriptions";
+
+  nlohmann::json sub_body = smf_body;
+  sub_body["notifId"]     = notif_id;
+  sub_body["notifUri"]    = notif_uri;
+  std::string body        = sub_body.dump();
+
+  oai::http::request req = http_client_inst->prepare_json_request(url, body);
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::POST, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
@@ -725,6 +902,31 @@ bool nef_client::create_pcf_policy_auth(
 }
 
 //------------------------------------------------------------------------------
+// Async variant of create_pcf_policy_auth. Builds the same POST
+// request (same URL/body) as the sync version, then issues a single
+// non-blocking request. The callback receives the raw PCF response
+// (status_code/body/headers) and does NOT mutate nef_app state nor parse the
+// appSessionId / Location header.
+void nef_client::create_pcf_policy_auth_async(
+    const nlohmann::json& request_body, oai::http::response_cb cb) {
+  std::string pcf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
+    Logger::nef_app().warn("PCF not found (async)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url =
+      pcf_url + nef_sbi_helper::PcfPolicyAuthBase + "v1/app-sessions";
+  std::string body = request_body.dump();
+
+  oai::http::request req = http_client_inst->prepare_json_request(url, body);
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::POST, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::update_pcf_policy_auth(
     const std::string& app_session_id, const nlohmann::json& request_body,
     uint32_t& http_code) {
@@ -757,6 +959,31 @@ bool nef_client::update_pcf_policy_auth(
   return (
       resp.status_code == http_status_code::OK ||
       resp.status_code == http_status_code::NO_CONTENT);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of update_pcf_policy_auth. Builds the same PATCH
+// request (merge-patch+json content type, same URL/body) as the sync version,
+// then issues a single non-blocking request. The callback receives the raw PCF
+// response and does NOT mutate nef_app state.
+void nef_client::update_pcf_policy_auth_async(
+    const std::string& app_session_id, const nlohmann::json& request_body,
+    oai::http::response_cb cb) {
+  std::string pcf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
+                    "v1/app-sessions/" + app_session_id;
+  std::string body = request_body.dump();
+
+  oai::http::request req = http_client_inst->prepare_json_request(
+      url, body, "application/merge-patch+json");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::PATCH, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
@@ -931,6 +1158,32 @@ bool nef_client::udr_put_pfd_data(
 }
 
 //------------------------------------------------------------------------------
+// Async variant of udr_put_pfd_data. Builds the same PUT request
+// (same URL/body) as the sync version, then issues a single non-blocking
+// request. The callback receives the raw UDR response and does NOT mutate
+// nef_app state.
+void nef_client::udr_put_pfd_data_async(
+    const std::string& app_id, const nlohmann::json& pfd_data,
+    oai::http::response_cb cb) {
+  std::string udr_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
+    Logger::nef_app().warn("UDR not found (async)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  // Nudr_DataRepository: PUT /nudr-dr/v1/application-data/pfds/{appId}
+  std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
+                    "v1/application-data/pfds/" + app_id;
+  std::string body = pfd_data.dump();
+
+  oai::http::request req = http_client_inst->prepare_json_request(url, body);
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::PUT, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::udr_delete_pfd_data(const std::string& app_id) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) return false;
@@ -1022,6 +1275,31 @@ bool nef_client::udr_put_influence_data(
       resp.status_code == http_status_code::OK ||
       resp.status_code == http_status_code::CREATED ||
       resp.status_code == http_status_code::NO_CONTENT);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of udr_put_influence_data. Builds the same PUT
+// request (same URL/body) as the sync version, then issues a single
+// non-blocking request. The callback receives the raw UDR response and does NOT
+// mutate nef_app state.
+void nef_client::udr_put_influence_data_async(
+    const std::string& ti_id, const nlohmann::json& data,
+    oai::http::response_cb cb) {
+  std::string udr_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
+    Logger::nef_app().warn("UDR not found (async)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
+                          "v2/application-data/influenceData/" + ti_id;
+
+  oai::http::request req =
+      http_client_inst->prepare_json_request(url, data.dump());
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::PUT, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
