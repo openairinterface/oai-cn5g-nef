@@ -97,6 +97,11 @@ find_package(cpr REQUIRED)
 add_boolean_option(DISPLAY_LICENCE_INFO False "Show licence banner")
 add_boolean_option(LOG_OAI             False "Thread safe logging utility")
 
+option(NEF_DISABLE_ASYNC_DISPATCH "Disable async ITTI dispatch in HTTP server handlers (synchronous mode)" OFF)
+if(NEF_DISABLE_ASYNC_DISPATCH)
+  add_definitions(-DNEF_DISABLE_ASYNC_DISPATCH)
+endif()
+
 include_directories(${CONFIG_INCLUDE_DIRS})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 

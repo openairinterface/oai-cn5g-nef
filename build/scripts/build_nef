@@ -62,6 +62,7 @@ function help()
   echo_error "Mandatory arguments to long options are mandatory for short options too."
   echo_error "  -b, --build-type                          Build type as defined in cmake, allowed values are: Debug Release RelWithDebInfo MinSizeRel"
   echo_error "  -c, --clean                               Clean the build generated files: config, object, executable files (build from scratch)"
+  echo_error "  -D, --disable-async-dispatch              Disable async ITTI dispatch in HTTP server handlers (synchronous mode)."
   echo_error "  -f, --force                               No interactive script for installation of software packages."
   echo_error "  -h, --help                                Print this help."
   echo_error "  -I, --install-deps                        Check installed software necessary to build and run NEF (support $SUPPORTED_DISTRO)."
@@ -101,6 +102,11 @@ function main()
       -c | --clean)
         clean=1
         echo "Clean the build generated files (build from scratch)"
+        shift;
+        ;;
+      -D | --disable-async-dispatch)
+        cmake_args="$cmake_args -DNEF_DISABLE_ASYNC_DISPATCH=ON"
+        echo "Disabling async dispatch (synchronous mode)"
         shift;
         ;;
       -f | --force)
