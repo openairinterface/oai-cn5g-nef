@@ -12,15 +12,8 @@
 #include "nef_request_dispatcher.hpp"
 #include "nef_request_task.hpp"
 
-// Forward declaration — avoids pulling nghttp2/libevent headers (via
-// http2-server.h) into the NEF library through this header. The full
-// definition is included in nef_app_adapter.cpp, which is where the
-// dispatch_*_async() bodies live. http2_deferred_response is move-only and
-// passed by value, so a forward declaration is sufficient for the
-// declarations below.
+// Forward declaration
 class http2_deferred_response;
-
-// Forward declaration — avoids including the full nef_app header here.
 namespace oai::nef::app {
 class nef_app;
 }
@@ -267,6 +260,96 @@ class nef_app_adapter {
   bool dispatch_pfd_app_put_async(
       const std::string& scs_as_id, const std::string& trans_id,
       const std::string& app_id, const nlohmann::json& body, std::string token,
+      http2_deferred_response deferred);
+
+  // ── P3 true-async dispatch (single-call Units 1-4, 15 handlers) ──────────
+  // Same contract as the P2 dispatch_*_async above: build the correct sink
+  // (json / empty / header per §E.1a), enqueue the entry method on the
+  // dispatcher worker (or run inline when async==false), 503 on dispatch
+  // reject. Unit 1
+  bool dispatch_monitoring_event_unsubscribe_async(
+      const std::string& scs_as_id, const std::string& sub_id,
+      std::string token, http2_deferred_response deferred);
+  bool dispatch_qos_update_async(
+      const std::string& af_id, const std::string& sub_id,
+      const nlohmann::json& body, std::string token,
+      http2_deferred_response deferred);
+  bool dispatch_qos_patch_async(
+      const std::string& af_id, const std::string& sub_id,
+      const nlohmann::json& patch_body, std::string token,
+      http2_deferred_response deferred);
+  bool dispatch_qos_delete_async(
+      const std::string& af_id, const std::string& sub_id, std::string token,
+      http2_deferred_response deferred);
+  // Unit 2 (BDT) — `deprecated` reproduces the x-deprecated legacy-path header
+  // the sync shims emit (header sink for create/update, header-carrying empty
+  // sink for delete).
+  bool dispatch_bdt_create_async(
+      const std::string& af_id, const nlohmann::json& body, std::string token,
+      bool deprecated, http2_deferred_response deferred);
+  bool dispatch_bdt_update_async(
+      const std::string& af_id, const std::string& bdt_id,
+      const nlohmann::json& body, std::string token, bool deprecated,
+      http2_deferred_response deferred);
+  bool dispatch_bdt_patch_async(
+      const std::string& af_id, const std::string& bdt_id,
+      const nlohmann::json& patch_body, std::string token,
+      http2_deferred_response deferred);
+  bool dispatch_bdt_delete_async(
+      const std::string& af_id, const std::string& bdt_id, std::string token,
+      bool deprecated, http2_deferred_response deferred);
+  // Unit 3 (PFD T8)
+  bool dispatch_pfd_create_async(
+      const std::string& app_id, const nlohmann::json& body, std::string token,
+      http2_deferred_response deferred);
+  bool dispatch_pfd_delete_async(
+      const std::string& app_id, std::string token,
+      http2_deferred_response deferred);
+  bool dispatch_pfd_get_async(
+      const std::string& app_id, std::string token,
+      http2_deferred_response deferred);
+  bool dispatch_pfd_app_patch_async(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const std::string& app_id, const nlohmann::json& patch_body,
+      std::string token, http2_deferred_response deferred);
+  bool dispatch_pfd_app_delete_async(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const std::string& app_id, std::string token,
+      http2_deferred_response deferred);
+  // Unit 4 (Nnef-PFD)
+  bool dispatch_nnef_pfd_put_app_async(
+      const std::string& trans_id, const std::string& app_id,
+      const nlohmann::json& body, std::string token,
+      http2_deferred_response deferred);
+  bool dispatch_nnef_pfd_delete_app_async(
+      const std::string& trans_id, const std::string& app_id, std::string token,
+      http2_deferred_response deferred);
+
+  // ── P4 — chained Unit 5 (6 handlers) ──────────────────────────────────────
+  // #18 pfd_transaction_put — JSON sink (201/200).
+  bool dispatch_pfd_transaction_put_async(
+      const std::string& scs_as_id, const std::string& trans_id,
+      const nlohmann::json& body, std::string token,
+      http2_deferred_response deferred);
+  // #19 pfd_transaction_delete — empty sink (204).
+  bool dispatch_pfd_transaction_delete_async(
+      const std::string& scs_as_id, const std::string& trans_id,
+      std::string token, http2_deferred_response deferred);
+  // #6 traffic_influence_delete — empty sink (204).
+  bool dispatch_ti_delete_async(
+      const std::string& af_id, const std::string& ti_id, std::string token,
+      http2_deferred_response deferred);
+  // #23 nnef_pfd_put_transaction — JSON sink (201/200).
+  bool dispatch_nnef_pfd_put_transaction_async(
+      const std::string& trans_id, const nlohmann::json& body,
+      std::string token, http2_deferred_response deferred);
+  // #24 nnef_pfd_delete_transaction — empty sink (204).
+  bool dispatch_nnef_pfd_delete_transaction_async(
+      const std::string& trans_id, std::string token,
+      http2_deferred_response deferred);
+  // #27 nnef_pfd_partial_pull — JSON sink (200, array body).
+  bool dispatch_nnef_pfd_partial_pull_async(
+      const nlohmann::json& body, std::string token,
       http2_deferred_response deferred);
 
  private:

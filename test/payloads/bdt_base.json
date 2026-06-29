@@ -1,0 +1,23 @@
+{
+  "bdtRefId": "BDT-REF-001",
+  "bdtPolData": {
+    "bdtRefId": "BDT-REF-001",
+    "transfPolicies": [
+      {
+        "ratingGroup": 1,
+        "maxBitRateDl": "10 Mbps",
+        "maxBitRateUl": "5 Mbps",
+        "recTimeInt": {
+          "startTime": "2026-01-01T00:00:00Z",
+          "stopTime":  "2026-12-31T23:59:59Z"
+        }
+      }
+    ],
+    "selTransPolicyId": 0
+  },
+  "afTransId":   "AF-TRANS-001",
+  "dnn":         "internet",
+  "snssai":      {"sst": 1, "sd": "000001"},
+  "notifUri":    "https://af.example.com/bdt/notify",
+  "suppFeat":    "0001"
+}

@@ -579,8 +579,7 @@ bool nef_client::subscribe_amf_event_exposure(
         "AMF not found — cannot subscribe to event exposure");
     return false;
   }
-  std::string url =
-      amf_url + nef_sbi_helper::AmfEventExposureBase + "v1/subscriptions";
+  std::string url = amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions";
 
   // Inject NEF's own callback URL so AMF knows where to send event
   // notifications. We use a placeholder sub-id here; after creation we update
@@ -669,8 +668,7 @@ void nef_client::subscribe_amf_event_exposure_async(
     cb(std::move(err));
     return;
   }
-  std::string url =
-      amf_url + nef_sbi_helper::AmfEventExposureBase + "v1/subscriptions";
+  std::string url = amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions";
 
   nlohmann::json sub_body    = subscription_data;
   sub_body["eventNotifyUri"] = nef_config_inst->get_local()->get_url() +
@@ -687,14 +685,37 @@ bool nef_client::unsubscribe_amf_event_exposure(const std::string& amf_sub_id) {
   std::string amf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) return false;
 
-  std::string url = amf_url + nef_sbi_helper::AmfEventExposureBase +
-                    "v1/subscriptions/" + amf_sub_id;
+  std::string url =
+      amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions/" + amf_sub_id;
   oai::http::request req = http_client_inst->prepare_json_request(url, "");
   auto resp              = http_client_inst->send_http_request(
       oai::common::sbi::method_e::DELETE, req);
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
       resp.status_code == http_status_code::OK);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of unsubscribe_amf_event_exposure. Builds the same DELETE
+// request (same URL) as the sync version, then issues a single non-blocking
+// request. The callback receives the raw AMF response and does NOT mutate
+// nef_app state.
+void nef_client::unsubscribe_amf_event_exposure_async(
+    const std::string& amf_sub_id, oai::http::response_cb cb) {
+  std::string amf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) {
+    Logger::nef_app().warn(
+        "AMF not found — cannot unsubscribe event exposure (async)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url =
+      amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions/" + amf_sub_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
@@ -796,6 +817,29 @@ bool nef_client::unsubscribe_smf_event_exposure(const std::string& smf_sub_id) {
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
       resp.status_code == http_status_code::OK);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of unsubscribe_smf_event_exposure. Builds the same DELETE
+// request (same URL) as the sync version, then issues a single non-blocking
+// request. The callback receives the raw SMF response and does NOT mutate
+// nef_app state.
+void nef_client::unsubscribe_smf_event_exposure_async(
+    const std::string& smf_sub_id, oai::http::response_cb cb) {
+  std::string smf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
+    Logger::nef_app().warn(
+        "SMF not found — cannot unsubscribe event exposure (async)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url = smf_url + nef_sbi_helper::SmfEventExposureBase +
+                    "v1/subscriptions/" + smf_sub_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
@@ -927,6 +971,23 @@ void nef_client::create_pcf_policy_auth_async(
 }
 
 //------------------------------------------------------------------------------
+// Discovery-free variant of create_pcf_policy_auth_async (§B.3). The PCF base
+// endpoint is supplied by the caller (pre-resolved in phase-1 on the dispatcher
+// worker); this performs NO discover_nf, making it safe to fire from an
+// oai-http-io continuation. Request is otherwise identical to the sync twin.
+void nef_client::create_pcf_policy_auth_at_async(
+    const std::string& pcf_endpoint, const nlohmann::json& request_body,
+    oai::http::response_cb cb) {
+  std::string url =
+      pcf_endpoint + nef_sbi_helper::PcfPolicyAuthBase + "v1/app-sessions";
+  std::string body = request_body.dump();
+
+  oai::http::request req = http_client_inst->prepare_json_request(url, body);
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::POST, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::update_pcf_policy_auth(
     const std::string& app_session_id, const nlohmann::json& request_body,
     uint32_t& http_code) {
@@ -1002,6 +1063,41 @@ bool nef_client::delete_pcf_policy_auth(
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
       resp.status_code == http_status_code::OK);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of delete_pcf_policy_auth. Builds the same POST .../delete
+// request (same URL, "{}" body) as the sync version, then issues a single
+// non-blocking request. The callback receives the raw PCF response and does NOT
+// mutate nef_app state.
+void nef_client::delete_pcf_policy_auth_async(
+    const std::string& app_session_id, oai::http::response_cb cb) {
+  std::string pcf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
+    Logger::nef_app().warn("PCF not found (async delete app-session)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
+                    "v1/app-sessions/" + app_session_id + "/delete";
+  oai::http::request req = http_client_inst->prepare_json_request(url, "{}");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::POST, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
+// Discovery-free variant of delete_pcf_policy_auth_async (§B.3). PCF base
+// endpoint supplied by the caller; performs NO discover_nf.
+void nef_client::delete_pcf_policy_auth_at_async(
+    const std::string& pcf_endpoint, const std::string& app_session_id,
+    oai::http::response_cb cb) {
+  std::string url = pcf_endpoint + nef_sbi_helper::PcfPolicyAuthBase +
+                    "v1/app-sessions/" + app_session_id + "/delete";
+  oai::http::request req = http_client_inst->prepare_json_request(url, "{}");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::POST, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
@@ -1084,6 +1180,30 @@ bool nef_client::create_pcf_bdt_policy(
 }
 
 //------------------------------------------------------------------------------
+// Async variant of create_pcf_bdt_policy. Builds the same POST request (same
+// URL/body) as the sync version, then issues a single non-blocking request. The
+// callback receives the raw PCF response (status_code/body/headers) and does
+// NOT mutate nef_app state nor parse the bdtPolicyId / Location header. A 303
+// See Other is a success for this call (handled by the caller's continuation).
+void nef_client::create_pcf_bdt_policy_async(
+    const nlohmann::json& bdt_req, oai::http::response_cb cb) {
+  std::string pcf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
+    Logger::nef_app().warn("PCF not found (async BDT create)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  const std::string url =
+      pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase + "v1/bdtpolicies";
+  oai::http::request req =
+      http_client_inst->prepare_json_request(url, bdt_req.dump());
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::POST, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::update_pcf_bdt_policy(
     const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
     uint32_t& http_code) {
@@ -1105,6 +1225,29 @@ bool nef_client::update_pcf_bdt_policy(
 }
 
 //------------------------------------------------------------------------------
+// Async variant of update_pcf_bdt_policy. Builds the same PATCH request (same
+// URL/body) as the sync version, then issues a single non-blocking request. The
+// callback receives the raw PCF response and does NOT mutate nef_app state.
+void nef_client::update_pcf_bdt_policy_async(
+    const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
+    oai::http::response_cb cb) {
+  std::string pcf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
+    Logger::nef_app().warn("PCF not found (async BDT update)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  const std::string url = pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase +
+                          "v1/bdtpolicies/" + bdt_policy_id;
+  oai::http::request req =
+      http_client_inst->prepare_json_request(url, bdt_patch.dump());
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::PATCH, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::delete_pcf_bdt_policy(
     const std::string& bdt_policy_id, uint32_t& http_code) {
   http_code = 0;
@@ -1121,6 +1264,27 @@ bool nef_client::delete_pcf_bdt_policy(
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
       resp.status_code == http_status_code::OK);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of delete_pcf_bdt_policy. Builds the same DELETE request (same
+// URL) as the sync version, then issues a single non-blocking request. The
+// callback receives the raw PCF response and does NOT mutate nef_app state.
+void nef_client::delete_pcf_bdt_policy_async(
+    const std::string& bdt_policy_id, oai::http::response_cb cb) {
+  std::string pcf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
+    Logger::nef_app().warn("PCF not found (async BDT delete)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  const std::string url = pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase +
+                          "v1/bdtpolicies/" + bdt_policy_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
 
 // UDR PFD data
@@ -1184,6 +1348,22 @@ void nef_client::udr_put_pfd_data_async(
 }
 
 //------------------------------------------------------------------------------
+// Discovery-free variant of udr_put_pfd_data_async (§B.3). UDR base endpoint
+// supplied by the caller; performs NO discover_nf. v1 PFD path (matches the
+// sync twin udr_put_pfd_data — NOT the v2 GET path).
+void nef_client::udr_put_pfd_data_at_async(
+    const std::string& udr_endpoint, const std::string& app_id,
+    const nlohmann::json& pfd_data, oai::http::response_cb cb) {
+  std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
+                    "v1/application-data/pfds/" + app_id;
+  std::string body = pfd_data.dump();
+
+  oai::http::request req = http_client_inst->prepare_json_request(url, body);
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::PUT, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::udr_delete_pfd_data(const std::string& app_id) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) return false;
@@ -1208,6 +1388,40 @@ bool nef_client::udr_delete_pfd_data(const std::string& app_id) {
       },
       sbi_circuit_breaker_registry::instance(), sbi_sleep_udrd, sbi_log_udrd);
   return (status == http_status_code::NO_CONTENT);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of udr_delete_pfd_data. Builds the same DELETE request (same v1
+// URL) as the sync version, then issues a single non-blocking request. The
+// callback receives the raw UDR response and does NOT mutate nef_app state.
+void nef_client::udr_delete_pfd_data_async(
+    const std::string& app_id, oai::http::response_cb cb) {
+  std::string udr_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
+    Logger::nef_app().warn("UDR not found (async PFD delete)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
+                    "v1/application-data/pfds/" + app_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::DELETE, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
+// Discovery-free variant of udr_delete_pfd_data_async (§B.3). UDR base endpoint
+// supplied by the caller; performs NO discover_nf. v1 PFD path.
+void nef_client::udr_delete_pfd_data_at_async(
+    const std::string& udr_endpoint, const std::string& app_id,
+    oai::http::response_cb cb) {
+  std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
+                    "v1/application-data/pfds/" + app_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
@@ -1251,6 +1465,42 @@ void nef_client::udr_get_pfd_data(
   } catch (...) {
     Logger::nef_app().warn("Failed to parse UDR PFD GET response body");
   }
+}
+
+//------------------------------------------------------------------------------
+// Async variant of udr_get_pfd_data. Builds the same GET request (same v2 URL)
+// as the sync version, then issues a single non-blocking request. The callback
+// receives the raw UDR response and does NOT mutate nef_app state nor parse the
+// body. NOTE: GET uses the v2 PFD path (unlike PUT/DELETE which use v1).
+void nef_client::udr_get_pfd_data_async(
+    const std::string& app_id, oai::http::response_cb cb) {
+  std::string udr_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
+    Logger::nef_app().warn("UDR not found (async PFD get)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
+                          "v2/application-data/pfds/" + app_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::GET, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
+// Discovery-free variant of udr_get_pfd_data_async (§B.3). UDR base endpoint
+// supplied by the caller; performs NO discover_nf. v2 PFD path (matches the
+// sync twin udr_get_pfd_data — NOT the v1 PUT/DELETE path).
+void nef_client::udr_get_pfd_data_at_async(
+    const std::string& udr_endpoint, const std::string& app_id,
+    oai::http::response_cb cb) {
+  const std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
+                          "v2/application-data/pfds/" + app_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::GET, req, std::move(cb));
 }
 
 //------------------------------------------------------------------------------
@@ -1303,6 +1553,22 @@ void nef_client::udr_put_influence_data_async(
 }
 
 //------------------------------------------------------------------------------
+// Discovery-free variant of udr_put_influence_data_async (§B.3). UDR base
+// endpoint supplied by the caller; performs NO discover_nf. v2 influence data
+// path (matches the sync twin udr_put_influence_data).
+void nef_client::udr_put_influence_data_at_async(
+    const std::string& udr_endpoint, const std::string& ti_id,
+    const nlohmann::json& data, oai::http::response_cb cb) {
+  const std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
+                          "v2/application-data/influenceData/" + ti_id;
+
+  oai::http::request req =
+      http_client_inst->prepare_json_request(url, data.dump());
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::PUT, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
 bool nef_client::udr_delete_influence_data(
     const std::string& ti_id, uint32_t& http_code) {
   http_code = 0;
@@ -1319,6 +1585,40 @@ bool nef_client::udr_delete_influence_data(
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
       resp.status_code == http_status_code::OK);
+}
+
+//------------------------------------------------------------------------------
+// Async variant of udr_delete_influence_data. Builds the same DELETE request
+// (same v2 URL) as the sync version, then issues a single non-blocking request.
+// The callback receives the raw UDR response and does NOT mutate nef_app state.
+void nef_client::udr_delete_influence_data_async(
+    const std::string& ti_id, oai::http::response_cb cb) {
+  std::string udr_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
+    Logger::nef_app().warn("UDR not found (async influence delete)");
+    oai::http::response err{};
+    err.status_code = 0;
+    cb(std::move(err));
+    return;
+  }
+  const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
+                          "v2/application-data/influenceData/" + ti_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::DELETE, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
+// Discovery-free variant of udr_delete_influence_data_async (§B.3). UDR base
+// endpoint supplied by the caller; performs NO discover_nf. v2 influence path.
+void nef_client::udr_delete_influence_data_at_async(
+    const std::string& udr_endpoint, const std::string& ti_id,
+    oai::http::response_cb cb) {
+  const std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
+                          "v2/application-data/influenceData/" + ti_id;
+  oai::http::request req = http_client_inst->prepare_json_request(url, "");
+  http_client_inst->send_http_request_async(
+      oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
 
 // NEF own callback URL (for southbound subscriptions)

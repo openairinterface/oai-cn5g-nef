@@ -1,0 +1,18 @@
+{
+  "afTransId":  "TI-TRANS-001",
+  "dnn":        "internet",
+  "snssai":     {"sst": 1, "sd": "000001"},
+  "notifUri":   "https://af.example.com/ti/notify",
+  "trafficFilters": [
+    {"flowId": 1, "flowDescriptions": ["permit out ip from any to assigned"]}
+  ],
+  "ethTrafficFilters": null,
+  "trafficRoutes": [
+    {"dnai": "edge-dnai-01", "routeInfo": {"ipv4Addr": "192.168.1.1", "portNumber": 5000}}
+  ],
+  "tempValidities": [
+    {"startTime": "2026-01-01T00:00:00Z", "stopTime": "2026-12-31T23:59:59Z"}
+  ],
+  "upPathChgSub": null,
+  "suppFeat": "0003"
+}

@@ -181,8 +181,14 @@ struct http2_server_config {
   size_t max_pending_tasks    = 10000;
 
   // When true: route request handling through the async dispatcher
-  // Default false (synchronous inline execution).
-  bool use_async_dispatch = false;
+  // Default true (P6 cutover, plan §E.3): handlers are split into entry/cont_*,
+  // so the dispatcher worker no longer parks on the SBI RTT.
+  bool use_async_dispatch = true;
+
+  // Optional override for the async dispatcher thread-pool size.
+  // 0 = auto: keep the default (num_worker_threads + 2). A positive value
+  // overrides the dispatcher pool size. Default 0 (auto / unchanged behavior).
+  uint32_t dispatcher_pool_size = 0;
 };
 
 // Server Class

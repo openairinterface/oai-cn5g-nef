@@ -1,0 +1,7 @@
+{
+  "notifUri": "https://af.example.com/bdt/notify/v2",
+  "suppFeat": null,
+  "bdtPolData": {
+    "selTransPolicyId": 1
+  }
+}

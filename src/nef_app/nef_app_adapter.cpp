@@ -6,6 +6,9 @@
 
 #include <nlohmann/json.hpp>
 
+#include <functional>
+#include <map>
+#include <string>
 #include <utility>
 
 #include <memory>
@@ -1426,6 +1429,63 @@ response_sink make_deferred_json_sink(
   };
 }
 
+// Wrap a move-only deferred response in a copyable response_sink that delivers
+// an EMPTY body with NO content-type header — the deferred mirror of the sync
+// dispatch_and_wait_empty shim (nef-http2-server.cpp:123-141, res.send(code,
+// headers, "")). Used by the DELETE-style handlers (#6,#10,#16,#19,#22,#24,#26)
+// whose 204/empty response carries no body. The continuation-supplied `body`
+// argument is intentionally discarded so a continuation that reuses the generic
+// sink contract still produces a bare status. (P1 shared infra; no handler is
+// wired to it in this phase — see plan §E.1a.)
+response_sink make_deferred_empty_sink(
+    std::shared_ptr<http2_deferred_response> dr) {
+  return [dr = std::move(dr)](int code, std::string /*body*/) mutable {
+    dr->send(code, {}, "");
+  };
+}
+
+// As make_deferred_empty_sink but carries a fixed header map (no content-type
+// unless the caller put one in `headers`). Mirrors dispatch_and_wait_empty's
+// header-carrying form (nef-http2-server.cpp:128-129) — used by BDT delete to
+// preserve the x-deprecated legacy-path header on the 204.
+response_sink make_deferred_empty_sink_h(
+    std::shared_ptr<http2_deferred_response> dr,
+    std::map<std::string, std::string> headers) {
+  return [dr = std::move(dr), headers = std::move(headers)](
+             int code, std::string /*body*/) mutable {
+    dr->send(code, headers, "");
+  };
+}
+
+// Wrap a move-only deferred response in a copyable response_sink for handlers
+// whose response headers — INCLUDING the per-branch content-type — depend on
+// the (status, body) produced. The deferred mirror of dispatch_and_wait_headers
+// (nef-http2-server.cpp:150-177). `header_fn` receives the status code and a
+// MUTABLE parsed JSON body (so it may rewrite fields such as a relative `self`
+// to an absolute URI, or pick application/json vs application/problem+json per
+// branch) and returns the COMPLETE header map; the body is re-serialized after
+// header_fn runs. header_fn OWNS all headers — this wrapper hard-codes none.
+// Used by BDT create (#11) Location, and is the generic form of the existing
+// hand-rolled QoS-create header sink (dispatch_qos_create_async, :1473-1494).
+// (P1 shared infra; handlers wire to it in P3 — see plan §E.1a / S1.)
+template<typename HeaderFn>
+response_sink make_deferred_header_sink(
+    std::shared_ptr<http2_deferred_response> dr, HeaderFn header_fn) {
+  return [dr = std::move(dr), header_fn = std::move(header_fn)](
+             int code, std::string body) mutable {
+    nlohmann::json resp_body;
+    if (!body.empty()) {
+      try {
+        resp_body = nlohmann::json::parse(body);
+      } catch (...) {
+        resp_body = nlohmann::json::object();
+      }
+    }
+    std::map<std::string, std::string> headers = header_fn(code, resp_body);
+    dr->send(code, headers, resp_body.dump());
+  };
+}
+
 // Send a 503 ProblemDetails through the deferred handle (used when the
 // dispatcher rejected the task — queue_full/stopped). Without this the handle
 // destructor would post a generic 500; an explicit 503 is more accurate for an
@@ -1451,7 +1511,8 @@ bool nef_app_adapter::dispatch_monitoring_event_subscribe_async(
     const auto st =
         m_dispatcher.dispatch([this, scs_as_id, body, t = std::move(token),
                                s = std::move(sink)]() mutable {
-          execute_monitoring_event_subscribe(scs_as_id, body, t, s);
+          // P2 true-async: fire-and-return; cont completes the deferred.
+          m_app->monitoring_event_subscribe(scs_as_id, body, t, std::move(s));
         });
     if (st != dispatch_status::ok) {
       send_deferred_503(*dr);
@@ -1459,7 +1520,7 @@ bool nef_app_adapter::dispatch_monitoring_event_subscribe_async(
     }
     return true;
   }
-  execute_monitoring_event_subscribe(scs_as_id, body, token, sink);
+  m_app->monitoring_event_subscribe(scs_as_id, body, token, std::move(sink));
   return true;
 }
 
@@ -1496,7 +1557,7 @@ bool nef_app_adapter::dispatch_qos_create_async(
     const auto st =
         m_dispatcher.dispatch([this, af_id, body, t = std::move(token),
                                s = std::move(sink)]() mutable {
-          execute_qos_create(af_id, body, t, s);
+          m_app->qos_create(af_id, body, t, std::move(s));
         });
     if (st != dispatch_status::ok) {
       send_deferred_503(*dr);
@@ -1504,7 +1565,7 @@ bool nef_app_adapter::dispatch_qos_create_async(
     }
     return true;
   }
-  execute_qos_create(af_id, body, token, sink);
+  m_app->qos_create(af_id, body, token, std::move(sink));
   return true;
 }
 
@@ -1517,7 +1578,7 @@ bool nef_app_adapter::dispatch_ti_create_async(
     const auto st =
         m_dispatcher.dispatch([this, af_id, body, t = std::move(token),
                                s = std::move(sink)]() mutable {
-          execute_ti_create(af_id, body, t, s);
+          m_app->ti_create(af_id, body, t, std::move(s));
         });
     if (st != dispatch_status::ok) {
       send_deferred_503(*dr);
@@ -1525,7 +1586,7 @@ bool nef_app_adapter::dispatch_ti_create_async(
     }
     return true;
   }
-  execute_ti_create(af_id, body, token, sink);
+  m_app->ti_create(af_id, body, token, std::move(sink));
   return true;
 }
 
@@ -1539,7 +1600,7 @@ bool nef_app_adapter::dispatch_ti_update_async(
     const auto st =
         m_dispatcher.dispatch([this, af_id, ti_id, body, t = std::move(token),
                                s = std::move(sink)]() mutable {
-          execute_ti_update(af_id, ti_id, body, t, s);
+          m_app->ti_update(af_id, ti_id, body, t, std::move(s));
         });
     if (st != dispatch_status::ok) {
       send_deferred_503(*dr);
@@ -1547,7 +1608,7 @@ bool nef_app_adapter::dispatch_ti_update_async(
     }
     return true;
   }
-  execute_ti_update(af_id, ti_id, body, token, sink);
+  m_app->ti_update(af_id, ti_id, body, token, std::move(sink));
   return true;
 }
 
@@ -1561,7 +1622,7 @@ bool nef_app_adapter::dispatch_ti_patch_async(
     const auto st = m_dispatcher.dispatch([this, af_id, ti_id, patch_body,
                                            t = std::move(token),
                                            s = std::move(sink)]() mutable {
-      execute_ti_patch(af_id, ti_id, patch_body, t, s);
+      m_app->ti_patch(af_id, ti_id, patch_body, t, std::move(s));
     });
     if (st != dispatch_status::ok) {
       send_deferred_503(*dr);
@@ -1569,7 +1630,7 @@ bool nef_app_adapter::dispatch_ti_patch_async(
     }
     return true;
   }
-  execute_ti_patch(af_id, ti_id, patch_body, token, sink);
+  m_app->ti_patch(af_id, ti_id, patch_body, token, std::move(sink));
   return true;
 }
 
@@ -1583,7 +1644,7 @@ bool nef_app_adapter::dispatch_pfd_app_put_async(
     const auto st = m_dispatcher.dispatch([this, scs_as_id, trans_id, app_id,
                                            body, t = std::move(token),
                                            s = std::move(sink)]() mutable {
-      execute_pfd_app_put(scs_as_id, trans_id, app_id, body, t, s);
+      m_app->pfd_app_put(scs_as_id, trans_id, app_id, body, t, std::move(s));
     });
     if (st != dispatch_status::ok) {
       send_deferred_503(*dr);
@@ -1591,7 +1652,480 @@ bool nef_app_adapter::dispatch_pfd_app_put_async(
     }
     return true;
   }
-  execute_pfd_app_put(scs_as_id, trans_id, app_id, body, token, sink);
+  m_app->pfd_app_put(scs_as_id, trans_id, app_id, body, token, std::move(sink));
+  return true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// P3 true-async dispatch — single-call Units 1-4 (15 handlers).
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Unit 1 ───────────────────────────────────────────────────────────────────
+bool nef_app_adapter::dispatch_monitoring_event_unsubscribe_async(
+    const std::string& scs_as_id, const std::string& sub_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch([this, scs_as_id, sub_id,
+                                           t = std::move(token),
+                                           s = std::move(sink)]() mutable {
+      m_app->monitoring_event_unsubscribe(scs_as_id, sub_id, t, std::move(s));
+    });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->monitoring_event_unsubscribe(
+      scs_as_id, sub_id, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_qos_update_async(
+    const std::string& af_id, const std::string& sub_id,
+    const nlohmann::json& body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, af_id, sub_id, body, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->qos_update(af_id, sub_id, body, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->qos_update(af_id, sub_id, body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_qos_patch_async(
+    const std::string& af_id, const std::string& sub_id,
+    const nlohmann::json& patch_body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch([this, af_id, sub_id, patch_body,
+                                           t = std::move(token),
+                                           s = std::move(sink)]() mutable {
+      m_app->qos_patch(af_id, sub_id, patch_body, t, std::move(s));
+    });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->qos_patch(af_id, sub_id, patch_body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_qos_delete_async(
+    const std::string& af_id, const std::string& sub_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, af_id, sub_id, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->qos_delete(af_id, sub_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->qos_delete(af_id, sub_id, token, std::move(sink));
+  return true;
+}
+
+// ── Unit 2 (BDT) ─────────────────────────────────────────────────────────────
+bool nef_app_adapter::dispatch_bdt_create_async(
+    const std::string& af_id, const nlohmann::json& body, std::string token,
+    bool deprecated, http2_deferred_response deferred) {
+  auto dr = std::make_shared<http2_deferred_response>(std::move(deferred));
+  // Header sink: content-type always application/json + the x-deprecated marker
+  // on legacy paths (mirrors handle_bdt_create's header_fn, server :1397-1402).
+  auto sink = make_deferred_header_sink(
+      dr, [deprecated](int /*code*/, nlohmann::json& /*resp_body*/) {
+        std::map<std::string, std::string> h;
+        h["content-type"] = "application/json";
+        if (deprecated) h["x-deprecated"] = "true";
+        return h;
+      });
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, af_id, body, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->bdt_create(af_id, body, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->bdt_create(af_id, body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_bdt_update_async(
+    const std::string& af_id, const std::string& bdt_id,
+    const nlohmann::json& body, std::string token, bool deprecated,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_header_sink(
+      dr, [deprecated](int /*code*/, nlohmann::json& /*resp_body*/) {
+        std::map<std::string, std::string> h;
+        h["content-type"] = "application/json";
+        if (deprecated) h["x-deprecated"] = "true";
+        return h;
+      });
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, af_id, bdt_id, body, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->bdt_update(af_id, bdt_id, body, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->bdt_update(af_id, bdt_id, body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_bdt_patch_async(
+    const std::string& af_id, const std::string& bdt_id,
+    const nlohmann::json& patch_body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch([this, af_id, bdt_id, patch_body,
+                                           t = std::move(token),
+                                           s = std::move(sink)]() mutable {
+      m_app->bdt_patch(af_id, bdt_id, patch_body, t, std::move(s));
+    });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->bdt_patch(af_id, bdt_id, patch_body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_bdt_delete_async(
+    const std::string& af_id, const std::string& bdt_id, std::string token,
+    bool deprecated, http2_deferred_response deferred) {
+  auto dr = std::make_shared<http2_deferred_response>(std::move(deferred));
+  std::map<std::string, std::string> headers;
+  if (deprecated) headers["x-deprecated"] = "true";
+  auto sink = make_deferred_empty_sink_h(dr, std::move(headers));
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, af_id, bdt_id, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->bdt_delete(af_id, bdt_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->bdt_delete(af_id, bdt_id, token, std::move(sink));
+  return true;
+}
+
+// ── Unit 3 (PFD T8) ──────────────────────────────────────────────────────────
+bool nef_app_adapter::dispatch_pfd_create_async(
+    const std::string& app_id, const nlohmann::json& body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, app_id, body, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->pfd_create(app_id, body, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->pfd_create(app_id, body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_pfd_delete_async(
+    const std::string& app_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch(
+        [this, app_id, t = std::move(token), s = std::move(sink)]() mutable {
+          m_app->pfd_delete(app_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->pfd_delete(app_id, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_pfd_get_async(
+    const std::string& app_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch(
+        [this, app_id, t = std::move(token), s = std::move(sink)]() mutable {
+          m_app->pfd_get(app_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->pfd_get(app_id, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_pfd_app_patch_async(
+    const std::string& scs_as_id, const std::string& trans_id,
+    const std::string& app_id, const nlohmann::json& patch_body,
+    std::string token, http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch([this, scs_as_id, trans_id, app_id,
+                                           patch_body, t = std::move(token),
+                                           s = std::move(sink)]() mutable {
+      m_app->pfd_app_patch(
+          scs_as_id, trans_id, app_id, patch_body, t, std::move(s));
+    });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->pfd_app_patch(
+      scs_as_id, trans_id, app_id, patch_body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_pfd_app_delete_async(
+    const std::string& scs_as_id, const std::string& trans_id,
+    const std::string& app_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch([this, scs_as_id, trans_id, app_id,
+                                           t = std::move(token),
+                                           s = std::move(sink)]() mutable {
+      m_app->pfd_app_delete(scs_as_id, trans_id, app_id, t, std::move(s));
+    });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->pfd_app_delete(scs_as_id, trans_id, app_id, token, std::move(sink));
+  return true;
+}
+
+// ── Unit 4 (Nnef-PFD) ────────────────────────────────────────────────────────
+bool nef_app_adapter::dispatch_nnef_pfd_put_app_async(
+    const std::string& trans_id, const std::string& app_id,
+    const nlohmann::json& body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch([this, trans_id, app_id, body,
+                                           t = std::move(token),
+                                           s = std::move(sink)]() mutable {
+      m_app->nnef_pfd_put_app(trans_id, app_id, body, t, std::move(s));
+    });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->nnef_pfd_put_app(trans_id, app_id, body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_nnef_pfd_delete_app_async(
+    const std::string& trans_id, const std::string& app_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, trans_id, app_id, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->nnef_pfd_delete_app(trans_id, app_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->nnef_pfd_delete_app(trans_id, app_id, token, std::move(sink));
+  return true;
+}
+
+// ── P4 — chained Unit 5 (6 handlers) ─────────────────────────────────────────
+bool nef_app_adapter::dispatch_pfd_transaction_put_async(
+    const std::string& scs_as_id, const std::string& trans_id,
+    const nlohmann::json& body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch([this, scs_as_id, trans_id, body,
+                                           t = std::move(token),
+                                           s = std::move(sink)]() mutable {
+      m_app->pfd_transaction_put(scs_as_id, trans_id, body, t, std::move(s));
+    });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->pfd_transaction_put(scs_as_id, trans_id, body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_pfd_transaction_delete_async(
+    const std::string& scs_as_id, const std::string& trans_id,
+    std::string token, http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, scs_as_id, trans_id, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->pfd_transaction_delete(scs_as_id, trans_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->pfd_transaction_delete(scs_as_id, trans_id, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_ti_delete_async(
+    const std::string& af_id, const std::string& ti_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, af_id, ti_id, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->ti_delete(af_id, ti_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->ti_delete(af_id, ti_id, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_nnef_pfd_put_transaction_async(
+    const std::string& trans_id, const nlohmann::json& body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st =
+        m_dispatcher.dispatch([this, trans_id, body, t = std::move(token),
+                               s = std::move(sink)]() mutable {
+          m_app->nnef_pfd_put_transaction(trans_id, body, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->nnef_pfd_put_transaction(trans_id, body, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_nnef_pfd_delete_transaction_async(
+    const std::string& trans_id, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_empty_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch(
+        [this, trans_id, t = std::move(token), s = std::move(sink)]() mutable {
+          m_app->nnef_pfd_delete_transaction(trans_id, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->nnef_pfd_delete_transaction(trans_id, token, std::move(sink));
+  return true;
+}
+
+bool nef_app_adapter::dispatch_nnef_pfd_partial_pull_async(
+    const nlohmann::json& body, std::string token,
+    http2_deferred_response deferred) {
+  auto dr   = std::make_shared<http2_deferred_response>(std::move(deferred));
+  auto sink = make_deferred_json_sink(dr);
+  if (m_async) {
+    const auto st = m_dispatcher.dispatch(
+        [this, body, t = std::move(token), s = std::move(sink)]() mutable {
+          m_app->nnef_pfd_partial_pull(body, t, std::move(s));
+        });
+    if (st != dispatch_status::ok) {
+      send_deferred_503(*dr);
+      return false;
+    }
+    return true;
+  }
+  m_app->nnef_pfd_partial_pull(body, token, std::move(sink));
   return true;
 }
 

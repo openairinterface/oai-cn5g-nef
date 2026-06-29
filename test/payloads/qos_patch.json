@@ -1,0 +1,7 @@
+{
+  "notifUri": "https://af.example.com/qos/notify/v2",
+  "ueIpv4Addr": null,
+  "usageThreshold": {
+    "duration": 7200
+  }
+}

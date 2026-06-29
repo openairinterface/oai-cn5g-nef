@@ -1,0 +1,20 @@
+{
+  "pfdDatas": {
+    "app-001": {
+      "externalAppId": "app-001",
+      "pfds": [
+        {"pfdId": "pfd-1", "urls": ["https://app001.example.com"]},
+        {"pfdId": "pfd-2", "domainNames": ["app001.example.com"]}
+      ],
+      "allowedDelay": 30,
+      "cachingTime":  300
+    },
+    "app-002": {
+      "externalAppId": "app-002",
+      "pfds": [
+        {"pfdId": "pfd-1", "urls": ["https://app002.example.com"]}
+      ],
+      "cachingTime": 600
+    }
+  }
+}

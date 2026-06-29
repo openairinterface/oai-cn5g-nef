@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -14,6 +15,8 @@ constexpr auto NEF_CONFIG_SUPPORT_FEATURES       = "support_features";
 constexpr auto NEF_CONFIG_SUPPORT_FEATURES_LABEL = "Support Features";
 constexpr auto NEF_CONFIG_AF_WHITELIST           = "af_whitelist";
 constexpr auto NEF_CONFIG_AF_WHITELIST_LABEL     = "AF Whitelist";
+constexpr auto NEF_CONFIG_USE_ASYNC_DISPATCH     = "use_async_dispatch";
+constexpr auto NEF_CONFIG_DISPATCHER_POOL_SIZE   = "dispatcher_pool_size";
 
 // YAML sub-keys for a whitelist entry
 constexpr auto NEF_CONFIG_AF_ID      = "af_id";
@@ -54,8 +57,17 @@ class nef_config_type : public oai::config::nf {
   // configured (fail-open).  DEFAULT false (fail-closed, safe).
   bool m_insecure_dev_mode{false};
   // When true: route NEF request handling through the async dispatcher/adapter
-  // DEFAULT false (synchronous inline execution).
-  bool m_use_async_dispatch{false};
+  // DEFAULT true (P6 cutover, plan §E.3): all 27 southbound handlers are split
+  // into entry/cont_*, so the dispatcher worker no longer parks on the SBI
+  // RTT and async dispatch is a strict win.
+  bool m_use_async_dispatch{true};
+  // Optional override for the async dispatcher thread-pool size.
+  // 0 = auto: the server keeps the default (http_workers + 2). A positive
+  // value overrides the pool size. DEFAULT 0 (auto / unchanged behavior).
+  // CAUTION (§E.4 / §G risk-8): the dispatcher pool is the de-facto
+  // concurrency limiter until an in-flight cap exists; do not shrink it below
+  // the auto default without that cap.
+  uint32_t m_dispatcher_pool_size{0};
 
  public:
   explicit nef_config_type(
@@ -101,6 +113,15 @@ class nef_config_type : public oai::config::nf {
    */
   [[nodiscard]] bool get_use_async_dispatch() const {
     return m_use_async_dispatch;
+  }
+
+  /**
+   * Returns the configured async dispatcher thread-pool size override.
+   * 0 means "auto": the server uses its default (http_workers + 2). A positive
+   * value overrides the pool size. Default: 0 (auto / unchanged behavior).
+   */
+  [[nodiscard]] uint32_t get_dispatcher_pool_size() const {
+    return m_dispatcher_pool_size;
   }
 };
 

@@ -1,0 +1,19 @@
+{
+  "afTransId":  "QOS-TRANS-001",
+  "dnn":        "internet",
+  "snssai":     {"sst": 1, "sd": "000001"},
+  "notifUri":   "https://af.example.com/qos/notify",
+  "qosReference": "QOS-REF-001",
+  "altQosReferences": ["QOS-REF-ALT-001"],
+  "ueIpv4Addr": "10.0.0.1",
+  "ipDomain":   "example.com",
+  "ueIpv6Prefix": null,
+  "macAddr":    null,
+  "usageThreshold": {
+    "duration": 3600,
+    "totalVolume": 1073741824,
+    "downlinkVolume": 536870912,
+    "uplinkVolume": 536870912
+  },
+  "suppFeat":   "0007"
+}

@@ -1,0 +1,10 @@
+{
+  "pfdDatas": {
+    "app-001": {
+      "pfds": [
+        {"pfdId": "pfd-1", "urls": ["https://app001-v2.example.com"]}
+      ],
+      "allowedDelay": null
+    }
+  }
+}
