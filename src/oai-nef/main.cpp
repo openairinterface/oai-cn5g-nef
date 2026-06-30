@@ -123,7 +123,6 @@ int main(int argc, char** argv) {
   // HTTP/2 — nghttp2
   http2_server_config cfg;
   cfg.num_worker_threads   = std::max(1U, std::thread::hardware_concurrency());
-  cfg.use_async_dispatch   = nef_config_inst->nef()->get_use_async_dispatch();
   cfg.dispatcher_pool_size = nef_config_inst->nef()->get_dispatcher_pool_size();
 
   nef_api_server_2 = new nef_http2_server(

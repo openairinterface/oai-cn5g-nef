@@ -11,9 +11,7 @@
 #include <string>
 #include <vector>
 
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
 #include <future>  // std::promise / std::future for the dispatch helper
-#endif
 
 #include "3gpp_29.500.h"
 #include "Helpers.h"
@@ -89,7 +87,6 @@ static std::string extract_bearer(const http2_request& req) {
   return auth.substr(kBearer.size());
 }
 
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
 //------------------------------------------------------------------------------
 // Dispatch helper (synchronous): creates a promise/future,
 // invokes dispatch_fn with a response sink that closes over the worker-local
@@ -175,7 +172,6 @@ static bool dispatch_and_wait_headers(
   fut.wait();
   return true;
 }
-#endif
 
 }  // namespace
 
@@ -184,21 +180,12 @@ static bool dispatch_and_wait_headers(
 void nef_http2_server::handle_ti_get(
     const std::string& af_id, const std::string& ti_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_ti_get(
             af_id, ti_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->handle_traffic_influence_get(af_id, ti_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -206,21 +193,12 @@ void nef_http2_server::handle_ti_get(
 void nef_http2_server::handle_ti_list(
     const std::string& af_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_ti_list(
             af_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->handle_traffic_influence_list(af_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -238,22 +216,12 @@ void nef_http2_server::handle_monitoring_event_update(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_monitoring_event_update(
             scs_as_id, sub_id, json_body, bearer_token, std::move(sink));
       },
       res);
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->handle_monitoring_event_subscription_update(
-      scs_as_id, sub_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -269,27 +237,9 @@ void nef_http2_server::handle_qos_update(
         res, http_status_code::BAD_REQUEST, "Bad Request", e.what());
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_qos_update_async(
       af_id, sub_id, json_body, bearer_token, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_qos_subscription_update(
-        af_id, sub_id, json_body, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    res.send(
-        http_code, {{"content-type", "application/json"}}, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -306,27 +256,9 @@ void nef_http2_server::handle_bdt_patch(
         res, http_status_code::BAD_REQUEST, "Bad Request", e.what());
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_bdt_patch_async(
       af_id, bdt_id, json_patch, bearer_token, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_bdt_policy_patch(
-        af_id, bdt_id, json_patch, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    res.send(
-        http_code, {{"content-type", "application/json"}}, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -343,21 +275,12 @@ void nef_http2_server::handle_analytics_fetch(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_analytics_fetch(
             af_id, json_body, bearer_token, std::move(sink));
       },
       res);
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->handle_analytics_fetch(af_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -381,73 +304,36 @@ void nef_http2_server::handle_nnef_event_exposure_subscribe(
     }
     return headers;
   };
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait_headers(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_event_exposure_subscribe(
             json_body, bearer_token, std::move(sink));
       },
       res, header_fn);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    m_nef_app->handle_nnef_event_exposure_subscribe(
-        json_body, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    std::map<std::string, std::string> headers =
-        header_fn(http_code, resp_body);
-    res.send(http_code, headers, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_event_exposure_unsubscribe(
     const std::string& subscription_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait_empty(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_event_exposure_unsubscribe(
             subscription_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->handle_nnef_event_exposure_unsubscribe(subscription_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {});
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_event_exposure_get(
     const std::string& subscription_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_event_exposure_get(
             subscription_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->handle_nnef_event_exposure_get(
-      subscription_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -462,30 +348,12 @@ void nef_http2_server::handle_nnef_event_exposure_update(
         res, http_status_code::BAD_REQUEST, "Bad Request", e.what());
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_event_exposure_update(
             subscription_id, json_body, bearer_token, std::move(sink));
       },
       res);
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_nnef_event_exposure_update(
-        subscription_id, json_body, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    res.send(
-        http_code, {{"content-type", "application/json"}}, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1069,7 +937,6 @@ void nef_http2_server::start() {
         res.send(http_code, {{"content-type", "application/json"}}, body);
       });
 
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Construct the dispatch adapter before serving. The dispatcher pool is sized
   // slightly larger than the HTTP worker pool so HTTP workers parked on
   // fut.wait() are not the bottleneck.
@@ -1085,9 +952,8 @@ void nef_http2_server::start() {
       srv_cfg.dispatcher_pool_size > 0 ?
           static_cast<std::size_t>(srv_cfg.dispatcher_pool_size) :
           http_workers + 2;
-  m_adapter = std::make_unique<nef_app_adapter>(
-      m_nef_app, srv_cfg.use_async_dispatch, disp_threads, http_workers);
-#endif
+  m_adapter =
+      std::make_unique<nef_app_adapter>(m_nef_app, disp_threads, http_workers);
 
   // Start the server (blocks until stop() is called)
   server_.start();
@@ -1112,10 +978,8 @@ void nef_http2_server::stop() {
   //   4. Join the HTTP worker pool last: happens inside server_.start() after
   //      the event loop exits (http2-server.cpp pool_.reset()), joined via
   //      nef_http2_manager.join() in main.cpp.
-  server_.stop();  // step 1: stop intake first
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
+  server_.stop();                    // step 1: stop intake first
   if (m_adapter) m_adapter->stop();  // step 2: drain + join dispatcher
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1140,63 +1004,33 @@ void nef_http2_server::handle_monitoring_event_subscribe(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response. Hand the work item to a deferred
   // handle and return immediately — no fut.wait(). The adapter delivers the
   // response (or a 503 on dispatch overflow / a 500 if the handle is dropped
   // unsent) back onto the event loop when the work completes.
   m_adapter->dispatch_monitoring_event_subscribe_async(
       scs_as_id, json_body, bearer_token, res.make_deferred());
-#else
-  std::string sub_id;
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_monitoring_event_subscription_create(
-      scs_as_id, json_body, sub_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_monitoring_event_unsubscribe(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_monitoring_event_unsubscribe_async(
       scs_as_id, sub_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_monitoring_event_subscription_delete(
-      scs_as_id, sub_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_monitoring_event_get(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_monitoring_event_get(
             scs_as_id, sub_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_monitoring_event_subscription_get(
-      scs_as_id, sub_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1211,28 +1045,9 @@ void nef_http2_server::handle_ti_create(
         res, http_status_code::BAD_REQUEST, "Bad Request", e.what());
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_ti_create_async(
       af_id, json_body, bearer_token, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    std::string ti_id;
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_traffic_influence_create(
-        af_id, json_body, ti_id, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    res.send(
-        http_code, {{"content-type", "application/json"}}, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1247,44 +1062,18 @@ void nef_http2_server::handle_ti_update(
         res, http_status_code::BAD_REQUEST, "Bad Request", e.what());
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_ti_update_async(
       af_id, ti_id, json_body, bearer_token, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_traffic_influence_update(
-        af_id, ti_id, json_body, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    res.send(
-        http_code, {{"content-type", "application/json"}}, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_ti_delete(
     const std::string& af_id, const std::string& ti_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_ti_delete_async(
       af_id, ti_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_traffic_influence_delete(af_id, ti_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1300,35 +1089,18 @@ void nef_http2_server::handle_pfd_create(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_pfd_create_async(
       app_id, json_body, bearer_token, res.make_deferred());
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_create(app_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_pfd_delete(
     const std::string& app_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_pfd_delete_async(
       app_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_delete(app_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1348,7 +1120,6 @@ void nef_http2_server::handle_nf_notify(
       return;
     }
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // The adapter maps nef_app's bool result to 204 (found) / 404 (not found);
   // the sink translates the 404 into a ProblemDetails body, every other status
   // is sent verbatim with an empty body.
@@ -1373,19 +1144,6 @@ void nef_http2_server::handle_nf_notify(
     return;
   }
   fut.wait();
-#else
-  // Delegate to nef_app which looks up nf_sub_id → af_sub_id and forwards
-  m_nef_app->set_request_bearer_token(bearer_token);
-  const bool found = m_nef_app->handle_nf_notification(nf_sub_id, json_body);
-  m_nef_app->clear_request_bearer_token();
-  if (!found) {
-    end_http2_error(
-        res, http_status_code::NOT_FOUND, "Not Found",
-        "No subscription found for notification id: " + nf_sub_id);
-    return;
-  }
-  res.send(http_status_code::NO_CONTENT, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1407,31 +1165,12 @@ void nef_http2_server::handle_bdt_create(
     if (deprecated) h["x-deprecated"] = "true";
     return h;
   };
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait(). The adapter's header
   // sink reproduces this shim's header_fn (content-type + x-deprecated).
   (void)
       header_fn;  // header logic lives in the adapter sink for the async path
   m_adapter->dispatch_bdt_create_async(
       af_id, json_body, bearer_token, deprecated, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    std::string bdt_id;
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_bdt_policy_create(
-        af_id, json_body, bdt_id, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    std::map<std::string, std::string> h = header_fn(http_code, resp_body);
-    res.send(http_code, h, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1453,30 +1192,12 @@ void nef_http2_server::handle_bdt_update(
     if (deprecated) h["x-deprecated"] = "true";
     return h;
   };
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait(). The adapter's header
   // sink reproduces this shim's header_fn (content-type + x-deprecated).
   (void)
       header_fn;  // header logic lives in the adapter sink for the async path
   m_adapter->dispatch_bdt_update_async(
       af_id, bdt_id, json_body, bearer_token, deprecated, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_bdt_policy_update(
-        af_id, bdt_id, json_body, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    std::map<std::string, std::string> h = header_fn(http_code, resp_body);
-    res.send(http_code, h, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1485,20 +1206,12 @@ void nef_http2_server::handle_bdt_delete(
     const std::string& bearer_token, http2_response& res, bool deprecated) {
   std::map<std::string, std::string> h;
   if (deprecated) h["x-deprecated"] = "true";
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait(). The adapter's empty
   // sink carries the x-deprecated header (derived from `deprecated`); `h` is
   // unused on the async path.
   (void) h;
   m_adapter->dispatch_bdt_delete_async(
       af_id, bdt_id, bearer_token, deprecated, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_bdt_policy_delete(af_id, bdt_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, h, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1511,26 +1224,12 @@ void nef_http2_server::handle_bdt_get(
     if (deprecated) h["x-deprecated"] = "true";
     return h;
   };
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait_headers(
       [&](response_sink sink) {
         return m_adapter->dispatch_bdt_get(
             af_id, bdt_id, bearer_token, std::move(sink));
       },
       res, header_fn);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  if (bdt_id.empty()) {
-    m_nef_app->handle_bdt_policy_list(af_id, resp_body, http_code);
-  } else {
-    m_nef_app->handle_bdt_policy_get(af_id, bdt_id, resp_body, http_code);
-  }
-  m_nef_app->clear_request_bearer_token();
-  std::map<std::string, std::string> h = header_fn(http_code, resp_body);
-  res.send(http_code, h, resp_body.dump());
-#endif
 }
 
 // QoS handlers
@@ -1551,82 +1250,30 @@ void nef_http2_server::handle_qos_create(
   // self field. (Async path: this header logic is applied inside the adapter's
   // dispatch_qos_create_async, fed the server address below.)
   const std::string address = m_address;
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_qos_create_async(
       af_id, json_body, bearer_token, address, res.make_deferred());
-#else
-  auto header_fn = [address](int http_code, nlohmann::json& resp_body) {
-    std::map<std::string, std::string> h;
-    h["content-type"] = "application/problem+json";
-    if (http_code == http_status_code::CREATED && resp_body.contains("self") &&
-        resp_body["self"].is_string()) {
-      const std::string loc = address + resp_body["self"].get<std::string>();
-      resp_body["self"]     = loc;
-      h["location"]         = loc;
-      h["content-type"]     = "application/json";
-    }
-    return h;
-  };
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    std::string sub_id;
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_qos_subscription_create(
-        af_id, json_body, sub_id, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    std::map<std::string, std::string> h = header_fn(http_code, resp_body);
-    res.send(http_code, h, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_qos_delete(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_qos_delete_async(
       af_id, sub_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_qos_subscription_delete(af_id, sub_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_qos_get(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_qos_get(
             af_id, sub_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  if (sub_id.empty()) {
-    m_nef_app->handle_qos_subscription_list(af_id, resp_body, http_code);
-  } else {
-    m_nef_app->handle_qos_subscription_get(af_id, sub_id, resp_body, http_code);
-  }
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 // Analytics handlers
@@ -1643,69 +1290,36 @@ void nef_http2_server::handle_analytics_create(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_analytics_create(
             af_id, json_body, bearer_token, std::move(sink));
       },
       res);
-#else
-  std::string sub_id;
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_analytics_subscription_create(
-      af_id, json_body, sub_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_analytics_delete(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait_empty(
       [&](response_sink sink) {
         return m_adapter->dispatch_analytics_delete(
             af_id, sub_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_analytics_subscription_delete(af_id, sub_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_analytics_get(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_analytics_get(
             af_id, sub_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  if (sub_id.empty()) {
-    m_nef_app->handle_analytics_subscription_list(af_id, resp_body, http_code);
-  } else {
-    m_nef_app->handle_analytics_subscription_get(
-        af_id, sub_id, resp_body, http_code);
-  }
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 // TI PATCH
@@ -1722,27 +1336,9 @@ void nef_http2_server::handle_ti_patch(
         res, http_status_code::BAD_REQUEST, "Bad Request", e.what());
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_ti_patch_async(
       af_id, ti_id, json_patch, bearer_token, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_traffic_influence_patch(
-        af_id, ti_id, json_patch, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    res.send(
-        http_code, {{"content-type", "application/json"}}, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 // QoS PATCH
@@ -1759,27 +1355,9 @@ void nef_http2_server::handle_qos_patch(
         res, http_status_code::BAD_REQUEST, "Bad Request", e.what());
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_qos_patch_async(
       af_id, sub_id, json_patch, bearer_token, res.make_deferred());
-#else
-  m_nef_app->set_request_bearer_token(bearer_token);
-  try {
-    nlohmann::json resp_body;
-    int http_code = http_status_code::NO_RESPONSE;
-    m_nef_app->handle_qos_subscription_patch(
-        af_id, sub_id, json_patch, resp_body, http_code);
-    m_nef_app->clear_request_bearer_token();
-    res.send(
-        http_code, {{"content-type", "application/json"}}, resp_body.dump());
-  } catch (const oai::_3gpp::model::helpers::ValidationException& e) {
-    m_nef_app->clear_request_bearer_token();
-    end_http2_error(
-        res, http_status_code::UNPROCESSABLE_ENTITY, "Unprocessable Entity",
-        e.what());
-  }
-#endif
 }
 
 // PFD transaction-level and app-level handlers
@@ -1787,21 +1365,12 @@ void nef_http2_server::handle_qos_patch(
 void nef_http2_server::handle_pfd_transaction_list(
     const std::string& scs_as_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_pfd_transaction_list(
             scs_as_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_transaction_list(scs_as_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1818,36 +1387,18 @@ void nef_http2_server::handle_pfd_transaction_put(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_pfd_transaction_put_async(
       scs_as_id, trans_id, json_body, bearer_token, res.make_deferred());
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_transaction_put(
-      scs_as_id, trans_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_pfd_transaction_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_pfd_transaction_delete_async(
       scs_as_id, trans_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_transaction_delete(scs_as_id, trans_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1855,22 +1406,12 @@ void nef_http2_server::handle_pfd_app_get(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_pfd_app_get(
             scs_as_id, trans_id, app_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_app_get(
-      scs_as_id, trans_id, app_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1887,20 +1428,10 @@ void nef_http2_server::handle_pfd_app_put(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_pfd_app_put_async(
       scs_as_id, trans_id, app_id, json_body, bearer_token,
       res.make_deferred());
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_app_put(
-      scs_as_id, trans_id, app_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1917,20 +1448,10 @@ void nef_http2_server::handle_pfd_app_patch(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_pfd_app_patch_async(
       scs_as_id, trans_id, app_id, json_patch, bearer_token,
       res.make_deferred());
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_app_patch(
-      scs_as_id, trans_id, app_id, json_patch, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1938,37 +1459,20 @@ void nef_http2_server::handle_pfd_app_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_pfd_app_delete_async(
       scs_as_id, trans_id, app_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_pfd_app_delete(scs_as_id, trans_id, app_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_list_transactions(
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_list_transactions(
             bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_list_transactions(resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1984,78 +1488,42 @@ void nef_http2_server::handle_nnef_pfd_put_transaction(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_nnef_pfd_put_transaction_async(
       trans_id, json_body, bearer_token, res.make_deferred());
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_put_transaction(
-      trans_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_get_transaction(
     const std::string& trans_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_get_transaction(
             trans_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_get_transaction(trans_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_delete_transaction(
     const std::string& trans_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_nnef_pfd_delete_transaction_async(
       trans_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_delete_transaction(trans_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_get_app(
     const std::string& trans_id, const std::string& app_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_get_app(
             trans_id, app_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_get_app(trans_id, app_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -2072,36 +1540,18 @@ void nef_http2_server::handle_nnef_pfd_put_app(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_nnef_pfd_put_app_async(
       trans_id, app_id, json_body, bearer_token, res.make_deferred());
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_put_app(
-      trans_id, app_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_delete_app(
     const std::string& trans_id, const std::string& app_id,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_nnef_pfd_delete_app_async(
       trans_id, app_id, bearer_token, res.make_deferred());
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_delete_app(trans_id, app_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }
 
 // Analytics UPDATE (PUT)
@@ -2119,22 +1569,12 @@ void nef_http2_server::handle_analytics_update(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_analytics_update(
             af_id, sub_id, json_body, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_analytics_subscription_update(
-      af_id, sub_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 // Nnef_PFDmanagement extra endpoints
@@ -2142,22 +1582,12 @@ void nef_http2_server::handle_analytics_update(
 void nef_http2_server::handle_nnef_pfd_get_applications(
     const std::vector<std::string>& app_ids_filter,
     const std::string& bearer_token, http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_get_applications(
             app_ids_filter, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_get_applications(
-      app_ids_filter, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -2170,18 +1600,9 @@ void nef_http2_server::handle_nnef_pfd_partial_pull(
   } catch (...) {
     json_body = {};
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   // Detached response — return immediately, no fut.wait().
   m_adapter->dispatch_nnef_pfd_partial_pull_async(
       json_body, bearer_token, res.make_deferred());
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_partial_pull(json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -2216,45 +1637,24 @@ void nef_http2_server::handle_nnef_pfd_subscription_create(
     }
     return h;
   };
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait_headers(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_subscription_create(
             json_body, bearer_token, std::move(sink));
       },
       res, header_fn);
-#else
-  nlohmann::json resp_body;
-  std::string sub_id;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_subscription_create(
-      json_body, sub_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  std::map<std::string, std::string> h = header_fn(http_code, resp_body);
-  res.send(http_code, h, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_subscription_get(
     const std::string& sub_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_subscription_get(
             sub_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_subscription_get(sub_id, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -2270,40 +1670,22 @@ void nef_http2_server::handle_nnef_pfd_subscription_put(
         "Missing or invalid request payload");
     return;
   }
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_subscription_put(
             sub_id, json_body, bearer_token, std::move(sink));
       },
       res);
-#else
-  nlohmann::json resp_body;
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_subscription_put(
-      sub_id, json_body, resp_body, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {{"content-type", "application/json"}}, resp_body.dump());
-#endif
 }
 
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_subscription_delete(
     const std::string& sub_id, const std::string& bearer_token,
     http2_response& res) {
-#ifndef NEF_DISABLE_ASYNC_DISPATCH
   dispatch_and_wait_empty(
       [&](response_sink sink) {
         return m_adapter->dispatch_nnef_pfd_subscription_delete(
             sub_id, bearer_token, std::move(sink));
       },
       res);
-#else
-  int http_code = http_status_code::NO_RESPONSE;
-  m_nef_app->set_request_bearer_token(bearer_token);
-  m_nef_app->handle_nnef_pfd_subscription_delete(sub_id, http_code);
-  m_nef_app->clear_request_bearer_token();
-  res.send(http_code, {}, "");
-#endif
 }

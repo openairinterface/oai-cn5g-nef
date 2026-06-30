@@ -166,7 +166,7 @@ stateDiagram-v2
 
 ## 6. Async Dispatch (nef_app_adapter)
 
-When `use_async_dispatch: true` is set in configuration, the HTTP/2 server routes requests through a bounded thread-pool dispatch queue instead of calling `nef_app` inline on the libevent worker thread. Two response delivery modes are available.
+The HTTP/2 server always routes NEF requests through a bounded thread-pool dispatch queue instead of calling `nef_app` inline on the libevent worker thread. Two response delivery modes are available.
 
 ### 6.1 Option A — Synchronous Handoff (blocking wait)
 
@@ -254,4 +254,4 @@ sequenceDiagram
 | `handle_pfd_app_put` | Option B (deferred) | UDR PFD data write |
 | `handle_ti_list` | Option A (sync wait) | Pure in-memory; no southbound call |
 
-Both modes share the same `nef_app_adapter` dispatch path and the same `nef_request_dispatcher` worker pool. Async dispatch is disabled by default (`use_async_dispatch: false`); when disabled the adapter calls `nef_app` inline on the HTTP worker thread, preserving legacy behavior.
+Both modes share the same `nef_app_adapter` dispatch path and the same `nef_request_dispatcher` worker pool. The legacy `use_async_dispatch: false` inline adapter mode was removed; stale configs that set it now fail during parsing.

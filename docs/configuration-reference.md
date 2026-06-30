@@ -248,13 +248,14 @@ nef:
 
 | Parameter Path | Type | Default | Description | Constraints |
 |---|---|---|---|---|
-| `nef.use_async_dispatch` | bool | `false` | When `true`, incoming API requests are routed through a bounded `nef_request_dispatcher` thread pool instead of being handled inline on the libevent HTTP worker thread. Enables Option B deferred responses for six high-latency southbound handlers (monitoring-event, QoS, traffic-influence create/update/patch, PFD app PUT). | `true` or `false` |
+| `nef.use_async_dispatch` | bool | `true` | Legacy compatibility key. NEF HTTP handlers always use the dispatcher/adapter path; omit the key or set it to `true`. | `false` is rejected during config parsing |
+| `nef.dispatcher_pool_size` | uint | `0` | Optional dispatcher worker pool size override. `0` keeps the automatic size (`http_workers + 2`). | `0` or a positive integer |
 
-> **Note:** This parameter is safe to add without recompiling. The dispatcher pool size defaults to `std::thread::hardware_concurrency()`. Set `use_async_dispatch: false` (or omit the parameter) to keep legacy in-line execution — the behavior is identical to previous releases.
+> **Note:** The compile-time `NEF_DISABLE_ASYNC_DISPATCH` and runtime inline `use_async_dispatch: false` modes were removed. Stale configs that set `use_async_dispatch: false` fail clearly instead of silently changing request execution.
 >
-> **Pool sizing:** If `use_async_dispatch: true` is set on a host with fewer than 4 logical CPUs, NEF logs a warning at startup: `"dispatcher pool undersize — consider at least 4 workers for production traffic"`. The warning is advisory; the pool still starts and all dispatched tasks will run.
+> **Pool sizing:** If the dispatcher pool has fewer workers than the HTTP pool, NEF logs a warning at startup. The warning is advisory; the pool still starts and all dispatched tasks will run.
 >
-> **Queue back-pressure:** If all dispatcher workers are busy and the internal task queue is full, NEF returns `503 Service Unavailable` to the caller immediately. This is intentional — it protects the dispatcher from unbounded memory growth under extreme load. Tune the pool size (via CPU allocation) or reduce upstream request rate if you see frequent 503s with this configuration.
+> **Queue back-pressure:** If all dispatcher workers are busy and the internal task queue is full, NEF returns `503 Service Unavailable` to the caller immediately. This is intentional — it protects the dispatcher from unbounded memory growth under extreme load. Tune `dispatcher_pool_size` or reduce upstream request rate if you see frequent 503s.
 
 See [Call Flows §6](call-flows.md#6-async-dispatch-nef_app_adapter) for sequence diagrams of both Option A and Option B delivery modes.
 

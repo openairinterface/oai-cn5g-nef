@@ -15,7 +15,6 @@ constexpr auto NEF_CONFIG_SUPPORT_FEATURES       = "support_features";
 constexpr auto NEF_CONFIG_SUPPORT_FEATURES_LABEL = "Support Features";
 constexpr auto NEF_CONFIG_AF_WHITELIST           = "af_whitelist";
 constexpr auto NEF_CONFIG_AF_WHITELIST_LABEL     = "AF Whitelist";
-constexpr auto NEF_CONFIG_USE_ASYNC_DISPATCH     = "use_async_dispatch";
 constexpr auto NEF_CONFIG_DISPATCHER_POOL_SIZE   = "dispatcher_pool_size";
 
 // YAML sub-keys for a whitelist entry
@@ -56,11 +55,6 @@ class nef_config_type : public oai::config::nf {
   // When true: allow requests even when no JWT secret and no whitelist are
   // configured (fail-open).  DEFAULT false (fail-closed, safe).
   bool m_insecure_dev_mode{false};
-  // When true: route NEF request handling through the async dispatcher/adapter
-  // DEFAULT true (P6 cutover, plan §E.3): all 27 southbound handlers are split
-  // into entry/cont_*, so the dispatcher worker no longer parks on the SBI
-  // RTT and async dispatch is a strict win.
-  bool m_use_async_dispatch{true};
   // Optional override for the async dispatcher thread-pool size.
   // 0 = auto: the server keeps the default (http_workers + 2). A positive
   // value overrides the pool size. DEFAULT 0 (auto / unchanged behavior).
@@ -104,15 +98,6 @@ class nef_config_type : public oai::config::nf {
    */
   [[nodiscard]] bool get_insecure_dev_mode() const {
     return m_insecure_dev_mode;
-  }
-
-  /**
-   * Returns true when async request dispatch is explicitly enabled in config.
-   * When true the NEF routes request handling through the async dispatcher.
-   * Default: false (synchronous inline execution).
-   */
-  [[nodiscard]] bool get_use_async_dispatch() const {
-    return m_use_async_dispatch;
   }
 
   /**

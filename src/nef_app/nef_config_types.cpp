@@ -7,6 +7,8 @@
 #include "logger.hpp"
 #include "nef_config.hpp"
 
+#include <stdexcept>
+
 using namespace oai::config::nef;
 
 //------------------------------------------------------------------------------
@@ -70,13 +72,6 @@ void nef_config_type::from_yaml(const YAML::Node& node) {
       }
     }
 
-    // Mirror the from_json parse (default unchanged): route request handling
-    // through the async dispatcher only when explicitly enabled. Without this
-    // key YAML-loaded configs keep the m_use_async_dispatch default.
-    if (key == NEF_CONFIG_USE_ASYNC_DISPATCH && elem.second.IsScalar()) {
-      m_use_async_dispatch = elem.second.as<bool>(m_use_async_dispatch);
-    }
-
     // Optional dispatcher thread-pool size override (§E.4). Absent/0 keeps the
     // auto default (http_workers + 2) computed at the server. A positive value
     // overrides it.
@@ -131,11 +126,6 @@ bool nef_config_type::from_json(const nlohmann::json& json_data) {
         }
         if (!entry.af_id.empty()) m_af_whitelist.push_back(std::move(entry));
       }
-    }
-
-    if (json_data.contains("use_async_dispatch") &&
-        json_data["use_async_dispatch"].is_boolean()) {
-      m_use_async_dispatch = json_data["use_async_dispatch"].get<bool>();
     }
 
     // Optional dispatcher thread-pool size override (§E.4). Absent/0 keeps the

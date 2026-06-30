@@ -111,7 +111,7 @@ curl -s --http2-prior-knowledge \
 
 ### Bearer Token Cross-Thread Safety {#bearer-token-cross-thread-safety}
 
-NEF stores the bearer token for an in-progress request in a `thread_local` variable (`g_request_bearer_token` in `nef_app.cpp`). When `use_async_dispatch: true` is set, the HTTP worker thread that extracts the token and the dispatcher worker thread that calls `nef_app` are **different threads** — the `thread_local` on the HTTP worker is invisible to the dispatcher worker.
+NEF stores the bearer token for an in-progress request in a `thread_local` variable (`g_request_bearer_token` in `nef_app.cpp`). Because NEF request handlers always use the dispatcher/adapter path, the HTTP worker thread that extracts the token and the dispatcher worker thread that calls `nef_app` are **different threads** — the `thread_local` on the HTTP worker is invisible to the dispatcher worker.
 
 `nef_app_adapter` handles this correctly:
 

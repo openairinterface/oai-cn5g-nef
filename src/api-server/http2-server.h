@@ -2,11 +2,6 @@
  * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
-/*! \file http2-server.h
- \brief Generic HTTP/2 server wrapper using nghttp2 C API + libevent.
-        Targets nghttp2 v1.68.1 (uses v2 API functions).
- */
-
 #ifndef FILE_HTTP2_SERVER_SEEN
 #define FILE_HTTP2_SERVER_SEEN
 
@@ -179,11 +174,6 @@ struct http2_server_config {
   // Thread pool (0 = synchronous/event-loop-only mode)
   uint32_t num_worker_threads = 4;
   size_t max_pending_tasks    = 10000;
-
-  // When true: route request handling through the async dispatcher
-  // Default true (P6 cutover, plan §E.3): handlers are split into entry/cont_*,
-  // so the dispatcher worker no longer parks on the SBI RTT.
-  bool use_async_dispatch = true;
 
   // Optional override for the async dispatcher thread-pool size.
   // 0 = auto: keep the default (num_worker_threads + 2). A positive value

@@ -20,6 +20,16 @@ option(NEF_BUILD_STALE_TESTS
   "Build the pre-existing tests that don't yet compile against current source"
   OFF)
 
+# ---- nef_async_dispatch_static_guard ----------------------------------------
+# Static guard for the async-only NEF request path. This avoids linking the
+# monolithic NEF binary while still catching reintroduced macro fallbacks, direct
+# request-path nef_app calls, and adapter inline mode.
+add_test(
+  NAME nef_async_dispatch_static_guard
+  COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/nef_async_dispatch_static_guard.sh
+          ${SRC_TOP_DIR}
+)
+
 # ---- nef_merge_patch_test (STALE) -------------------------------------------
 if(NEF_BUILD_STALE_TESTS)
 add_executable(nef_merge_patch_test

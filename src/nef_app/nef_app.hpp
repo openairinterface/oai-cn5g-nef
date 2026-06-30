@@ -162,8 +162,8 @@ class nef_app {
   // True-async handler split (plan 20260625-nef-true-async-all-apis, §A).
   //
   // Each in-scope sync handler above is mirrored by an entry/cont_* pair:
-  //   * <op>()    runs on the DISPATCHER worker (or inline on the HTTP worker
-  //               when async dispatch is off). It does ALL token-dependent work
+  //   * <op>()    runs on the DISPATCHER worker. It does ALL token-dependent
+  //   work
   //               (authorize/validate/local-store), captures the state the
   //               continuation needs BY VALUE, FIRES the async southbound call,
   //               and RETURNS — never parked on the SBI round-trip.
@@ -173,8 +173,8 @@ class nef_app {
   //               POLICY, builds the SAME (status, body) the sync handler did,
   //               and completes the deferred via the response_sink.
   //
-  // The legacy sync handle_* methods above stay intact (they back the
-  // #else NEF_DISABLE_ASYNC_DISPATCH path and the direct-call unit tests).
+  // The legacy sync handle_* methods above stay intact; adapter execute paths
+  // and direct-call unit tests still use them while true async coverage grows.
   // P2 = the 6 proving-ground handlers (#1,#3,#4,#5,#7,#20).
 
   // #1 monitoring create — single, FATAL-502.

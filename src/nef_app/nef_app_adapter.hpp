@@ -22,30 +22,23 @@ namespace oai::nef::app {
 
 // Typed dispatch facade between the HTTP/2 server and nef_app.
 //
-// This is the ONLY class with direct nef_app access from the request path:
-// every m_nef_app->handle_*, set_request_bearer_token,
-// clear_request_bearer_token call that used to live in nef-http2-server.cpp
-// moves here. nef-http2-server.cpp must NOT include nef_app.hpp or hold a
-// nef_app* for the request path after migration.
+// This is the ONLY class with direct nef_app access from the request path.
+// nef-http2-server may still keep a nef_app* for non-request health/metadata
+// uses, but route handlers must dispatch through this adapter rather than
+// calling nef_app handlers or token APIs directly.
 //
-// Two runtime modes (selected by the `async` ctor argument):
-//   - async == true  : each dispatch_* enqueues its execute_* on the dispatcher
-//                       worker pool (non-blocking; may return
-//                       queue_full/stopped).
-//   - async == false : each dispatch_* runs its execute_* synchronously on the
-//                       calling (HTTP worker) thread, always returning ok.
-//
-// In both modes the bearer-token set/call/clear discipline is performed exactly
-// once, in execute_with_token(), so neither mode leaks token state across
-// threads.
+// Every dispatch_* call enqueues its execute_* work on the dispatcher worker
+// pool (non-blocking; may return queue_full/stopped). The bearer-token
+// set/call/clear discipline is performed exactly once in execute_with_token(),
+// so token state does not leak across dispatcher tasks.
 class nef_app_adapter {
  public:
   using dispatch_status = nef_request_dispatcher::dispatch_status;
 
   // app must outlive this adapter.
   nef_app_adapter(
-      nef_app* app, bool async, std::size_t n_threads,
-      std::size_t http_worker_count, std::size_t max_queue = 10000);
+      nef_app* app, std::size_t n_threads, std::size_t http_worker_count,
+      std::size_t max_queue = 10000);
   ~nef_app_adapter() { stop(); }
 
   nef_app_adapter(const nef_app_adapter&) = delete;
@@ -228,11 +221,9 @@ class nef_app_adapter {
   // result through the moved-in http2_deferred_response (which posts the
   // response back onto the libevent loop). The HTTP worker thread returns
   // immediately after dispatch — no fut.wait(). Returns false if the dispatch
-  // was rejected (queue_full/stopped); in that case the deferred handle's
-  // destructor posts a 500, so the caller need not (but may) emit its own
-  // error. These are async-only: there is no synchronous fallback — when the
-  // adapter is constructed with async==false they run execute_* inline on the
-  // calling thread and still deliver through the deferred handle.
+  // was rejected (queue_full/stopped); the adapter sends an explicit 503
+  // through the deferred handle in that case so clients do not receive the
+  // deferred handle's generic fallback 500.
   //
   // NOTE: these run the existing synchronous nef_app handler on a dispatcher
   // worker; the southbound HTTP call inside nef_app is still blocking for that
@@ -265,8 +256,7 @@ class nef_app_adapter {
   // ── P3 true-async dispatch (single-call Units 1-4, 15 handlers) ──────────
   // Same contract as the P2 dispatch_*_async above: build the correct sink
   // (json / empty / header per §E.1a), enqueue the entry method on the
-  // dispatcher worker (or run inline when async==false), 503 on dispatch
-  // reject. Unit 1
+  // dispatcher worker, 503 on dispatch reject. Unit 1
   bool dispatch_monitoring_event_unsubscribe_async(
       const std::string& scs_as_id, const std::string& sub_id,
       std::string token, http2_deferred_response deferred);
@@ -354,13 +344,11 @@ class nef_app_adapter {
 
  private:
   nef_app* m_app;  // non-owning; lifetime >= adapter lifetime
-  bool m_async;
-  nef_request_dispatcher m_dispatcher;  // used only when m_async == true
+  nef_request_dispatcher m_dispatcher;
 
   // Shared token discipline — called by every execute_* method.
-  // Sets token, calls fn(*m_app), clears token (unconditionally if fn does not
-  // throw; the execute_* methods that can throw catch internally and still pass
-  // through this template so the clear runs on the normal path).
+  // Sets token, calls fn(*m_app), and clears token through a local RAII guard
+  // even if fn throws.
   //
   // Defined in nef_app_adapter.cpp (after nef_app.hpp is included) so the body
   // sees the complete nef_app type. It is only ever instantiated by the
@@ -368,9 +356,6 @@ class nef_app_adapter {
   // definition is sufficient (no other TU instantiates it).
   template<typename Fn>
   void execute_with_token(const std::string& token, Fn&& fn);
-
-  // ── One execute_* method per handler. Always run on a dispatcher worker
-  //    (async) or on the calling HTTP worker (sync). They call nef_app. ──────
 
   // Traffic Influence
   void execute_ti_get(
