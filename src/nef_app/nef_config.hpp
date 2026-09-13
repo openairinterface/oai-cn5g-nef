@@ -2,92 +2,60 @@
  * SPDX-License-Identifier: LicenseRef-CSSL-1.0
  */
 
-#ifndef FILE_NEF_CONFIG_HPP_SEEN
-#define FILE_NEF_CONFIG_HPP_SEEN
+#pragma once
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
+#include "config.hpp"
+#include "nef_config_types.hpp"
 
-#include <libconfig.h++>
-#include <mutex>
-#include <vector>
+namespace oai::config::nef {
 
-#define NEF_CONFIG_STRING_NEF_CONFIG "NEF"
-#define NEF_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
-#define NEF_CONFIG_STRING_INSTANCE "INSTANCE"
-#define NEF_CONFIG_STRING_INTERFACE_SBI "SBI_INTERFACE"
-#define NEF_CONFIG_STRING_INTERFACE_NAME "INTERFACE_NAME"
-#define NEF_CONFIG_STRING_IPV4_ADDRESS "IPV4_ADDRESS"
-#define NEF_CONFIG_STRING_PORT "PORT"
-#define NEF_CONFIG_STRING_SBI_HTTP2_PORT "HTTP2_PORT"
-#define NEF_CONFIG_STRING_API_VERSION "API_VERSION"
-#define NEF_CONFIG_STRING_FQDN_DNS "FQDN"
-
-#define NEF_CONFIG_STRING_AMF "AMF"
-#define NEF_CONFIG_STRING_SMF "SMF"
-#define NEF_CONFIG_STRING_UDM "UDM"
-
-#define NEF_CONFIG_STRING_SUPPORT_FEATURES "SUPPORT_FEATURES"
-#define NEF_CONFIG_STRING_SUPPORT_FEATURES_USE_FQDN_DNS "USE_FQDN_DNS"
-#define NEF_CONFIG_STRING_SUPPORT_FEATURES_USE_HTTP2 "USE_HTTP2"
-
-namespace oai::nef::app {
-using namespace libconfig;
-typedef struct interface_cfg_s {
-  std::string if_name;
-  struct in_addr addr4;
-  struct in_addr network4;
-  struct in6_addr addr6;
-  unsigned int mtu;
-  unsigned int port;
-  unsigned int http2_port;
-  std::string api_version;
-} interface_cfg_t;
-
-typedef struct nf_addr_s {
-  struct in_addr ipv4_addr;
-  unsigned int port;
-  unsigned int http2_port;
-  std::string api_version;
-  std::string fqdn;
-} nf_addr_t;
-
-class nef_config {
- private:
-  int load_interface(const libconfig::Setting& if_cfg, interface_cfg_t& cfg);
-  void load_nf_info(const Setting& nf_cfg, nf_addr_t& nf_addr);
-
+class nef_config : public oai::config::config {
  public:
-  /* Reader/writer lock for this configuration */
-  std::mutex m_rw_lock;
-  std::string pid_dir;
   unsigned int instance = 0;
 
-  interface_cfg_t sbi;
-  nf_addr_t amf_addr;
-  nf_addr_t smf_addr;
-  nf_addr_t udm_addr;
+  explicit nef_config(
+      const std::string& config_path, bool log_stdout, bool log_rot_file)
+      : config(config_path, NEF_CONFIG_NAME, log_stdout, log_rot_file) {
+    m_used_config_values = {LOG_LEVEL_CONFIG_NAME, REGISTER_NF_CONFIG_NAME,
+                            NF_LIST_CONFIG_NAME,   NF_CONFIG_HTTP_NAME,
+                            NEF_CONFIG_NAME,       NRF_CONFIG_NAME};
+    m_used_sbi_values    = {NEF_CONFIG_NAME, NRF_CONFIG_NAME, AMF_CONFIG_NAME,
+                         SMF_CONFIG_NAME, PCF_CONFIG_NAME, UDR_CONFIG_NAME};
 
-  struct {
-    bool use_fqdn_dns;
-    bool use_http2;
-  } support_features;
+    auto m_nef = std::make_shared<nef_config_type>(
+        NEF_CONFIG_NAME, "oai-nef",
+        sbi_interface("SBI", "oai-nef", 80, "v1", "eth0"));
+    add_nf(NEF_CONFIG_NAME, m_nef);
 
-  nef_config();
-  virtual ~nef_config();
-  void lock() { m_rw_lock.lock(); };
-  void unlock() { m_rw_lock.unlock(); };
-  int load(const std::string& config_file);
-  void display();
+    auto m_nrf = std::make_shared<nf>(
+        NRF_CONFIG_NAME, "oai-nrf",
+        sbi_interface("SBI", "oai-nrf", 80, "v1", "eth0"));
+    add_nf(NRF_CONFIG_NAME, m_nrf);
 
-  std::string get_event_exposure_url();
-  std::string get_event_exposure_subscription_url();
-  // NEF endpoint which will be use to receive the notification (change) from
-  // AMF/SMF
-  std::string get_event_exposure_subscription_notify_url();
-  std::string get_amf_event_exposure_url();
+    auto m_amf = std::make_shared<nf>(
+        AMF_CONFIG_NAME, "oai-pcf",
+        sbi_interface("SBI", "oai-pcf", 80, "v1", "eth0"));
+    add_nf(AMF_CONFIG_NAME, m_amf);
+
+    auto m_smf = std::make_shared<nf>(
+        SMF_CONFIG_NAME, "oai-pcf",
+        sbi_interface("SBI", "oai-pcf", 80, "v1", "eth0"));
+    add_nf(SMF_CONFIG_NAME, m_smf);
+
+    auto m_pcf = std::make_shared<nf>(
+        PCF_CONFIG_NAME, "oai-pcf",
+        sbi_interface("SBI", "oai-pcf", 80, "v1", "eth0"));
+    add_nf(PCF_CONFIG_NAME, m_pcf);
+
+    auto m_udr = std::make_shared<nf>(
+        UDR_CONFIG_NAME, "oai-udr",
+        sbi_interface("SBI", "oai-udr", 80, "v1", "eth0"));
+    add_nf(UDR_CONFIG_NAME, m_udr);
+  }
+
+  std::shared_ptr<nef_config_type> nef() const {
+    return std::static_pointer_cast<nef_config_type>(get_local());
+  }
 };
 
-}  // namespace oai::nef::app
-#endif /* FILE_NEF_CONFIG_HPP_SEEN */
+}  // namespace oai::config::nef

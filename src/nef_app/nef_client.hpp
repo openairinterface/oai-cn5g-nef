@@ -5,147 +5,219 @@
 #ifndef FILE_NEF_CLIENT_HPP_SEEN
 #define FILE_NEF_CLIENT_HPP_SEEN
 
-#include <curl/curl.h>
-
-#include <boost/thread.hpp>
-#include <boost/thread/future.hpp>
-#include <map>
+#include <cstdint>
 #include <nlohmann/json.hpp>
-#include <shared_mutex>
-#include <thread>
+#include <string>
 #include <vector>
 
-#include "uint_generator.hpp"
+#include "http_client.hpp"
+#include "nef.h"
 
-namespace oai::nef::app {
+namespace oai {
+namespace nef {
+namespace app {
 
+/**
+ * HTTP/SBI client used by NEF for:
+ *  1. NRF registration / heartbeat / de-registration.
+ *  2. NF discovery via NRF (with config-based fallback).
+ *  3. Southbound subscriptions to AMF/SMF/PCF/UDR.
+ *  4. Forwarding notifications to AFs.
+ *
+ * Most calls come in three flavours. The plain one blocks. The *_async one
+ * builds the identical request and issues it without blocking: the callback
+ * gets the raw response and never touches nef_app state, so parsing is the
+ * caller's job, and a target that cannot be discovered shows up as
+ * status_code 0. The *_at_async one takes an endpoint the caller already
+ * resolved and skips discovery entirely, which is what makes it safe to call
+ * from an oai-http-io continuation without deadlocking the io pool.
+ * Only departures from that pattern are noted below.
+ */
 class nef_client {
- private:
-  CURLM* curl_multi;
-  std::vector<CURL*> handles;
-  struct curl_slist* headers;
-
-  mutable std::shared_mutex m_curl_handle_promises;
-  std::map<uint32_t, boost::shared_ptr<boost::promise<uint32_t>>>
-      curl_handle_promises;
-
  public:
-  //  nef_client(nef_event& ev);
   nef_client();
   virtual ~nef_client();
 
   nef_client(nef_client const&) = delete;
   void operator=(nef_client const&) = delete;
 
-  /*
-   * Create Curl handle for multi curl
-   * @param [const std::string &] uri: URI of the subscribed NF
-   * @param [std::string &] response_data: response data
-   * @param [uint32_t* ] promise_id: pointer to the promise id
-   * @param [const std::string&] method: HTTP method
-   * @return true if a handle was created successfully, otherwise return false
-   */
-  bool curl_create_handle(
-      const std::string& uri, const std::string& data,
-      std::string& response_data, std::string& header_data,
-      uint32_t* promise_id, const std::string& method,
-      uint8_t http_version = 1);
+  // NRF registration
+  bool register_to_nrf();
+  bool deregister_from_nrf();
+  bool send_heartbeat_to_nrf();
 
-  /*
-   * Perform curl multi to actually process the available data
-   * @param [uint64_t ms] ms: current time
-   * @return void
-   */
-  void perform_curl_multi(uint64_t ms);
+  // NF discovery
+  bool discover_nf(nf_type_t nf_type, std::string& nf_endpoint);
 
-  /*
-   * Release all the handles
-   * @param void
-   * @return void
-   */
-  void curl_release_handles();
+  // Resolvable without a network call (static config or discovery cache)? The
+  // callback fires synchronously with a synthetic 200 whose body is a
+  // single-instance SearchResult. Otherwise the NRF is queried and its
+  // SearchResult is passed through as-is.
+  void discover_nf_async(nf_type_t nf_type, oai::sba::response_cb cb);
 
-  /*
-   * Wait for the promise ready
-   * @param [boost::shared_future<uint32_t>&] f: future
-   * @return future value
-   */
-  uint32_t get_available_response(boost::shared_future<uint32_t>& f);
+  // AMF — event-exposure subscription
+  bool subscribe_amf_event_exposure(
+      const nlohmann::json& subscription_data, std::string& amf_sub_id);
 
-  /*
-   * Store the promise
-   * @param [uint32_t] pid: promise id
-   * @param [boost::shared_ptr<boost::promise<uint32_t>>&] p: promise
-   * @return void
-   */
-  void add_promise(
-      uint32_t pid, boost::shared_ptr<boost::promise<uint32_t>>& p);
+  void subscribe_amf_event_exposure_async(
+      const nlohmann::json& subscription_data, oai::sba::response_cb cb);
 
-  /*
-   * Remove the promise
-   * @param [uint32_t] pid: promise id
-   * @return void
-   */
-  void remove_promise(uint32_t id);
+  bool unsubscribe_amf_event_exposure(const std::string& amf_sub_id);
 
-  /*
-   * Set the value of the promise to make it ready
-   * @param [uint32_t] pid: promise id
-   * @param [uint32_t ] http_code: http response code
-   * @return void
-   */
-  void trigger_process_response(uint32_t pid, uint32_t http_code);
+  void unsubscribe_amf_event_exposure_async(
+      const std::string& amf_sub_id, oai::sba::response_cb cb);
 
-  /*
-   * Generate an unique value for promise id
-   * @param void
-   * @return generated promise id
-   */
-  static uint64_t generate_promise_id() {
-    return util::uint_uid_generator<uint64_t>::get_instance().get_uid();
-  }
+  // SMF — event-exposure subscription
+  // The caller supplies a fully-formed NsmfEventExposure body; this injects
+  // the NEF-chosen correlation id and inbound notification URI before POSTing.
+  bool subscribe_smf_event_exposure(
+      const nlohmann::json& smf_body, const std::string& notif_id,
+      const std::string& notif_uri, std::string& smf_sub_id);
 
-  /*
-   * Get header location from the response from NFs
-   * @param [const std::string&] header_data: HTTP header
-   * @return header location
-   */
-  std::string get_header_location(const std::string& header_data);
+  void subscribe_smf_event_exposure_async(
+      const nlohmann::json& smf_body, const std::string& notif_id,
+      const std::string& notif_uri, oai::sba::response_cb cb);
 
-  /*
-   * Send a request to subscribe to Event Exposure service from a NF
-   * @param [const nlohmann::json&] json_body: Request body
-   * @param [const std::string &] nf_uri: URI of the subscribed NF
-   * @param [std::string &] response_data: response data
-   * @param [std::string&] location: Store the location of created resource for
-   * this Sub
-   * @param [int&] http_code: HTTP response code
-   * @return void
-   */
-  void send_event_exposure_subscribe(
-      const nlohmann::json& json_body, const std::string& uri,
-      std::string& response_data, std::string& location, int& http_code);
+  bool unsubscribe_smf_event_exposure(const std::string& smf_sub_id);
 
-  /*
-   * Send a request to unsubscribe to Event Exposure service from a NF
-   * @param [const std::string &] resource_location: URI of the resource
-   * location (subscription)
-   * @param [std::string &] response_data: response data
-   * @param [int&] http_code: HTTP response code
-   * @return void
-   */
-  void send_event_exposure_unsubscribe(
-      const std::string& resource_location, std::string& response_data,
-      int& http_code);
+  void unsubscribe_smf_event_exposure_async(
+      const std::string& smf_sub_id, oai::sba::response_cb cb);
 
-  /*
-   * Send an Event Exposure Notification data to the subscribed NF
-   * @param [const nlohmann::json&] json_body: message body
-   * @param [const std::string &] nf_uri: URI of the subscribed NF
-   * @return void
-   */
-  void send_event_exposure_notify(
-      const nlohmann::json& json_body, const std::string& uri);
+  // Full-replace an existing SMF subscription (notifId/notifUri already
+  // embedded by the caller). Nsmf_EventExposure has no PATCH, so PUT is the
+  // conformant southbound update for both T8 PUT and T8 PATCH.
+  bool update_smf_event_exposure(
+      const std::string& smf_sub_id, const nlohmann::json& smf_body);
+
+  // PCF — policy-authorization / BDT-policy
+  bool create_pcf_policy_auth(
+      const nlohmann::json& request_body, std::string& app_session_id,
+      uint32_t& http_code);
+
+  void create_pcf_policy_auth_async(
+      const nlohmann::json& request_body, oai::sba::response_cb cb);
+
+  void create_pcf_policy_auth_at_async(
+      const std::string& pcf_endpoint, const nlohmann::json& request_body,
+      oai::sba::response_cb cb);
+
+  bool update_pcf_policy_auth(
+      const std::string& app_session_id, const nlohmann::json& request_body,
+      uint32_t& http_code);
+
+  void update_pcf_policy_auth_async(
+      const std::string& app_session_id, const nlohmann::json& request_body,
+      oai::sba::response_cb cb);
+
+  bool delete_pcf_policy_auth(
+      const std::string& app_session_id, uint32_t& http_code);
+
+  void delete_pcf_policy_auth_async(
+      const std::string& app_session_id, oai::sba::response_cb cb);
+
+  void delete_pcf_policy_auth_at_async(
+      const std::string& pcf_endpoint, const std::string& app_session_id,
+      oai::sba::response_cb cb);
+
+  // PUT /npcf-policyauthorization/v1/app-sessions/{id}/events-subscription
+  bool subscribe_pcf_events(
+      const std::string& app_session_id, const nlohmann::json& ev_subsc_body,
+      uint32_t& http_code);
+
+  bool create_pcf_bdt_policy(
+      const nlohmann::json& bdt_req, std::string& pcf_bdt_id,
+      uint32_t& http_code);
+
+  // A 303 See Other counts as success here.
+  void create_pcf_bdt_policy_async(
+      const nlohmann::json& bdt_req, oai::sba::response_cb cb);
+
+  bool update_pcf_bdt_policy(
+      const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
+      uint32_t& http_code);
+
+  void update_pcf_bdt_policy_async(
+      const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
+      oai::sba::response_cb cb);
+
+  bool delete_pcf_bdt_policy(
+      const std::string& bdt_policy_id, uint32_t& http_code);
+
+  void delete_pcf_bdt_policy_async(
+      const std::string& bdt_policy_id, oai::sba::response_cb cb);
+
+  // UDR — PFD data
+  bool udr_put_pfd_data(
+      const std::string& app_id, const nlohmann::json& pfd_data);
+
+  void udr_put_pfd_data_async(
+      const std::string& app_id, const nlohmann::json& pfd_data,
+      oai::sba::response_cb cb);
+
+  // v1 PFD path.
+  void udr_put_pfd_data_at_async(
+      const std::string& udr_endpoint, const std::string& app_id,
+      const nlohmann::json& pfd_data, oai::sba::response_cb cb);
+
+  bool udr_delete_pfd_data(const std::string& app_id);
+
+  void udr_delete_pfd_data_async(
+      const std::string& app_id, oai::sba::response_cb cb);
+
+  // v1 PFD path.
+  void udr_delete_pfd_data_at_async(
+      const std::string& udr_endpoint, const std::string& app_id,
+      oai::sba::response_cb cb);
+
+  void udr_get_pfd_data(
+      const std::string& app_id, nlohmann::json& result, uint32_t& http_code);
+
+  void udr_get_pfd_data_async(
+      const std::string& app_id, oai::sba::response_cb cb);
+
+  // v2 PFD path.
+  void udr_get_pfd_data_at_async(
+      const std::string& udr_endpoint, const std::string& app_id,
+      oai::sba::response_cb cb);
+
+  bool udr_put_influence_data(
+      const std::string& ti_id, const nlohmann::json& data,
+      uint32_t& http_code);
+
+  void udr_put_influence_data_async(
+      const std::string& ti_id, const nlohmann::json& data,
+      oai::sba::response_cb cb);
+
+  // v2 influence-data path.
+  void udr_put_influence_data_at_async(
+      const std::string& udr_endpoint, const std::string& ti_id,
+      const nlohmann::json& data, oai::sba::response_cb cb);
+
+  bool udr_delete_influence_data(const std::string& ti_id, uint32_t& http_code);
+
+  void udr_delete_influence_data_async(
+      const std::string& ti_id, oai::sba::response_cb cb);
+
+  // v2 influence-data path.
+  void udr_delete_influence_data_at_async(
+      const std::string& udr_endpoint, const std::string& ti_id,
+      oai::sba::response_cb cb);
+
+  // The URL AMF/SMF/PCF post events back to, used as the callback in every
+  // southbound subscription:
+  //   http://<nef_host>:<port>/nef-notify/v1/notify/<nf_sub_id>
+  static std::string get_nef_notify_uri(const std::string& nf_sub_id);
+
+  // Forward notification to AF
+  bool forward_notification_to_af(
+      const std::string& af_notif_uri, const nlohmann::json& payload);
+
+ private:
+  std::string m_nef_instance_id;  ///< UUID generated at construction
 };
-}  // namespace oai::nef::app
+
+}  // namespace app
+}  // namespace nef
+}  // namespace oai
+
 #endif /* FILE_NEF_CLIENT_HPP_SEEN */
