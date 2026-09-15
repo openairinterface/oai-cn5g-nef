@@ -42,7 +42,7 @@ void nef_af_profile::set_api_key(const std::string& key) {
 //------------------------------------------------------------------------------
 bool nef_af_profile::validate_api_key(const std::string& provided_key) const {
   std::shared_lock lock(m_mutex);
-  // Empty stored key → no key enforcement
+  // No stored key means key checking is off for this AF.
   if (m_api_key.empty()) return true;
   return m_api_key == provided_key;
 }
@@ -56,7 +56,7 @@ void nef_af_profile::set_allowed_apis(const std::vector<std::string>& apis) {
 //------------------------------------------------------------------------------
 bool nef_af_profile::is_api_allowed(const std::string& api_name) const {
   std::shared_lock lock(m_mutex);
-  // Empty list → all APIs allowed
+  // An empty list means every API is allowed.
   if (m_allowed_apis.empty()) return true;
   return std::find(m_allowed_apis.begin(), m_allowed_apis.end(), api_name) !=
          m_allowed_apis.end();
@@ -65,7 +65,7 @@ bool nef_af_profile::is_api_allowed(const std::string& api_name) const {
 //------------------------------------------------------------------------------
 void nef_af_profile::add_subscription_id(const std::string& sub_id) {
   std::unique_lock lock(m_mutex);
-  // Avoid duplicates
+  // Idempotent: re-adding a known id is a no-op.
   if (std::find(m_subscription_ids.begin(), m_subscription_ids.end(), sub_id) ==
       m_subscription_ids.end()) {
     m_subscription_ids.push_back(sub_id);

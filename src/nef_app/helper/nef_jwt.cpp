@@ -7,7 +7,7 @@
 #include <ctime>
 #include <stdexcept>
 
-#include "nef_jwt_detail.hpp"  // pure helpers, exposed for unit testing
+#include "nef_jwt_detail.hpp"  // pure helpers, split out so tests see them
 
 #include <nlohmann/json.hpp>
 
@@ -21,6 +21,9 @@ using namespace oai::nef::app::detail;  // base64url_decode, split_jwt,
 
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
+// Deliberate stub: the NEF never mints tokens, it only validates them. Note
+// the warning text mentions the build configuration, but nothing here is
+// conditional — this always fails.
 //------------------------------------------------------------------------------
 bool nef_jwt::generate_token(
     const std::string& af_consumer_id, const std::string& scope,
@@ -43,7 +46,8 @@ bool nef_jwt::validate_af_token(
     const std::string& af_id) const {
   try {
     std::string key;
-    // Ensure JWT is explicitly enabled by config.
+    // No configured secret means JWT validation is off, so fail closed here
+    // rather than accept an unverifiable token.
     if (!get_secret_key(required_scope, af_id, key)) {
       Logger::nef_app().warn(
           "Failed to validate JWT token: secret key is unavailable");
@@ -58,7 +62,8 @@ bool nef_jwt::validate_af_token(
       return false;
     }
 
-    // --- Algorithm check (header must declare HS256) ---
+    // --- Algorithm check: the header must declare HS256, so that a token
+    // claiming "none" or an asymmetric alg cannot slip past. ---
     std::string header_json;
     if (!base64url_decode(header_b64, header_json)) {
       Logger::nef_app().warn("Failed to decode JWT header");
@@ -79,8 +84,9 @@ bool nef_jwt::validate_af_token(
       }
     }
 
-    // --- Cryptographic signature verification ---
-    // The signing input is the raw ASCII: header_b64url + "." + payload_b64url
+    // --- Signature verification ---
+    // The signing input is the raw ASCII header_b64url + "." + payload_b64url,
+    // i.e. the token with its third segment removed.
     const std::string signing_input = header_b64 + "." + payload_b64;
 
     std::string sig_bytes;
@@ -94,7 +100,8 @@ bool nef_jwt::validate_af_token(
       return false;
     }
 
-    // --- Payload claims ---
+    // --- Payload claims: scope and sub must match, exp must not be past.
+    // exp is optional; a token without it never expires. ---
     std::string payload_json;
     if (!base64url_decode(payload_b64, payload_json)) {
       Logger::nef_app().warn("Failed to decode JWT payload");

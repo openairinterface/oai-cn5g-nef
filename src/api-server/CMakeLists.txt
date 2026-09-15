@@ -4,6 +4,7 @@ set(NEF_API_SERVER_DIR "${SRC_TOP_DIR}/api-server")
 
 include_directories(${NEF_API_SERVER_DIR}/)
 include_directories(${SRC_TOP_DIR}/nef_app)
+include_directories(${SRC_TOP_DIR}/nef_app/helper/)
 include_directories(${SRC_TOP_DIR}/common)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/3gpp)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/common)

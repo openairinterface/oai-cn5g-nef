@@ -110,6 +110,7 @@ ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../../src/api-server   ${CMAKE_CURR
 add_definitions("-DPACKAGE_NAME=\"NEF\"")
 
 include_directories(${SRC_TOP_DIR}/nef_app)
+include_directories(${SRC_TOP_DIR}/nef_app/helper)
 include_directories(${SRC_TOP_DIR}/oai-nef)
 include_directories(${SRC_TOP_DIR}/common)
 include_directories(${SRC_TOP_DIR}/api-server)

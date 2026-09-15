@@ -23,10 +23,11 @@ namespace nef {
 namespace app {
 
 /**
- * One AF subscription to a NEF northbound service. It pairs the external
- * subscription-id handed back to the AF with the internal one obtained from
- * the southbound 5GC NF, and carries the AF's notification URI, the service
- * type, and the validity/expiry bookkeeping.
+ * One AF subscription to a NEF northbound service.
+ *
+ * It pairs the external subscription-id handed back to the AF with the
+ * internal one obtained from the southbound 5GC NF. It also carries the AF's
+ * notification URI, the service type, and the validity / expiry bookkeeping.
  */
 class nef_subscription {
  public:
@@ -39,7 +40,7 @@ class nef_subscription {
   void set_af_subscription_id(const std::string& sub_id);
   std::string get_af_subscription_id() const;
 
-  // NF Subscription ID (southbound)
+  // NF Subscription ID, as issued by the southbound NF
   void set_nf_subscription_id(const std::string& nf_sub_id);
   std::string get_nf_subscription_id() const;
 
@@ -47,8 +48,8 @@ class nef_subscription {
   void set_notification_uri(const std::string& uri);
   std::string get_notification_uri() const;
 
-  // Self URI (the resource URL of this subscription, used as the notification
-  // "transaction" reference in TS 29.122 UserPlaneNotificationData).
+  // Self URI: the resource URL of this subscription. It doubles as the
+  // "transaction" reference in TS 29.122 UserPlaneNotificationData.
   void set_self(const std::string& uri);
   std::string get_self() const;
 
@@ -64,16 +65,16 @@ class nef_subscription {
   void set_validity_time(const boost::posix_time::ptime& t);
   boost::posix_time::ptime get_validity_time() const;
 
-  // Absolute expiry time (monitorExpireTime)
+  // Absolute expiry time, from the T8 monitorExpireTime
   void set_expire_time(const std::chrono::system_clock::time_point& t);
   std::chrono::system_clock::time_point get_expire_time() const;
   bool has_expire_time() const;
 
-  // SCS/AS identifier (external app-id from 3GPP)
+  // SCS/AS identifier: the external 3GPP app-id of the calling AF
   void set_scs_as_id(const std::string& id);
   std::string get_scs_as_id() const;
 
-  // Subscription body (cached for retrieval / notifications)
+  // Subscription body, cached to serve GETs and to build notifications
   void set_subscription_data(const nlohmann::json& data);
   nlohmann::json get_subscription_data() const;
 

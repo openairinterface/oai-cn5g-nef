@@ -19,7 +19,7 @@ nef_config_type::nef_config_type(
   m_support_features = string_config_value(
       NEF_CONFIG_SUPPORT_FEATURES_LABEL,
       "nnef-eventexposure,nnef-pfdmanagement");
-  // m_af_whitelist is default-constructed as empty vector (open-access mode)
+  // m_af_whitelist is left default-constructed, i.e. empty: open-access mode.
 }
 
 //------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ void nef_config_type::from_yaml(const YAML::Node& node) {
       m_af_whitelist.clear();
       const YAML::Node& wl_node = elem.second;
 
-      // Accept either null/scalar (empty = open-access) or a sequence
+      // A sequence is the only meaningful shape. Null or a scalar means an
+      // empty whitelist, i.e. open access, so there is nothing to parse.
       if (!wl_node.IsSequence()) continue;
 
       for (const auto& entry_node : wl_node) {
@@ -72,9 +73,10 @@ void nef_config_type::from_yaml(const YAML::Node& node) {
       }
     }
 
-    // Optional dispatcher thread-pool size override. Absent/0 keeps the
-    // auto default (http_workers + 2) computed at the server. A positive value
-    // overrides it.
+    // Optional dispatcher thread-pool size override:
+    //   absent or 0 -> keep the auto default (http_workers + 2) computed at
+    //                  the server
+    //   positive    -> use this value instead
     if (key == NEF_CONFIG_DISPATCHER_POOL_SIZE && elem.second.IsScalar()) {
       m_dispatcher_pool_size = elem.second.as<uint32_t>(m_dispatcher_pool_size);
     }
@@ -128,7 +130,7 @@ bool nef_config_type::from_json(const nlohmann::json& json_data) {
       }
     }
 
-    // Optional dispatcher thread-pool size override. Absent/0 keeps the
+    // Optional dispatcher thread-pool size override. Absent or 0 keeps the
     // auto default (http_workers + 2) computed at the server.
     if (json_data.contains(NEF_CONFIG_DISPATCHER_POOL_SIZE) &&
         json_data[NEF_CONFIG_DISPATCHER_POOL_SIZE].is_number_unsigned()) {
@@ -154,7 +156,7 @@ std::string nef_config_type::to_string(const std::string& indent) const {
           BASE_FORMATTER, OUTER_LIST_ELEM, m_support_features.get_config_name(),
           inner_width, m_support_features.get_value()));
 
-  // Whitelist summary
+  // Whitelist: print a count rather than the entries, which carry API keys.
   out.append(inner_indent)
       .append(fmt::format(
           BASE_FORMATTER, OUTER_LIST_ELEM, NEF_CONFIG_AF_WHITELIST_LABEL,

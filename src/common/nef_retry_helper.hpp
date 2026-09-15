@@ -15,20 +15,26 @@
 
 namespace oai::nef::app {
 
-// The _LEVEL suffixes are there to dodge the WARN/ERROR/CRITICAL macros in
-// syslog.h.
+// The _LEVEL suffixes dodge the WARN/ERROR/CRITICAL macros in syslog.h.
 enum class retry_log_level { WARN_LEVEL, CRIT_LEVEL, ERR_LEVEL };
 
 using retry_log_fn = std::function<void(retry_log_level, const std::string&)>;
 
 /**
- * Per-endpoint consecutive-failure counter, safe to share across threads.
+ * Per-endpoint consecutive-failure counter for northbound AF notifications.
+ * Safe to share across threads.
  *
  * CB_THRESHOLD failures in a row trips the endpoint "open" and callers should
- * stop sending to it; a single success clears the count again.
+ * stop sending to it. A single success clears the count again.
  *
- * Production code uses the instance() singleton. The constructor is public so
- * tests can hold their own isolated registry.
+ * Simpler than sbi_circuit_breaker_registry: no cooldown and no half-open
+ * probe. Note that retry_with_backoff sends nothing once the breaker is open,
+ * so no success can arrive to close it on its own — only record_success() or
+ * reset_all() from outside will.
+ *
+ * instance() is a process-wide singleton, shared by every AF notification the
+ * process sends. The constructor is public only so tests can hold their own
+ * isolated registry.
  */
 class circuit_breaker_registry {
  public:
@@ -70,9 +76,11 @@ class circuit_breaker_registry {
 };
 
 /**
- * The circuit-breaker key for a URI: its scheme, host and port, so that every
+ * The circuit-breaker key for a URI: scheme, host and port, so that every
  * path on one AF shares a single breaker.
+ *
  *   "http://af.example.com:8080/notify/v1" -> "http://af.example.com:8080"
+ *
  * A URI with no path comes back unchanged.
  */
 inline std::string cb_endpoint_key(const std::string& uri) {
@@ -83,12 +91,16 @@ inline std::string cb_endpoint_key(const std::string& uri) {
 }
 
 /**
- * Call attempt_fn() until it succeeds, backing off 1s, 2s, 4s... between
+ * Call attempt_fn() until it succeeds, backing off 1 s, 2 s, 4 s ... between
  * tries. attempt_fn returns an HTTP status, or 0 for a network error.
  *
- * A 5xx or a network error is worth retrying; a 4xx is not, and fails
- * immediately. If the endpoint's breaker is already open nothing is sent at
- * all. Success clears the breaker, and any final failure feeds it.
+ * What gets retried:
+ *   - 5xx and network errors are transient, so they are tried again.
+ *   - a 4xx is not, and fails immediately.
+ *   - if the endpoint's breaker is already open, nothing is sent at all.
+ *
+ * Success clears the breaker. Every other outcome records a failure against
+ * it, the immediate 4xx included.
  *
  * Sleeping and logging are injected rather than called directly, so the tests
  * run instantly and need no Logger singleton.
@@ -120,7 +132,7 @@ inline bool retry_with_backoff(
     try {
       status = attempt_fn();
     } catch (...) {
-      status = 0;  // treat exception as network failure → retriable
+      status = 0;  // a thrown exception counts as a network failure
     }
 
     if (status >= http_status_code::OK &&
@@ -148,8 +160,8 @@ inline bool retry_with_backoff(
       return false;
     }
 
-    // Anything else (5xx, or status 0 for a network error) is transient, so
-    // fall through and try again.
+    // Anything else — 5xx, or status 0 for a network error — is transient,
+    // so fall through and try again.
   }
 
   const int fails = cb.record_failure(endpoint);

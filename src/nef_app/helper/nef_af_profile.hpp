@@ -18,9 +18,12 @@ namespace nef {
 namespace app {
 
 /**
- * One registered AF (SCS/AS). A profile exists for exactly as long as the AF
- * has subscriptions: nef_app creates it on the first successful subscription
- * and destroys it when the last one is deleted.
+ * One registered AF (SCS/AS).
+ *
+ * A profile lives exactly as long as the AF has subscriptions: nef_app creates
+ * it on the first successful subscription and destroys it when the last one is
+ * deleted. All accessors are guarded, so profiles are safe to share across the
+ * HTTP worker threads.
  */
 class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
  public:
@@ -33,8 +36,8 @@ class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
   void set_af_id(const std::string& af_id);
   std::string get_af_id() const;
 
-  // Pre-shared API key. Optional: an empty stored key means no key is
-  // enforced and validation always passes.
+  // Pre-shared API key. Optional: with an empty stored key no key is
+  // enforced, so validate_api_key() always passes.
   void set_api_key(const std::string& key);
   bool validate_api_key(const std::string& provided_key) const;
 
@@ -42,9 +45,10 @@ class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
   void set_allowed_apis(const std::vector<std::string>& apis);
   bool is_api_allowed(const std::string& api_name) const;
 
-  // Active subscription tracking. remove_ returns false if the id was not
-  // there; nef_app watches has_no_subscriptions() to know when to drop the
-  // profile.
+  // Active subscription tracking.
+  //
+  // remove_subscription_id() returns false when the id was not there.
+  // nef_app watches has_no_subscriptions() to know when to drop the profile.
   void add_subscription_id(const std::string& sub_id);
   bool remove_subscription_id(const std::string& sub_id);
   std::vector<std::string> get_subscription_ids() const;

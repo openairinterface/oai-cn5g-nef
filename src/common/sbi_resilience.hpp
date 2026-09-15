@@ -31,17 +31,20 @@ struct sbi_cb_entry_t {
 };
 
 /**
- * Circuit breaker per NF type ("AMF", "SMF", "PCF", "UDR"), safe to share
+ * One circuit breaker per NF type ("AMF", "SMF", "PCF", "UDR"). Safe to share
  * across threads.
  *
+ * Transitions:
  *   CLOSED    -> OPEN       after m_threshold consecutive failures.
- *   OPEN      -> HALF_OPEN  once the cooldown elapses, noticed lazily on the
- *                           next is_open() call rather than by a timer.
+ *   OPEN      -> HALF_OPEN  once the cooldown elapses. Noticed lazily, on the
+ *                           next is_open() call, not by a timer.
  *   HALF_OPEN -> CLOSED     the probe succeeded.
  *   HALF_OPEN -> OPEN       the probe failed; the cooldown starts over.
  *
- * Production code uses the instance() singleton. The constructor is public so
- * tests can hold their own registry with a custom threshold and cooldown.
+ * instance() is a process-wide singleton, and that is what production code
+ * uses: every southbound nef_client call shares it, so one sick NF fails fast
+ * for every caller in the process. The constructor is public only so tests
+ * can hold their own registry with a custom threshold and cooldown.
  */
 class sbi_circuit_breaker_registry {
  public:
@@ -58,8 +61,8 @@ class sbi_circuit_breaker_registry {
     return self;
   }
 
-  /// Move an OPEN entry whose cooldown has elapsed to HALF_OPEN, so one
-  /// probe can get through. Safe to call concurrently.
+  /// Move an OPEN entry whose cooldown has elapsed to HALF_OPEN, so that
+  /// one probe can get through. Safe to call concurrently.
   void transition_half_open_if_ready(const std::string& nf_type) {
     const auto now = std::chrono::steady_clock::now();
     std::lock_guard<std::mutex> lk(m_mtx);
@@ -76,8 +79,10 @@ class sbi_circuit_breaker_registry {
     }
   }
 
-  /// True while calls should be blocked. Also does the lazy OPEN ->
-  /// HALF_OPEN promotion once the cooldown is up.
+  /// True while calls to this NF should be blocked.
+  ///
+  /// Doubles as the lazy OPEN -> HALF_OPEN promotion once the cooldown is up,
+  /// and hands out the single HALF_OPEN probe slot.
   bool is_open(const std::string& nf_type) {
     transition_half_open_if_ready(nf_type);
     std::lock_guard<std::mutex> lk(m_mtx);
@@ -105,7 +110,7 @@ class sbi_circuit_breaker_registry {
     e.half_open_probe_in_flight = false;
   }
 
-  /// A failure while HALF_OPEN reopens the breaker; otherwise it counts
+  /// A failure while HALF_OPEN reopens the breaker. Otherwise it counts
   /// towards the threshold.
   void record_failure(const std::string& nf_type) {
     const auto now = std::chrono::steady_clock::now();
@@ -151,12 +156,14 @@ class sbi_circuit_breaker_registry {
 };
 
 /**
- * Whether a status is worth retrying. status 0 means the connection itself
- * failed.
+ * Whether a failed SBI status is worth retrying. Status 0 means the
+ * connection itself failed.
  *
- * POSTs are treated more cautiously: only a failed connection is retried. A
- * 503 or 429 means the NF did receive the request and answered, so sending it
- * again risks creating the resource twice.
+ * Non-POST: retry on status 0, 503 or 429.
+ *
+ * POST: retry on status 0 only. A 503 or 429 means the NF did receive the
+ * request and answered, so sending it again risks creating the resource
+ * twice.
  */
 inline bool sbi_should_retry(int status, bool is_post) {
   // Assumes caller has already handled 2xx (success) and 4xx (permanent error).
@@ -167,16 +174,20 @@ inline bool sbi_should_retry(int status, bool is_post) {
 }
 
 /**
- * Run an SBI call with backoff and circuit-breaker handling, returning the
- * final HTTP status — or -1 if the breaker was open and nothing was sent.
+ * Run an SBI call with backoff and circuit-breaker handling.
  *
- * Retries back off 200ms, 400ms, 800ms, each with +/-10% jitter so a fleet of
- * NEFs does not resynchronise onto a recovering NF. Only status 0, 503 and
- * 429 are retried, and POSTs narrow that to status 0 alone.
+ * Returns the final HTTP status, or -1 if the breaker was open and nothing
+ * was sent at all.
  *
- * A 4xx returns straight away and leaves the breaker untouched: it says the
- * request was wrong, not that the NF is unhealthy. Every other failure feeds
- * the breaker, and success clears it.
+ * Retries back off 200 ms, 400 ms, 800 ms, each with +/-10 % jitter. The
+ * jitter keeps a fleet of NEFs from resynchronising onto a recovering NF.
+ * Only status 0, 503 and 429 are retried; POSTs narrow that to status 0.
+ *
+ * What each outcome does to the breaker:
+ *   - 2xx clears it.
+ *   - 4xx leaves it untouched, and returns straight away. A 4xx says the
+ *     request was wrong, not that the NF is unhealthy.
+ *   - anything else records a failure once the call gives up.
  *
  * Sleeping and logging are injected so tests run fast and in isolation.
  */
@@ -198,8 +209,7 @@ int sbi_call_with_retry(
 
   for (int attempt = 0; attempt < max_attempts; ++attempt) {
     if (attempt > 0) {
-      // Exponential backoff with ±10 % jitter.
-      // Base delays: 200 ms, 400 ms, 800 ms …
+      // Exponential backoff with ±10 % jitter; base 200 ms, 400 ms, 800 ms …
       const int base_ms     = 200 * (1 << (attempt - 1));
       const int jitter_span = base_ms / 10;  // 10 % of base
       std::uniform_int_distribution<int> jitter_dist(-jitter_span, jitter_span);
@@ -216,7 +226,7 @@ int sbi_call_with_retry(
     try {
       status = attempt_fn();
     } catch (...) {
-      status = 0;  // treat thrown exception as connection failure → retriable
+      status = 0;  // a thrown exception counts as a connection failure
     }
 
     // 2xx: success
@@ -234,8 +244,7 @@ int sbi_call_with_retry(
 
     // Check whether this failure warrants a retry
     if (!sbi_should_retry(status, is_post)) {
-      // Non-retriable transient error (e.g. POST + 503): record failure and
-      // bail.
+      // Non-retriable transient error, e.g. POST + 503. Record it and bail.
       cb.record_failure(nf_type);
       return status;
     }

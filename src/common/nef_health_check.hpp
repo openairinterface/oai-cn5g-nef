@@ -11,8 +11,11 @@
 namespace oai::nef::app::nef_health_check {
 
 /**
- * The health-check body, and its status code: 503 while the server is
- * draining for a graceful shutdown, 200 otherwise.
+ * The health-check response body.
+ *
+ * Sets http_code to 503 while the server is draining for a graceful
+ * shutdown, and 200 otherwise. The draining body is deliberately short: just
+ * status and nf_type, no instance or uptime detail.
  */
 inline std::string make_response(
     bool draining, const std::string& instance_id, int uptime_seconds,

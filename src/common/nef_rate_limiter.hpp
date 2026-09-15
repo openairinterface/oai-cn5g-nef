@@ -12,9 +12,11 @@
 
 namespace oai::nef::app {
 
+/// One token bucket per AF, safe to share across threads. instance() is the
+/// process-wide singleton; tests can construct their own.
 class nef_rate_limiter {
  public:
-  /// tokens_per_second is the sustained per-AF rate; max_tokens is the burst
+  /// tokens_per_second is the sustained per-AF rate. max_tokens is the burst
   /// capacity, and also how full a new bucket starts out.
   explicit nef_rate_limiter(
       double tokens_per_second = 100.0, double max_tokens = 200.0)
@@ -38,7 +40,7 @@ class nef_rate_limiter {
       bkt.last_refill = now;
       bkt.initialised = true;
     } else {
-      // Refill proportionally to elapsed time.
+      // Refill in proportion to the time since the last call.
       const auto elapsed =
           std::chrono::duration<double>(now - bkt.last_refill).count();
       bkt.tokens      = std::min(m_max, bkt.tokens + elapsed * m_tps);
@@ -49,8 +51,8 @@ class nef_rate_limiter {
     return true;
   }
 
-  /// Change the rate. Buckets that already exist keep whatever tokens they
-  /// are holding, but refill at the new rate from here on.
+  /// Change the rate. Buckets that already exist keep the tokens they are
+  /// holding, but refill at the new rate from here on.
   void set_config(double tokens_per_second, double max_tokens) {
     std::lock_guard<std::mutex> lk(m_mu);
     m_tps = tokens_per_second;

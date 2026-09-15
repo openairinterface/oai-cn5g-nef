@@ -15,14 +15,16 @@ namespace oai::nef::app {
 // Application-level filtering
 
 /**
- * Filter a JSON object (appId → pfdData) by a list of requested application
- * IDs.  Returns a JSON array, each element being the per-app PFD data with
- * an extra "appId" field injected.
+ * Filter a JSON map of appId → pfdData down to the requested application IDs.
  *
- * - If @p requested_ids is empty, ALL apps are returned (no filter).
- * - Unknown IDs in @p requested_ids are silently skipped (no 404 — the
- *   caller decides whether to surface errors; partial results are normal for
- *   the Nnef_PFDmanagement_Fetch service operation).
+ * Returns a JSON array. Each element is one app's PFD data with its "appId"
+ * injected as an extra field.
+ *
+ * Partial results are normal for the Nnef_PFDmanagement_Fetch service
+ * operation, so nothing here is treated as an error:
+ * - an empty @p requested_ids means no filter, and every app is returned;
+ * - unknown IDs in @p requested_ids are skipped silently, with no 404. The
+ *   caller decides whether to surface anything.
  */
 inline nlohmann::json pfd_filter_applications(
     const nlohmann::json& apps_map,
@@ -53,10 +55,10 @@ inline nlohmann::json pfd_filter_applications(
 // Subscription helpers
 
 /**
- * Validate a PFD-management subscription body.
+ * Validate a PFD-management subscription body. The only required field is
+ * "notifUri", a non-empty string.
  *
- * Required field: "notifUri" — non-empty string.
- * Returns an error description; empty string means valid.
+ * Returns an error description, or an empty string when the body is valid.
  */
 inline std::string validate_nnef_pfd_subscription(const nlohmann::json& body) {
   if (!body.contains("notifUri") || !body["notifUri"].is_string() ||
@@ -66,19 +68,17 @@ inline std::string validate_nnef_pfd_subscription(const nlohmann::json& body) {
   return "";
 }
 
-/**
- * Build the canonical self-link for a PFD management subscription.
- */
+/// The canonical self-link for a PFD-management subscription.
 inline std::string nnef_pfd_subscription_self_link(const std::string& sub_id) {
   return "/nnef-pfdmanagement/v1/subscriptions/" + sub_id;
 }
 
 /**
- * Perform a full-replace of a PFD subscription.
+ * Full-replace of a PFD subscription: the stored state becomes exactly
+ * @p new_body, with "subscriptionId" and "self" injected.
  *
- * Full-replace semantics: the stored state becomes exactly @p new_body
- * (not a merge/patch).  "subscriptionId" and "self" are injected.
- * Any previously stored fields that are absent from @p new_body are lost.
+ * This replaces, it does not merge or patch. Any previously stored field that
+ * @p new_body omits is lost.
  */
 inline nlohmann::json nnef_pfd_subscription_make(
     const std::string& sub_id, const nlohmann::json& new_body) {
@@ -89,12 +89,12 @@ inline nlohmann::json nnef_pfd_subscription_make(
 }
 
 /**
- * Check whether a PFD subscription is interested in changes to @p app_id.
+ * Whether a PFD subscription wants to hear about changes to @p app_id.
  *
- * If the subscription body contains an "applicationIds" array, the
- * subscription is considered relevant only if @p app_id is listed.
- * If "applicationIds" is absent or empty the subscription receives all
- * PFD-change events (wildcard).
+ * A non-empty "applicationIds" array in the subscription body acts as a
+ * filter: the subscription matches only the IDs it lists. If the array is
+ * absent or empty the subscription is a wildcard and receives every
+ * PFD-change event.
  */
 inline bool nnef_pfd_subscription_matches(
     const nlohmann::json& sub, const std::string& app_id) {
@@ -108,7 +108,7 @@ inline bool nnef_pfd_subscription_matches(
   return false;
 }
 
-// Typed overload for stored PfdSubscription objects
+// Same rule, for a stored PfdSubscription object.
 inline bool nnef_pfd_subscription_matches(
     const oai::_3gpp::model::PfdSubscription& sub, const std::string& app_id) {
   if (!sub.applicationIdsIsSet() || sub.getApplicationIds().empty()) {

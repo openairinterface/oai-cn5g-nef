@@ -54,11 +54,10 @@ WORKDIR /openair-nef/build/scripts
 RUN ./build_nef --install-deps --force
 RUN ldconfig && \
     ./build_nef --clean --Verbose --build-type Release --jobs && \
-    ldd /openair-nef/build/nef/build/nef && \
-    mv /openair-nef/build/nef/build/nef /openair-nef/build/nef/build/oai_nef && \
+    ldd /openair-nef/build/nef/build/oai_nef && \
     # Adapting the entrypoint to NEF NF
     sed -i -e "s@openair-nf-root-folder@openair-nef@g" \
-           -e "s@nf-config-file@nef.conf@g" \
+           -e "s@nf-config-file@config.yaml@g" \
            ../common-build/docker-scripts/entrypoint.py && \
     # Remove entitlements and Subscription Manager configs
     rm -rf /etc/pki/entitlement
@@ -116,7 +115,7 @@ RUN ldconfig && \
 # Copying template configuration files
 # The configuration folder will be flat
 WORKDIR /openair-nef/etc
-COPY --from=oai-nef-builder /openair-nef/etc/nef.conf /openair-nef/etc/
+COPY --from=oai-nef-builder /openair-nef/etc/config.yaml /openair-nef/etc/
 
 WORKDIR /openair-nef
 
@@ -129,4 +128,4 @@ HEALTHCHECK --interval=10s \
     CMD /openair-nef/bin/healthcheck.sh
 
 ENTRYPOINT ["python3", "/openair-nef/bin/entrypoint.py"]
-CMD ["/openair-nef/bin/oai_nef", "-c", "/openair-nef/etc/nef.conf", "-o"]
+CMD ["/openair-nef/bin/oai_nef", "-c", "/openair-nef/etc/config.yaml", "-o"]

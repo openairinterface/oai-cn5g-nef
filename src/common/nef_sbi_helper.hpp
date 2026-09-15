@@ -10,8 +10,9 @@
 namespace oai::nef::api {
 
 /**
- * NEF SBI path constants — both northbound (TS 29.522) and
- * southbound (AMF/SMF/PCF/UDR service paths).
+ * NEF SBI path constants: northbound (TS 29.522) and southbound (the
+ * AMF/SMF/PCF/UDR service paths). The NefResource* names are bare segments,
+ * the NefPath* names the same segments with a leading '/'.
  */
 class nef_sbi_helper : public oai::common::sbi::sbi_helper {
  public:

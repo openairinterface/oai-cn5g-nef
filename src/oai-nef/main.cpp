@@ -27,6 +27,7 @@
 using namespace oai::nef::app;
 using namespace oai::utils;
 using namespace oai::config::nef;
+using oai::nef::api::nef_http2_server;
 
 std::shared_ptr<nef_app> nef_app_inst                               = nullptr;
 std::unique_ptr<nef_config> nef_config_inst                         = nullptr;
@@ -75,10 +76,10 @@ int main(int argc, char** argv) {
   oai::sba::set_http2_server_logger(NEF_APP);
   Logger::nef_app().startup("Options parsed");
 
-  // Create eventfd for async-signal-safe wakeup
+  // eventfd gives the handler an async-signal-safe way to wake main().
   shutdown_efd_g = eventfd(0, EFD_CLOEXEC);
   if (shutdown_efd_g < 0) {
-    Logger::nef_sbi().error("eventfd creation failed: errno={}", errno);
+    Logger::nef_sbi().error("eventfd creation failed: errno=%d", errno);
     return EXIT_FAILURE;
   }
 
@@ -89,7 +90,7 @@ int main(int argc, char** argv) {
   sigaction(SIGTERM, &sa, nullptr);
   sigaction(SIGINT, &sa, nullptr);
 
-  // Configuration
+  // Configuration: YAML, via YAML::LoadFile inside nef_config::init().
   nef_config_inst = std::make_unique<nef_config>(
       Options::getlibconfigConfig(), Options::getlogStdout(),
       Options::getlogRotFilelog());
@@ -105,7 +106,7 @@ int main(int argc, char** argv) {
       Logger::nef_sbi(), oai::common::sbi::kNfDefaultHttpRequestTimeout,
       nef_config_inst->local().get_sbi().get_if_name(), 2);
 
-  // Event subsystem
+  // Event subsystem: shared by nef_app (signals) and task_manager (tick).
   std::shared_ptr<nef_event> ev = std::make_shared<nef_event>();
 
   // NEF application layer
@@ -119,7 +120,7 @@ int main(int argc, char** argv) {
   std::string pid_file_name =
       oai::utils::get_exe_absolute_path("/var/run", nef_config_inst->instance);
   if (!oai::utils::is_pid_file_lock_success(pid_file_name.c_str())) {
-    Logger::nef_app().error("Lock PID file {} failed\n", pid_file_name);
+    Logger::nef_app().error("Lock PID file %s failed\n", pid_file_name.c_str());
     exit(-EDEADLK);
   }
 
@@ -143,7 +144,7 @@ int main(int argc, char** argv) {
 
   Logger::nef_app().info("Initiation done!");
 
-  // Block main thread until signal
+  // Park the main thread until a signal fires the eventfd.
   uint64_t val = 0;
   ::read(shutdown_efd_g, &val, sizeof(val));
   close(shutdown_efd_g);
@@ -177,7 +178,7 @@ int main(int argc, char** argv) {
   Logger::system().debug("NEF API Server memory done");
 
   if (tm_inst) {
-    task_manager_thread.detach();  // task_manager has no async-safe stop
+    task_manager_thread.detach();
     tm_inst.reset();
   }
   Logger::system().debug("Stopped the NEF Task Manager.");
@@ -191,7 +192,8 @@ int main(int argc, char** argv) {
   auto elapsed = std::chrono::system_clock::now() - shutdown_start;
   auto ms_diff = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
   Logger::system().info(
-      "Bye. Graceful shutdown completed in {} ms", ms_diff.count());
+      "Bye. Graceful shutdown completed in %ld ms",
+      static_cast<long>(ms_diff.count()));
 
   return EXIT_SUCCESS;
 }

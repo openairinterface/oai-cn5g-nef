@@ -33,13 +33,13 @@ class nef_config : public oai::config::config {
     add_nf(NRF_CONFIG_NAME, m_nrf);
 
     auto m_amf = std::make_shared<nf>(
-        AMF_CONFIG_NAME, "oai-pcf",
-        sbi_interface("SBI", "oai-pcf", 80, "v1", "eth0"));
+        AMF_CONFIG_NAME, "oai-amf",
+        sbi_interface("SBI", "oai-amf", 80, "v1", "eth0"));
     add_nf(AMF_CONFIG_NAME, m_amf);
 
     auto m_smf = std::make_shared<nf>(
-        SMF_CONFIG_NAME, "oai-pcf",
-        sbi_interface("SBI", "oai-pcf", 80, "v1", "eth0"));
+        SMF_CONFIG_NAME, "oai-smf",
+        sbi_interface("SBI", "oai-smf", 80, "v1", "eth0"));
     add_nf(SMF_CONFIG_NAME, m_smf);
 
     auto m_pcf = std::make_shared<nf>(

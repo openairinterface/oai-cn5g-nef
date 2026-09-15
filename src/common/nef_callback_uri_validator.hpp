@@ -11,21 +11,31 @@
 #include <netinet/in.h>
 #include <string>
 
-/// Returns an empty string when \p uri is acceptable as a notification
-/// callback address.  Returns a human-readable error message otherwise.
+/// Checks whether \p uri is acceptable as a notification callback address.
+/// Returns an empty string when it is, and a human-readable error message
+/// when it is not.
 ///
-/// Blocked conditions:
-///   - Empty URI
-///   - Missing "://" separator (malformed)
-///   - Scheme other than "http" or "https"
-///   - Empty host after scheme
-///   - Malformed IPv6 bracket (unclosed '[')
+/// The address ranges below are blocked so that an AF cannot aim NEF's
+/// notifications at NEF's own loopback, at a cloud metadata endpoint, or into
+/// the operator's private network.
+///
+/// Rejected as malformed or unsupported:
+///   - empty URI
+///   - missing "://" separator
+///   - scheme other than "http" or "https"
+///   - empty host after the scheme
+///   - unclosed '[' in an IPv6 literal
+///   - a bracketed IPv6 literal that is not a valid address
+///
+/// Rejected by address range:
 ///   - IPv4 loopback      127.0.0.0/8
 ///   - IPv4 link-local    169.254.0.0/16
 ///   - IPv4 RFC 1918      10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
 ///   - IPv6 loopback      ::1
 ///   - IPv6 link-local    fe80::/10
 ///   - IPv6 ULA           fc00::/7
+///
+/// A host that is not an IP literal is accepted without a DNS lookup.
 inline std::string validate_callback_uri(const std::string& uri) {
   if (uri.empty()) {
     return "callback URI must not be empty";
@@ -120,7 +130,7 @@ inline std::string validate_callback_uri(const std::string& uri) {
              "allowed";
     }
     // 172.16.0.0/12  (RFC 1918: 172.16.0.0 – 172.31.255.255)
-    //   Top 12 bits of 172.16.0.0 = 0xAC1
+    // Top 12 bits of 172.16.0.0 = 0xAC1.
     if ((ip >> 20) == 0xAC1u) {
       return "callback URI host is in an RFC 1918 private range and is not "
              "allowed";
@@ -144,12 +154,12 @@ inline std::string validate_callback_uri(const std::string& uri) {
       return "callback URI host is a loopback address and is not allowed";
     }
     // fe80::/10  (link-local)
-    //   First octet: 0xFE, second octet high 2 bits: 10 → range FE80..FEBF
+    // First octet 0xFE, top 2 bits of the second are 10 → FE80..FEBF.
     if (addr6.s6_addr[0] == 0xFEu && (addr6.s6_addr[1] & 0xC0u) == 0x80u) {
       return "callback URI host is a link-local address and is not allowed";
     }
     // fc00::/7  (IPv6 ULA: FC00..FDFF)
-    //   First octet high 7 bits: 1111110 → first & 0xFE == 0xFC
+    // Top 7 bits of the first octet are 1111110 → first & 0xFE == 0xFC.
     if ((addr6.s6_addr[0] & 0xFEu) == 0xFCu) {
       return "callback URI host is in an IPv6 ULA range and is not allowed";
     }
@@ -157,12 +167,12 @@ inline std::string validate_callback_uri(const std::string& uri) {
     return "";  // valid IPv6
   }
 
-  // IPv6 bracketed literals that fail inet_pton must be rejected outright;
-  // they cannot be treated as hostnames.
+  // A bracketed literal that inet_pton rejected is not a hostname either, so
+  // it cannot fall through to the hostname case below.
   if (is_ipv6_literal) {
     return "callback URI host is not a valid IPv6 address";
   }
 
-  // 6. Hostname (non-IP) — accepted
+  // 6. Hostname (non-IP) — accepted, no DNS resolution attempted
   return "";
 }

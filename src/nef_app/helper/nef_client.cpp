@@ -6,8 +6,6 @@
 
 #include <cctype>
 #include <thread>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <nlohmann/json.hpp>
 
 #include "AmfCreatedEventSubscription.h"
@@ -21,7 +19,6 @@
 #include "nef_config.hpp"
 #include "nef_retry_helper.hpp"
 #include "nef_sbi_helper.hpp"
-#include "nrf_discovery_cache.hpp"
 #include "sbi_resilience.hpp"
 #include "sbi_helper.hpp"
 
@@ -30,23 +27,25 @@ extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
 using namespace oai::nef::app;
 
-// The *_async calls below all follow the same shape: build exactly the request
-// their blocking twin builds, then send it without waiting. Endpoint
-// resolution still goes through the blocking discover_nf() so that the
+// Every *_async call below has the same shape: build exactly the request its
+// blocking twin builds, then send it without waiting. Resolving the endpoint
+// still goes through the blocking discover_nf(), so that the
 // request-construction logic stays identical between the two; only the
 // southbound call itself is asynchronous.
 //
 // The callback gets the raw response and nothing more. It does not touch
-// nef_app state and does not parse ids out of the body — that is the caller's
-// job. A target that cannot be resolved arrives as status_code 0 with an
-// empty body. Comments below note only where a call departs from this.
+// nef_app state, and it does not parse ids out of the body — that is the
+// caller's job. A target that cannot be resolved arrives as status_code 0 with
+// an empty body.
+//
+// Comments below note only where a call departs from this.
 using namespace oai::config::nef;
 using namespace oai::config;
 using namespace oai::nef::api;
 using namespace oai::common::sbi;
 
-// Helpers for NRF registration and discovery — build URIs, parse responses,
-// etc.
+// Helpers for NRF registration and discovery: URI building, response parsing,
+// and the like.
 
 //------------------------------------------------------------------------------
 /**
@@ -111,6 +110,19 @@ static std::string nf_type_to_str(nf_type_t t) {
 }
 
 //------------------------------------------------------------------------------
+/**
+ * Map a 3GPP NFType string to the key its endpoint is pinned under in
+ * nef.yaml. Returns "" when NEF has no static configuration slot for that NF.
+ */
+static std::string nf_type_to_config_name(const std::string& nf_type) {
+  if (nf_type == "AMF") return AMF_CONFIG_NAME;
+  if (nf_type == "SMF") return SMF_CONFIG_NAME;
+  if (nf_type == "PCF") return PCF_CONFIG_NAME;
+  if (nf_type == "UDR") return UDR_CONFIG_NAME;
+  return "";
+}
+
+//------------------------------------------------------------------------------
 static bool is_2xx_status(const int status_code) {
   return status_code >= http_status_code::OK &&
          status_code < http_status_code::MULTIPLE_CHOICES;
@@ -119,7 +131,10 @@ static bool is_2xx_status(const int status_code) {
 //------------------------------------------------------------------------------
 static std::string get_header_case_insensitive(
     std::map<std::string, std::string>& headers, const std::string& key) {
-  // TODO Updated with new Client
+  // TODO: reinstate once the new HTTP client exposes response headers. Until
+  // then this always returns "", so the callers that read a Location header
+  // (the PCF app-session and BDT-policy creates) get nothing from it and have
+  // to take the id out of the response body instead.
   /*
 for (const auto& [k, v] : headers) {
   if (k.size() != key.size()) continue;
@@ -154,11 +169,15 @@ static std::string extract_last_path_segment(const std::string& uri) {
 
 //------------------------------------------------------------------------------
 // Constructor
-nef_client::nef_client() {
-  m_nef_instance_id =
-      boost::uuids::to_string(boost::uuids::random_generator()());
-  Logger::nef_app().debug(
-      "NEF client instance ID: %s", m_nef_instance_id.c_str());
+// The base generates nf_instance_id and holds on to the event subscriber and
+// the http_client, so there is nothing left to do here but log the identity.
+// Where an NRF procedure below deliberately does not use the base's, the
+// per-method note says why.
+nef_client::nef_client(
+    const std::shared_ptr<oai::sba::nf_event>& ev,
+    const std::shared_ptr<oai::sba::http_client>& client_inst)
+    : oai::sba::nf_service(ev, client_inst) {
+  Logger::nef_app().debug("NEF client instance ID: %s", nf_instance_id.c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -169,6 +188,16 @@ nef_client::~nef_client() {
 
 // NRF registration
 //------------------------------------------------------------------------------
+// Builds the NEF NFProfile and hands the procedure to nf_service, which sends
+// the PUT. Everything that used to make this call NEF-specific now arrives
+// through the base's hooks further down this file:
+//  - send_with_policy: the retry / circuit-breaker transport;
+//  - registration_succeeded: the 200/201 success test;
+//  - on_registration_outcome: nef_app, not the base, owns the heartbeat and
+//    the re-registration schedule.
+//
+// The register_nrf gate is checked here as well as in the hook. That way a
+// disabled NEF does not build a profile at all.
 bool nef_client::register_to_nrf() {
   if (!nef_config_inst->register_nrf()) {
     Logger::nef_app().info("NRF registration is disabled in config.");
@@ -176,7 +205,7 @@ bool nef_client::register_to_nrf() {
   }
 
   Logger::nef_app().info(
-      "Registering NEF to NRF (instance: %s)...", m_nef_instance_id.c_str());
+      "Registering NEF to NRF (instance: %s)...", nf_instance_id.c_str());
 
   // Build the NF Profile`
   // Obtain NEF's own SBI address from config
@@ -194,7 +223,7 @@ bool nef_client::register_to_nrf() {
   {
     // Build typed NFProfile for correct field serialization
     oai::_3gpp::model::NFProfile nf_profile;
-    nf_profile.setNfInstanceId(m_nef_instance_id);
+    nf_profile.setNfInstanceId(nf_instance_id);
     nf_profile.setNfInstanceName(local_nf->get_host());
     nf_profile.setHeartBeatTimer(50);
     nf_profile.setPriority(1);
@@ -214,14 +243,15 @@ bool nef_client::register_to_nrf() {
     to_json(profile, nf_profile);
   }
 
-  // NF Services are built as raw JSON since the service name strings
-  // (nnef-trafficinfluence, nnef-bdt, etc.) are not in ServiceName_anyOf.
+  // NF services are built as raw JSON: the service name strings
+  // (nnef-trafficinfluence, nnef-bdt and the rest) are not in
+  // ServiceName_anyOf.
   nlohmann::json nf_services = nlohmann::json::array();
   auto add_service           = [&](const std::string& svc_name,
                          const std::string& api_name,
                          const std::string& version) {
     nlohmann::json svc;
-    svc["serviceInstanceId"] = m_nef_instance_id;
+    svc["serviceInstanceId"] = nf_instance_id;
     svc["serviceName"]       = svc_name;
     svc["versions"]          = nlohmann::json::array({nlohmann::json{
         {"apiVersionInUri", version}, {"apiFullVersion", version}}});
@@ -244,63 +274,36 @@ bool nef_client::register_to_nrf() {
 
   profile["nfServices"] = nf_services;
 
-  // PUT to NRF NF Management API
-  std::string nrf_uri = build_nrf_nf_instance_uri(m_nef_instance_id);
-  Logger::nef_app().debug("NRF registration URI: %s", nrf_uri.c_str());
-
-  oai::sba::response nrf_register_resp{};
-  auto sbi_sleep_nrf = [](std::chrono::milliseconds d) {
-    std::this_thread::sleep_for(d);
-  };
-  auto sbi_log_nrf = [](const std::string& m) {
-    Logger::nef_app().warn("%s", m.c_str());
-  };
-  sbi_call_with_retry(
-      "NRF", /*is_post=*/true,
-      [&]() -> int {
-        oai::sba::request req =
-            http_client_inst->prepare_json_request(nrf_uri, profile.dump());
-        nrf_register_resp = http_client_inst->send_http_request(
-            oai::common::sbi::method_e::PUT, req);
-        return static_cast<int>(nrf_register_resp.status_code);
-      },
-      sbi_circuit_breaker_registry::instance(), sbi_sleep_nrf, sbi_log_nrf);
-
-  if (nrf_register_resp.status_code == http_status_code::OK ||
-      nrf_register_resp.status_code == http_status_code::CREATED) {
-    Logger::nef_app().info(
-        "NEF successfully registered to NRF (status %d)",
-        nrf_register_resp.status_code);
-    return true;
-  }
-
-  Logger::nef_app().warn(
-      "NEF NRF registration failed (status %d): %s",
-      nrf_register_resp.status_code, nrf_register_resp.body.c_str());
-  return false;
+  // PUT to NRF NF Management API, sent by nf_service::send_nf_registration().
+  auto nrf_cfg = nef_config_inst->get_nf(oai::config::NRF_CONFIG_NAME);
+  return oai::sba::nf_service::register_to_nrf(nf_to_addr(nrf_cfg), profile);
 }
 
 //------------------------------------------------------------------------------
+// Fully delegated to the base, which does exactly what this used to do: the
+// same URI from the same helper, the same empty-bodied JSON request
+// (prepare_json_request's body defaults to ""), the same DELETE, and the same
+// 204 counted as success.
 bool nef_client::deregister_from_nrf() {
   if (!nef_config_inst->register_nrf()) return true;
 
   Logger::nef_app().info("Deregistering NEF from NRF...");
-  std::string nrf_uri = build_nrf_nf_instance_uri(m_nef_instance_id);
-
-  oai::sba::request req = http_client_inst->prepare_json_request(nrf_uri, "");
-  auto resp             = http_client_inst->send_http_request(
-      oai::common::sbi::method_e::DELETE, req);
-
-  if (resp.status_code == http_status_code::NO_CONTENT) {
+  auto nrf_cfg  = nef_config_inst->get_nf(oai::config::NRF_CONFIG_NAME);
+  const bool ok = oai::sba::nf_service::deregister_to_nrf();
+  if (ok) {
     Logger::nef_app().info("NEF deregistered from NRF");
-    return true;
+  } else {
+    Logger::nef_app().warn("NRF deregistration failed");
   }
-  Logger::nef_app().warn(
-      "NRF deregistration failed (status %d)", resp.status_code);
-  return false;
+  return ok;
 }
 
 //------------------------------------------------------------------------------
+// Driven by nef_app's 50 s task rather than by nf_service's own heartbeat
+// timer, which defaults to 10 s and would double-drive the PATCH.
+//
+// On failure this re-registers through register_to_nrf(), so the config gate
+// and the retry policy still apply.
 bool nef_client::send_heartbeat_to_nrf() {
   if (!nef_config_inst->register_nrf()) return true;
 
@@ -312,7 +315,7 @@ bool nef_client::send_heartbeat_to_nrf() {
   patch_body.push_back(
       {{"op", "replace"}, {"path", "/nfStatus"}, {"value", "REGISTERED"}});
 
-  std::string nrf_uri = build_nrf_nf_instance_uri(m_nef_instance_id);
+  std::string nrf_uri = build_nrf_nf_instance_uri(nf_instance_id);
   oai::sba::request req =
       http_client_inst->prepare_json_request(nrf_uri, patch_body.dump());
   auto resp = http_client_inst->send_http_request(
@@ -329,102 +332,86 @@ bool nef_client::send_heartbeat_to_nrf() {
 
 // NF discovery
 //------------------------------------------------------------------------------
+// Delegated to nf_service::discover_nf(), which owns both the transport and
+// the ordering: local config -> enablement gate -> cache -> NRF
+// SearchNFInstances. Every NEF-specific step in that sequence is one of the
+// hooks below.
+//
+// The empty service name means "the first service the instance lists", which
+// is the selection NEF has always made.
 bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
-  // First, try to read the NF endpoint directly from local config
-  // (for deployments that don't use dynamic NF discovery via NRF)
-  std::string cfg_key = {};
-  switch (nf_type) {
-    case NF_TYPE_AMF:
-      cfg_key = AMF_CONFIG_NAME;
-      break;
-    case NF_TYPE_SMF:
-      cfg_key = SMF_CONFIG_NAME;
-      break;
-    case NF_TYPE_PCF:
-      cfg_key = PCF_CONFIG_NAME;
-      break;
-    case NF_TYPE_UDR:
-      cfg_key = UDR_CONFIG_NAME;
-      break;
-    default:
-      cfg_key = "";
+  oai::common::sbi::nf_addr_t nrf_addr = {};
+  try {
+    // Only looked up when it can actually be used: an NEF configured without
+    // NRF registration never needs an NRF address.
+    if (nef_config_inst->register_nrf())
+      nrf_addr =
+          nf_to_addr(nef_config_inst->get_nf(oai::config::NRF_CONFIG_NAME));
+  } catch (...) {
   }
 
-  if (!cfg_key.empty()) {
-    try {
-      auto nf_cfg = nef_config_inst->get_nf(cfg_key);
-      if (nf_cfg) {
-        nf_endpoint = nf_cfg->get_url(nef_config_inst->enable_tls());
-        Logger::nef_app().debug(
-            "NF %s endpoint from config: %s", cfg_key.c_str(), nf_endpoint);
-        return true;
-      }
-    } catch (...) {
-    }
-  }
+  return oai::sba::nf_service::discover_nf(
+      nrf_addr, "NEF", nf_type_to_str(nf_type), std::string{}, nf_endpoint);
+}
 
-  // Fall back to NRF discovery if config-based lookup failed
-  if (!nef_config_inst->register_nrf()) {
-    Logger::nef_app().warn(
-        "NRF discovery disabled and no static config for NF type %d",
-        static_cast<int>(nf_type));
-    return false;
-  }
+//------------------------------------------------------------------------------
+// nf_service policy hooks
+//------------------------------------------------------------------------------
+bool nef_client::nrf_registration_enabled() const {
+  return nef_config_inst->register_nrf();
+}
 
-  std::string nf_type_str = nf_type_to_str(nf_type);
+//------------------------------------------------------------------------------
+bool nef_client::nrf_discovery_enabled() const {
+  return nef_config_inst->register_nrf();
+}
 
-  // Cache check — if we have a cached endpoint for this NF type, use it without
-  // querying NRF
-  {
-    std::string cached_ep = {};
-    if (nrf_discovery_cache::instance().get(nf_type_str, cached_ep)) {
-      Logger::nef_app().debug(
-          "NF discovery cache hit: %s → %s", nf_type_str.c_str(),
-          cached_ep.c_str());
-      nf_endpoint = cached_ep;
-      return true;
-    }
-  }
-
-  // Cache miss — query NRF for the NF type's endpoint
-  std::string disc_uri = build_nrf_disc_uri() + "?" +
-                         "target-nf-type=" + nf_type_str +
-                         "&requester-nf-type=NEF";
-
-  Logger::nef_app().debug("NF discovery URI (NRF): %s", disc_uri.c_str());
-
-  oai::sba::response last_disc_resp{};
-  auto sbi_sleep = [](std::chrono::milliseconds d) {
-    std::this_thread::sleep_for(d);
-  };
-  auto sbi_log = [](const std::string& m) {
-    Logger::nef_app().warn("%s", m.c_str());
-  };
-  sbi_call_with_retry(
-      "NRF", /*is_post=*/false,
-      [&]() -> int {
-        oai::sba::request req =
-            http_client_inst->prepare_json_request(disc_uri, "");
-        last_disc_resp = http_client_inst->send_http_request(
-            oai::common::sbi::method_e::GET, req);
-        return static_cast<int>(last_disc_resp.status_code);
-      },
-      sbi_circuit_breaker_registry::instance(), sbi_sleep, sbi_log);
-
-  if (last_disc_resp.status_code != http_status_code::OK) {
-    Logger::nef_app().warn(
-        "NF discovery for %s failed (status %d)", nf_type_str.c_str(),
-        last_disc_resp.status_code);
-    return false;
-  }
+//------------------------------------------------------------------------------
+// A statically pinned address wins over the NRF. Deployments that pin peer
+// addresses, the h2c test harness among them, depend on that.
+bool nef_client::resolve_endpoint_from_config(
+    const std::string& target_nf_type, const std::string& service_name,
+    std::string& endpoint) {
+  (void) service_name;
+  const std::string cfg_key = nf_type_to_config_name(target_nf_type);
+  if (cfg_key.empty()) return false;
 
   try {
-    nlohmann::json j = nlohmann::json::parse(last_disc_resp.body);
-    // SearchResult → nfInstances[0] → nfServices[0] → ipEndPoints[0]
+    auto nf_cfg = nef_config_inst->get_nf(cfg_key);
+    if (nf_cfg) {
+      endpoint = nf_cfg->get_url(nef_config_inst->enable_tls());
+      Logger::nef_app().debug(
+          "NF %s endpoint from config: %s", cfg_key.c_str(), endpoint.c_str());
+      return true;
+    }
+  } catch (...) {
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+// NEF's own SearchResult selection, kept here rather than taken from the base.
+// It differs from the base's in two ways:
+//  - the http scheme is hardcoded;
+//  - nfServices[0] is taken without checking that ipEndPoints is there, so a
+//    missing one is a parse error rather than a fall-through to the instance
+//    address.
+//
+// The base's selection is more forgiving, so adopting it would change which
+// endpoint NEF talks to when a SearchResult is malformed. That is why this one
+// is not delegated. The cache it writes to is the base's, through
+// discovery_cache_store().
+bool nef_client::handle_discovery_response(
+    const oai::sba::response& search_result_resp,
+    const std::string& target_nf_type, const std::string& service_name,
+    std::string& endpoint) {
+  try {
+    nlohmann::json j = nlohmann::json::parse(search_result_resp.body);
+    // SearchResult -> nfInstances[0] -> nfServices[0] -> ipEndPoints[0]
     auto& instances = j.at("nfInstances");
     if (instances.empty()) {
       Logger::nef_app().warn(
-          "NF discovery: no instances found for %s", nf_type_str.c_str());
+          "NF discovery: no instances found for %s", target_nf_type.c_str());
       return false;
     }
 
@@ -439,25 +426,32 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
       std::string scheme = "http";
 
       if (inst.contains("nfServices") && !inst["nfServices"].empty()) {
-        auto& ep    = inst["nfServices"][0].at("ipEndPoints")[0];
-        nf_endpoint = scheme + "://" + ep.value("ipv4Address", "") + ":" +
-                      std::to_string(ep.value("port", 8080));
+        auto& ep = inst["nfServices"][0].at("ipEndPoints")[0];
+        endpoint = scheme + "://" + ep.value("ipv4Address", "") + ":" +
+                   std::to_string(
+                       ep.value("port", static_cast<int>(default_sbi_port())));
         found = true;
       } else if (
           inst.contains("ipv4Addresses") && !inst["ipv4Addresses"].empty()) {
-        nf_endpoint =
-            "http://" + inst["ipv4Addresses"][0].get<std::string>() + ":8080";
+        endpoint = "http://" + inst["ipv4Addresses"][0].get<std::string>() +
+                   ":" + std::to_string(static_cast<int>(default_sbi_port()));
         found = true;
       }
       // TODO: for now, do not do NF selection, just take the first valid one
       if (found) break;
     }
 
+    if (!found) {
+      Logger::nef_app().warn(
+          "NF discovery: no usable endpoint for %s", target_nf_type.c_str());
+      return false;
+    }
+
     Logger::nef_app().debug(
-        "NF discovery: %s → %s", nf_type_str.c_str(), nf_endpoint.c_str());
+        "NF discovery: %s -> %s", target_nf_type.c_str(), endpoint.c_str());
     // Cache the result
-    nrf_discovery_cache::instance().put(nf_type_str, nf_endpoint);
-    return found;
+    discovery_cache_store(target_nf_type, service_name, endpoint);
+    return true;
   } catch (nlohmann::json::exception& e) {
     Logger::nef_app().warn("NF discovery parse error: %s", e.what());
     return false;
@@ -465,27 +459,80 @@ bool nef_client::discover_nf(nf_type_t nf_type, std::string& nf_endpoint) {
 }
 
 //------------------------------------------------------------------------------
-// Async NF discovery.
+// Registration and discovery carry a retry budget and feed the SBI circuit
+// breaker. De-registration (shutdown) and the heartbeat are single shots, as
+// they have always been.
+oai::sba::response nef_client::send_with_policy(
+    oai::sba::nrf_call_kind kind, const oai::common::sbi::method_e& method,
+    const oai::sba::request& req) {
+  const bool is_registration = kind == oai::sba::nrf_call_kind::registration;
+  if (!is_registration && kind != oai::sba::nrf_call_kind::discovery)
+    return oai::sba::nf_service::send_with_policy(kind, method, req);
+
+  oai::sba::response resp{};
+  auto sbi_sleep = [](std::chrono::milliseconds d) {
+    std::this_thread::sleep_for(d);
+  };
+  auto sbi_log = [](const std::string& m) {
+    Logger::nef_app().warn("%s", m.c_str());
+  };
+  sbi_call_with_retry(
+      "NRF", /*is_post=*/is_registration,
+      [&]() -> int {
+        resp = http_client_inst->send_http_request(method, req);
+        return static_cast<int>(resp.status_code);
+      },
+      sbi_circuit_breaker_registry::instance(), sbi_sleep, sbi_log);
+  return resp;
+}
+
+//------------------------------------------------------------------------------
+// The status code alone decides, unlike the base default: the NRF answers the
+// registration PUT with a body that does not always carry nfStatus.
+bool nef_client::registration_succeeded(const oai::sba::response& resp) const {
+  return resp.status_code == http_status_code::OK ||
+         resp.status_code == http_status_code::CREATED;
+}
+
+//------------------------------------------------------------------------------
+// Logs the outcome, and nothing more. nef_app owns both the 50 s heartbeat
+// task and the re-registration its failure path triggers, so neither of the
+// base's timers is armed.
+void nef_client::on_registration_outcome(
+    bool success, const oai::sba::response& resp) {
+  if (success) {
+    Logger::nef_app().info(
+        "NEF successfully registered to NRF (status %d)", resp.status_code);
+    return;
+  }
+  Logger::nef_app().warn(
+      "NEF NRF registration failed (status %d): %s", resp.status_code,
+      resp.body.c_str());
+}
+
+//------------------------------------------------------------------------------
+// Async NF discovery. Mirrors discover_nf()'s endpoint-resolution logic, but
+// never blocks. The callback always fires, with one of three outcomes:
 //
-// Mirrors discover_nf()'s endpoint-resolution logic but never blocks:
-//  - Static-config and discovery-cache hits are resolved without any network
-//    call; the callback fires synchronously with a synthetic 200 whose body is
-//    a minimal SearchResult ({"nfInstances":[{"nfServices":[{"ipEndPoints":
-//    [{ipv4Address,port}]}]}]}) carrying the resolved endpoint, so the caller
-//    can parse it exactly like a real NRF SearchResult.
-//  - On a cache miss with NRF discovery enabled, a single async GET is issued
-//    to the NRF; the raw NRF SearchResult response is delivered to the
-//    callback.
-//  - If the target cannot be resolved (NRF disabled with no static config),
-//    the callback fires with status_code 0 and an empty body.
+//  - Static-config or discovery-cache hit: resolved with no network call at
+//    all, and the callback fires synchronously. Its response is a synthetic
+//    200 whose body is a minimal SearchResult carrying the resolved endpoint
+//    ({"nfInstances":[{"nfServices":[{"ipEndPoints":[{ipv4Address,port}]}]}]}),
+//    so the caller can parse it exactly like a real NRF SearchResult.
 //
-// Note this deliberately leaves the discovery cache alone.
+//  - Cache miss with NRF discovery enabled: a single async GET goes to the
+//    NRF, and its raw SearchResult response reaches the callback unchanged.
+//
+//  - Target not resolvable (NRF disabled and no static config): status_code 0
+//    with an empty body.
+//
+// Note that this reads the discovery cache but deliberately never writes it.
 void nef_client::discover_nf_async(
     nf_type_t nf_type, oai::sba::response_cb cb) {
   auto deliver_endpoint = [&cb](const std::string& endpoint) {
     nlohmann::json ep;
-    // Endpoint shape is "scheme://host:port" — split host/port for the
-    // synthetic ipEndPoints entry so the caller's parse path is unchanged.
+    // The endpoint is "scheme://host:port". Split out host and port for the
+    // synthetic ipEndPoints entry, so the caller's parse path is unchanged.
     std::string host = endpoint;
     int port         = 8080;
     auto scheme_pos  = endpoint.find("://");
@@ -514,7 +561,7 @@ void nef_client::discover_nf_async(
     cb(std::move(synth));
   };
 
-  // First, try to read the NF endpoint directly from local config.
+  // Local config first: a pinned endpoint wins over the NRF.
   std::string cfg_key = {};
   switch (nf_type) {
     case NF_TYPE_AMF:
@@ -544,7 +591,7 @@ void nef_client::discover_nf_async(
     }
   }
 
-  // Fall back to NRF discovery if config-based lookup failed.
+  // No pinned endpoint, so fall back to NRF discovery — if it is enabled.
   if (!nef_config_inst->register_nrf()) {
     Logger::nef_app().warn(
         "NRF discovery disabled and no static config for NF type %d",
@@ -557,18 +604,19 @@ void nef_client::discover_nf_async(
 
   std::string nf_type_str = nf_type_to_str(nf_type);
 
-  // Cache check.
+  // Then the discovery cache — the same one the blocking discover_nf() fills,
+  // since both go through the base's hooks with an empty service name.
   {
     std::string cached_ep = {};
-    if (nrf_discovery_cache::instance().get(nf_type_str, cached_ep)) {
+    if (discovery_cache_lookup(nf_type_str, std::string{}, cached_ep)) {
       deliver_endpoint(cached_ep);
       return;
     }
   }
 
-  // Cache miss — async GET to NRF for the NF type's endpoint. The raw NRF
-  // SearchResult is delivered to the caller's callback (no retry loop on the
-  // async path — a single non-blocking request).
+  // Cache miss: ask the NRF for the NF type's endpoint with a single async
+  // GET, and hand the raw SearchResult to the caller's callback. There is no
+  // retry loop on the async path.
   std::string disc_uri = build_nrf_disc_uri() + "?" +
                          "target-nf-type=" + nf_type_str +
                          "&requester-nf-type=NEF";
@@ -591,14 +639,14 @@ bool nef_client::subscribe_amf_event_exposure(
   }
   std::string url = amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions";
 
-  // Inject NEF's own callback URL so AMF knows where to send event
-  // notifications. We use a placeholder sub-id here; after creation we update
-  // the NF→AF mapping. TS 29.518: field is "subsChangeNotifyUri"
-  // This subscription is created by an NEF on behalf of AF
-  nlohmann::json sub_body             = subscription_data;
-  const std::string nef_callback_base = get_nef_notify_uri("_2");
-  // Strip the placeholder; AMF will POST to base + sub-id suffix if needed,
-  // but we set a fixed URL that the HTTP/2 server parses by path segment.
+  // Inject NEF's own callback URL so the AMF knows where to send event
+  // notifications. This subscription is created by the NEF on behalf of an AF;
+  // the NF→AF mapping is updated once the subscription exists.
+  // TS 29.518 names the change-notification field "subsChangeNotifyUri".
+  nlohmann::json sub_body = subscription_data;
+  // A fixed "/notify/amf" callback path is enough: the HTTP/2 server routes
+  // inbound notifications by path segment, and the inbound correlation map is
+  // keyed by the AMF subscription id, not by the URL.
   sub_body["eventNotifyUri"] = nef_config_inst->get_local()->get_url() +
                                nef_sbi_helper::NefNotifyBase + "v1/notify/amf";
   // TODO: sub_body["notifyCorrelationId"] = ;
@@ -649,11 +697,11 @@ bool nef_client::subscribe_amf_event_exposure(
       Logger::nef_app().warn("Failed to parse AMF subscription response");
     }
   }
-  // Invalidate discovery cache on connection failure or 503 so next
-  // discover_nf() call re-queries NRF instead of serving stale endpoint.
+  // A connection failure or a 503 suggests the cached endpoint is stale, so
+  // drop it. The next discover_nf() then re-queries the NRF.
   if (amf_sub_resp.status_code == 0 ||
       amf_sub_resp.status_code == http_status_code::SERVICE_UNAVAILABLE) {
-    nrf_discovery_cache::instance().invalidate("AMF");
+    discovery_cache_invalidate("AMF");
   }
   Logger::nef_app().warn(
       "AMF event subscription failed (status %d)", amf_sub_resp.status_code);
@@ -661,8 +709,8 @@ bool nef_client::subscribe_amf_event_exposure(
 }
 
 //------------------------------------------------------------------------------
-// Async variant of subscribe_amf_event_exposure, with eventNotifyUri injected
-// into the body as usual.
+// Async variant of subscribe_amf_event_exposure. eventNotifyUri is injected
+// into the body just as the blocking twin does it.
 void nef_client::subscribe_amf_event_exposure_async(
     const nlohmann::json& subscription_data, oai::sba::response_cb cb) {
   std::string amf_url = {};
@@ -735,9 +783,10 @@ bool nef_client::subscribe_smf_event_exposure(
   std::string url =
       smf_url + nef_sbi_helper::SmfEventExposureBase + "v1/subscriptions";
 
-  // T5: the caller (nef_app) builds the full NsmfEventExposure body (eventSubs,
-  // target filters). Here we inject the NEF-chosen correlation id (notifId) and
-  // the per-subscription inbound notification URI (notifUri, TS 29.508).
+  // T5: the caller (nef_app) builds the full NsmfEventExposure body, with its
+  // eventSubs and target filters. Only two fields are added here: the
+  // NEF-chosen correlation id (notifId) and the per-subscription inbound
+  // notification URI (notifUri). Both per TS 29.508.
   nlohmann::json sub_body = smf_body;
   sub_body["notifId"]     = notif_id;
   sub_body["notifUri"]    = notif_uri;
@@ -778,8 +827,8 @@ bool nef_client::subscribe_smf_event_exposure(
 }
 
 //------------------------------------------------------------------------------
-// Async variant of subscribe_smf_event_exposure, with notifId/notifUri
-// injected into the body as usual.
+// Async variant of subscribe_smf_event_exposure. notifId and notifUri are
+// injected into the body just as the blocking twin does it.
 void nef_client::subscribe_smf_event_exposure_async(
     const nlohmann::json& smf_body, const std::string& notif_id,
     const std::string& notif_uri, oai::sba::response_cb cb) {
@@ -853,9 +902,10 @@ bool nef_client::update_smf_event_exposure(
     Logger::nef_app().warn("SMF not found — cannot update event exposure");
     return false;
   }
-  // T8: Nsmf_EventExposure has no PATCH; PUT does a full replace of the
-  // individual subscription resource. The caller has already embedded the
-  // notifId/notifUri in smf_body (via build_smf_qos_body).
+  // T8: Nsmf_EventExposure defines no PATCH, so the conformant update is a
+  // PUT, which fully replaces the individual subscription resource. The caller
+  // has already embedded notifId/notifUri in smf_body, via
+  // build_smf_qos_body().
   std::string url = smf_url + nef_sbi_helper::SmfEventExposureBase +
                     "v1/subscriptions/" + smf_sub_id;
   std::string body = smf_body.dump();
@@ -944,8 +994,9 @@ bool nef_client::create_pcf_policy_auth(
 }
 
 //------------------------------------------------------------------------------
-// Async variant of create_pcf_policy_auth. The appSessionId is in the body
-// or the Location header; either way the caller digs it out.
+// Async variant of create_pcf_policy_auth. The appSessionId comes back either
+// in the body or in the Location header; the caller digs it out of whichever
+// one carries it.
 void nef_client::create_pcf_policy_auth_async(
     const nlohmann::json& request_body, oai::sba::response_cb cb) {
   std::string pcf_url;
@@ -966,10 +1017,12 @@ void nef_client::create_pcf_policy_auth_async(
 }
 
 //------------------------------------------------------------------------------
-// Discovery-free variant of create_pcf_policy_auth_async. The caller has
-// already resolved the PCF endpoint on the dispatcher worker, so this does no
-// discovery of its own, which is what makes it safe to fire from an
-// oai-http-io continuation. Request is otherwise identical to the sync twin.
+// Discovery-free variant of create_pcf_policy_auth_async: the caller resolved
+// the PCF endpoint on the dispatcher worker and passes it in. Doing no
+// discovery here is what makes this safe to fire from an oai-http-io
+// continuation, where a blocking discovery would deadlock the io pool.
+//
+// The request itself is identical to the blocking twin's.
 void nef_client::create_pcf_policy_auth_at_async(
     const std::string& pcf_endpoint, const nlohmann::json& request_body,
     oai::sba::response_cb cb) {
@@ -1018,7 +1071,8 @@ bool nef_client::update_pcf_policy_auth(
 }
 
 //------------------------------------------------------------------------------
-// Async variant of update_pcf_policy_auth, sent as merge-patch+json.
+// Async variant of update_pcf_policy_auth. Sent as merge-patch+json, like the
+// blocking twin.
 void nef_client::update_pcf_policy_auth_async(
     const std::string& app_session_id, const nlohmann::json& request_body,
     oai::sba::response_cb cb) {
@@ -1058,8 +1112,9 @@ bool nef_client::delete_pcf_policy_auth(
 }
 
 //------------------------------------------------------------------------------
-// Async variant of delete_pcf_policy_auth. PCF spells this one as a POST to
-// .../delete with an empty body, not as a DELETE.
+// Async variant of delete_pcf_policy_auth. Note the method: PCF spells this
+// one as a POST to .../delete with an empty JSON object as the body, not as an
+// HTTP DELETE.
 void nef_client::delete_pcf_policy_auth_async(
     const std::string& app_session_id, oai::sba::response_cb cb) {
   std::string pcf_url;
@@ -1078,8 +1133,9 @@ void nef_client::delete_pcf_policy_auth_async(
 }
 
 //------------------------------------------------------------------------------
-// Discovery-free variant of delete_pcf_policy_auth_async: PCF endpoint comes
-// from the caller.
+// Discovery-free variant of delete_pcf_policy_auth_async. The PCF endpoint
+// comes from the caller, so this is safe to fire from an oai-http-io
+// continuation.
 void nef_client::delete_pcf_policy_auth_at_async(
     const std::string& pcf_endpoint, const std::string& app_session_id,
     oai::sba::response_cb cb) {
@@ -1170,8 +1226,8 @@ bool nef_client::create_pcf_bdt_policy(
 }
 
 //------------------------------------------------------------------------------
-// Async variant of create_pcf_bdt_policy. Watch out for the 303 See Other:
-// it means success here, and the caller's continuation treats it as such.
+// Async variant of create_pcf_bdt_policy. Watch out for the 303 See Other: it
+// means success here, and the caller's continuation treats it as such.
 void nef_client::create_pcf_bdt_policy_async(
     const nlohmann::json& bdt_req, oai::sba::response_cb cb) {
   std::string pcf_url;
@@ -1328,8 +1384,8 @@ void nef_client::udr_put_pfd_data_async(
 }
 
 //------------------------------------------------------------------------------
-// Discovery-free variant of udr_put_pfd_data_async: UDR endpoint comes from
-// the caller. Note this is the v1 PFD path, matching udr_put_pfd_data — the
+// Discovery-free variant of udr_put_pfd_data_async: the UDR endpoint comes
+// from the caller. This uses the v1 PFD path, matching udr_put_pfd_data; the
 // v2 path is for GET only.
 void nef_client::udr_put_pfd_data_at_async(
     const std::string& udr_endpoint, const std::string& app_id,
@@ -1389,7 +1445,7 @@ void nef_client::udr_delete_pfd_data_async(
 }
 
 //------------------------------------------------------------------------------
-// Discovery-free variant of udr_delete_pfd_data_async: UDR endpoint comes
+// Discovery-free variant of udr_delete_pfd_data_async: the UDR endpoint comes
 // from the caller. v1 PFD path.
 void nef_client::udr_delete_pfd_data_at_async(
     const std::string& udr_endpoint, const std::string& app_id,
@@ -1444,8 +1500,8 @@ void nef_client::udr_get_pfd_data(
 }
 
 //------------------------------------------------------------------------------
-// Async variant of udr_get_pfd_data. GET goes to the v2 PFD path, while PUT
-// and DELETE use v1.
+// Async variant of udr_get_pfd_data. GET goes to the v2 PFD path; PUT and
+// DELETE use v1.
 void nef_client::udr_get_pfd_data_async(
     const std::string& app_id, oai::sba::response_cb cb) {
   std::string udr_url;
@@ -1464,8 +1520,8 @@ void nef_client::udr_get_pfd_data_async(
 }
 
 //------------------------------------------------------------------------------
-// Discovery-free variant of udr_get_pfd_data_async: UDR endpoint comes from
-// the caller. Note this is the v2 PFD path, matching udr_get_pfd_data — the
+// Discovery-free variant of udr_get_pfd_data_async: the UDR endpoint comes
+// from the caller. This uses the v2 PFD path, matching udr_get_pfd_data; the
 // v1 path is for PUT and DELETE.
 void nef_client::udr_get_pfd_data_at_async(
     const std::string& udr_endpoint, const std::string& app_id,
@@ -1524,8 +1580,8 @@ void nef_client::udr_put_influence_data_async(
 }
 
 //------------------------------------------------------------------------------
-// Discovery-free variant of udr_put_influence_data_async: UDR endpoint comes
-// from the caller. v2 influence-data path.
+// Discovery-free variant of udr_put_influence_data_async: the UDR endpoint
+// comes from the caller. v2 influence-data path.
 void nef_client::udr_put_influence_data_at_async(
     const std::string& udr_endpoint, const std::string& ti_id,
     const nlohmann::json& data, oai::sba::response_cb cb) {
@@ -1577,7 +1633,7 @@ void nef_client::udr_delete_influence_data_async(
 }
 
 //------------------------------------------------------------------------------
-// Discovery-free variant of udr_delete_influence_data_async: UDR endpoint
+// Discovery-free variant of udr_delete_influence_data_async: the UDR endpoint
 // comes from the caller. v2 influence-data path.
 void nef_client::udr_delete_influence_data_at_async(
     const std::string& udr_endpoint, const std::string& ti_id,
@@ -1589,12 +1645,12 @@ void nef_client::udr_delete_influence_data_at_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
 
-// NEF own callback URL (for southbound subscriptions)
+// NEF's own callback URL, used in every southbound subscription
 //------------------------------------------------------------------------------
 std::string nef_client::get_nef_notify_uri(const std::string& nf_sub_id) {
   // Build:  http://<nef_host>:<port>/nef-notify/v1/notify/<nf_sub_id>
+  // get_url() returns "http://host:port", with no trailing slash.
   std::string nef_url = nef_config_inst->get_local()->get_url();
-  // get_url() returns "http://host:port" (no trailing slash)
   return nef_url + nef_sbi_helper::NefNotifyBase + "v1/notify/" + nf_sub_id;
 }
 

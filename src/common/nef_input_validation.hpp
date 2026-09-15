@@ -12,10 +12,12 @@
 namespace oai::nef::app {
 
 // Every validator here returns an empty string when the value is acceptable,
-// and a human-readable description of the problem when it is not. A field
-// that is absent but not required always passes.
+// and a human-readable description of the problem when it is not.
+//
+// A field that is absent but not required always passes.
 
-/// Present, a string, non-empty, and no longer than max_len.
+/// A string, no longer than max_len. Must also be non-empty when required;
+/// an optional field that is present but empty passes.
 inline std::string validate_string_field(
     const nlohmann::json& j, const std::string& field_name, bool required,
     std::size_t max_len = 256) {
@@ -110,7 +112,7 @@ inline std::string validate_string_param(
   return "";
 }
 
-/// Returns the first non-empty error string from the provided arguments.
+/// The first non-empty error among the arguments, or "" if they all passed.
 template<typename... Args>
 inline std::string first_error(Args&&... args) {
   for (const std::string& e : {std::string(std::forward<Args>(args))...}) {
@@ -120,8 +122,10 @@ inline std::string first_error(Args&&... args) {
 }
 
 /// True when NEF has no way to authenticate anyone: no JWT secret and no AF
-/// whitelist. Callers deny the request on this unless the operator has
-/// deliberately turned on insecure_dev_mode.
+/// whitelist.
+///
+/// Callers deny the request on this, unless the operator has deliberately
+/// turned on insecure_dev_mode.
 inline bool is_auth_unconfigured(
     const std::string& jwt_secret, bool whitelist_empty) {
   return jwt_secret.empty() && whitelist_empty;
@@ -142,10 +146,15 @@ inline std::string validate_nnef_event_subs_item(
   return "";
 }
 
-/// A NefEventExposureSubsc body (TS 29.591): eventsSubs must be a non-empty
-/// array of valid items, and notifUri and notifId must both be present.
+/// A NefEventExposureSubsc body (TS 29.591). eventsSubs must be a non-empty
+/// array of valid items, and both notifUri and notifId must be present.
+///
 /// Whether notifUri is safe to call back is a separate question, answered in
 /// the application layer.
+///
+/// No longer on the live path: handle_nnef_event_exposure_subscribe() now
+/// does a typed NefEventExposureSubsc parse and validate() instead. Kept for
+/// callers that only have the raw JSON.
 inline std::string validate_nnef_event_exposure_subscription_body(
     const nlohmann::json& body) {
   auto err = validate_array_field(

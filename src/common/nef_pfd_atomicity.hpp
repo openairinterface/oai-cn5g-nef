@@ -11,20 +11,28 @@
 
 /// Best-effort compensating rollback for multi-app PFD batch writes.
 ///
-/// Record each app as it lands in UDR; if the batch then fails, execute()
-/// deletes them back out again. A failed rollback delete is only reported
-/// through the optional callback — it never throws or re-fails, so deciding
-/// how loudly to log it is the caller's call.
+/// Call mark_committed() for each app as it lands in UDR. If the batch then
+/// fails, execute() deletes those apps back out again.
+///
+/// Atomicity is best-effort, not guaranteed. A rollback delete that itself
+/// fails is only reported through the optional callback: execute() never
+/// throws and never re-fails, so UDR can be left holding an orphaned app and
+/// deciding how loudly to log that is the caller's call.
+///
+/// The live async PFD PUT path does not use this tracker — nef_app's
+/// pfd_put_rollback / pfd_rollback_step run the compensating DELETEs as
+/// continuations, and unwind in reverse commit order.
 class PfdRollbackTracker {
  public:
   void mark_committed(const std::string& app_id) {
     committed_apps_.push_back(app_id);
   }
 
-  /// Delete every committed app, in the order they were written. delete_fn
-  /// returns false to signal a failed delete; on_error, if given, is called
-  /// for each of those. Returns the number of failures, so 0 means the
-  /// rollback was clean.
+  /// Delete every committed app, in the order they were written.
+  ///
+  /// delete_fn returns false to signal a failed delete, and on_error, if
+  /// given, is called for each of those. Returns the number of failures, so 0
+  /// means the rollback was clean.
   int execute(
       std::function<bool(const std::string&)> delete_fn,
       std::function<void(const std::string&)> on_error = nullptr) const {

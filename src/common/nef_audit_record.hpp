@@ -14,9 +14,11 @@ namespace oai::nef::app {
 
 class nef_audit_record {
  public:
-  /// One structured JSON audit record. op is "CREATE", "UPDATE", "DELETE"
-  /// or "PATCH"; resource is "TI", "QOS", "BDT", "PFD", "EE" or "ME". Both
-  /// af_id and res_id may be empty — the latter for collection operations.
+  /// One structured JSON audit record, as a single line.
+  ///
+  /// op is "CREATE", "UPDATE", "DELETE" or "PATCH". resource is "TI", "QOS",
+  /// "BDT", "PFD", "EE" or "ME". Both af_id and res_id may be empty — res_id
+  /// for operations on a collection rather than one resource.
   static std::string make_record(
       const std::string& op, const std::string& resource,
       const std::string& af_id, const std::string& res_id, int http_code) {
@@ -43,7 +45,7 @@ class nef_audit_record {
     return oss.str();
   }
 
-  /// Minimal JSON string escaping (quote and backslash only).
+  /// Minimal JSON string escaping: quote and backslash only.
   static std::string escape_json(const std::string& s) {
     std::string out;
     out.reserve(s.size());

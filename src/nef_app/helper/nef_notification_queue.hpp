@@ -16,11 +16,11 @@ namespace oai::nef::app {
  * Bounded producer-consumer thread pool for notification forwarding.
  *
  * - Fixed number of worker threads (default 4).
- * - Bounded task queue (default 1000 entries): enqueue() returns false when
- *   the queue is full, giving the caller backpressure to log/drop.
- * - stop() drains remaining tasks before joining workers, ensuring all
- *   in-flight notifications complete on shutdown.
- * - enqueue() is non-blocking (never blocks the calling thread).
+ * - Bounded task queue (default 1000 entries). enqueue() returns false once
+ *   it is full, so the caller gets backpressure it can log or drop on.
+ * - enqueue() never blocks the calling thread.
+ * - stop() drains the remaining tasks before joining the workers, so
+ *   in-flight notifications still complete on shutdown.
  *
  * TODO: expose num_threads / max_queue as nef_config parameters.
  */
@@ -35,7 +35,8 @@ class notification_thread_pool {
 
   ~notification_thread_pool() { stop(); }
 
-  // Enqueue a task.  Returns false (caller should log+drop) when queue full.
+  // Enqueue a task. Returns false when the queue is full or the pool has
+  // stopped; the caller should log and drop.
   bool enqueue(std::function<void()> task) {
     std::lock_guard<std::mutex> lk(m_mutex);
     if (!m_running || m_queue.size() >= m_max_queue) return false;
@@ -44,7 +45,7 @@ class notification_thread_pool {
     return true;
   }
 
-  // Drain remaining tasks then join all workers.  Safe to call multiple times.
+  // Drain the remaining tasks, then join all workers. Idempotent.
   void stop() {
     {
       std::lock_guard<std::mutex> lk(m_mutex);
@@ -57,6 +58,7 @@ class notification_thread_pool {
     m_workers.clear();
   }
 
+  // Tasks still waiting. Tasks already picked up by a worker are not counted.
   size_t queue_depth() const {
     std::lock_guard<std::mutex> lk(m_mutex);
     return m_queue.size();

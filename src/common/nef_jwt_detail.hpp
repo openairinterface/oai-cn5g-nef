@@ -44,8 +44,8 @@ inline int b64url_index(char c) {
   return -1;
 }
 
-/// Decode a base64url-encoded string (padding optional).
-/// Returns false if the input contains illegal characters.
+/// Decode a base64url string; padding is optional.
+/// Returns false if the input contains an illegal character.
 inline bool base64url_decode(const std::string& in, std::string& out) {
   out.clear();
   int val  = 0;
@@ -64,8 +64,8 @@ inline bool base64url_decode(const std::string& in, std::string& out) {
   return true;
 }
 
-/// Split a JWT string into its three base64url-encoded components.
-/// Returns false when the token does not contain exactly three non-empty parts.
+/// Split a JWT into its three base64url-encoded parts.
+/// Returns false unless all three are present and non-empty.
 inline bool split_jwt(
     const std::string& token, std::string& header_b64, std::string& payload_b64,
     std::string& sig_b64) {
@@ -79,12 +79,14 @@ inline bool split_jwt(
   return !header_b64.empty() && !payload_b64.empty() && !sig_b64.empty();
 }
 
-/// Verify an HS256 JWT signature using OpenSSL HMAC-SHA256.
-/// signing_input = base64url(header) + "." + base64url(payload) (raw ASCII)
-/// sig_bytes     = raw (decoded) signature bytes
-/// secret        = shared HMAC secret
+/// Verify an HS256 JWT signature with OpenSSL HMAC-SHA256.
 ///
-/// Uses CRYPTO_memcmp for constant-time comparison (prevents timing attacks).
+///   signing_input  base64url(header) + "." + base64url(payload), raw ASCII
+///   sig_bytes      the decoded (raw) signature bytes
+///   secret         the shared HMAC secret
+///
+/// The comparison is constant-time, so response timing does not leak how much
+/// of a forged signature was correct.
 inline bool verify_hs256_signature(
     const std::string& signing_input, const std::string& sig_bytes,
     const std::string& secret) {
@@ -104,13 +106,13 @@ inline bool verify_hs256_signature(
 
   if (hmac_len != sig_bytes.size()) return false;
 
-  // Constant-time comparison to prevent timing-based side-channel attacks.
+  // Constant-time — do not swap this for memcmp.
   return CRYPTO_memcmp(
              hmac_buf, reinterpret_cast<const unsigned char*>(sig_bytes.data()),
              hmac_len) == 0;
 }
 
-/// Compute raw HMAC-SHA256 bytes (helper for building test tokens).
+/// Raw HMAC-SHA256 bytes. Used to build test tokens.
 inline std::string hmac_sha256_raw(
     const std::string& key, const std::string& msg) {
   unsigned char hmac_buf[EVP_MAX_MD_SIZE];
@@ -123,8 +125,8 @@ inline std::string hmac_sha256_raw(
   return std::string(reinterpret_cast<const char*>(hmac_buf), hmac_len);
 }
 
-/// Build a signed HS256 JWT from raw JSON header/payload strings.
-/// Intended for use in tests only.
+/// Build a signed HS256 JWT from raw JSON header and payload strings.
+/// For tests only.
 inline std::string make_test_jwt(
     const std::string& header_json, const std::string& payload_json,
     const std::string& secret) {

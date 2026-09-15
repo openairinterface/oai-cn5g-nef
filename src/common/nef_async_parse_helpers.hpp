@@ -2,11 +2,13 @@
 //
 // Pulling ids out of southbound responses.
 //
-// The async nef_client wrappers hand back the raw response and leave the
-// parsing to the caller, so every cont_* has to redo the id extraction its
-// synchronous twin did inline. That sync logic is file-static inside
-// nef_client.cpp and cannot be reached from here, so it is restated in this
-// header — keep the two in step when either changes.
+// The async nef_client wrappers hand back the raw response and leave parsing
+// to the caller, so every cont_* has to redo the id extraction its
+// synchronous twin did inline.
+//
+// That sync logic is file-static inside nef_client.cpp and cannot be reached
+// from here, so it is restated below. Keep the two in step when either
+// changes.
 //
 // Header-only and free of nef_app state, so the tests can use it without
 // linking nef_client.
@@ -53,8 +55,8 @@ inline std::string nef_async_last_path_segment(const std::string& uri) {
   return (slash == std::string::npos) ? u : u.substr(slash + 1);
 }
 
-// PCF appSessionId: the body's "appSessionId" if present, otherwise the tail
-// of the Location header.
+// PCF appSessionId: the body's "appSessionId" if present, otherwise the last
+// path segment of the Location header. Body first, matching the sync twin.
 inline std::string nef_async_parse_pcf_app_session_id(
     const oai::sba::response& r) {
   std::string id;
@@ -70,12 +72,13 @@ inline std::string nef_async_parse_pcf_app_session_id(
   return id;
 }
 
-// PCF BDT-policy id: Location header first, then the body fields
+// PCF BDT-policy id: the Location header first, then the body fields
 // bdtPolicyId -> bdtRefId -> bdtPolData.bdtRefId.
 //
-// Note the precedence is the opposite way round from appSessionId above. That
-// is deliberate and matches the sync twin: go body-first here and a PCF
-// response that carries only a body would leave m_bdt_id2pcf_policy_id unset.
+// The precedence is the other way round from appSessionId above. That is
+// deliberate: it mirrors the sync create_pcf_bdt_policy, so both paths derive
+// the same id — and so store the same value in m_bdt_id2pcf_policy_id — when
+// PCF answers with both a Location header and a body id.
 inline std::string nef_async_parse_pcf_bdt_policy_id(
     const oai::sba::response& r) {
   std::string id =
@@ -94,7 +97,9 @@ inline std::string nef_async_parse_pcf_bdt_policy_id(
   return id;
 }
 
-// AMF event-subscription id from a raw create response.
+// AMF event-subscription id from a raw create response. Prefers the typed
+// AmfCreatedEventSubscription parse, then falls back to the raw fields
+// subscriptionId -> eventsSubscription.subscriptionId.
 inline std::string nef_async_parse_amf_sub_id(const oai::sba::response& r) {
   std::string amf_sub_id;
   try {

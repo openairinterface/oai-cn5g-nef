@@ -17,7 +17,7 @@ constexpr auto NEF_CONFIG_AF_WHITELIST           = "af_whitelist";
 constexpr auto NEF_CONFIG_AF_WHITELIST_LABEL     = "AF Whitelist";
 constexpr auto NEF_CONFIG_DISPATCHER_POOL_SIZE   = "dispatcher_pool_size";
 
-// YAML sub-keys for a whitelist entry
+// YAML sub-keys of one whitelist entry
 constexpr auto NEF_CONFIG_AF_ID      = "af_id";
 constexpr auto NEF_CONFIG_AF_API_KEY = "api_key";
 constexpr auto NEF_CONFIG_AF_ALLOWED = "allowed_apis";
@@ -27,7 +27,7 @@ namespace oai::config::nef {
 /**
  * One entry in the AF / SCS whitelist.
  *
- * YAML shape (sequence under nef.af_whitelist):
+ * YAML shape, a sequence under nef.af_whitelist:
  *
  *   af_whitelist:
  *     - af_id: "my-af"
@@ -48,16 +48,18 @@ class nef_config_type : public oai::config::nf {
 
  private:
   string_config_value m_support_features;
-  // Structured whitelist – parsed from YAML sequence
+  // Structured whitelist, parsed from the YAML sequence. Empty = open access.
   std::vector<af_whitelist_entry_t> m_af_whitelist;
-  // JWT HMAC shared secret (empty = JWT validation disabled)
+  // JWT HMAC shared secret. Empty disables JWT validation.
   std::string m_jwt_secret_key;
-  // Fail-open switch: when true, requests are allowed even with no JWT
-  // secret and no whitelist configured. Defaults to false, i.e. fail-closed.
+  // Fail-open switch. When true, requests are allowed even with no JWT secret
+  // and no whitelist configured.
+  // Default false, i.e. fail-closed: such a deployment denies everything.
   bool m_insecure_dev_mode{false};
-  // Async dispatcher thread-pool size. 0 means auto, letting the server keep
-  // its default of http_workers + 2. Careful shrinking this: until an
-  // in-flight cap exists the pool is the only thing limiting concurrency.
+  // Async dispatcher thread-pool size. 0 means auto: the server keeps its own
+  // default of http_workers + 2.
+  // Shrink with care. Until an in-flight request cap exists, the pool size is
+  // the only thing limiting concurrency.
   uint32_t m_dispatcher_pool_size{0};
 
  public:
@@ -75,11 +77,11 @@ class nef_config_type : public oai::config::nf {
   [[nodiscard]] std::string get_support_features() const;
   void set_support_features(const std::string&);
 
-  // Empty means open access (development / test).
+  // An empty whitelist means open access (development / test).
   [[nodiscard]] const std::vector<af_whitelist_entry_t>& get_af_whitelist()
       const;
 
-  // Empty disables JWT validation (development mode).
+  // An empty secret disables JWT validation (development mode).
   [[nodiscard]] std::string get_jwt_secret_key() const;
 
   [[nodiscard]] bool get_insecure_dev_mode() const {
