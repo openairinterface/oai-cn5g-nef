@@ -12,24 +12,18 @@
 #---------------------------------------------------------------------
 # BUILDER IMAGE
 #---------------------------------------------------------------------
-
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest as oai-nef-builder
+FROM registry.redhat.io/ubi9/ubi:latest AS oai-nef-builder
 
 ARG EPEL_URL
 ENV EPEL_URL=${EPEL_URL}
 
 ENV IS_DOCKERFILE=1
-
 # Copy the entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
-COPY ./rhsm-conf/rhsm.conf /etc/rhsm/rhsm.conf
-COPY ./rhsm-ca/ /etc/rhsm/ca/
-
 RUN rm -f /etc/rhsm-host && \
-    microdnf install -y subscription-manager dnf && \
     subscription-manager repos --enable codeready-builder-for-rhel-9-x86_64-rpms && \
-    dnf update -y --allowerasing --skip-broken --nobest && \
-    # To display the current version
+    dnf update -y && \
+    # here just to display the current version
     cat /etc/os-release && \
     dnf install -y \
         psmisc \
@@ -41,38 +35,50 @@ RUN rm -f /etc/rhsm-host && \
     echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
     echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf
 
+
+ARG YQ_VERSION=v4.47.1
+RUN case $(uname -m) in \
+        x86_64)  YQ_BIN="yq_linux_amd64" ;; \
+        aarch64) YQ_BIN="yq_linux_arm64" ;; \
+        *) echo "Unsupported arch"; exit 1 ;; \
+    esac && \
+    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BIN} -O /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq
+
 # Some GIT configuration command quite useful
 RUN git config --global https.postBuffer 123289600 && \
     git config --global http.sslverify false
 
 # Copying source code
-WORKDIR /openair-nef
+WORKDIR /openair-nef/
 COPY . /openair-nef
 
-# Installing and Building NEF
+# Installing all the needed libraries/packages to build and run NEF
 WORKDIR /openair-nef/build/scripts
 RUN ./build_nef --install-deps --force
+
+# Building NEF
+WORKDIR /openair-nef/build/scripts
 RUN ldconfig && \
     ./build_nef --clean --Verbose --build-type Release --jobs && \
-    ldd /openair-nef/build/nef/build/oai_nef && \
-    # Adapting the entrypoint to NEF NF
-    sed -i -e "s@openair-nf-root-folder@openair-nef@g" \
-           -e "s@nf-config-file@config.yaml@g" \
-           ../common-build/docker-scripts/entrypoint.py && \
+    ldd /openair-nef/build/nef/build/nef && \
+    mv /openair-nef/build/nef/build/nef /openair-nef/build/nef/build/oai_nef && \
     # Remove entitlements and Subscription Manager configs
     rm -rf /etc/pki/entitlement
+
+
 #---------------------------------------------------------------------
 # TARGET IMAGE
 #---------------------------------------------------------------------
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest as oai-nef
+FROM registry.redhat.io/ubi9/ubi-minimal:latest as oai-nef
 ENV TZ=Europe/Paris
+# We install some debug tools for the moment in addition of mandatory libraries
 
 # Copy the entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
 # Copy the subscription manager configurations
 COPY --from=oai-nef-builder /etc/rhsm /etc/rhsm
 
-# We install some debug tools for the moment in addition of mandatory libraries
 RUN rm -f /etc/rhsm-host && \
     microdnf update -y && \
     microdnf install -y \
@@ -98,24 +104,25 @@ RUN rm -f /etc/rhsm-host && \
 WORKDIR /openair-nef/bin
 COPY --from=oai-nef-builder \
     /openair-nef/build/nef/build/oai_nef \
-    /openair-nef/build/common-build/docker-scripts/entrypoint.py \
     /openair-nef/scripts/healthcheck.sh \
     ./
+COPY --from=oai-nef-builder /usr/local/bin/yq /usr/bin/yq
 
 COPY --from=oai-nef-builder \
-# Copying only the packages built from source
     /usr/local/lib64/libpistache.so.0 \
     /usr/local/lib/libnghttp2_asio.so.1 \
+    /usr/local/lib64/libspdlog.so \
     /usr/local/lib64/libfmt.so \
+    /usr/local/lib64/libyaml-cpp.so.0.* \
     /usr/lib64/
 
 RUN ldconfig && \
     ldd /openair-nef/bin/oai_nef
 
 # Copying template configuration files
-# The configuration folder will be flat
 WORKDIR /openair-nef/etc
-COPY --from=oai-nef-builder /openair-nef/etc/config.yaml /openair-nef/etc/
+COPY --from=oai-nef-builder \
+    /openair-nef/etc/config.yaml ./
 
 WORKDIR /openair-nef
 
