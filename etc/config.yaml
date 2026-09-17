@@ -1,0 +1,87 @@
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.
+################################################################################
+
+# OAI-CN5G-NEF Configuration File
+
+############# Common configuration
+
+log_level:
+  general: debug
+
+# Register to NRF so other NFs can discover NEF
+register_nf:
+  general: yes
+
+############## SBI Interfaces
+nfs:
+  nrf:
+    host: oai-nrf
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+  amf:
+    host: oai-amf
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+  smf:
+    host: oai-smf
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+  pcf:
+    host: oai-pcf
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+  udr:
+    host: oai-udr
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+  nef:
+    host: oai-nef-test
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+############## NEF-specific configuration
+nef:
+  # Comma-separated list of supported northbound services
+  support_features: >
+    nnef-eventexposure,
+    nnef-pfdmanagement,
+    nnef-trafficinfluence,
+    nnef-bdtpolicycontrol,
+    nnef-qosmonitoring,
+    nnef-analyticsexposure
+  # AF/SCS whitelist.  Leave empty (or omit) to allow ALL AFs (dev mode).
+  # Each entry:  af_id (required), api_key (optional), allowed_apis (optional)
+  # Example (uncomment to restrict access):
+  # af_whitelist:
+  #   - af_id: "my-af-1"
+  #     api_key: "changeme"
+  #     allowed_apis:
+  #       - monitoring_event
+  #       - traffic_influence
+  #   - af_id: "my-af-2"
+  #     # no api_key = key not checked
+  #     # no allowed_apis = all APIs allowed for this AF
+  af_whitelist: []
+  security:
+    # HMAC-SHA256 secret for JWT token signing/validation.
+    # MUST be set to a strong random secret in production.
+    # Empty value disables JWT validation (development mode only).
+    jwt_secret: ""
+    # Set to true ONLY for development/testing to allow requests when no JWT
+    # secret and no AF whitelist are configured (fail-open).  Default: false
+    # (fail-closed: all requests denied when auth is unconfigured).
+    # WARNING: NEVER enable in production — all access is unrestricted.
+    insecure_dev_mode: true

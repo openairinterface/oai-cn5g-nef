@@ -189,12 +189,12 @@ function main()
   $CMAKE $cmake_args .. > /dev/null
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
-  compilations nef nef $OPENAIRCN_DIR/build/nef/build/nef $verbose
+  compilations nef oai_nef $OPENAIRCN_DIR/build/nef/build/oai_nef $verbose
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
   # For daemon should not be group writable
-  $SUDO chmod 755 $OPENAIRCN_DIR/build/nef/build/nef
-  $SUDO cp -upv $OPENAIRCN_DIR/build/nef/build/nef $INSTALL_DIR && $SUDO chmod 755 $INSTALL_DIR/nef && echo_success "nef installed"
+  $SUDO chmod 755 $OPENAIRCN_DIR/build/nef/build/oai_nef
+  $SUDO cp -upv $OPENAIRCN_DIR/build/nef/build/oai_nef $INSTALL_DIR/oai_nef && $SUDO chmod 755 $INSTALL_DIR/oai_nef && echo_success "oai nef installed"
   return 0
 }
 
