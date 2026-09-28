@@ -32,11 +32,11 @@
 namespace bs2 = boost::signals2;
 
 namespace oai {
-namespace sba {
+namespace nghttp2 {
 // Only needed for the cont_* signatures below; the definition lives in
-// sba/http_definitions.hpp.
+// nghttp/http_definitions.hpp.
 struct response;
-}  // namespace sba
+}  // namespace nghttp2
 namespace nef {
 namespace app {
 
@@ -46,7 +46,7 @@ class nef_app {
  public:
   explicit nef_app(
       const std::string& config_file, std::shared_ptr<nef_event>& ev);
-  nef_app(nef_app const&) = delete;
+  nef_app(nef_app const&)        = delete;
   void operator=(nef_app const&) = delete;
   virtual ~nef_app();
 
@@ -105,7 +105,7 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_monitoring_event_subscribe(
       const std::string& scs_as_id, const std::string& sub_id,
-      const nlohmann::json& body, oai::sba::response r, response_sink sink);
+      const nlohmann::json& body, oai::nghttp2::response r, response_sink sink);
 
   // Qos create (TS 29.522 §4.4.9). The Location/self
   // header is produced by the adapter's qos-create header sink.
@@ -114,7 +114,8 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_qos_create(
       const std::string& af_id, const std::string& qos_sub_id,
-      nlohmann::json req_data_json, oai::sba::response r, response_sink sink);
+      nlohmann::json req_data_json, oai::nghttp2::response r,
+      response_sink sink);
 
   // Traffic-influence create — a PCF call chained into a UDR call
   void ti_create(
@@ -124,10 +125,10 @@ class nef_app {
       const std::string& af_id, const nlohmann::json& body,
       const std::string& ti_id, const std::string& pcf_ep,
       const std::string& udr_ep, std::shared_ptr<nef_subscription> ti_sub,
-      oai::sba::response r, response_sink sink);
+      oai::nghttp2::response r, response_sink sink);
   void cont_ti_create_udr(
       const nlohmann::json& body, const std::string& ti_id,
-      oai::sba::response r, response_sink sink);
+      oai::nghttp2::response r, response_sink sink);
 
   // Traffic-influence update
   void ti_update(
@@ -135,7 +136,7 @@ class nef_app {
       const nlohmann::json& body, const std::string& token, response_sink sink);
   void cont_ti_update(
       const std::string& af_id, const std::string& ti_id,
-      const nlohmann::json& body, oai::sba::response r, response_sink sink);
+      const nlohmann::json& body, oai::nghttp2::response r, response_sink sink);
 
   // Traffic-influence patch
   void ti_patch(
@@ -145,7 +146,7 @@ class nef_app {
   void cont_ti_patch(
       const std::string& af_id, const std::string& ti_id,
       const std::string& app_session_id, nlohmann::json patched_copy,
-      oai::sba::response r, response_sink sink);
+      oai::nghttp2::response r, response_sink sink);
 
   // PFD app put
   void pfd_app_put(
@@ -154,7 +155,7 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_pfd_app_put(
       const std::string& scs_as_id, const std::string& app_id,
-      nlohmann::json new_app_json, bool is_create, oai::sba::response r,
+      nlohmann::json new_app_json, bool is_create, oai::nghttp2::response r,
       response_sink sink);
 
   // Monitoring + QoS deletes/updates
@@ -164,7 +165,8 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_monitoring_event_unsubscribe(
       const std::string& scs_as_id, const std::string& sub_id,
-      const std::string& nf_sub_id, oai::sba::response r, response_sink sink);
+      const std::string& nf_sub_id, oai::nghttp2::response r,
+      response_sink sink);
 
   // Qos update (PUT)
   void qos_update(
@@ -172,7 +174,8 @@ class nef_app {
       const nlohmann::json& body, const std::string& token, response_sink sink);
   void cont_qos_update(
       const std::string& scs_as_id, const std::string& sub_id,
-      nlohmann::json response_data, oai::sba::response r, response_sink sink);
+      nlohmann::json response_data, oai::nghttp2::response r,
+      response_sink sink);
 
   // Qos patch
   void qos_patch(
@@ -181,7 +184,7 @@ class nef_app {
       response_sink sink);
   void cont_qos_patch(
       const std::string& scs_as_id, const std::string& sub_id,
-      nlohmann::json patched, oai::sba::response r, response_sink sink);
+      nlohmann::json patched, oai::nghttp2::response r, response_sink sink);
 
   // Qos delete
   void qos_delete(
@@ -189,7 +192,8 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_qos_delete(
       const std::string& af_id, const std::string& qos_sub_id,
-      const std::string& nf_sub_id, oai::sba::response r, response_sink sink);
+      const std::string& nf_sub_id, oai::nghttp2::response r,
+      response_sink sink);
 
   // Bdt create
   void bdt_create(
@@ -197,7 +201,7 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_bdt_create(
       const std::string& af_id, const std::string& bdt_id,
-      oai::_3gpp::model::BdtPolicy bdt_policy, oai::sba::response r,
+      oai::_3gpp::model::BdtPolicy bdt_policy, oai::nghttp2::response r,
       response_sink sink);
 
   // Bdt update
@@ -206,7 +210,7 @@ class nef_app {
       const nlohmann::json& body, const std::string& token, response_sink sink);
   void cont_bdt_update(
       const std::string& af_id, const std::string& bdt_id,
-      oai::_3gpp::model::BdtPolicy bdt_policy, oai::sba::response r,
+      oai::_3gpp::model::BdtPolicy bdt_policy, oai::nghttp2::response r,
       response_sink sink);
 
   // Bdt patch
@@ -216,15 +220,16 @@ class nef_app {
       response_sink sink);
   void cont_bdt_patch(
       const std::string& af_id, const std::string& bdt_policy_id,
-      nlohmann::json patched_copy, oai::sba::response r, response_sink sink);
+      nlohmann::json patched_copy, oai::nghttp2::response r,
+      response_sink sink);
 
   // Bdt delete
   void bdt_delete(
       const std::string& af_id, const std::string& bdt_id,
       const std::string& token, response_sink sink);
   void cont_bdt_delete(
-      const std::string& af_id, const std::string& bdt_id, oai::sba::response r,
-      response_sink sink);
+      const std::string& af_id, const std::string& bdt_id,
+      oai::nghttp2::response r, response_sink sink);
 
   // PFD T8 single (UDR)
   // PFD create
@@ -232,14 +237,14 @@ class nef_app {
       const std::string& app_id, const nlohmann::json& body,
       const std::string& token, response_sink sink);
   void cont_pfd_create(
-      const std::string& app_id, nlohmann::json body, oai::sba::response r,
+      const std::string& app_id, nlohmann::json body, oai::nghttp2::response r,
       response_sink sink);
 
   // PFD delete
   void pfd_delete(
       const std::string& app_id, const std::string& token, response_sink sink);
   void cont_pfd_delete(
-      const std::string& app_id, oai::sba::response r, response_sink sink);
+      const std::string& app_id, oai::nghttp2::response r, response_sink sink);
 
   // PFD app patch
   void pfd_app_patch(
@@ -248,7 +253,7 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_pfd_app_patch(
       const std::string& scs_as_id, const std::string& app_id,
-      nlohmann::json patched, oai::sba::response r, response_sink sink);
+      nlohmann::json patched, oai::nghttp2::response r, response_sink sink);
 
   // PFD app delete
   void pfd_app_delete(
@@ -256,7 +261,7 @@ class nef_app {
       const std::string& app_id, const std::string& token, response_sink sink);
   void cont_pfd_app_delete(
       const std::string& scs_as_id, const std::string& app_id,
-      oai::sba::response r, response_sink sink);
+      oai::nghttp2::response r, response_sink sink);
 
   // Nnef-PFD single (UDR)
   // Nnef PFD put app
@@ -265,7 +270,7 @@ class nef_app {
       const nlohmann::json& body, const std::string& token, response_sink sink);
   void cont_nnef_pfd_put_app(
       const std::string& app_id, nlohmann::json response_app,
-      nlohmann::json normalized_app, bool is_create, oai::sba::response r,
+      nlohmann::json normalized_app, bool is_create, oai::nghttp2::response r,
       response_sink sink);
 
   // Nnef PFD delete app
@@ -274,7 +279,7 @@ class nef_app {
       const std::string& transaction_id, const std::string& app_id,
       const std::string& token, response_sink sink);
   void cont_nnef_pfd_delete_app(
-      const std::string& app_id, oai::sba::response r, response_sink sink);
+      const std::string& app_id, oai::nghttp2::response r, response_sink sink);
 
   // PFD transaction delete — UDR DELETE
   struct PfdDeleteChain {
@@ -338,10 +343,10 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_ti_delete_pcf(
       const std::string& af_id, const std::string& ti_id,
-      const std::string& udr_ep, oai::sba::response r, response_sink sink);
+      const std::string& udr_ep, oai::nghttp2::response r, response_sink sink);
   void cont_ti_delete_udr(
-      const std::string& af_id, const std::string& ti_id, oai::sba::response r,
-      response_sink sink);
+      const std::string& af_id, const std::string& ti_id,
+      oai::nghttp2::response r, response_sink sink);
 
   // Nnef PFD put transaction
   struct NnefPutChain {

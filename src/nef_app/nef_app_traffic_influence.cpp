@@ -229,7 +229,7 @@ void nef_app::ti_update(
   m_nef_client->update_pcf_policy_auth_async(
       pcf_policy_id, body,
       [this, af_id, ti_id, body,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_ti_update(af_id, ti_id, body, std::move(r), std::move(sink));
       });
 }
@@ -237,7 +237,7 @@ void nef_app::ti_update(
 //------------------------------------------------------------------------------
 void nef_app::cont_ti_update(
     const std::string& af_id, const std::string& ti_id,
-    const nlohmann::json& body, oai::sba::response r, response_sink sink) {
+    const nlohmann::json& body, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_ti_update ti_id=%s status=%d", ti_id.c_str(), r.status_code);
   // FATAL-502: a PCF failure fails the whole request (504 on a timeout).
@@ -362,7 +362,7 @@ void nef_app::ti_patch(
   m_nef_client->update_pcf_policy_auth_async(
       pcf_policy_id, patched_copy,
       [this, af_id, ti_id, patched_copy,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_ti_patch(
             af_id, ti_id, ti_id, std::move(patched_copy), std::move(r),
             std::move(sink));
@@ -373,7 +373,7 @@ void nef_app::ti_patch(
 void nef_app::cont_ti_patch(
     const std::string& af_id, const std::string& ti_id,
     const std::string& app_session_id, nlohmann::json patched_copy,
-    oai::sba::response r, response_sink sink) {
+    oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_ti_patch ti_id=%s status=%d", app_session_id.c_str(),
       r.status_code);
@@ -559,7 +559,7 @@ void nef_app::ti_create(
   m_nef_client->create_pcf_policy_auth_at_async(
       pcf_ep, body,
       [this, af_id, body, ti_id, pcf_ep, udr_ep, ti_sub,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_ti_create_pcf(
             af_id, body, ti_id, pcf_ep, udr_ep, ti_sub, std::move(r),
             std::move(sink));
@@ -571,7 +571,7 @@ void nef_app::cont_ti_create_pcf(
     const std::string& af_id, const nlohmann::json& body,
     const std::string& ti_id, const std::string& pcf_ep,
     const std::string& udr_ep, std::shared_ptr<nef_subscription> ti_sub,
-    oai::sba::response r, response_sink sink) {
+    oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_ti_create_pcf ti_id=%s status=%d", ti_id.c_str(), r.status_code);
   const std::string pcf_policy_id =
@@ -620,7 +620,7 @@ void nef_app::cont_ti_create_pcf(
         "TI %s vanished during PCF create (concurrent delete); compensating",
         ti_id.c_str());
     m_nef_client->delete_pcf_policy_auth_at_async(
-        pcf_ep, pcf_policy_id, [](oai::sba::response) {});
+        pcf_ep, pcf_policy_id, [](oai::nghttp2::response) {});
     return sink(http_status_code::NO_CONTENT, "");
   }
 
@@ -638,15 +638,15 @@ void nef_app::cont_ti_create_pcf(
   m_nef_client->udr_put_influence_data_at_async(
       udr_ep, ti_id, body,
       [this, body, ti_id,
-       sink = std::move(sink)](oai::sba::response ur) mutable {
+       sink = std::move(sink)](oai::nghttp2::response ur) mutable {
         cont_ti_create_udr(body, ti_id, std::move(ur), std::move(sink));
       });
 }
 
 //------------------------------------------------------------------------------
 void nef_app::cont_ti_create_udr(
-    const nlohmann::json& body, const std::string& ti_id, oai::sba::response r,
-    response_sink sink) {
+    const nlohmann::json& body, const std::string& ti_id,
+    oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_ti_create_udr ti_id=%s status=%d", ti_id.c_str(), r.status_code);
   // Best-effort leg: a UDR failure is logged and otherwise ignored — the AF
@@ -730,7 +730,7 @@ void nef_app::ti_delete(
     // Inline-finish the PCF leg with a status-0 sentinel (no southbound fire),
     // then the UDR leg runs from cont_ti_delete_pcf's pass-through.
     return cont_ti_delete_pcf(
-        af_id, ti_id, udr_ok ? udr_ep : std::string{}, oai::sba::response{},
+        af_id, ti_id, udr_ok ? udr_ep : std::string{}, oai::nghttp2::response{},
         std::move(sink));
   }
 
@@ -739,7 +739,7 @@ void nef_app::ti_delete(
       pcf_ep, pcf_policy_id,
       [this, af_id, ti_id, ti_policy = pcf_policy_id,
        udr_ep = (udr_ok ? udr_ep : std::string{}),
-       sink   = std::move(sink)](oai::sba::response r) mutable {
+       sink   = std::move(sink)](oai::nghttp2::response r) mutable {
         if (!sbi_ok(r)) {
           Logger::nef_app().warn(
               "PCF TI delete failed for ti_id=%s policy_id=%s (http=%d)",
@@ -752,7 +752,8 @@ void nef_app::ti_delete(
 //------------------------------------------------------------------------------
 void nef_app::cont_ti_delete_pcf(
     const std::string& af_id, const std::string& ti_id,
-    const std::string& udr_ep, oai::sba::response /*r*/, response_sink sink) {
+    const std::string& udr_ep, oai::nghttp2::response /*r*/,
+    response_sink sink) {
   // The PCF leg was already logged, or skipped, by the caller. Now fire the
   // UDR influence DELETE. An empty udr_ep means UDR was undiscoverable: skip
   // the leg with a warning (best-effort) and go straight to the final step.
@@ -761,20 +762,20 @@ void nef_app::cont_ti_delete_pcf(
         "UDR influence DELETE skipped for ti_id=%s (UDR undiscoverable)",
         ti_id.c_str());
     return cont_ti_delete_udr(
-        af_id, ti_id, oai::sba::response{}, std::move(sink));
+        af_id, ti_id, oai::nghttp2::response{}, std::move(sink));
   }
   m_nef_client->udr_delete_influence_data_at_async(
       udr_ep, ti_id,
       [this, af_id, ti_id,
-       sink = std::move(sink)](oai::sba::response ur) mutable {
+       sink = std::move(sink)](oai::nghttp2::response ur) mutable {
         cont_ti_delete_udr(af_id, ti_id, std::move(ur), std::move(sink));
       });
 }
 
 //------------------------------------------------------------------------------
 void nef_app::cont_ti_delete_udr(
-    const std::string& af_id, const std::string& ti_id, oai::sba::response r,
-    response_sink sink) {
+    const std::string& af_id, const std::string& ti_id,
+    oai::nghttp2::response r, response_sink sink) {
   // Best-effort: a UDR failure is warn-only and does not change the 204.
   // r.status_code == 0 means the UDR leg was skipped, which the caller has
   // already logged — do not emit a spurious second WARN in that case.

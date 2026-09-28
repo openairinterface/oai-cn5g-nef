@@ -31,7 +31,7 @@ using oai::nef::api::nef_http2_server;
 
 std::shared_ptr<nef_app> nef_app_inst                               = nullptr;
 std::unique_ptr<nef_config> nef_config_inst                         = nullptr;
-std::shared_ptr<oai::sba::http_client> http_client_inst             = nullptr;
+std::shared_ptr<oai::nghttp2::http_client> http_client_inst         = nullptr;
 std::unique_ptr<nef_http2_server> nef_api_server_2                  = nullptr;
 std::unique_ptr<oai::sba::task_manager> tm_inst                     = nullptr;
 std::unique_ptr<oai::config::lttng_configuration> lttng_config_yaml = nullptr;
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
   Logger::init("nef", Options::getlogStdout(), Options::getlogRotFilelog());
   // The HTTP/2 server lives in common-src and logs through the registry;
   // point its diagnostics at the NEF_APP category.
-  oai::sba::set_http2_server_logger(NEF_APP);
+  oai::nghttp2::set_http2_server_logger(NEF_APP);
   Logger::nef_app().startup("Options parsed");
 
   // eventfd gives the handler an async-signal-safe way to wake main().
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
   }
 
   // Install signal handlers (async-signal-safe: only write to eventfd)
-  struct sigaction sa {};
+  struct sigaction sa{};
   sa.sa_handler = my_shutdown_signal_handler;
   sigemptyset(&sa.sa_mask);
   sigaction(SIGTERM, &sa, nullptr);
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
   nef_config_inst->display();
 
   // HTTP Client
-  http_client_inst = oai::sba::http_client::create_instance(
+  http_client_inst = oai::nghttp2::http_client::create_instance(
       Logger::nef_sbi(), oai::common::sbi::kNfDefaultHttpRequestTimeout,
       nef_config_inst->local().get_sbi().get_if_name(), 2);
 

@@ -46,7 +46,7 @@ using namespace boost::placeholders;
 using namespace oai::common::sbi;
 
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
-extern std::shared_ptr<oai::sba::http_client> http_client_inst;
+extern std::shared_ptr<oai::nghttp2::http_client> http_client_inst;
 
 // Per-request bearer token.
 //

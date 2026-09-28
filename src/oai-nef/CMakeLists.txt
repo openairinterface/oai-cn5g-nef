@@ -116,6 +116,7 @@ include_directories(${SRC_TOP_DIR}/common)
 include_directories(${SRC_TOP_DIR}/api-server)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model)
+include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/nghttp)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/sba)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils/bstr)
@@ -131,10 +132,11 @@ add_executable(oai_nef
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/common/common.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/config/config.cmake)
 # NEF serves SBI over the common HTTP/2 server, so opt into it before
-# sba.cmake is included (libevent is on the oai_nef link line below).
+# nghttp.cmake is included (libevent is on the oai_nef link line below).
 set(HTTP2_SERVER_ENABLED ON)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger/logger.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/sba/sba.cmake)
+include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/nghttp/nghttp.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils/utils.cmake)
 include(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model/nef_model.cmake)
 

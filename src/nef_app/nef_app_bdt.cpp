@@ -195,7 +195,7 @@ void nef_app::bdt_create(
   // Fire the PCF BDT create. A 303 counts as success.
   m_nef_client->create_pcf_bdt_policy_async(
       body, [this, af_id, bdt_id, bdt_policy,
-             sink = std::move(sink)](oai::sba::response r) mutable {
+             sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_bdt_create(
             af_id, bdt_id, std::move(bdt_policy), std::move(r),
             std::move(sink));
@@ -205,7 +205,7 @@ void nef_app::bdt_create(
 //------------------------------------------------------------------------------
 void nef_app::cont_bdt_create(
     const std::string& af_id, const std::string& bdt_id,
-    oai::_3gpp::model::BdtPolicy bdt_policy, oai::sba::response r,
+    oai::_3gpp::model::BdtPolicy bdt_policy, oai::nghttp2::response r,
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_bdt_create bdt_id=%s status=%d", bdt_id.c_str(), r.status_code);
@@ -350,7 +350,7 @@ void nef_app::bdt_update(
   m_nef_client->update_pcf_bdt_policy_async(
       pcf_bdt_id, body,
       [this, af_id, bdt_id, bdt_policy,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_bdt_update(
             af_id, bdt_id, std::move(bdt_policy), std::move(r),
             std::move(sink));
@@ -360,7 +360,7 @@ void nef_app::bdt_update(
 //------------------------------------------------------------------------------
 void nef_app::cont_bdt_update(
     const std::string& af_id, const std::string& bdt_id,
-    oai::_3gpp::model::BdtPolicy bdt_policy, oai::sba::response r,
+    oai::_3gpp::model::BdtPolicy bdt_policy, oai::nghttp2::response r,
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_bdt_update bdt_id=%s status=%d", bdt_id.c_str(), r.status_code);
@@ -450,7 +450,7 @@ void nef_app::bdt_patch(
   m_nef_client->update_pcf_bdt_policy_async(
       pcf_bdt_id, patched_copy,
       [this, af_id, bdt_policy_id, patched_copy,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_bdt_patch(
             af_id, bdt_policy_id, std::move(patched_copy), std::move(r),
             std::move(sink));
@@ -460,7 +460,7 @@ void nef_app::bdt_patch(
 //------------------------------------------------------------------------------
 void nef_app::cont_bdt_patch(
     const std::string& af_id, const std::string& bdt_policy_id,
-    nlohmann::json patched_copy, oai::sba::response r, response_sink sink) {
+    nlohmann::json patched_copy, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_bdt_patch bdt_id=%s status=%d", bdt_policy_id.c_str(),
       r.status_code);
@@ -542,20 +542,20 @@ void nef_app::bdt_delete(
     // No PCF policy to delete — finish the local cleanup inline (matches the
     // sync skip of the southbound call).
     return cont_bdt_delete(
-        af_id, bdt_id, oai::sba::response{}, std::move(sink));
+        af_id, bdt_id, oai::nghttp2::response{}, std::move(sink));
   }
   // Fire the PCF BDT delete
   m_nef_client->delete_pcf_bdt_policy_async(
       pcf_bdt_id, [this, af_id, bdt_id,
-                   sink = std::move(sink)](oai::sba::response r) mutable {
+                   sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_bdt_delete(af_id, bdt_id, std::move(r), std::move(sink));
       });
 }
 
 //------------------------------------------------------------------------------
 void nef_app::cont_bdt_delete(
-    const std::string& af_id, const std::string& bdt_id, oai::sba::response r,
-    response_sink sink) {
+    const std::string& af_id, const std::string& bdt_id,
+    oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_bdt_delete bdt_id=%s status=%d", bdt_id.c_str(), r.status_code);
   // Best-effort: PCF result warn-only.

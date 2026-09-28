@@ -61,10 +61,10 @@ class nef_client : public oai::sba::nf_service {
  public:
   nef_client(
       const std::shared_ptr<oai::sba::nf_event>& ev,
-      const std::shared_ptr<oai::sba::http_client>& client_inst);
+      const std::shared_ptr<oai::nghttp2::http_client>& client_inst);
   ~nef_client() override;
 
-  nef_client(nef_client const&) = delete;
+  nef_client(nef_client const&)     = delete;
   void operator=(nef_client const&) = delete;
 
   // NRF registration. All three do nothing and return true when register_nrf
@@ -87,19 +87,19 @@ class nef_client : public oai::sba::nf_service {
   //  - resolved by asking the NRF: the NRF's own SearchResult, passed through
   //    as-is;
   //  - not resolvable: status_code 0 with an empty body.
-  void discover_nf_async(nf_type_t nf_type, oai::sba::response_cb cb);
+  void discover_nf_async(nf_type_t nf_type, oai::nghttp2::response_cb cb);
 
   // AMF — event-exposure subscription
   bool subscribe_amf_event_exposure(
       const nlohmann::json& subscription_data, std::string& amf_sub_id);
 
   void subscribe_amf_event_exposure_async(
-      const nlohmann::json& subscription_data, oai::sba::response_cb cb);
+      const nlohmann::json& subscription_data, oai::nghttp2::response_cb cb);
 
   bool unsubscribe_amf_event_exposure(const std::string& amf_sub_id);
 
   void unsubscribe_amf_event_exposure_async(
-      const std::string& amf_sub_id, oai::sba::response_cb cb);
+      const std::string& amf_sub_id, oai::nghttp2::response_cb cb);
 
   // SMF — event-exposure subscription
   // The caller supplies a fully-formed NsmfEventExposure body. This injects
@@ -111,12 +111,12 @@ class nef_client : public oai::sba::nf_service {
 
   void subscribe_smf_event_exposure_async(
       const nlohmann::json& smf_body, const std::string& notif_id,
-      const std::string& notif_uri, oai::sba::response_cb cb);
+      const std::string& notif_uri, oai::nghttp2::response_cb cb);
 
   bool unsubscribe_smf_event_exposure(const std::string& smf_sub_id);
 
   void unsubscribe_smf_event_exposure_async(
-      const std::string& smf_sub_id, oai::sba::response_cb cb);
+      const std::string& smf_sub_id, oai::nghttp2::response_cb cb);
 
   // Full-replace an existing SMF subscription; the caller has already
   // embedded notifId/notifUri in the body.
@@ -132,11 +132,11 @@ class nef_client : public oai::sba::nf_service {
       uint32_t& http_code);
 
   void create_pcf_policy_auth_async(
-      const nlohmann::json& request_body, oai::sba::response_cb cb);
+      const nlohmann::json& request_body, oai::nghttp2::response_cb cb);
 
   void create_pcf_policy_auth_at_async(
       const std::string& pcf_endpoint, const nlohmann::json& request_body,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   bool update_pcf_policy_auth(
       const std::string& app_session_id, const nlohmann::json& request_body,
@@ -144,17 +144,17 @@ class nef_client : public oai::sba::nf_service {
 
   void update_pcf_policy_auth_async(
       const std::string& app_session_id, const nlohmann::json& request_body,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   bool delete_pcf_policy_auth(
       const std::string& app_session_id, uint32_t& http_code);
 
   void delete_pcf_policy_auth_async(
-      const std::string& app_session_id, oai::sba::response_cb cb);
+      const std::string& app_session_id, oai::nghttp2::response_cb cb);
 
   void delete_pcf_policy_auth_at_async(
       const std::string& pcf_endpoint, const std::string& app_session_id,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   // PUT /npcf-policyauthorization/v1/app-sessions/{id}/events-subscription
   bool subscribe_pcf_events(
@@ -167,7 +167,7 @@ class nef_client : public oai::sba::nf_service {
 
   // A 303 See Other counts as success here.
   void create_pcf_bdt_policy_async(
-      const nlohmann::json& bdt_req, oai::sba::response_cb cb);
+      const nlohmann::json& bdt_req, oai::nghttp2::response_cb cb);
 
   bool update_pcf_bdt_policy(
       const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
@@ -175,13 +175,13 @@ class nef_client : public oai::sba::nf_service {
 
   void update_pcf_bdt_policy_async(
       const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   bool delete_pcf_bdt_policy(
       const std::string& bdt_policy_id, uint32_t& http_code);
 
   void delete_pcf_bdt_policy_async(
-      const std::string& bdt_policy_id, oai::sba::response_cb cb);
+      const std::string& bdt_policy_id, oai::nghttp2::response_cb cb);
 
   // UDR — PFD data
   bool udr_put_pfd_data(
@@ -189,33 +189,33 @@ class nef_client : public oai::sba::nf_service {
 
   void udr_put_pfd_data_async(
       const std::string& app_id, const nlohmann::json& pfd_data,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   // v1 PFD path.
   void udr_put_pfd_data_at_async(
       const std::string& udr_endpoint, const std::string& app_id,
-      const nlohmann::json& pfd_data, oai::sba::response_cb cb);
+      const nlohmann::json& pfd_data, oai::nghttp2::response_cb cb);
 
   bool udr_delete_pfd_data(const std::string& app_id);
 
   void udr_delete_pfd_data_async(
-      const std::string& app_id, oai::sba::response_cb cb);
+      const std::string& app_id, oai::nghttp2::response_cb cb);
 
   // v1 PFD path.
   void udr_delete_pfd_data_at_async(
       const std::string& udr_endpoint, const std::string& app_id,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   void udr_get_pfd_data(
       const std::string& app_id, nlohmann::json& result, uint32_t& http_code);
 
   void udr_get_pfd_data_async(
-      const std::string& app_id, oai::sba::response_cb cb);
+      const std::string& app_id, oai::nghttp2::response_cb cb);
 
   // v2 PFD path.
   void udr_get_pfd_data_at_async(
       const std::string& udr_endpoint, const std::string& app_id,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   bool udr_put_influence_data(
       const std::string& ti_id, const nlohmann::json& data,
@@ -223,22 +223,22 @@ class nef_client : public oai::sba::nf_service {
 
   void udr_put_influence_data_async(
       const std::string& ti_id, const nlohmann::json& data,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   // v2 influence-data path.
   void udr_put_influence_data_at_async(
       const std::string& udr_endpoint, const std::string& ti_id,
-      const nlohmann::json& data, oai::sba::response_cb cb);
+      const nlohmann::json& data, oai::nghttp2::response_cb cb);
 
   bool udr_delete_influence_data(const std::string& ti_id, uint32_t& http_code);
 
   void udr_delete_influence_data_async(
-      const std::string& ti_id, oai::sba::response_cb cb);
+      const std::string& ti_id, oai::nghttp2::response_cb cb);
 
   // v2 influence-data path.
   void udr_delete_influence_data_at_async(
       const std::string& udr_endpoint, const std::string& ti_id,
-      oai::sba::response_cb cb);
+      oai::nghttp2::response_cb cb);
 
   // The URL AMF/SMF/PCF post events back to. It goes into every southbound
   // subscription as the notification callback:
@@ -263,27 +263,28 @@ class nef_client : public oai::sba::nf_service {
       std::string& endpoint) override;
 
   bool handle_discovery_response(
-      const oai::sba::response& search_result_resp,
+      const oai::nghttp2::response& search_result_resp,
       const std::string& target_nf_type, const std::string& service_name,
       std::string& endpoint) override;
 
   // Registration and discovery go through sbi_call_with_retry and feed the
   // SBI circuit breaker. De-registration (shutdown) and the heartbeat are
   // single shots.
-  oai::sba::response send_with_policy(
+  oai::nghttp2::response send_with_policy(
       oai::sba::nrf_call_kind kind, const oai::common::sbi::method_e& method,
-      const oai::sba::request& req) override;
+      const oai::nghttp2::request& req) override;
 
   uint16_t default_sbi_port() const override { return 8080; }
 
   // The status code alone decides. The NRF this NEF registers against answers
   // the PUT with a body that does not always carry nfStatus.
-  bool registration_succeeded(const oai::sba::response& resp) const override;
+  bool registration_succeeded(
+      const oai::nghttp2::response& resp) const override;
 
   // Logs the outcome, and nothing more. nef_app owns the heartbeat and the
   // re-registration schedule, so neither of the base's timers is armed here.
   void on_registration_outcome(
-      bool success, const oai::sba::response& resp) override;
+      bool success, const oai::nghttp2::response& resp) override;
 
  private:
   // Base members that do not apply to NEF. They are kept off this class's

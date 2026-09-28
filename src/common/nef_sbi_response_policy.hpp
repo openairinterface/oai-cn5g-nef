@@ -14,7 +14,7 @@
 #define NEF_SBI_RESPONSE_POLICY_HPP
 
 #include "3gpp_29.500.h"         // http_status_code
-#include "http_definitions.hpp"  // oai::sba::response
+#include "http_definitions.hpp"  // oai::nghttp2::response
 
 namespace oai::nef::app {
 
@@ -23,12 +23,12 @@ namespace oai::nef::app {
 using http_status_code = ::oai::common::sbi::http_status_code;
 
 // Plain 2xx success — the same guard the synchronous handlers use.
-inline bool sbi_ok(const oai::sba::response& r) {
+inline bool sbi_ok(const oai::nghttp2::response& r) {
   return r.status_code >= 200 && r.status_code < 300;
 }
 
 // BDT create only: PCF answers a successful create with 303 See Other.
-inline bool sbi_ok_or_303(const oai::sba::response& r) {
+inline bool sbi_ok_or_303(const oai::nghttp2::response& r) {
   return sbi_ok(r) || r.status_code == http_status_code::SEE_OTHER;
 }
 
@@ -48,7 +48,7 @@ inline bool sbi_ok_or_303(const oai::sba::response& r) {
 // Only for continuations that take this default. The ones that propagate the
 // upstream status, answer 500, or treat 3xx as success reproduce their own
 // synchronous branch instead.
-inline int sbi_error_http_code(const oai::sba::response& r) {
+inline int sbi_error_http_code(const oai::nghttp2::response& r) {
   if (r.status_code == http_status_code::REQUEST_TIMEOUT)
     return http_status_code::GATEWAY_TIMEOUT;  // 408 -> 504
   return http_status_code::BAD_GATEWAY;        // everything else non-2xx -> 502

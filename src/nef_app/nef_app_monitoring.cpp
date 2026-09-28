@@ -262,7 +262,7 @@ void nef_app::monitoring_event_subscribe(
   // discovery is safe.
   m_nef_client->subscribe_amf_event_exposure_async(
       body, [this, scs_as_id, sub_id, body,
-             sink = std::move(sink)](oai::sba::response r) mutable {
+             sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_monitoring_event_subscribe(
             scs_as_id, sub_id, body, std::move(r), std::move(sink));
       });
@@ -271,7 +271,7 @@ void nef_app::monitoring_event_subscribe(
 //------------------------------------------------------------------------------
 void nef_app::cont_monitoring_event_subscribe(
     const std::string& scs_as_id, const std::string& sub_id,
-    const nlohmann::json& body, oai::sba::response r, response_sink sink) {
+    const nlohmann::json& body, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_monitoring_event_subscribe on thread, sub_id=%s status=%d",
       sub_id.c_str(), r.status_code);
@@ -338,11 +338,12 @@ void nef_app::monitoring_event_unsubscribe(
   // southbound call too.
   if (nf_sub_id.empty()) {
     return cont_monitoring_event_unsubscribe(
-        scs_as_id, sub_id, nf_sub_id, oai::sba::response{}, std::move(sink));
+        scs_as_id, sub_id, nf_sub_id, oai::nghttp2::response{},
+        std::move(sink));
   }
   m_nef_client->unsubscribe_amf_event_exposure_async(
       nf_sub_id, [this, scs_as_id, sub_id, nf_sub_id,
-                  sink = std::move(sink)](oai::sba::response r) mutable {
+                  sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_monitoring_event_unsubscribe(
             scs_as_id, sub_id, nf_sub_id, std::move(r), std::move(sink));
       });
@@ -351,7 +352,8 @@ void nef_app::monitoring_event_unsubscribe(
 //------------------------------------------------------------------------------
 void nef_app::cont_monitoring_event_unsubscribe(
     const std::string& scs_as_id, const std::string& sub_id,
-    const std::string& nf_sub_id, oai::sba::response r, response_sink sink) {
+    const std::string& nf_sub_id, oai::nghttp2::response r,
+    response_sink sink) {
   Logger::nef_app().debug(
       "cont_monitoring_event_unsubscribe sub_id=%s status=%d", sub_id.c_str(),
       r.status_code);

@@ -5,6 +5,7 @@ include_directories(${SRC_TOP_DIR}/common/)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/3gpp)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/logger)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/model)
+include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/nghttp)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/sba)
 include_directories(${SRC_TOP_DIR}/${MOUNTED_COMMON}/utils)
 

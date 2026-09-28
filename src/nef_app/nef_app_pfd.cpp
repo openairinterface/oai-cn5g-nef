@@ -675,7 +675,7 @@ void nef_app::pfd_app_put(
   m_nef_client->udr_put_pfd_data_async(
       app_id, new_app_json,
       [this, scs_as_id, app_id, new_app_json, is_create,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_pfd_app_put(
             scs_as_id, app_id, std::move(new_app_json), is_create, std::move(r),
             std::move(sink));
@@ -685,7 +685,7 @@ void nef_app::pfd_app_put(
 //------------------------------------------------------------------------------
 void nef_app::cont_pfd_app_put(
     const std::string& scs_as_id, const std::string& app_id,
-    nlohmann::json new_app_json, bool is_create, oai::sba::response r,
+    nlohmann::json new_app_json, bool is_create, oai::nghttp2::response r,
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_app_put app_id=%s status=%d", app_id.c_str(), r.status_code);
@@ -743,14 +743,14 @@ void nef_app::pfd_create(
   m_nef_client->udr_put_pfd_data_async(
       app_id, body,
       [this, app_id, body,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_pfd_create(app_id, std::move(body), std::move(r), std::move(sink));
       });
 }
 
 //------------------------------------------------------------------------------
 void nef_app::cont_pfd_create(
-    const std::string& app_id, nlohmann::json body, oai::sba::response r,
+    const std::string& app_id, nlohmann::json body, oai::nghttp2::response r,
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_create app_id=%s status=%d", app_id.c_str(), r.status_code);
@@ -779,14 +779,14 @@ void nef_app::pfd_delete(
   // Fire the UDR PFD delete
   m_nef_client->udr_delete_pfd_data_async(
       app_id,
-      [this, app_id, sink = std::move(sink)](oai::sba::response r) mutable {
+      [this, app_id, sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_pfd_delete(app_id, std::move(r), std::move(sink));
       });
 }
 
 //------------------------------------------------------------------------------
 void nef_app::cont_pfd_delete(
-    const std::string& app_id, oai::sba::response r, response_sink sink) {
+    const std::string& app_id, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_delete app_id=%s status=%d", app_id.c_str(), r.status_code);
   // Best-effort: UDR result ignored.
@@ -868,7 +868,7 @@ void nef_app::pfd_app_patch(
   m_nef_client->udr_put_pfd_data_async(
       app_id, patched,
       [this, scs_as_id, app_id, patched,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_pfd_app_patch(
             scs_as_id, app_id, std::move(patched), std::move(r),
             std::move(sink));
@@ -878,7 +878,7 @@ void nef_app::pfd_app_patch(
 //------------------------------------------------------------------------------
 void nef_app::cont_pfd_app_patch(
     const std::string& scs_as_id, const std::string& app_id,
-    nlohmann::json patched, oai::sba::response r, response_sink sink) {
+    nlohmann::json patched, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_app_patch app_id=%s status=%d", app_id.c_str(), r.status_code);
   // Best-effort: UDR result warn-only.
@@ -929,7 +929,7 @@ void nef_app::pfd_app_delete(
   // Fire the UDR PFD delete
   m_nef_client->udr_delete_pfd_data_async(
       app_id, [this, scs_as_id, app_id,
-               sink = std::move(sink)](oai::sba::response r) mutable {
+               sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_pfd_app_delete(scs_as_id, app_id, std::move(r), std::move(sink));
       });
 }
@@ -937,7 +937,7 @@ void nef_app::pfd_app_delete(
 //------------------------------------------------------------------------------
 void nef_app::cont_pfd_app_delete(
     const std::string& scs_as_id, const std::string& app_id,
-    oai::sba::response r, response_sink sink) {
+    oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_app_delete app_id=%s status=%d", app_id.c_str(), r.status_code);
   // Best-effort: UDR result ignored
@@ -1000,7 +1000,7 @@ void nef_app::nnef_pfd_put_app(
   m_nef_client->udr_put_pfd_data_async(
       app_id, normalized_app,
       [this, app_id, response_app, normalized_app, is_create,
-       sink = std::move(sink)](oai::sba::response r) mutable {
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_nnef_pfd_put_app(
             app_id, std::move(response_app), std::move(normalized_app),
             is_create, std::move(r), std::move(sink));
@@ -1010,7 +1010,7 @@ void nef_app::nnef_pfd_put_app(
 //------------------------------------------------------------------------------
 void nef_app::cont_nnef_pfd_put_app(
     const std::string& app_id, nlohmann::json response_app,
-    nlohmann::json normalized_app, bool is_create, oai::sba::response r,
+    nlohmann::json normalized_app, bool is_create, oai::nghttp2::response r,
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_nnef_pfd_put_app app_id=%s status=%d", app_id.c_str(),
@@ -1068,14 +1068,14 @@ void nef_app::nnef_pfd_delete_app(
   // Fire the UDR PFD delete
   m_nef_client->udr_delete_pfd_data_async(
       app_id,
-      [this, app_id, sink = std::move(sink)](oai::sba::response r) mutable {
+      [this, app_id, sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_nnef_pfd_delete_app(app_id, std::move(r), std::move(sink));
       });
 }
 
 //------------------------------------------------------------------------------
 void nef_app::cont_nnef_pfd_delete_app(
-    const std::string& app_id, oai::sba::response r, response_sink sink) {
+    const std::string& app_id, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_nnef_pfd_delete_app app_id=%s status=%d", app_id.c_str(),
       r.status_code);
@@ -1185,7 +1185,7 @@ void nef_app::pfd_transaction_delete_step(std::shared_ptr<PfdDeleteChain> st) {
   }
   const std::string app_id = st->app_ids[st->idx];
   m_nef_client->udr_delete_pfd_data_at_async(
-      st->udr_ep, app_id, [this, st, app_id](oai::sba::response r) mutable {
+      st->udr_ep, app_id, [this, st, app_id](oai::nghttp2::response r) mutable {
         // Best-effort and idempotent: failures are ignored, with no
         // compensation. The sync per-app delete leaves its result unchecked
         // too.
@@ -1261,7 +1261,7 @@ void nef_app::nnef_pfd_delete_transaction_step(
   }
   const std::string app_id = st->app_ids[st->idx];
   m_nef_client->udr_delete_pfd_data_at_async(
-      st->udr_ep, app_id, [this, st, app_id](oai::sba::response r) mutable {
+      st->udr_ep, app_id, [this, st, app_id](oai::nghttp2::response r) mutable {
         // Best-effort: a failure here is logged and nothing more.
         if (!sbi_ok(r)) {
           Logger::nef_app().warn(
@@ -1362,7 +1362,7 @@ void nef_app::nnef_pfd_partial_pull_step(std::shared_ptr<PfdPullChain> st) {
   const nlohmann::json fallback = st->apps[st->idx].second;
   m_nef_client->udr_get_pfd_data_at_async(
       st->udr_ep, app_id,
-      [this, st, app_id, fallback](oai::sba::response r) mutable {
+      [this, st, app_id, fallback](oai::nghttp2::response r) mutable {
         // Best-effort per app, reproducing the sync path exactly:
         //
         //   entry = (udr_code == OK) ? udr_result : app_data
@@ -1535,7 +1535,7 @@ void nef_app::pfd_put_step(std::shared_ptr<PfdPutChain> st) {
   const nlohmann::json& pfd_json = st->apps[st->idx].second;
   m_nef_client->udr_put_pfd_data_at_async(
       st->udr_ep, app_id, pfd_json,
-      [this, st, app_id](oai::sba::response r) mutable {
+      [this, st, app_id](oai::nghttp2::response r) mutable {
         if (!sbi_ok(r)) {
           Logger::nef_app().error(
               "F1.10: UDR PFD write failed for app '%s' in trans '%s'; rolling "
@@ -1574,7 +1574,7 @@ void nef_app::pfd_rollback_step(
   const std::string rid = st->committed[remaining - 1];  // reverse order
   m_nef_client->udr_delete_pfd_data_at_async(
       st->udr_ep, rid,
-      [this, st, remaining, failed_app, rid](oai::sba::response r) mutable {
+      [this, st, remaining, failed_app, rid](oai::nghttp2::response r) mutable {
         if (!sbi_ok(r)) {
           // UDR may retain orphan data, but the request still aborts with 500.
           Logger::nef_app().error(
@@ -1671,7 +1671,7 @@ void nef_app::nnef_put_step(std::shared_ptr<NnefPutChain> st) {
   const nlohmann::json app_body = st->applications[app_id];
   m_nef_client->udr_put_pfd_data_at_async(
       st->udr_ep, app_id, app_body,
-      [this, st, app_id](oai::sba::response r) mutable {
+      [this, st, app_id](oai::nghttp2::response r) mutable {
         if (!sbi_ok(r)) {
           Logger::nef_app().error(
               "UDR PFD write failed for Nnef app '%s' in trans '%s'; rolling "
@@ -1706,7 +1706,7 @@ void nef_app::nnef_rollback_step(
   const std::string rid = st->committed[remaining - 1];  // reverse order
   m_nef_client->udr_delete_pfd_data_at_async(
       st->udr_ep, rid,
-      [this, st, remaining, failed_app, rid](oai::sba::response r) mutable {
+      [this, st, remaining, failed_app, rid](oai::nghttp2::response r) mutable {
         if (!sbi_ok(r)) {
           Logger::nef_app().error(
               "Rollback delete failed for Nnef app '%s' in trans '%s'",
@@ -1756,7 +1756,7 @@ void nef_app::nnef_put_after_commit(std::shared_ptr<NnefPutChain> st) {
   const std::string tid    = st->transaction_id;
   for (const std::string& app_id : st->removed_apps) {  // empty on create
     m_nef_client->udr_delete_pfd_data_at_async(
-        udr_ep, app_id, [tid, app_id](oai::sba::response r) {
+        udr_ep, app_id, [tid, app_id](oai::nghttp2::response r) {
           if (!(r.status_code >= 200 && r.status_code < 300)) {
             Logger::nef_app().warn(
                 "UDR PFD delete failed for removed Nnef_PFDmanagement app: %s "

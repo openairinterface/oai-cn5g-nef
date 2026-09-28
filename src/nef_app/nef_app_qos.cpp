@@ -375,7 +375,7 @@ void nef_app::qos_create(
   // Fire the PCF policy-auth create.
   m_nef_client->create_pcf_policy_auth_async(
       pcf_body, [this, af_id, qos_sub_id, req_data_json,
-                 sink = std::move(sink)](oai::sba::response r) mutable {
+                 sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_qos_create(
             af_id, qos_sub_id, std::move(req_data_json), std::move(r),
             std::move(sink));
@@ -385,7 +385,8 @@ void nef_app::qos_create(
 //------------------------------------------------------------------------------
 void nef_app::cont_qos_create(
     const std::string& af_id, const std::string& qos_sub_id,
-    nlohmann::json req_data_json, oai::sba::response r, response_sink sink) {
+    nlohmann::json req_data_json, oai::nghttp2::response r,
+    response_sink sink) {
   Logger::nef_app().debug(
       "cont_qos_create qos_sub_id=%s status=%d", qos_sub_id.c_str(),
       r.status_code);
@@ -600,7 +601,7 @@ void nef_app::qos_update(
     m_nef_client->update_pcf_policy_auth_async(
         app_session_id, merge,
         [this, scs_as_id, sub_id, response_data,
-         sink = std::move(sink)](oai::sba::response r) mutable {
+         sink = std::move(sink)](oai::nghttp2::response r) mutable {
           cont_qos_update(
               scs_as_id, sub_id, std::move(response_data), std::move(r),
               std::move(sink));
@@ -611,7 +612,7 @@ void nef_app::qos_update(
         "left unchanged",
         sub_id.c_str(), pcf_err.c_str());
     cont_qos_update(
-        scs_as_id, sub_id, std::move(response_data), oai::sba::response{},
+        scs_as_id, sub_id, std::move(response_data), oai::nghttp2::response{},
         std::move(sink));
   }
 }
@@ -619,7 +620,8 @@ void nef_app::qos_update(
 //------------------------------------------------------------------------------
 void nef_app::cont_qos_update(
     const std::string& scs_as_id, const std::string& sub_id,
-    nlohmann::json response_data, oai::sba::response r, response_sink sink) {
+    nlohmann::json response_data, oai::nghttp2::response r,
+    response_sink sink) {
   Logger::nef_app().debug(
       "cont_qos_update sub_id=%s status=%d", sub_id.c_str(), r.status_code);
   // Best-effort: PCF result is warn-only.
@@ -780,7 +782,7 @@ void nef_app::qos_patch(
     m_nef_client->update_pcf_policy_auth_async(
         app_session_id, merge,
         [this, scs_as_id, sub_id, patched,
-         sink = std::move(sink)](oai::sba::response r) mutable {
+         sink = std::move(sink)](oai::nghttp2::response r) mutable {
           cont_qos_patch(
               scs_as_id, sub_id, std::move(patched), std::move(r),
               std::move(sink));
@@ -791,7 +793,7 @@ void nef_app::qos_patch(
         "left unchanged",
         sub_id.c_str(), pcf_err.c_str());
     cont_qos_patch(
-        scs_as_id, sub_id, std::move(patched), oai::sba::response{},
+        scs_as_id, sub_id, std::move(patched), oai::nghttp2::response{},
         std::move(sink));
   }
 }
@@ -799,7 +801,7 @@ void nef_app::qos_patch(
 //------------------------------------------------------------------------------
 void nef_app::cont_qos_patch(
     const std::string& scs_as_id, const std::string& sub_id,
-    nlohmann::json patched, oai::sba::response r, response_sink sink) {
+    nlohmann::json patched, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_qos_patch sub_id=%s status=%d", sub_id.c_str(), r.status_code);
   // Best-effort: whatever PCF says, the patch is reported as successful.
@@ -842,12 +844,13 @@ void nef_app::qos_delete(
 
   if (nf_sub_id.empty()) {
     return cont_qos_delete(
-        af_id, qos_sub_id, nf_sub_id, oai::sba::response{}, std::move(sink));
+        af_id, qos_sub_id, nf_sub_id, oai::nghttp2::response{},
+        std::move(sink));
   }
   // Fire the SMF unsubscribe; whatever it answers, we return 204.
   m_nef_client->unsubscribe_smf_event_exposure_async(
       nf_sub_id, [this, af_id, qos_sub_id, nf_sub_id,
-                  sink = std::move(sink)](oai::sba::response r) mutable {
+                  sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_qos_delete(
             af_id, qos_sub_id, nf_sub_id, std::move(r), std::move(sink));
       });
@@ -856,7 +859,8 @@ void nef_app::qos_delete(
 //------------------------------------------------------------------------------
 void nef_app::cont_qos_delete(
     const std::string& af_id, const std::string& qos_sub_id,
-    const std::string& nf_sub_id, oai::sba::response r, response_sink sink) {
+    const std::string& nf_sub_id, oai::nghttp2::response r,
+    response_sink sink) {
   Logger::nef_app().debug(
       "cont_qos_delete qos_sub_id=%s status=%d", qos_sub_id.c_str(),
       r.status_code);

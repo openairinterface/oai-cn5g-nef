@@ -22,7 +22,7 @@
 #include "sbi_resilience.hpp"
 #include "sbi_helper.hpp"
 
-extern std::shared_ptr<oai::sba::http_client> http_client_inst;
+extern std::shared_ptr<oai::nghttp2::http_client> http_client_inst;
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
 using namespace oai::nef::app;
@@ -175,7 +175,7 @@ static std::string extract_last_path_segment(const std::string& uri) {
 // per-method note says why.
 nef_client::nef_client(
     const std::shared_ptr<oai::sba::nf_event>& ev,
-    const std::shared_ptr<oai::sba::http_client>& client_inst)
+    const std::shared_ptr<oai::nghttp2::http_client>& client_inst)
     : oai::sba::nf_service(ev, client_inst) {
   Logger::nef_app().debug("NEF client instance ID: %s", nf_instance_id.c_str());
 }
@@ -254,7 +254,7 @@ bool nef_client::register_to_nrf() {
     svc["serviceInstanceId"] = nf_instance_id;
     svc["serviceName"]       = svc_name;
     svc["versions"]          = nlohmann::json::array({nlohmann::json{
-        {"apiVersionInUri", version}, {"apiFullVersion", version}}});
+                           {"apiVersionInUri", version}, {"apiFullVersion", version}}});
     svc["scheme"]            = "http";
     svc["nfServiceStatus"]   = "REGISTERED";
     nlohmann::json ep;
@@ -316,7 +316,7 @@ bool nef_client::send_heartbeat_to_nrf() {
       {{"op", "replace"}, {"path", "/nfStatus"}, {"value", "REGISTERED"}});
 
   std::string nrf_uri = build_nrf_nf_instance_uri(nf_instance_id);
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(nrf_uri, patch_body.dump());
   auto resp = http_client_inst->send_http_request(
       oai::common::sbi::method_e::PATCH, req);
@@ -402,7 +402,7 @@ bool nef_client::resolve_endpoint_from_config(
 // is not delegated. The cache it writes to is the base's, through
 // discovery_cache_store().
 bool nef_client::handle_discovery_response(
-    const oai::sba::response& search_result_resp,
+    const oai::nghttp2::response& search_result_resp,
     const std::string& target_nf_type, const std::string& service_name,
     std::string& endpoint) {
   try {
@@ -462,14 +462,14 @@ bool nef_client::handle_discovery_response(
 // Registration and discovery carry a retry budget and feed the SBI circuit
 // breaker. De-registration (shutdown) and the heartbeat are single shots, as
 // they have always been.
-oai::sba::response nef_client::send_with_policy(
+oai::nghttp2::response nef_client::send_with_policy(
     oai::sba::nrf_call_kind kind, const oai::common::sbi::method_e& method,
-    const oai::sba::request& req) {
+    const oai::nghttp2::request& req) {
   const bool is_registration = kind == oai::sba::nrf_call_kind::registration;
   if (!is_registration && kind != oai::sba::nrf_call_kind::discovery)
     return oai::sba::nf_service::send_with_policy(kind, method, req);
 
-  oai::sba::response resp{};
+  oai::nghttp2::response resp{};
   auto sbi_sleep = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -489,7 +489,8 @@ oai::sba::response nef_client::send_with_policy(
 //------------------------------------------------------------------------------
 // The status code alone decides, unlike the base default: the NRF answers the
 // registration PUT with a body that does not always carry nfStatus.
-bool nef_client::registration_succeeded(const oai::sba::response& resp) const {
+bool nef_client::registration_succeeded(
+    const oai::nghttp2::response& resp) const {
   return resp.status_code == http_status_code::OK ||
          resp.status_code == http_status_code::CREATED;
 }
@@ -499,7 +500,7 @@ bool nef_client::registration_succeeded(const oai::sba::response& resp) const {
 // task and the re-registration its failure path triggers, so neither of the
 // base's timers is armed.
 void nef_client::on_registration_outcome(
-    bool success, const oai::sba::response& resp) {
+    bool success, const oai::nghttp2::response& resp) {
   if (success) {
     Logger::nef_app().info(
         "NEF successfully registered to NRF (status %d)", resp.status_code);
@@ -528,7 +529,7 @@ void nef_client::on_registration_outcome(
 //
 // Note that this reads the discovery cache but deliberately never writes it.
 void nef_client::discover_nf_async(
-    nf_type_t nf_type, oai::sba::response_cb cb) {
+    nf_type_t nf_type, oai::nghttp2::response_cb cb) {
   auto deliver_endpoint = [&cb](const std::string& endpoint) {
     nlohmann::json ep;
     // The endpoint is "scheme://host:port". Split out host and port for the
@@ -555,7 +556,7 @@ void nef_client::discover_nf_async(
         {"nfServices", nlohmann::json::array({service})}};
     nlohmann::json search_res = {
         {"nfInstances", nlohmann::json::array({instance})}};
-    oai::sba::response synth{};
+    oai::nghttp2::response synth{};
     synth.status_code = http_status_code::OK;
     synth.body        = search_res.dump();
     cb(std::move(synth));
@@ -596,7 +597,7 @@ void nef_client::discover_nf_async(
     Logger::nef_app().warn(
         "NRF discovery disabled and no static config for NF type %d",
         static_cast<int>(nf_type));
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
@@ -622,7 +623,8 @@ void nef_client::discover_nf_async(
                          "&requester-nf-type=NEF";
   Logger::nef_app().debug("Async NF discovery URI (NRF): %s", disc_uri.c_str());
 
-  oai::sba::request req = http_client_inst->prepare_json_request(disc_uri, "");
+  oai::nghttp2::request req =
+      http_client_inst->prepare_json_request(disc_uri, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::GET, req, std::move(cb));
 }
@@ -655,7 +657,7 @@ bool nef_client::subscribe_amf_event_exposure(
 
   std::string body = sub_body.dump();
 
-  oai::sba::response amf_sub_resp{};
+  oai::nghttp2::response amf_sub_resp{};
   auto sbi_sleep_amf = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -665,7 +667,7 @@ bool nef_client::subscribe_amf_event_exposure(
   sbi_call_with_retry(
       "AMF", /*is_post=*/true,
       [&]() -> int {
-        oai::sba::request req =
+        oai::nghttp2::request req =
             http_client_inst->prepare_json_request(url, body);
         amf_sub_resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::POST, req);
@@ -712,12 +714,12 @@ bool nef_client::subscribe_amf_event_exposure(
 // Async variant of subscribe_amf_event_exposure. eventNotifyUri is injected
 // into the body just as the blocking twin does it.
 void nef_client::subscribe_amf_event_exposure_async(
-    const nlohmann::json& subscription_data, oai::sba::response_cb cb) {
+    const nlohmann::json& subscription_data, oai::nghttp2::response_cb cb) {
   std::string amf_url = {};
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) {
     Logger::nef_app().warn(
         "AMF not found — cannot subscribe to event exposure (async)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
@@ -729,7 +731,7 @@ void nef_client::subscribe_amf_event_exposure_async(
                                nef_sbi_helper::NefNotifyBase + "v1/notify/amf";
   std::string body = sub_body.dump();
 
-  oai::sba::request req = http_client_inst->prepare_json_request(url, body);
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, body);
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
@@ -741,8 +743,8 @@ bool nef_client::unsubscribe_amf_event_exposure(const std::string& amf_sub_id) {
 
   std::string url =
       amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions/" + amf_sub_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
-  auto resp             = http_client_inst->send_http_request(
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
+  auto resp                 = http_client_inst->send_http_request(
       oai::common::sbi::method_e::DELETE, req);
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
@@ -752,19 +754,19 @@ bool nef_client::unsubscribe_amf_event_exposure(const std::string& amf_sub_id) {
 //------------------------------------------------------------------------------
 // Async variant of unsubscribe_amf_event_exposure.
 void nef_client::unsubscribe_amf_event_exposure_async(
-    const std::string& amf_sub_id, oai::sba::response_cb cb) {
+    const std::string& amf_sub_id, oai::nghttp2::response_cb cb) {
   std::string amf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_AMF, amf_url)) {
     Logger::nef_app().warn(
         "AMF not found — cannot unsubscribe event exposure (async)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   std::string url =
       amf_url + nef_sbi_helper::AmfEvtsBase + "v1/subscriptions/" + amf_sub_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
@@ -793,7 +795,7 @@ bool nef_client::subscribe_smf_event_exposure(
 
   std::string body = sub_body.dump();
 
-  oai::sba::response smf_sub_resp{};
+  oai::nghttp2::response smf_sub_resp{};
   auto sbi_sleep_smf = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -803,7 +805,7 @@ bool nef_client::subscribe_smf_event_exposure(
   sbi_call_with_retry(
       "SMF", /*is_post=*/true,
       [&]() -> int {
-        oai::sba::request req =
+        oai::nghttp2::request req =
             http_client_inst->prepare_json_request(url, body);
         smf_sub_resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::POST, req);
@@ -831,12 +833,12 @@ bool nef_client::subscribe_smf_event_exposure(
 // injected into the body just as the blocking twin does it.
 void nef_client::subscribe_smf_event_exposure_async(
     const nlohmann::json& smf_body, const std::string& notif_id,
-    const std::string& notif_uri, oai::sba::response_cb cb) {
+    const std::string& notif_uri, oai::nghttp2::response_cb cb) {
   std::string smf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
     Logger::nef_app().warn(
         "SMF not found — cannot subscribe to event exposure (async)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
@@ -849,7 +851,7 @@ void nef_client::subscribe_smf_event_exposure_async(
   sub_body["notifUri"]    = notif_uri;
   std::string body        = sub_body.dump();
 
-  oai::sba::request req = http_client_inst->prepare_json_request(url, body);
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, body);
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
@@ -861,8 +863,8 @@ bool nef_client::unsubscribe_smf_event_exposure(const std::string& smf_sub_id) {
 
   std::string url = smf_url + nef_sbi_helper::SmfEventExposureBase +
                     "v1/subscriptions/" + smf_sub_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
-  auto resp             = http_client_inst->send_http_request(
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
+  auto resp                 = http_client_inst->send_http_request(
       oai::common::sbi::method_e::DELETE, req);
   return (
       resp.status_code == http_status_code::NO_CONTENT ||
@@ -872,19 +874,19 @@ bool nef_client::unsubscribe_smf_event_exposure(const std::string& smf_sub_id) {
 //------------------------------------------------------------------------------
 // Async variant of unsubscribe_smf_event_exposure.
 void nef_client::unsubscribe_smf_event_exposure_async(
-    const std::string& smf_sub_id, oai::sba::response_cb cb) {
+    const std::string& smf_sub_id, oai::nghttp2::response_cb cb) {
   std::string smf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_SMF, smf_url)) {
     Logger::nef_app().warn(
         "SMF not found — cannot unsubscribe event exposure (async)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   std::string url = smf_url + nef_sbi_helper::SmfEventExposureBase +
                     "v1/subscriptions/" + smf_sub_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
@@ -910,7 +912,7 @@ bool nef_client::update_smf_event_exposure(
                     "v1/subscriptions/" + smf_sub_id;
   std::string body = smf_body.dump();
 
-  oai::sba::response smf_resp{};
+  oai::nghttp2::response smf_resp{};
   auto sbi_sleep_smf = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -920,7 +922,7 @@ bool nef_client::update_smf_event_exposure(
   sbi_call_with_retry(
       "SMF", /*is_post=*/false,
       [&]() -> int {
-        oai::sba::request req =
+        oai::nghttp2::request req =
             http_client_inst->prepare_json_request(url, body);
         smf_resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::PUT, req);
@@ -955,7 +957,7 @@ bool nef_client::create_pcf_policy_auth(
       pcf_url + nef_sbi_helper::PcfPolicyAuthBase + "v1/app-sessions";
   std::string body = request_body.dump();
 
-  oai::sba::response pcf_auth_resp{};
+  oai::nghttp2::response pcf_auth_resp{};
   auto sbi_sleep_pcf = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -965,7 +967,7 @@ bool nef_client::create_pcf_policy_auth(
   sbi_call_with_retry(
       "PCF", /*is_post=*/true,
       [&]() -> int {
-        oai::sba::request req =
+        oai::nghttp2::request req =
             http_client_inst->prepare_json_request(url, body);
         pcf_auth_resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::POST, req);
@@ -998,11 +1000,11 @@ bool nef_client::create_pcf_policy_auth(
 // in the body or in the Location header; the caller digs it out of whichever
 // one carries it.
 void nef_client::create_pcf_policy_auth_async(
-    const nlohmann::json& request_body, oai::sba::response_cb cb) {
+    const nlohmann::json& request_body, oai::nghttp2::response_cb cb) {
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
     Logger::nef_app().warn("PCF not found (async)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
@@ -1011,7 +1013,7 @@ void nef_client::create_pcf_policy_auth_async(
       pcf_url + nef_sbi_helper::PcfPolicyAuthBase + "v1/app-sessions";
   std::string body = request_body.dump();
 
-  oai::sba::request req = http_client_inst->prepare_json_request(url, body);
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, body);
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
@@ -1025,12 +1027,12 @@ void nef_client::create_pcf_policy_auth_async(
 // The request itself is identical to the blocking twin's.
 void nef_client::create_pcf_policy_auth_at_async(
     const std::string& pcf_endpoint, const nlohmann::json& request_body,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   std::string url =
       pcf_endpoint + nef_sbi_helper::PcfPolicyAuthBase + "v1/app-sessions";
   std::string body = request_body.dump();
 
-  oai::sba::request req = http_client_inst->prepare_json_request(url, body);
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, body);
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
@@ -1047,7 +1049,7 @@ bool nef_client::update_pcf_policy_auth(
                     "v1/app-sessions/" + app_session_id;
   std::string body = request_body.dump();
 
-  oai::sba::response resp{};
+  oai::nghttp2::response resp{};
   auto sbi_sleep_pcf = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -1057,7 +1059,7 @@ bool nef_client::update_pcf_policy_auth(
   sbi_call_with_retry(
       "PCF", /*is_post=*/false,
       [&]() -> int {
-        oai::sba::request req = http_client_inst->prepare_json_request(
+        oai::nghttp2::request req = http_client_inst->prepare_json_request(
             url, body, "application/merge-patch+json");
         resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::PATCH, req);
@@ -1075,10 +1077,10 @@ bool nef_client::update_pcf_policy_auth(
 // blocking twin.
 void nef_client::update_pcf_policy_auth_async(
     const std::string& app_session_id, const nlohmann::json& request_body,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
@@ -1087,7 +1089,7 @@ void nef_client::update_pcf_policy_auth_async(
                     "v1/app-sessions/" + app_session_id;
   std::string body = request_body.dump();
 
-  oai::sba::request req = http_client_inst->prepare_json_request(
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(
       url, body, "application/merge-patch+json");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::PATCH, req, std::move(cb));
@@ -1102,8 +1104,8 @@ bool nef_client::delete_pcf_policy_auth(
 
   std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
                     "v1/app-sessions/" + app_session_id + "/delete";
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "{}");
-  auto resp             = http_client_inst->send_http_request(
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "{}");
+  auto resp                 = http_client_inst->send_http_request(
       oai::common::sbi::method_e::POST, req);
   http_code = resp.status_code;
   return (
@@ -1116,18 +1118,18 @@ bool nef_client::delete_pcf_policy_auth(
 // one as a POST to .../delete with an empty JSON object as the body, not as an
 // HTTP DELETE.
 void nef_client::delete_pcf_policy_auth_async(
-    const std::string& app_session_id, oai::sba::response_cb cb) {
+    const std::string& app_session_id, oai::nghttp2::response_cb cb) {
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
     Logger::nef_app().warn("PCF not found (async delete app-session)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
                     "v1/app-sessions/" + app_session_id + "/delete";
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "{}");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "{}");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
@@ -1138,10 +1140,10 @@ void nef_client::delete_pcf_policy_auth_async(
 // continuation.
 void nef_client::delete_pcf_policy_auth_at_async(
     const std::string& pcf_endpoint, const std::string& app_session_id,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   std::string url = pcf_endpoint + nef_sbi_helper::PcfPolicyAuthBase +
                     "v1/app-sessions/" + app_session_id + "/delete";
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "{}");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "{}");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
@@ -1159,7 +1161,7 @@ bool nef_client::subscribe_pcf_events(
                           "/events-subscription";
   const std::string body = ev_subsc_body.dump();
 
-  oai::sba::response resp{};
+  oai::nghttp2::response resp{};
   auto sbi_sleep_pcf = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -1169,7 +1171,7 @@ bool nef_client::subscribe_pcf_events(
   sbi_call_with_retry(
       "PCF", /*is_post=*/false,
       [&]() -> int {
-        oai::sba::request req =
+        oai::nghttp2::request req =
             http_client_inst->prepare_json_request(url, body);
         resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::PUT, req);
@@ -1196,7 +1198,7 @@ bool nef_client::create_pcf_bdt_policy(
 
   const std::string url =
       pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase + "v1/bdtpolicies";
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(url, bdt_req.dump());
   auto resp = http_client_inst->send_http_request(
       oai::common::sbi::method_e::POST, req);
@@ -1229,18 +1231,18 @@ bool nef_client::create_pcf_bdt_policy(
 // Async variant of create_pcf_bdt_policy. Watch out for the 303 See Other: it
 // means success here, and the caller's continuation treats it as such.
 void nef_client::create_pcf_bdt_policy_async(
-    const nlohmann::json& bdt_req, oai::sba::response_cb cb) {
+    const nlohmann::json& bdt_req, oai::nghttp2::response_cb cb) {
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
     Logger::nef_app().warn("PCF not found (async BDT create)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   const std::string url =
       pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase + "v1/bdtpolicies";
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(url, bdt_req.dump());
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
@@ -1256,7 +1258,7 @@ bool nef_client::update_pcf_bdt_policy(
 
   const std::string url = pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase +
                           "v1/bdtpolicies/" + bdt_policy_id;
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(url, bdt_patch.dump());
   auto resp = http_client_inst->send_http_request(
       oai::common::sbi::method_e::PATCH, req);
@@ -1271,18 +1273,18 @@ bool nef_client::update_pcf_bdt_policy(
 // Async variant of update_pcf_bdt_policy.
 void nef_client::update_pcf_bdt_policy_async(
     const std::string& bdt_policy_id, const nlohmann::json& bdt_patch,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
     Logger::nef_app().warn("PCF not found (async BDT update)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   const std::string url = pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase +
                           "v1/bdtpolicies/" + bdt_policy_id;
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(url, bdt_patch.dump());
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::PATCH, req, std::move(cb));
@@ -1297,8 +1299,8 @@ bool nef_client::delete_pcf_bdt_policy(
 
   const std::string url = pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase +
                           "v1/bdtpolicies/" + bdt_policy_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
-  auto resp             = http_client_inst->send_http_request(
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
+  auto resp                 = http_client_inst->send_http_request(
       oai::common::sbi::method_e::DELETE, req);
   http_code = resp.status_code;
 
@@ -1310,18 +1312,18 @@ bool nef_client::delete_pcf_bdt_policy(
 //------------------------------------------------------------------------------
 // Async variant of delete_pcf_bdt_policy.
 void nef_client::delete_pcf_bdt_policy_async(
-    const std::string& bdt_policy_id, oai::sba::response_cb cb) {
+    const std::string& bdt_policy_id, oai::nghttp2::response_cb cb) {
   std::string pcf_url;
   if (!discover_nf(nf_type_t::NF_TYPE_PCF, pcf_url)) {
     Logger::nef_app().warn("PCF not found (async BDT delete)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   const std::string url = pcf_url + nef_sbi_helper::PcfBdtPolicyControlBase +
                           "v1/bdtpolicies/" + bdt_policy_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
@@ -1349,7 +1351,7 @@ bool nef_client::udr_put_pfd_data(
   int status = sbi_call_with_retry(
       "UDR", /*is_post=*/false,
       [&]() -> int {
-        oai::sba::request req =
+        oai::nghttp2::request req =
             http_client_inst->prepare_json_request(url, body);
         auto resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::PUT, req);
@@ -1364,11 +1366,11 @@ bool nef_client::udr_put_pfd_data(
 // Async variant of udr_put_pfd_data. v1 PFD path.
 void nef_client::udr_put_pfd_data_async(
     const std::string& app_id, const nlohmann::json& pfd_data,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
     Logger::nef_app().warn("UDR not found (async)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
@@ -1378,7 +1380,7 @@ void nef_client::udr_put_pfd_data_async(
                     "v1/application-data/pfds/" + app_id;
   std::string body = pfd_data.dump();
 
-  oai::sba::request req = http_client_inst->prepare_json_request(url, body);
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, body);
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::PUT, req, std::move(cb));
 }
@@ -1389,12 +1391,12 @@ void nef_client::udr_put_pfd_data_async(
 // v2 path is for GET only.
 void nef_client::udr_put_pfd_data_at_async(
     const std::string& udr_endpoint, const std::string& app_id,
-    const nlohmann::json& pfd_data, oai::sba::response_cb cb) {
+    const nlohmann::json& pfd_data, oai::nghttp2::response_cb cb) {
   std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
                     "v1/application-data/pfds/" + app_id;
   std::string body = pfd_data.dump();
 
-  oai::sba::request req = http_client_inst->prepare_json_request(url, body);
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, body);
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::PUT, req, std::move(cb));
 }
@@ -1416,8 +1418,9 @@ bool nef_client::udr_delete_pfd_data(const std::string& app_id) {
   int status = sbi_call_with_retry(
       "UDR", /*is_post=*/false,
       [&]() -> int {
-        oai::sba::request req = http_client_inst->prepare_json_request(url, "");
-        auto resp             = http_client_inst->send_http_request(
+        oai::nghttp2::request req =
+            http_client_inst->prepare_json_request(url, "");
+        auto resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::DELETE, req);
         return static_cast<int>(resp.status_code);
       },
@@ -1428,18 +1431,18 @@ bool nef_client::udr_delete_pfd_data(const std::string& app_id) {
 //------------------------------------------------------------------------------
 // Async variant of udr_delete_pfd_data. v1 PFD path.
 void nef_client::udr_delete_pfd_data_async(
-    const std::string& app_id, oai::sba::response_cb cb) {
+    const std::string& app_id, oai::nghttp2::response_cb cb) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
     Logger::nef_app().warn("UDR not found (async PFD delete)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                     "v1/application-data/pfds/" + app_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
@@ -1449,10 +1452,10 @@ void nef_client::udr_delete_pfd_data_async(
 // from the caller. v1 PFD path.
 void nef_client::udr_delete_pfd_data_at_async(
     const std::string& udr_endpoint, const std::string& app_id,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
                     "v1/application-data/pfds/" + app_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
@@ -1472,7 +1475,7 @@ void nef_client::udr_get_pfd_data(
   const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/pfds/" + app_id;
 
-  oai::sba::response last_get_resp{};
+  oai::nghttp2::response last_get_resp{};
   auto sbi_sleep_udrg = [](std::chrono::milliseconds d) {
     std::this_thread::sleep_for(d);
   };
@@ -1482,8 +1485,9 @@ void nef_client::udr_get_pfd_data(
   sbi_call_with_retry(
       "UDR", /*is_post=*/false,
       [&]() -> int {
-        oai::sba::request req = http_client_inst->prepare_json_request(url, "");
-        last_get_resp         = http_client_inst->send_http_request(
+        oai::nghttp2::request req =
+            http_client_inst->prepare_json_request(url, "");
+        last_get_resp = http_client_inst->send_http_request(
             oai::common::sbi::method_e::GET, req);
         return static_cast<int>(last_get_resp.status_code);
       },
@@ -1503,18 +1507,18 @@ void nef_client::udr_get_pfd_data(
 // Async variant of udr_get_pfd_data. GET goes to the v2 PFD path; PUT and
 // DELETE use v1.
 void nef_client::udr_get_pfd_data_async(
-    const std::string& app_id, oai::sba::response_cb cb) {
+    const std::string& app_id, oai::nghttp2::response_cb cb) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
     Logger::nef_app().warn("UDR not found (async PFD get)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/pfds/" + app_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::GET, req, std::move(cb));
 }
@@ -1525,10 +1529,10 @@ void nef_client::udr_get_pfd_data_async(
 // v1 path is for PUT and DELETE.
 void nef_client::udr_get_pfd_data_at_async(
     const std::string& udr_endpoint, const std::string& app_id,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   const std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/pfds/" + app_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::GET, req, std::move(cb));
 }
@@ -1545,7 +1549,7 @@ bool nef_client::udr_put_influence_data(
 
   const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/influenceData/" + ti_id;
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(url, data.dump());
   auto resp =
       http_client_inst->send_http_request(oai::common::sbi::method_e::PUT, req);
@@ -1561,11 +1565,11 @@ bool nef_client::udr_put_influence_data(
 // Async variant of udr_put_influence_data. v2 influence-data path.
 void nef_client::udr_put_influence_data_async(
     const std::string& ti_id, const nlohmann::json& data,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
     Logger::nef_app().warn("UDR not found (async)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
@@ -1573,7 +1577,7 @@ void nef_client::udr_put_influence_data_async(
   const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/influenceData/" + ti_id;
 
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(url, data.dump());
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::PUT, req, std::move(cb));
@@ -1584,11 +1588,11 @@ void nef_client::udr_put_influence_data_async(
 // comes from the caller. v2 influence-data path.
 void nef_client::udr_put_influence_data_at_async(
     const std::string& udr_endpoint, const std::string& ti_id,
-    const nlohmann::json& data, oai::sba::response_cb cb) {
+    const nlohmann::json& data, oai::nghttp2::response_cb cb) {
   const std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/influenceData/" + ti_id;
 
-  oai::sba::request req =
+  oai::nghttp2::request req =
       http_client_inst->prepare_json_request(url, data.dump());
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::PUT, req, std::move(cb));
@@ -1603,8 +1607,8 @@ bool nef_client::udr_delete_influence_data(
 
   const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/influenceData/" + ti_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
-  auto resp             = http_client_inst->send_http_request(
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
+  auto resp                 = http_client_inst->send_http_request(
       oai::common::sbi::method_e::DELETE, req);
   http_code = resp.status_code;
 
@@ -1616,18 +1620,18 @@ bool nef_client::udr_delete_influence_data(
 //------------------------------------------------------------------------------
 // Async variant of udr_delete_influence_data. v2 influence-data path.
 void nef_client::udr_delete_influence_data_async(
-    const std::string& ti_id, oai::sba::response_cb cb) {
+    const std::string& ti_id, oai::nghttp2::response_cb cb) {
   std::string udr_url;
   if (!discover_nf(nf_type_t::NF_TYPE_UDR, udr_url)) {
     Logger::nef_app().warn("UDR not found (async influence delete)");
-    oai::sba::response err{};
+    oai::nghttp2::response err{};
     err.status_code = 0;
     cb(std::move(err));
     return;
   }
   const std::string url = udr_url + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/influenceData/" + ti_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
@@ -1637,10 +1641,10 @@ void nef_client::udr_delete_influence_data_async(
 // comes from the caller. v2 influence-data path.
 void nef_client::udr_delete_influence_data_at_async(
     const std::string& udr_endpoint, const std::string& ti_id,
-    oai::sba::response_cb cb) {
+    oai::nghttp2::response_cb cb) {
   const std::string url = udr_endpoint + nef_sbi_helper::UdrDataRepositoryBase +
                           "v2/application-data/influenceData/" + ti_id;
-  oai::sba::request req = http_client_inst->prepare_json_request(url, "");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::DELETE, req, std::move(cb));
 }
@@ -1665,7 +1669,7 @@ bool nef_client::forward_notification_to_af(
   const std::string endpoint = cb_endpoint_key(af_notif_uri);
 
   auto attempt_fn = [&]() -> int {
-    oai::sba::request req =
+    oai::nghttp2::request req =
         http_client_inst->prepare_json_request(af_notif_uri, body);
     auto resp = http_client_inst->send_http_request(
         oai::common::sbi::method_e::POST, req);

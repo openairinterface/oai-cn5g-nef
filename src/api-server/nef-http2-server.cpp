@@ -396,7 +396,7 @@ void nef_http2_server::start() {
   // One row per registered path prefix, in registration order. Each row's
   // handler is a route_* member defined immediately below this function.
   //
-  // ORDER IS PART OF THE CONTRACT. oai::sba::http2_server matches by prefix.
+  // ORDER IS PART OF THE CONTRACT. http2_server matches by prefix.
   // http2_server::start() sorts the registered table longest-prefix-first
   // with a NON-STABLE std::sort, so registration order only decides ties
   // between prefixes of equal length. Append new rows at the end; do not

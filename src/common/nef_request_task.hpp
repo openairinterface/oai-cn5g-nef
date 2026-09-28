@@ -19,7 +19,7 @@ namespace oai::nef::app {
 // (A) DEFERRED sinks -- every dispatch_*_async path.
 //     Built by the make_deferred_*_sink helpers in nef_app_adapter.cpp.
 //     Each wraps a shared_ptr<http2_deferred_response>, whose contract is
-//     documented in common-src/sba/http2_server.h.
+//     documented in common-src/nghttp/http2_server.h.
 //       - Callable exactly once from ANY thread. The call is a CAS on a
 //         shared atomic; a second call is a silent no-op, not an error.
 //       - Non-blocking: it writes into the work item, posts delivery onto

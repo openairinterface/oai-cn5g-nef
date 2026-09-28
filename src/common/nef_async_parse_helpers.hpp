@@ -24,7 +24,7 @@
 #include <nlohmann/json.hpp>
 
 #include "AmfCreatedEventSubscription.h"
-#include "http_definitions.hpp"  // oai::sba::response
+#include "http_definitions.hpp"  // oai::nghttp2::response
 
 namespace oai::nef::app {
 
@@ -58,7 +58,7 @@ inline std::string nef_async_last_path_segment(const std::string& uri) {
 // PCF appSessionId: the body's "appSessionId" if present, otherwise the last
 // path segment of the Location header. Body first, matching the sync twin.
 inline std::string nef_async_parse_pcf_app_session_id(
-    const oai::sba::response& r) {
+    const oai::nghttp2::response& r) {
   std::string id;
   try {
     nlohmann::json j = nlohmann::json::parse(r.body);
@@ -80,7 +80,7 @@ inline std::string nef_async_parse_pcf_app_session_id(
 // the same id — and so store the same value in m_bdt_id2pcf_policy_id — when
 // PCF answers with both a Location header and a body id.
 inline std::string nef_async_parse_pcf_bdt_policy_id(
-    const oai::sba::response& r) {
+    const oai::nghttp2::response& r) {
   std::string id =
       nef_async_last_path_segment(nef_async_header_ci(r.headers, "Location"));
   if (id.empty() && !r.body.empty()) {
@@ -100,7 +100,7 @@ inline std::string nef_async_parse_pcf_bdt_policy_id(
 // AMF event-subscription id from a raw create response. Prefers the typed
 // AmfCreatedEventSubscription parse, then falls back to the raw fields
 // subscriptionId -> eventsSubscription.subscriptionId.
-inline std::string nef_async_parse_amf_sub_id(const oai::sba::response& r) {
+inline std::string nef_async_parse_amf_sub_id(const oai::nghttp2::response& r) {
   std::string amf_sub_id;
   try {
     nlohmann::json j = nlohmann::json::parse(r.body);
