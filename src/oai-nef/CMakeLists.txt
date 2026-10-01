@@ -100,6 +100,11 @@ find_package(cpr REQUIRED)
 
 add_boolean_option(DISPLAY_LICENCE_INFO False "Show licence banner")
 add_boolean_option(LOG_OAI             False "Thread safe logging utility")
+add_boolean_option(USE_NGHTTP2_CLIENT   True  "Use the nghttp2 HTTP client")
+
+if(NOT USE_NGHTTP2_CLIENT)
+  message(FATAL_ERROR "NEF requires USE_NGHTTP2_CLIENT (does not support CPR)")
+endif()
 
 include_directories(${CONFIG_INCLUDE_DIRS})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
