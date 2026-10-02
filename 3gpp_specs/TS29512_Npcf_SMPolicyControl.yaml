@@ -1,26 +1,24 @@
-# SPDX-License-Identifier: LicenseRef-CSSL-1.0
-
 openapi: 3.0.0
 info:
   title: Npcf_SMPolicyControl API
-  version: 1.1.7
+  version: 1.2.3
   description: |
-    Session Management Policy Control Service
-    © 2021, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    Session Management Policy Control Service  
+    © 2023, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  
     All rights reserved.
 externalDocs:
-  description: 3GPP TS 29.512 V16.11.0; 5G System; Session Management Policy Control Service.
-  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.512/'
+  description: 3GPP TS 29.512 V17.10.0; 5G System; Session Management Policy Control Service.
+  url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.512/'
 security:
   - {}
-  - oAuth2Clientcredentials:
+  - oAuth2ClientCredentials:
     - npcf-smpolicycontrol
 servers:
   - url: '{apiRoot}/npcf-smpolicycontrol/v1'
     variables:
       apiRoot:
         default: https://example.com
-        description: apiRoot as defined in subclause 4.4 of 3GPP TS 29.501
+        description: apiRoot as defined in clause 4.4 of 3GPP TS 29.501
 paths:
   /sm-policies:
     post:
@@ -43,7 +41,7 @@ paths:
                 $ref: '#/components/schemas/SmPolicyDecision'
           headers:
             Location:
-              description: 'Contains the URI of the newly created resource'
+              description: Contains the URI of the newly created resource
               required: true
               schema:
                 type: string
@@ -51,7 +49,9 @@ paths:
           description: Permanent Redirect
           headers:
             Location:
-              description: 'Contains the URI of the PCF within the existing PCF binding information stored in the BSF for the same UE ID, S-NSSAI and DNN combination '
+              description: >
+                Contains the URI of the PCF within the existing PCF binding information stored in
+                the BSF for the same UE ID, S-NSSAI and DNN combination
               required: true
               schema:
                 type: string
@@ -62,7 +62,7 @@ paths:
         '403':
           $ref: 'TS29571_CommonData.yaml#/components/responses/403'
         '404':
-          description: Not Found
+          $ref: 'TS29571_CommonData.yaml#/components/responses/404'
         '411':
           $ref: 'TS29571_CommonData.yaml#/components/responses/411'
         '413':
@@ -317,7 +317,7 @@ paths:
           $ref: 'TS29571_CommonData.yaml#/components/responses/default'
 components:
   securitySchemes:
-    oAuth2Clientcredentials:
+    oAuth2ClientCredentials:
       type: oauth2
       flows: 
         clientCredentials: 
@@ -326,6 +326,7 @@ components:
             npcf-smpolicycontrol: Access to the Npcf_SMPolicyControl API
   schemas:
     SmPolicyControl:
+      description: Contains the parameters used to request the SM policies and the SM policies authorized by the PCF.
       type: object
       properties:
         context:
@@ -336,6 +337,7 @@ components:
         - context
         - policy
     SmPolicyContextData:
+      description: Contains the parameters used to create an Individual SM policy resource.
       type: object
       properties:
         accNetChId:
@@ -348,7 +350,11 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Supi'
         invalidSupi:
           type: boolean
-          description: When this attribute is included and set to true, it indicates that the supi attribute contains an invalid value.This attribute shall be present if the SUPI is not available in the SMF or the SUPI is unauthenticated. When present it shall be set to true for an invalid SUPI and false (default) for a valid SUPI.
+          description: >
+            When this attribute is included and set to true, it indicates that the supi attribute
+            contains an invalid value.This attribute shall be present if the SUPI is not available
+            in the SMF or the SUPI is unauthenticated. When present it shall be set to true for an
+            invalid SUPI and false (default) for a valid SUPI.
         interGrpIds:
           type: array
           items:
@@ -439,6 +445,23 @@ components:
           items:
             $ref: 'TS29571_CommonData.yaml#/components/schemas/Ipv6Prefix'
           minItems: 1
+        satBackhaulCategory:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/SatelliteBackhaulCategory'
+        pcfUeInfo:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/PcfUeCallbackInfo'
+        pvsInfo:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/ServerAddressingInfo'
+          minItems: 1
+        onboardInd:
+          type: boolean
+          description: If it is included and set to true, it indicates that the PDU session is used for UE Onboarding.
+        nwdafDatas:
+          type: array
+          items:
+            $ref: '#/components/schemas/NwdafData'
+          minItems: 1
       required:
         - supi
         - pduSessionId
@@ -447,6 +470,7 @@ components:
         - notificationUri
         - sliceInfo
     SmPolicyDecision:
+      description: Contains the SM policies authorized by the PCF.
       type: object
       properties:
         sessRules:
@@ -454,13 +478,19 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/SessionRule'
           minProperties: 1
-          description: A map of Sessionrules with the content being the SessionRule as described in subclause 5.6.2.7.
+          description: >
+            A map of Sessionrules with the content being the SessionRule as described in
+            clause 5.6.2.7. The key used in this map for each entry is the sessRuleId
+            attribute of the corresponding SessionRule.
         pccRules:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/PccRule'
           minProperties: 1
-          description: A map of PCC rules with the content being the PCCRule as described in subclause 5.6.2.6.
+          description: >
+            A map of PCC rules with the content being the PCCRule as described in 
+            clause 5.6.2.6. The key used in this map for each entry is the pccRuleId
+            attribute of the corresponding PccRule.
           nullable: true
         pcscfRestIndication:
           type: boolean
@@ -470,13 +500,17 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/QosData'
           minProperties: 1
-          description: Map of QoS data policy decisions.
+          description: >
+            Map of QoS data policy decisions. The key used in this map for each entry is the qosId
+            attribute of the corresponding QosData.
         chgDecs:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/ChargingData'
           minProperties: 1
-          description: Map of Charging data policy decisions.
+          description: >
+            Map of Charging data policy decisions. The key used in this map for each entry
+            is the chgId attribute of the corresponding ChargingData.
           nullable: true
         chargingInfo:
           $ref: '#/components/schemas/ChargingInformation'
@@ -485,13 +519,17 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/TrafficControlData'
           minProperties: 1
-          description: Map of Traffic Control data policy decisions.
+          description: >
+            Map of Traffic Control data policy decisions. The key used in this map for each entry
+            is the tcId attribute of the corresponding TrafficControlData.
         umDecs:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/UsageMonitoringData'
           minProperties: 1
-          description: Map of Usage Monitoring data policy decisions.
+          description: >
+            Map of Usage Monitoring data policy decisions. The key used in this map for each entry
+            is the umId attribute of the corresponding UsageMonitoringData.
           nullable: true
         qosChars:
           type: object
@@ -504,7 +542,9 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/QosMonitoringData'
           minProperties: 1
-          description: Map of QoS Monitoring data policy decisions.
+          description: >
+            Map of QoS Monitoring data policy decisions. The key used in this map for each entry
+            is the qmId attribute of the corresponding QosMonitoringData.
           nullable: true
         reflectiveQoSTimer:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSec'
@@ -513,7 +553,9 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/ConditionData'
           minProperties: 1
-          description: A map of condition data with the content being as described in subclause 5.6.2.9.
+          description: >
+            A map of condition data with the content being as described in clause 5.6.2.9. The key
+            used in this map for each entry is the condId attribute of the corresponding ConditionData.
           nullable: true
         revalidationTime:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
@@ -523,6 +565,12 @@ components:
         online:
           type: boolean
           description: Indicates the online charging is applicable to the PDU session when it is included and set to true.
+        offlineChOnly:
+          type: boolean
+          default: false
+          description: >
+            Indicates that the online charging method shall never be used for any PCC rule activated
+            during the lifetime of the PDU session.
         policyCtrlReqTriggers:
           type: array
           items:
@@ -543,7 +591,7 @@ components:
           additionalProperties:
             $ref: 'TS29571_CommonData.yaml#/components/schemas/PresenceInfoRm'
           minProperties: 1
-          description: Map of PRA information.
+          description: Map of PRA information. The praId attribute within the PresenceInfo data type is the key of the map.
           nullable: true
         ipv4Index:
           $ref: 'TS29519_Policy_Data.yaml#/components/schemas/IpIndex'
@@ -566,8 +614,11 @@ components:
           minItems: 1
         redSessIndication:
           type: boolean
-          description: Indicates whether the PDU session is a redundant PDU session. If absent it means the PDU session is not a redundant PDU session.
+          description: >
+            Indicates whether the PDU session is a redundant PDU session. If absent it means the PDU
+            session is not a redundant PDU session.
     SmPolicyNotification:
+      description: Represents a notification on the update of the SM policies.
       type: object
       properties:
         resourceUri:
@@ -575,6 +626,7 @@ components:
         smPolicyDecision:
           $ref: '#/components/schemas/SmPolicyDecision'
     PccRule:
+      description: Contains a PCC rule information.
       type: object
       properties:
         flowInfos:
@@ -600,13 +652,16 @@ components:
         appReloc:
           type: boolean
           description: Indication of application relocation possibility.
+        easRedisInd:
+          type: boolean
+          description: Indicates the EAS rediscovery is required.
         refQosData:
           type: array
           items:
             type: string
           minItems: 1
           maxItems: 1
-          description: A reference to the QosData policy decision type. It is the qosId described in subclause 5.6.2.8.
+          description: A reference to the QosData policy decision type. It is the qosId described in clause 5.6.2.8.
         refAltQosParams:
           type: array
           items:
@@ -619,14 +674,14 @@ components:
             type: string
           minItems: 1
           maxItems: 1
-          description: A reference to the TrafficControlData policy decision type. It is the tcId described in subclause 5.6.2.10.
+          description: A reference to the TrafficControlData policy decision type. It is the tcId described in clause 5.6.2.10.
         refChgData:
           type: array
           items:
             type: string
           minItems: 1
           maxItems: 1
-          description: A reference to the ChargingData policy decision type. It is the chgId described in subclause 5.6.2.11.
+          description: A reference to the ChargingData policy decision type. It is the chgId described in clause 5.6.2.11.
           nullable: true
         refChgN3gData:
           type: array
@@ -634,7 +689,9 @@ components:
             type: string
           minItems: 1
           maxItems: 1
-          description: A reference to the ChargingData policy decision type only applicable to Non-3GPP access if "ATSSS" feature is supported. It is the chgId described in subclause 5.6.2.11.
+          description: >
+            A reference to the ChargingData policy decision type only applicable to Non-3GPP access
+            if "ATSSS" feature is supported. It is the chgId described in clause 5.6.2.11.
           nullable: true
         refUmData:
           type: array
@@ -642,7 +699,7 @@ components:
             type: string
           minItems: 1
           maxItems: 1
-          description: A reference to UsageMonitoringData policy decision type. It is the umId described in subclause 5.6.2.12.
+          description: A reference to UsageMonitoringData policy decision type. It is the umId described in clause 5.6.2.12.
           nullable: true
         refUmN3gData:
           type: array
@@ -650,11 +707,13 @@ components:
             type: string
           minItems: 1
           maxItems: 1
-          description: A reference to UsageMonitoringData policy decision type only applicable to Non-3GPP access if "ATSSS" feature is supported. It is the umId described in subclause 5.6.2.12. 
+          description: >
+            A reference to UsageMonitoringData policy decision type only applicable to Non-3GPP
+            access if "ATSSS" feature is supported. It is the umId described in clause 5.6.2.12. 
           nullable: true
         refCondData:
           type: string
-          description: A reference to the condition data. It is the condId described in subclause 5.6.2.9.
+          description: A reference to the condition data. It is the condId described in clause 5.6.2.9.
           nullable: true
         refQosMon:
           type: array
@@ -662,7 +721,7 @@ components:
             type: string
           minItems: 1
           maxItems: 1
-          description: A reference to the QosMonitoringData policy decision type. It is the qmId described in subclause 5.6.2.40. 
+          description: A reference to the QosMonitoringData policy decision type. It is the qmId described in clause 5.6.2.40. 
           nullable: true
         addrPreserInd:
           type: boolean
@@ -671,6 +730,8 @@ components:
           $ref: 'TS29514_Npcf_PolicyAuthorization.yaml#/components/schemas/TscaiInputContainer'
         tscaiInputUl:
           $ref: 'TS29514_Npcf_PolicyAuthorization.yaml#/components/schemas/TscaiInputContainer'
+        tscaiTimeDom:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Uinteger'
         ddNotifCtrl:
           $ref: '#/components/schemas/DownlinkDataNotificationControl'
         ddNotifCtrl2:
@@ -678,10 +739,13 @@ components:
         disUeNotif:
           type: boolean
           nullable: true
+        packFiltAllPrec:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Uinteger'
       required:
         - pccRuleId
       nullable: true
     SessionRule:
+      description: Contains session level policy information.
       type: object
       properties:
         authSessAmbr:
@@ -693,20 +757,21 @@ components:
           description: Univocally identifies the session rule within a PDU session.
         refUmData:
           type: string
-          description: A reference to UsageMonitoringData policy decision type. It is the umId described in subclause 5.6.2.12.
+          description: A reference to UsageMonitoringData policy decision type. It is the umId described in clause 5.6.2.12.
           nullable: true
         refUmN3gData:
           type: string
-          description: A reference to UsageMonitoringData policy decision type to apply for Non-3GPP access. It is the umId described in subclause 5.6.2.12.
+          description: A reference to UsageMonitoringData policy decision type to apply for Non-3GPP access. It is the umId described in clause 5.6.2.12.
           nullable: true
         refCondData:
           type: string
-          description: A reference to the condition data. It is the condId described in subclause 5.6.2.9.
+          description: A reference to the condition data. It is the condId described in clause 5.6.2.9.
           nullable: true
       required:
         - sessRuleId
       nullable: true
     QosData:
+      description: Contains the QoS parameters.
       type: object
       properties:
         qosId:
@@ -726,7 +791,9 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Arp'
         qnc:
           type: boolean
-          description: Indicates whether notifications are requested from 3GPP NG-RAN when the GFBR can no longer (or again) be guaranteed for a QoS Flow during the lifetime of the QoS Flow.
+          description: >
+            Indicates whether notifications are requested from 3GPP NG-RAN when the GFBR can no longer
+            (or again) be guaranteed for a QoS Flow during the lifetime of the QoS Flow.
         priorityLevel:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/5QiPriorityLevelRm'
         averWindow:
@@ -759,6 +826,7 @@ components:
         - qosId
       nullable: true
     ConditionData:
+      description: Contains conditions of applicability for a rule.
       type: object
       properties:
         condId:
@@ -776,6 +844,7 @@ components:
         - condId
       nullable: true
     TrafficControlData:
+      description: Contains parameters determining how flows associated with a PCC Rule are treated (e.g. blocked, redirected, etc).
       type: object
       properties:
         tcId:
@@ -807,8 +876,23 @@ components:
             $ref: 'TS29571_CommonData.yaml#/components/schemas/RouteToLocation'
           minItems: 1
           description: A list of location which the traffic shall be routed to for the AF request
+          nullable: true
+        maxAllowedUpLat:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/UintegerRm'
+        easIpReplaceInfos:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/EasIpReplacementInfo'
+          minItems: 1
+          description: Contains EAS IP replacement information.
+          nullable: true
         traffCorreInd:
           type: boolean
+        simConnInd:
+          type: boolean
+          description: Indicates whether simultaneous connectivity should be temporarily maintained for the source and target PSA.
+        simConnTerm:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSec'
         upPathChgEvent:
           $ref: '#/components/schemas/UpPathChgEvent'
         steerFun:
@@ -823,6 +907,7 @@ components:
         - tcId
       nullable: true
     ChargingData:
+      description: Contains charging related parameters.
       type: object
       properties:
         chgId:
@@ -859,6 +944,7 @@ components:
         - chgId
       nullable: true
     UsageMonitoringData:
+      description: Contains usage monitoring related control information.
       type: object
       properties:
         umId:
@@ -889,12 +975,16 @@ components:
           items:
             type: string
           minItems: 1
-          description: Contains the PCC rule identifier(s) which corresponding service data flow(s) shall be excluded from PDU Session usage monitoring. It is only included in the UsageMonitoringData instance for session level usage monitoring.
+          description: >
+            Contains the PCC rule identifier(s) which corresponding service data flow(s) shall be
+            excluded from PDU Session usage monitoring. It is only included in the
+            UsageMonitoringData instance for session level usage monitoring.
           nullable: true
       required:
         - umId
       nullable: true
     RedirectInformation:
+      description: Contains the redirect information.
       type: object
       properties:
         redirectEnabled:
@@ -904,8 +994,15 @@ components:
           $ref: '#/components/schemas/RedirectAddressType'
         redirectServerAddress:
           type: string
-          description: Indicates the address of the redirect server. If "redirectAddressType" attribute indicates the IPV4_ADDR, the encoding is the same as the Ipv4Addr data type defined in 3GPP TS 29.571.If "redirectAddressType" attribute indicates the IPV6_ADDR, the encoding is the same as the Ipv6Addr data type defined in 3GPP TS 29.571.If "redirectAddressType" attribute indicates the URL or SIP_URI, the encoding is the same as the Uri data type defined in 3GPP TS 29.571.
+          description: >
+            Indicates the address of the redirect server. If "redirectAddressType" attribute
+            indicates the IPV4_ADDR, the encoding is the same as the Ipv4Addr data type defined in
+            3GPP TS 29.571.If "redirectAddressType" attribute indicates the IPV6_ADDR, the encoding
+            is the same as the Ipv6Addr data type defined in 3GPP TS 29.571.If "redirectAddressType"
+            attribute indicates the URL or SIP_URI, the encoding is the same as the Uri data type
+            defined in 3GPP TS 29.571.
     FlowInformation:
+      description: Contains the flow information.
       type: object
       properties:
         flowDescription:
@@ -933,6 +1030,7 @@ components:
         flowDirection:
           $ref: '#/components/schemas/FlowDirectionRm'
     SmPolicyDeleteData:
+      description: Contains the parameters to be sent to the PCF when an individual SM policy is deleted.
       type: object
       properties:
         userLocationInfo:
@@ -963,6 +1061,7 @@ components:
             $ref: '#/components/schemas/QosMonitoringReport'
           minItems: 1
     QosCharacteristics:
+      description: Contains QoS characteristics for a non-standardized or a non-configured 5QI.
       type: object
       properties:
         5qi:
@@ -988,6 +1087,7 @@ components:
         - packetDelayBudget
         - packetErrorRate
     ChargingInformation:
+      description: Contains the addresses of the charging functions.
       type: object
       properties:
         primaryChfAddress:
@@ -1004,8 +1104,8 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/NfInstanceId'
       required:
         - primaryChfAddress
-        - secondaryChfAddress
     AccuUsageReport:
+      description: Contains the accumulated usage report information.
       type: object
       properties:
         refUmIds:
@@ -1030,6 +1130,7 @@ components:
       required:
         - refUmIds
     SmPolicyUpdateContextData:
+      description: Contains the policy control request trigger(s) that were met and the corresponding new value(s) or the error report of the policy enforcement.
       type: object
       properties:
         repPolicyCtrlReqTriggers:
@@ -1137,12 +1238,16 @@ components:
           additionalProperties:
             $ref: 'TS29571_CommonData.yaml#/components/schemas/PresenceInfo'
           minProperties: 1
-          description: Reports the changes of presence reporting area.
+          description: >
+            Reports the changes of presence reporting area. The praId attribute within the
+            PresenceInfo data type is the key of the map.
         ueInitResReq:
           $ref: '#/components/schemas/UeInitiatedResourceRequest'
         refQosIndication:
           type: boolean
-          description: If it is included and set to true, the reflective QoS is supported by the UE. If it is included and set to false, the reflective QoS is revoked by the UE.
+          description: >
+            If it is included and set to true, the reflective QoS is supported by the UE. If it is
+            included and set to false, the reflective QoS is revoked by the UE.
         qosFlowUsage:
           $ref: '#/components/schemas/QosFlowUsage'
         creditManageStatus:
@@ -1177,6 +1282,12 @@ components:
             $ref: '#/components/schemas/PolicyDecisionFailureCode'
           minItems: 1
           description: Contains the type(s) of failed policy decision and/or condition data.
+        invalidPolicyDecs:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/InvalidParam'
+          minItems: 1
+          description: Indicates the invalid parameters for the reported type(s) of the failed policy decision and/or condition data.
         trafficDescriptors:
           type: array
           items:
@@ -1185,17 +1296,34 @@ components:
         pccRuleId:
           type: string
           description: Contains the identifier of the PCC rule which is used for traffic detection of event.
-        interGrpIds:
-          type: array
-          items:
-            $ref: 'TS29571_CommonData.yaml#/components/schemas/GroupId'
-          minItems: 1
         typesOfNotif:
           type: array
           items:
             $ref: 'TS29571_CommonData.yaml#/components/schemas/DlDataDeliveryStatus'
           minItems: 1
+        interGrpIds:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/GroupId'
+          minItems: 1
+        satBackhaulCategory:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/SatelliteBackhaulCategory'
+        pcfUeInfo:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/PcfUeCallbackInfo'
+        nwdafDatas:
+          type: array
+          items:
+            $ref: '#/components/schemas/NwdafData'
+          minItems: 1
+          nullable: true
+        anGwStatus:
+          type: boolean
+          description: >
+            When it is included and set to true, it indicates that the AN-Gateway has failed and
+            that the PCF should refrain from sending policy decisions to the SMF until it is
+            informed that the AN-Gateway has been recovered.
     UpPathChgEvent:
+      description: Contains the UP path change event subscription from the AF.
       type: object
       properties:
         notificationUri:
@@ -1213,6 +1341,7 @@ components:
         - dnaiChgType
       nullable: true
     TerminationNotification:
+      description: Represents a Termination Notification.
       type: object
       properties:
         resourceUri:
@@ -1223,6 +1352,7 @@ components:
         - resourceUri
         - cause
     AppDetectionInfo:
+      description: Contains the detected application's traffic information.
       type: object
       properties:
         appId:
@@ -1230,7 +1360,10 @@ components:
           description: A reference to the application detection filter configured at the UPF
         instanceId:
           type: string
-          description: Identifier sent by the SMF in order to allow correlation of application Start and Stop events to the specific service data flow description, if service data flow descriptions are deducible.
+          description: >
+            Identifier sent by the SMF in order to allow correlation of application Start and Stop
+            events to the specific service data flow description, if service data flow descriptions
+            are deducible.
         sdfDescriptions:
           type: array
           items:
@@ -1240,10 +1373,14 @@ components:
       required:
         - appId
     AccNetChId:
+      description: Contains the access network charging identifier for the PCC rule(s) or for the whole PDU session.
       type: object
       properties:
         accNetChaIdValue:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/ChargingId'
+        accNetChargId:
+          type: string
+          description: A character string containing the access network charging id.
         refPccRuleIds:
           type: array
           items:
@@ -1253,8 +1390,9 @@ components:
         sessionChScope:
           type: boolean
           description: When it is included and set to true, indicates the Access Network Charging Identifier applies to the whole PDU Session
-      required:
-        - accNetChaIdValue
+      oneOf:
+        - required: [accNetChaIdValue]
+        - required: [accNetChargId]
     AccNetChargingAddress:
       description: Describes the network entity within the access network performing charging
       type: object
@@ -1267,6 +1405,7 @@ components:
         anChargIpv6Addr:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Ipv6Addr'
     RequestedRuleData:
+      description: Contains rule data requested by the PCF to receive information associated with PCC rule(s).
       type: object
       properties:
         refPccRuleIds:
@@ -1285,6 +1424,7 @@ components:
         - refPccRuleIds
         - reqData
     RequestedUsageData:
+      description: Contains usage data requested by the PCF requesting usage reports for the corresponding usage monitoring data instances.
       type: object
       properties:
         refUmIds:
@@ -1292,11 +1432,18 @@ components:
           items:
             type: string
           minItems: 1
-          description: An array of usage monitoring data id references to the usage monitoring data instances for which the PCF is requesting a usage report. This attribute shall only be provided when allUmIds is not set to true.
+          description: >
+            An array of usage monitoring data id references to the usage monitoring data instances
+            for which the PCF is requesting a usage report. This attribute shall only be provided
+            when allUmIds is not set to true.
         allUmIds:
           type: boolean
-          description: This boolean indicates whether requested usage data applies to all usage monitoring data instances. When it's not included, it means requested usage data shall only apply to the usage monitoring data instances referenced by the refUmIds attribute.
+          description: >
+            This boolean indicates whether requested usage data applies to all usage monitoring data
+            instances. When it's not included, it means requested usage data shall only apply to the
+            usage monitoring data instances referenced by the refUmIds attribute.
     UeCampingRep:
+      description: Contains the current applicable values corresponding to the policy control request triggers.
       type: object
       properties:
         accessType:
@@ -1313,7 +1460,10 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/TimeZone'
         netLocAccSupp:
           $ref: '#/components/schemas/NetLocAccessSupport'
+        satBackhaulCategory:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/SatelliteBackhaulCategory'
     RuleReport:
+      description: Reports the status of PCC.
       type: object
       properties:
         pccRuleIds:
@@ -1340,10 +1490,13 @@ components:
             $ref: '#/components/schemas/RanNasRelCause'
           minItems: 1
           description: indicates the RAN or NAS release cause code information.
+        altQosParamId:
+          type: string
       required:
         - pccRuleIds
         - ruleStatus
     RanNasRelCause:
+      description: Contains the RAN/NAS release cause.
       type: object
       properties:
         ngApCause:
@@ -1355,6 +1508,7 @@ components:
         epsCause:
           $ref: '#/components/schemas/EpsRanNasRelCause'
     UeInitiatedResourceRequest:
+      description: Indicates that a UE requests specific QoS handling for the selected SDF.
       type: object
       properties:
         pccRuleId:
@@ -1374,6 +1528,7 @@ components:
         - ruleOp
         - packFiltInfo
     PacketFilterInfo:
+      description: Contains the information from a single packet filter sent from the SMF to the PCF.
       type: object
       properties:
         packFiltId:
@@ -1393,6 +1548,7 @@ components:
         flowDirection:
           $ref: '#/components/schemas/FlowDirection'
     RequestedQos:
+      description: Contains the QoS information requested by the UE.
       type: object
       properties:
         5qi:
@@ -1404,6 +1560,7 @@ components:
       required:
         - 5qi
     QosNotificationControlInfo:
+      description: Contains the QoS Notification Control Information.
       type: object
       properties:
         refPccRuleIds:
@@ -1422,6 +1579,7 @@ components:
         - refPccRuleIds
         - notifType
     PartialSuccessReport:
+      description: Includes the information reported by the SMF when some of the PCC rules and/or session rules are not successfully installed/activated.
       type: object
       properties:
         failureCause:
@@ -1446,9 +1604,16 @@ components:
             $ref: '#/components/schemas/PolicyDecisionFailureCode'
           minItems: 1
           description: Contains the type(s) of failed policy decision and/or condition data.
+        invalidPolicyDecs:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/InvalidParam'
+          minItems: 1
+          description: Indicates the invalid parameters for the reported type(s) of the failed policy decision and/or condition data.
       required:
         - failureCause
     AuthorizedDefaultQos:
+      description: Represents the Authorized Default QoS.
       type: object
       properties:
         5qi:
@@ -1472,6 +1637,7 @@ components:
         extMaxDataBurstVol:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/ExtMaxDataBurstVolRm'
     ErrorReport:
+      description: Contains the rule error reports.
       type: object
       properties:
         error:
@@ -1494,9 +1660,14 @@ components:
             $ref: '#/components/schemas/PolicyDecisionFailureCode'
           minItems: 1
           description: Used to report failure of the policy decision and/or condition data.
-        altQosParamId:
-          type: string
+        invalidPolicyDecs:
+          type: array
+          items:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/InvalidParam'
+          minItems: 1
+          description: Indicates the invalid parameters for the reported type(s) of the failed policy decision and/or condition data.
     SessionRuleReport:
+      description: Represents reporting of the status of a session rule.
       type: object
       properties:
         ruleIds:
@@ -1519,6 +1690,7 @@ components:
         - ruleIds
         - ruleStatus
     ServingNfIdentity:
+      description: Contains the serving Network Function identity.
       type: object
       properties:
         servNfInstId:
@@ -1527,7 +1699,10 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Guami'
         anGwAddr:
           $ref: 'TS29514_Npcf_PolicyAuthorization.yaml#/components/schemas/AnGwAddress'
+        sgsnAddr:
+          $ref: '#/components/schemas/SgsnAddress'
     SteeringMode:
+      description: Contains the steering mode value and parameters determined by the PCF.
       type: object
       properties:
         steerModeValue:
@@ -1540,9 +1715,14 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Uinteger'
         prioAcc:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/AccessType'
+        thresValue:
+          $ref: '#/components/schemas/ThresholdValue'
+        steerModeInd:
+          $ref: '#/components/schemas/SteerModeIndicator'
       required:
         - steerModeValue
     AdditionalAccessInfo:
+      description: Indicates the combination of additional Access Type and RAT Type for a MA PDU session.
       type: object
       properties:
         accessType:
@@ -1552,6 +1732,7 @@ components:
       required:
         - accessType
     QosMonitoringData:
+      description: Contains QoS monitoring related control information.
       type: object
       properties:
         qmId:
@@ -1562,7 +1743,10 @@ components:
           items:
             $ref: '#/components/schemas/RequestedQosMonitoringParameter'
           minItems: 1
-          description: indicates the UL packet delay, DL packet delay and/or round trip packet delay between the UE and the UPF is to be monitored when the QoS Monitoring for URLLC is enabled for the service data flow.
+          description: >
+            indicates the UL packet delay, DL packet delay and/or round trip packet delay between
+            the UE and the UPF is to be monitored when the QoS Monitoring for URLLC is enabled for
+            the service data flow.
         repFreqs:
           type: array
           items:
@@ -1585,15 +1769,20 @@ components:
         repPeriod:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSecRm'
         notifyUri:
-          $ref: 'TS29571_CommonData.yaml#/components/schemas/Uri'
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/UriRm'
         notifyCorreId:
           type: string
+          nullable: true
+        directNotifInd:
+          type: boolean
+          description: Indicates that the direct event notification sent by UPF to the Local NEF or AF is requested if it is included and set to true.
       required:
         - qmId
         - reqQosMonParams
         - repFreqs
       nullable: true
     QosMonitoringReport:
+      description: Contains reporting information on QoS monitoring.
       type: object
       properties:
         refPccRuleIds:
@@ -1617,10 +1806,14 @@ components:
           items:
             type: integer
           minItems: 1
+        pdmf:
+          type: boolean
+          description: Represents the packet delay measurement failure indicator.
       required:
         - refPccRuleIds
 #
     TsnBridgeInfo:
+      description: Contains parameters that describe and identify the TSC user plane node.
       type: object
       properties:
         bridgeId:
@@ -1633,6 +1826,7 @@ components:
           $ref: 'TS29571_CommonData.yaml#/components/schemas/Uinteger'
 #
     PortManagementContainer:
+      description: Contains the port management information container for a port.
       type: object
       properties:
         portManCont:
@@ -1643,6 +1837,7 @@ components:
         - portManCont
         - portNum
     BridgeManagementContainer:
+      description: Contains the UMIC.
       type: object
       properties:
         bridgeManCont:
@@ -1650,6 +1845,7 @@ components:
       required:
         - bridgeManCont
     IpMulticastAddressInfo:
+      description: Contains the IP multicast addressing information.
       type: object
       properties:
         srcIpv4Addr:
@@ -1675,7 +1871,7 @@ components:
             $ref: 'TS29571_CommonData.yaml#/components/schemas/DlDataDeliveryStatus'
           minItems: 1
     DownlinkDataNotificationControlRm:
-      description: this data type is defined in the same way as the DownlinkDataNotificationControl data type, but with the OpenAPI nullable property set to true.
+      description: This data type is defined in the same way as the DownlinkDataNotificationControl data type, but with the nullable:true property.
       type: object
       properties:
         notifCtrlInds:
@@ -1691,6 +1887,28 @@ components:
           minItems: 1
           nullable: true
       nullable: true
+    ThresholdValue:
+      description: Indicates the threshold value(s) for RTT and/or Packet Loss Rate.
+      type: object
+      properties:
+        rttThres:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/UintegerRm'
+        plrThres:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/PacketLossRateRm'
+      nullable: true
+    NwdafData:
+      description: Indicates the list of Analytic ID(s) per NWDAF instance ID used for the PDU Session consumed by the SMF.
+      type: object
+      properties:
+        nwdafInstanceId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/NfInstanceId'
+        nwdafEvents:
+          type: array
+          items:
+            $ref: 'TS29520_Nnwdaf_EventsSubscription.yaml#/components/schemas/NwdafEvent'
+          minItems: 1
+      required:
+        - nwdafInstanceId
     5GSmCause:
       $ref: 'TS29571_CommonData.yaml#/components/schemas/Uinteger'
     EpsRanNasRelCause:
@@ -1719,13 +1937,14 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - DOWNLINK: The corresponding filter applies for traffic to the UE.
         - UPLINK: The corresponding filter applies for traffic from the UE.
         - BIDIRECTIONAL: The corresponding filter applies for traffic both to and from the UE.
         - UNSPECIFIED: The corresponding filter applies for traffic to the UE (downlink), but has no specific direction declared. The service data flow detection shall apply the filter for uplink traffic as if the filter was bidirectional. The PCF shall not use the value UNSPECIFIED in filters created by the network in NW-initiated procedures. The PCF shall only include the value UNSPECIFIED in filters in UE-initiated procedures if the same value is received from the SMF.
     FlowDirectionRm:
+      description: This data type is defined in the same way as the "FlowDirection" data type, with the only difference that it allows null value.
       anyOf:
         - $ref: '#/components/schemas/FlowDirection'
         - $ref: 'TS29571_CommonData.yaml#/components/schemas/NullValue'
@@ -1742,7 +1961,7 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - SER_ID_LEVEL: Indicates that the usage shall be reported on service id and rating group combination level.
         - RAT_GR_LEVEL: Indicates that the usage shall be reported on rating group level.
@@ -1761,7 +1980,7 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - DURATION: Indicates that the duration of the service data flow traffic shall be metered.
         - VOLUME: Indicates that volume of the service data flow traffic shall be metered.
@@ -1794,6 +2013,7 @@ components:
           - RE_TIMEOUT
           - RES_RELEASE
           - SUCC_RES_ALLO
+          - RAI_CH
           - RAT_TY_CH
           - REF_QOS_IND_CH
           - NUM_OF_PACKET_FILTER
@@ -1802,6 +2022,7 @@ components:
           - AUTH_PROF_CH
           - QOS_MONITORING
           - SCELL_CH
+          - USER_LOCATION_CH
           - EPS_FALLBACK
           - MA_PDU
           - TSN_BRIDGE_INFO
@@ -1813,12 +2034,16 @@ components:
           - DDN_FAILURE_CANCELLATION
           - DDN_DELIVERY_STATUS_CANCELLATION
           - VPLMN_QOS_CH
+          - SUCC_QOS_UPDATE
+          - SAT_CATEGORY_CHG
+          - PCF_UE_NOTIF_IND
+          - NWDAF_DATA_CHG
       - type: string
         description: >
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - PLMN_CH: PLMN Change
         - RES_MO_RE: A request for resource modification has been received by the SMF. The SMF always reports to the PCF.
@@ -1833,7 +2058,7 @@ components:
         - CM_SES_FAIL: Credit management session failure
         - PS_DA_OFF: The SMF reports when the 3GPP PS Data Off status changes. The SMF always reports to the PCF.
         - DEF_QOS_CH: Default QoS Change. The SMF always reports to the PCF.
-        - SE_AMBR_CH: Session AMBR Change. The SMF always reports to the PCF.
+        - SE_AMBR_CH: Session-AMBR Change. The SMF always reports to the PCF.
         - QOS_NOTIF: The SMF notify the PCF when receiving notification from RAN that QoS targets of the QoS Flow cannot be guranteed or gurateed again.
         - NO_CREDIT: Out of credit
         - REALLO_OF_CREDIT: Reallocation of credit
@@ -1843,17 +2068,19 @@ components:
         - RE_TIMEOUT: Indicates the SMF generated the request because there has been a PCC revalidation timeout
         - RES_RELEASE: Indicate that the SMF can inform the PCF of the outcome of the release of resources for those rules that require so.
         - SUCC_RES_ALLO: Indicates that the requested rule data is the successful resource allocation.
+        - RAI_CH: Location Change with respect to the RAI of GERAN and UTRAN.
         - RAT_TY_CH: RAT Type Change.
         - REF_QOS_IND_CH: Reflective QoS indication Change
         - NUM_OF_PACKET_FILTER: Indicates that the SMF shall report the number of supported packet filter for signalled QoS rules
-        - UE_STATUS_RESUME: Indicates that the UE’s status is resumed.
+        - UE_STATUS_RESUME: Indicates that the UE's status is resumed.
         - UE_TZ_CH: UE Time Zone Change
         - AUTH_PROF_CH: The DN-AAA authorization profile index has changed
         - QOS_MONITORING: Indicate that the SMF notifies the PCF of the QoS Monitoring information.
         - SCELL_CH: Location Change with respect to the Serving Cell.
+        - USER_LOCATION_CH: Indicate that user location has been changed, applicable to serving area change and serving cell change.
         - EPS_FALLBACK: EPS Fallback report is enabled in the SMF.
         - MA_PDU: UE Indicates that the SMF notifies the PCF of the MA PDU session request
-        - TSN_BRIDGE_INFO: 5GS Bridge information available
+        - TSN_BRIDGE_INFO: TSC user plane node information available
         - 5G_RG_JOIN: The 5G-RG has joined to an IP Multicast Group.
         - 5G_RG_LEAVE: The 5G-RG has left an IP Multicast Group.
         - DDN_FAILURE: Event subscription for DDN Failure event received.
@@ -1861,7 +2088,11 @@ components:
         - GROUP_ID_LIST_CHG: UE Internal Group Identifier(s) has changed: the SMF reports that UDM provided list of group Ids has changed.
         - DDN_FAILURE_CANCELLATION: The event subscription for DDN Failure event is cancelled.
         - DDN_DELIVERY_STATUS_CANCELLATION: The event subscription for DDD STATUS is cancelled.
-        - VPLMN_QOS_CH: Change of the QoS supported in the VPLMN. 
+        - VPLMN_QOS_CH: Change of the QoS supported in the VPLMN.
+        - SUCC_QOS_UPDATE: Indicates that the requested MPS Action is successful.
+        - SAT_CATEGORY_CHG: Indicates that the SMF has detected a change between different satellite backhaul categories, or between a satellite backhaul and a non-satellite backhaul.
+        - PCF_UE_NOTIF_IND: Indicates the SMF has detected the AMF forwarded the PCF for the UE indication to receive/stop receiving notifications of SM Policy association established/terminated events.
+        - NWDAF_DATA_CHG: Indicates that the NWDAF instance IDs used for the PDU session and/or associated Analytics IDs used for the PDU session and available in the SMF have changed.
     RequestedRuleDataType:
       anyOf:
       - type: string
@@ -1877,7 +2108,7 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - CH_ID: Indicates that the requested rule data is the charging identifier. 
         - MS_TIME_ZONE: Indicates that the requested access network info type is the UE's timezone.
@@ -1896,7 +2127,7 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - ACTIVE: Indicates that the PCC rule(s) are successfully installed (for those provisioned from PCF) or activated (for those pre-defined in SMF), or the session rule(s) are successfully installed 
         - INACTIVE: Indicates that the PCC rule(s) are removed (for those provisioned from PCF) or inactive (for those pre-defined in SMF) or the session rule(s) are removed.
@@ -1925,34 +2156,52 @@ components:
           - CM_USER_UNK
           - CM_RAT_FAILED
           - UE_STA_SUSP
+          - UNKNOWN_REF_ID
+          - INCORRECT_COND_DATA
+          - REF_ID_COLLISION
+          - TRAFFIC_STEERING_ERROR
+          - DNAI_STEERING_ERROR
+          - AN_GW_FAILE
+          - MAX_NR_PACKET_FILTERS_EXCEEDED
+          - PACKET_FILTER_TFT_ALLOCATION_EXCEEDED
+          - MUTE_CHG_NOT_ALLOWED
       - type: string
         description: >
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
-          - UNK_RULE_ID: Indicates that the pre-provisioned PCC rule could not be successfully activated because the PCC rule identifier is unknown to the SMF.
-          - RA_GR_ERR: Indicate that the PCC rule could not be successfully installed or enforced because the Rating Group specified within the Charging Data policy decision which the PCC rule refers to is unknown or, invalid.
-          - SER_ID_ERR: Indicate that the PCC rule could not be successfully installed or enforced because the Service Identifier specified within the Charging Data policy decision which the PCC rule refers to is invalid, unknown, or not applicable to the service being charged.
-          - NF_MAL: Indicate that the PCC rule could not be successfully installed (for those provisioned from the PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to SMF/UPF malfunction.
-          - RES_LIM: Indicate that the PCC rule could not be successfully installed (for those provisioned from PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to a limitation of resources at the SMF/UPF.
-          - MAX_NR_QoS_FLOW: Indicate that the PCC rule could not be successfully installed (for those provisioned from PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to the fact that the maximum number of QoS flows has been reached for the PDU session.
-          - MISS_FLOW_INFO: Indicate that the PCC rule could not be successfully installed or enforced because neither the "flowInfos" attribute nor the "appId" attribute is specified within the PccRule data structure by the PCF during the first install request of the PCC rule.
-          - RES_ALLO_FAIL: Indicate that the PCC rule could not be successfully installed or maintained since the QoS flow establishment/modification failed, or the QoS flow was released.
-          - UNSUCC_QOS_VAL: indicate that the QoS validation has failed or when Guaranteed Bandwidth > Max-Requested-Bandwidth.
-          - INCOR_FLOW_INFO: Indicate that the PCC rule could not be successfully installed or modified at the SMF because the provided flow information is not supported by the network (e.g. the provided IP address(es) or Ipv6 prefix(es) do not correspond to an IP version applicable for the PDU session).
-          - PS_TO_CS_HAN: Indicate that the PCC rule could not be maintained because of PS to CS handover.
-          - APP_ID_ERR: Indicate that the rule could not be successfully installed or enforced because the Application Identifier is invalid, unknown, or not applicable to the application required for detection.
-          - NO_QOS_FLOW_BOUND: Indicate that there is no QoS flow which the SMF can bind the PCC rule(s) to.
-          - FILTER_RES: Indicate that the Flow Information within the "flowInfos" attribute cannot be handled by the SMF because any of the restrictions defined in subclause 5.4.2 of 3GPP TS 29.212 was not met.
-          - MISS_REDI_SER_ADDR: Indicate that the PCC rule could not be successfully installed or enforced at the SMF because there is no valid Redirect Server Address within the Traffic Control Data policy decision which the PCC rule refers to provided by the PCF and no preconfigured redirection address for this PCC rule at the SMF.
-          - CM_END_USER_SER_DENIED: Indicate that the charging system denied the service request due to service restrictions (e.g. terminate rating group) or limitations related to the end-user, for example the end-user's account could not cover the requested service.
-          - CM_CREDIT_CON_NOT_APP: Indicate that the charging system determined that the service can be granted to the end user but no further credit control is needed for the service (e.g. service is free of charge or is treated for offline charging).
+        - UNK_RULE_ID: Indicates that the pre-provisioned PCC rule could not be successfully activated because the PCC rule identifier is unknown to the SMF.
+        - RA_GR_ERR: Indicate that the PCC rule could not be successfully installed or enforced because the Rating Group specified within the Charging Data policy decision which the PCC rule refers to is unknown or, invalid.
+        - SER_ID_ERR: Indicate that the PCC rule could not be successfully installed or enforced because the Service Identifier specified within the Charging Data policy decision which the PCC rule refers to is invalid, unknown, or not applicable to the service being charged.
+        - NF_MAL: Indicate that the PCC rule could not be successfully installed (for those provisioned from the PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to SMF/UPF malfunction.
+        - RES_LIM: Indicate that the PCC rule could not be successfully installed (for those provisioned from PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to a limitation of resources at the SMF/UPF.
+        - MAX_NR_QoS_FLOW: Indicate that the PCC rule could not be successfully installed (for those provisioned from PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to the fact that the maximum number of QoS flows has been reached for the PDU session.
+        - MISS_FLOW_INFO: Indicate that the PCC rule could not be successfully installed or enforced because neither the "flowInfos" attribute nor the "appId" attribute is specified within the PccRule data structure by the PCF during the first install request of the PCC rule.
+        - RES_ALLO_FAIL: Indicate that the PCC rule could not be successfully installed or maintained since the QoS flow establishment/modification failed, or the QoS flow was released.
+        - UNSUCC_QOS_VAL: indicate that the QoS validation has failed or when Guaranteed Bandwidth > Max-Requested-Bandwidth.
+        - INCOR_FLOW_INFO: Indicate that the PCC rule could not be successfully installed or modified at the SMF because the provided flow information is not supported by the network (e.g. the provided IP address(es) or Ipv6 prefix(es) do not correspond to an IP version applicable for the PDU session).
+        - PS_TO_CS_HAN: Indicate that the PCC rule could not be maintained because of PS to CS handover.
+        - APP_ID_ERR: Indicate that the rule could not be successfully installed or enforced because the Application Identifier is invalid, unknown, or not applicable to the application required for detection.
+        - NO_QOS_FLOW_BOUND: Indicate that there is no QoS flow which the SMF can bind the PCC rule(s) to.
+        - FILTER_RES: Indicate that the Flow Information within the "flowInfos" attribute cannot be handled by the SMF because any of the restrictions defined in clause 5.4.2 of 3GPP TS 29.212 was not met.
+        - MISS_REDI_SER_ADDR: Indicate that the PCC rule could not be successfully installed or enforced at the SMF because there is no valid Redirect Server Address within the Traffic Control Data policy decision which the PCC rule refers to provided by the PCF and no preconfigured redirection address for this PCC rule at the SMF.
+        - CM_END_USER_SER_DENIED: Indicate that the charging system denied the service request due to service restrictions (e.g. terminate rating group) or limitations related to the end-user, for example the end-user's account could not cover the requested service.
+        - CM_CREDIT_CON_NOT_APP: Indicate that the charging system determined that the service can be granted to the end user but no further credit control is needed for the service (e.g. service is free of charge or is treated for offline charging).
           - CM_AUTH_REJ: Indicate that the charging system denied the service request in order to terminate the service for which credit is requested.
-          - CM_USER_UNK: Indicate that the specified end user could not be found in the charging system.
-          - CM_RAT_FAILED: Indicate that the charging system cannot rate the service request due to insufficient rating input, incorrect AVP combination or due to an attribute or an attribute value that is not recognized or supported in the rating.
-          - UE_STA_SUSP: Indicates that the UE is in suspend state.
+        - CM_USER_UNK: Indicate that the specified end user could not be found in the charging system.
+        - CM_RAT_FAILED: Indicate that the charging system cannot rate the service request due to insufficient rating input, incorrect AVP combination or due to an attribute or an attribute value that is not recognized or supported in the rating.
+        - UE_STA_SUSP: Indicates that the UE is in suspend state.
+        - UNKNOWN_REF_ID: Indicates that the PCC rule could not be successfully installed/modified because the referenced identifier to a Policy Decision Data or to a Condition Data is unknown to the SMF.
+        - INCORRECT_COND_DATA: Indicates that the PCC rule could not be successfully installed/modified because the referenced Condition data are incorrect.
+        - REF_ID_COLLISION: Indicates that PCC rule could not be successfully installed/modified because the same Policy Decision is referenced by a session rule (e.g. the session rule and the PCC rule refer to the same Usage Monitoring decision data).
+        - TRAFFIC_STEERING_ERROR: Indicates that enforcement of the steering of traffic to the N6-LAN or 5G-LAN failed; or the dynamic PCC rule could not be successfully installed or modified at the NF service consumer because there are invalid traffic steering policy identifier(s) within the provided Traffic Control Data policy decision to which the PCC rule refers.
+        - DNAI_STEERING_ERROR: Indicates that the enforcement of the steering of traffic to the indicated DNAI failed; or the dynamic PCC rule could not be successfully installed or modified at the NF service consumer because there is invalid route information for a DNAI(s) (e.g. routing profile id is not configured) within the provided Traffic Control Data policy decision to which the PCC rule refers.
+        - AN_GW_FAILED: This value is used to indicate that the AN-Gateway has failed and that the PCF should refrain from sending policy decisions to the SMF until it is informed that the S-GW has been recovered. This value shall not be used if the SM Policy association modification procedure is initiated for PCC rule removal only.
+        - MAX_NR_PACKET_FILTERS_EXCEEDED: This value is used to indicate that the PCC rule could not be successfully installed, modified or enforced at the NF service consumer because the number of supported packet filters for signalled QoS rules for the PDU session has been reached.
+        - PACKET_FILTER_TFT_ALLOCATION_EXCEEDED: This value is used to indicate that the PCC rule is removed at 5GS to EPS mobility because TFT allocation was not possible since the number of active packet filters in the EPC bearer is exceeded.
+        - MUTE_CHG_NOT_ALLOWED: Indicates that the PCC rule could not be successfully modified because the mute condition for application detection report cannot be changed. Applicable when the functionality introduced with the ADC feature applies.
     AfSigProtocol:
       anyOf:
       - type: string
@@ -1965,7 +2214,7 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - NO_INFORMATION: Indicate that no information about the AF signalling protocol is being provided. 
         - SIP: Indicate that the signalling protocol is Session Initiation Protocol.
@@ -1984,7 +2233,7 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - CREATE_PCC_RULE: Indicates to create a new PCC rule to reserve the resource requested by the UE. 
         - DELETE_PCC_RULE: Indicates to delete a PCC rule corresponding to reserve the resource requested by the UE.
@@ -2005,7 +2254,7 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - IPV4_ADDR: Indicates that the address type is in the form of "dotted-decimal" IPv4 address.
         - IPV6_ADDR: Indicates that the address type is in the form of IPv6 address.
@@ -2022,11 +2271,12 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - GENERAL: Indicate no specific QoS flow usage information is available. 
         - IMS_SIG: Indicate that the QoS flow is used for IMS signalling only.
     FailureCause:
+      description: Indicates the cause of the failure in a Partial Success Report.
       anyOf:
       - type: string
         enum:
@@ -2037,6 +2287,7 @@ components:
           - POL_DEC_ERROR
       - type: string
     CreditManagementStatus:
+      description: Indicates the reason of the credit management session failure.
       anyOf:
       - type: string
         enum:
@@ -2052,19 +2303,31 @@ components:
         enum:
           - NF_MAL
           - RES_LIM
+          - SESSION_RESOURCE_ALLOCATION_FAILURE
           - UNSUCC_QOS_VAL
+          - INCORRECT_UM
           - UE_STA_SUSP
+          - UNKNOWN_REF_ID
+          - INCORRECT_COND_DATA
+          - REF_ID_COLLISION
+          - AN_GW_FAILED
       - type: string
         description: >
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
-          - NF_MAL: Indicate that the PCC rule could not be successfully installed (for those provisioned from the PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to SMF/UPF malfunction.
-          - RES_LIM: Indicate that the PCC rule could not be successfully installed (for those provisioned from PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to a limitation of resources at the SMF/UPF.
-          - UNSUCC_QOS_VAL: indicate that the QoS validation has failed.
-          - UE_STA_SUSP: Indicates that the UE is in suspend state.
+        - NF_MAL: Indicates that the PCC rule could not be successfully installed (for those provisioned from the PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to SMF/UPF malfunction.
+        - RES_LIM: Indicates that the PCC rule could not be successfully installed (for those provisioned from PCF) or activated (for those pre-defined in SMF) or enforced (for those already successfully installed) due to a limitation of resources at the SMF/UPF.
+        - SESSION_RESOURCE_ALLOCATION_FAILURE: Indicates the session rule could not be successfully enforced due to failure during the allocation of resources for the PDU session in the UE, RAN or AMF.
+        - UNSUCC_QOS_VAL: indicates that the QoS validation has failed.
+        - INCORRECT_UM: The usage monitoring data of the enforced session rule is not the same for all the provisioned session rule(s).
+        - UE_STA_SUSP: Indicates that the UE is in suspend state.
+        - UNKNOWN_REF_ID: Indicates that the session rule could not be successfully installed/modified because the referenced identifier to a Policy Decision Data or to a Condition Data is unknown to the SMF.
+        - INCORRECT_COND_DATA: Indicates that the session rule could not be successfully installed/modified because the referenced Condition data are incorrect.
+        - REF_ID_COLLISION: Indicates that the session rule could not be successfully installed/modified because the same Policy Decision is referenced by a PCC rule (e.g. the session rule and the PCC rule refer to the same Usage Monitoring decision data).
+        - AN_GW_FAILED: Indicates that the AN-Gateway has failed and that the PCF should refrain from sending policy decisions to the SMF until it is informed that the S-GW has been recovered. This value shall not be used if the SM Policy association modification procedure is initiated for session rule removal only.
     SteeringFunctionality:
       anyOf:
       - type: string
@@ -2076,11 +2339,12 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
           - MPTCP: Indicates that PCF authorizes the MPTCP functionality to support traffic steering, switching and splitting.
           - ATSSS_LL: Indicates that PCF authorizes the ATSSS-LL functionality to support traffic steering, switching and splitting.
     SteerModeValue:
+      description: Indicates the steering mode value determined by the PCF.
       anyOf:
       - type: string
         enum:
@@ -2090,6 +2354,7 @@ components:
           - PRIORITY_BASED
       - type: string
     MulticastAccessControl:
+      description: Indicates whether the service data flow, corresponding to the service data flow template, is allowed or not allowed.
       anyOf:
       - type: string
         enum:
@@ -2097,6 +2362,7 @@ components:
           - NOT_ALLOWED
       - type: string
     RequestedQosMonitoringParameter:
+      description: Indicates the requested QoS monitoring parameters to be measured.
       anyOf:
       - type: string
         enum:
@@ -2105,6 +2371,7 @@ components:
           - ROUND_TRIP
       - type: string
     ReportingFrequency:
+      description: Indicates the frequency for the reporting.
       anyOf:
       - type: string
         enum:
@@ -2112,7 +2379,19 @@ components:
           - PERIODIC
           - SESSION_RELEASE
       - type: string
+    SgsnAddress:
+      description: describes the address of the SGSN
+      type: object
+      anyOf:
+        - required: [sgsnIpv4Addr]
+        - required: [sgsnIpv6Addr]
+      properties:
+        sgsnIpv4Addr:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Ipv4Addr'
+        sgsnIpv6Addr:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Ipv6Addr'
     SmPolicyAssociationReleaseCause:
+      description: Represents the cause due to which the PCF requests the termination of the SM policy association.
       anyOf:
       - type: string
         enum:
@@ -2120,14 +2399,18 @@ components:
           - UE_SUBSCRIPTION
           - INSUFFICIENT_RES
           - VALIDATION_CONDITION_NOT_MET
+          - REACTIVATION_REQUESTED
       - type: string
     PduSessionRelCause:
+      description: Contains the SMF PDU Session release cause.
       anyOf:
       - type: string
         enum:
           - PS_TO_CS_HO
+          - RULE_ERROR
       - type: string
     MaPduIndication:
+      description: Contains the MA PDU session indication, i.e., MA PDU Request or MA PDU Network-Upgrade Allowed.
       anyOf:
       - type: string
         enum:
@@ -2135,6 +2418,7 @@ components:
           - MA_PDU_NETWORK_UPGRADE_ALLOWED
       - type: string
     AtsssCapability:
+      description: Contains the ATSSS capability supported for the MA PDU Session.
       anyOf:
       - type: string
         enum:
@@ -2157,12 +2441,13 @@ components:
           This string provides forward-compatibility with future
           extensions to the enumeration but is not used to encode
           content defined in the present version of this API.
-      description: >
+      description: |
         Possible values are
         - ANR_NOT_SUPPORTED: Indicates that the access network does not support the report of access network information.
         - TZR_NOT_SUPPORTED: Indicates that the access network does not support the report of UE time zone.
         - LOC_NOT_SUPPORTED: Indicates that the access network does not support the report of UE Location (or PLMN Id).
     PolicyDecisionFailureCode:
+      description: Indicates the type of the failed policy decision and/or condition data.
       anyOf:
       - type: string
         enum:
@@ -2172,13 +2457,24 @@ components:
           - USA_MON_DECS_ERR
           - QOS_MON_DECS_ERR
           - CON_DATA_ERR
+          - POLICY_PARAM_ERR
       - type: string
 #
     NotificationControlIndication:
+      description: Indicates that the notification of DDD Status is requested and/or that the notification of DDN Failure is requested.
       anyOf:
       - type: string
         enum:
           - DDN_FAILURE
           - DDD_STATUS
+      - type: string
+#
+    SteerModeIndicator:
+      description: Contains Autonomous load-balance indicator or UE-assistance indicator.
+      anyOf:
+      - type: string
+        enum:
+          - AUTO_LOAD_BALANCE
+          - UE_ASSISTANCE
       - type: string
 #
