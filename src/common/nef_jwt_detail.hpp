@@ -112,7 +112,8 @@ inline bool verify_hs256_signature(
              hmac_len) == 0;
 }
 
-/// Raw HMAC-SHA256 bytes. Used to build test tokens.
+/// Computes the raw HMAC-SHA256 bytes of msg under key. Used to build test
+/// tokens.
 inline std::string hmac_sha256_raw(
     const std::string& key, const std::string& msg) {
   unsigned char hmac_buf[EVP_MAX_MD_SIZE];

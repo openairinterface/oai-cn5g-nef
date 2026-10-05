@@ -47,7 +47,7 @@ using namespace oai::common::sbi;
 
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
-// TI GET
+// Traffic Influence: read one subscription
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_get(
     const std::string& af_id, const std::string& app_session_id,
@@ -77,7 +77,7 @@ void nef_app::handle_traffic_influence_get(
   http_code                  = http_status_code::OK;
 }
 
-// TI LIST
+// Traffic Influence: list the AF's subscriptions
 //------------------------------------------------------------------------------
 void nef_app::handle_traffic_influence_list(
     const std::string& af_id, nlohmann::json& response_body, int& http_code) {
@@ -98,11 +98,11 @@ void nef_app::handle_traffic_influence_list(
 }
 
 //------------------------------------------------------------------------------
-// traffic_influence_update. The pre-southbound block — authorize, parse,
-// validate, SSRF-check the callback URI, look up the owner and resolve
-// pcf_policy_id — is unchanged. Only the PCF policy-auth update becomes an
-// async fire. cont_ti_update now owns the failure branch and, on success, the
-// post-commit session overwrite and the 200.
+// traffic_influence_update: authorizes, parses and validates the body,
+// SSRF-checks the callback URI, checks the owner and looks up pcf_policy_id,
+// then sends the policy-auth update to PCF without waiting for it.
+// cont_ti_update handles a PCF failure and, on success, overwrites the stored
+// session and answers 200.
 void nef_app::ti_update(
     const std::string& af_id, const std::string& ti_id,
     const nlohmann::json& body, const std::string& token, response_sink sink) {
@@ -225,7 +225,7 @@ void nef_app::ti_update(
   }
   clear_request_bearer_token();
 
-  // Fire the PCF policy-auth update.
+  // Send the policy-auth update to PCF.
   m_nef_client->update_pcf_policy_auth_async(
       pcf_policy_id, body,
       [this, af_id, ti_id, body,
@@ -240,7 +240,7 @@ void nef_app::cont_ti_update(
     const nlohmann::json& body, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_ti_update ti_id=%s status=%d", ti_id.c_str(), r.status_code);
-  // FATAL-502: a PCF failure fails the whole request (504 on a timeout).
+  // A PCF failure fails the whole request with 502 (504 on a timeout).
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "PCF TI update failed for ti_id=%s (http=%d)", ti_id.c_str(),
@@ -271,11 +271,11 @@ void nef_app::cont_ti_update(
 }
 
 //------------------------------------------------------------------------------
-// traffic_influence_patch. The pre-southbound block — authorize, typed-parse
-// and validate the patch, look up the owner, merge_patch into a local
-// patched_copy and resolve pcf_policy_id — is unchanged. Only the PCF
-// policy-auth update becomes an async fire. cont_ti_patch owns the failure
-// branch and, on success, the post-commit session overwrite and the 200.
+// traffic_influence_patch: authorizes, parses and validates the patch, checks
+// the owner, applies merge_patch to a local patched_copy and looks up
+// pcf_policy_id, then sends the policy-auth update to PCF without waiting for
+// it. cont_ti_patch handles a PCF failure and, on success, overwrites the
+// stored session and answers 200.
 void nef_app::ti_patch(
     const std::string& af_id, const std::string& ti_id,
     const nlohmann::json& patch_body, const std::string& token,
@@ -358,7 +358,7 @@ void nef_app::ti_patch(
   }
   clear_request_bearer_token();
 
-  // Fire the PCF policy-auth update with the merged copy.
+  // Send the merged copy to PCF as the policy-auth update.
   m_nef_client->update_pcf_policy_auth_async(
       pcf_policy_id, patched_copy,
       [this, af_id, ti_id, patched_copy,
@@ -377,7 +377,7 @@ void nef_app::cont_ti_patch(
   Logger::nef_app().debug(
       "cont_ti_patch ti_id=%s status=%d", app_session_id.c_str(),
       r.status_code);
-  // FATAL-502: a PCF failure fails the whole request (504 on a timeout).
+  // A PCF failure fails the whole request with 502 (504 on a timeout).
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "PCF TI patch failed for ti_id=%s (http=%d)", app_session_id.c_str(),
@@ -409,19 +409,20 @@ void nef_app::cont_ti_patch(
 }
 
 //------------------------------------------------------------------------------
-// traffic_influence_create: a PCF call chained into a UDR call.
+// traffic_influence_create: a PCF call followed by a UDR call.
 //
-// Both endpoints are resolved up front, here on the dispatcher worker, and
+// Both endpoints are looked up first, here on the dispatcher worker, and
 // passed down by value so the continuations can use the discovery-free
-// *_at_async variants. That is the point of the arrangement: discover_nf must
-// never run on oai-http-io, or it would deadlock against its own pool.
+// *_at_async variants. This matters because discover_nf must never run on
+// oai-http-io: it would deadlock against its own pool.
 //
-// ti_create           does the usual pre-southbound work, adds the
-//                     subscription, resolves both endpoints, and fires the
-//                     PCF create.
-// cont_ti_create_pcf  fails the request with 502 on a PCF error, rolling back
-//                     only local state since PCF committed nothing. On
-//                     success it wires up the id maps and fires the UDR put.
+// ti_create           authorizes and validates the request, stores the
+//                     session, adds the subscription, looks up both
+//                     endpoints, and sends the create to PCF.
+// cont_ti_create_pcf  on a PCF error, fails the request with 502 and rolls
+//                     back only local state, since PCF committed nothing. On
+//                     success it fills in the id maps and sends the PUT to
+//                     UDR.
 // cont_ti_create_udr  is best-effort: a UDR failure is logged, and the AF
 //                     gets its 201 with the echoed body either way.
 void nef_app::ti_create(
@@ -531,7 +532,7 @@ void nef_app::ti_create(
   }
   add_subscription(ti_id, ti_sub);
 
-  // pre-resolve BOTH NF endpoints HERE (dispatcher worker).
+  // Look up both NF endpoints now, on the dispatcher worker.
   std::string pcf_ep, udr_ep;
   if (!m_nef_client->discover_nf(nf_type_t::NF_TYPE_PCF, pcf_ep) ||
       !m_nef_client->discover_nf(nf_type_t::NF_TYPE_UDR, udr_ep)) {
@@ -555,7 +556,7 @@ void nef_app::ti_create(
   }
   clear_request_bearer_token();
 
-  // PCF create via the discovery-free *_at_async variant.
+  // Send the create to PCF with the discovery-free *_at_async variant.
   m_nef_client->create_pcf_policy_auth_at_async(
       pcf_ep, body,
       [this, af_id, body, ti_id, pcf_ep, udr_ep, ti_sub,
@@ -576,8 +577,9 @@ void nef_app::cont_ti_create_pcf(
       "cont_ti_create_pcf ti_id=%s status=%d", ti_id.c_str(), r.status_code);
   const std::string pcf_policy_id =
       sbi_ok(r) ? nef_async_parse_pcf_app_session_id(r) : "";
-  // FATAL-502 (504 on a timeout). Roll back only our own state: PCF never
-  // committed anything, so there is nothing southbound to compensate.
+  // A PCF failure fails the request with 502 (504 on a timeout). Roll back
+  // only our own state: PCF committed nothing, so there is nothing southbound
+  // to undo.
   if (!sbi_ok(r) || pcf_policy_id.empty()) {
     Logger::nef_app().warn(
         "PCF TI create failed for ti_id=%s (http=%d), rolling back local "
@@ -598,14 +600,15 @@ void nef_app::cont_ti_create_pcf(
             .dump());
   }
 
-  // A concurrent AF delete may have removed ti_id while PCF was in flight. If
-  // it is gone, do not resurrect it: the AF delete already won, so best-effort
-  // async-delete the PCF app-session we just created and complete with 204.
+  // A concurrent AF delete may have removed ti_id while the PCF call was in
+  // progress. If so, do not recreate it: the AF delete already won. Send a
+  // best-effort async delete for the PCF app-session just created, and answer
+  // 204.
   //
-  // The presence check and the surviving wiring happen under m_ti_mutex. The
-  // compensating southbound delete is FIRED OUTSIDE that lock — never fire an
-  // SBI call while holding a store mutex — and uses the discovery-free
-  // *_at_async variant on the pre-resolved pcf_ep.
+  // The presence check and the m_ti_id2pcf_policy_id update happen under
+  // m_ti_mutex. The compensating PCF delete is sent outside that lock (never
+  // send an SBI call while holding a store mutex), using the discovery-free
+  // *_at_async variant on the pcf_ep looked up earlier.
   bool ti_vanished = false;
   {
     const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);
@@ -624,17 +627,17 @@ void nef_app::cont_ti_create_pcf(
     return sink(http_status_code::NO_CONTENT, "");
   }
 
-  // Wire PCF policy ID → NEF sub ID for the notification return path. ti_sub
-  // is the same shared_ptr that add_subscription stored, so the notification
-  // path observes this re-set.
+  // Map PCF policy ID → NEF sub ID so PCF notifications reach the right
+  // subscription. ti_sub is the same shared_ptr that add_subscription stored,
+  // so the notification path sees this update.
   ti_sub->set_nf_subscription_id(pcf_policy_id);
   {
     const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     m_nf2af_sub_id[pcf_policy_id] = ti_id;
   }
 
-  // UDR put-influence via the discovery-free *_at_async variant
-  // on the pre-resolved udr_ep.
+  // Send the influence-data PUT to UDR with the discovery-free *_at_async
+  // variant, on the udr_ep looked up earlier.
   m_nef_client->udr_put_influence_data_at_async(
       udr_ep, ti_id, body,
       [this, body, ti_id,
@@ -649,8 +652,8 @@ void nef_app::cont_ti_create_udr(
     oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_ti_create_udr ti_id=%s status=%d", ti_id.c_str(), r.status_code);
-  // Best-effort leg: a UDR failure is logged and otherwise ignored — the AF
-  // still gets its 201.
+  // Best-effort step: a UDR failure is logged and otherwise ignored, and the
+  // AF still gets its 201.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "UDR influence PUT failed for ti_id=%s (http=%d)", ti_id.c_str(),
@@ -669,22 +672,22 @@ void nef_app::cont_ti_create_udr(
   sink(http_status_code::CREATED, response_body.dump());
 }
 //------------------------------------------------------------------------------
-// traffic_influence_delete: a PCF app-session DELETE chained into a UDR
+// traffic_influence_delete: a PCF app-session DELETE followed by a UDR
 // influence DELETE.
 //
-// BEST-EFFORT throughout. Both southbound failures are warn-only and the AF
-// always gets a 204 with an empty body. The chain is idempotent and needs no
-// compensation.
+// Both southbound calls are best-effort: a failure only logs a warning, and
+// once the checks pass the AF always gets a 204 with an empty body. The chain
+// is idempotent and needs no compensation.
 //
-// ti_delete           does the authorize / not-found / owner checks, captures
-//                     the PCF policy id, resolves the PCF and UDR endpoints,
-//                     and fires the PCF app-session DELETE — only when a PCF
-//                     policy exists.
-// cont_ti_delete_pcf  fires the UDR influence DELETE, skipping it when UDR
-//                     turned out to be undiscoverable.
+// ti_delete           does the authorize, not-found and owner checks, reads
+//                     the PCF policy id, looks up the PCF and UDR endpoints,
+//                     and sends the PCF app-session DELETE, but only when a
+//                     PCF policy exists.
+// cont_ti_delete_pcf  sends the UDR influence DELETE, or skips it when UDR
+//                     could not be discovered.
 // cont_ti_delete_udr  erases the local state and sends the 204. The erase
-//                     happens here, in the FINAL continuation after both SBI
-//                     calls, which preserves the sync ordering.
+//                     happens here, in the last continuation, after both SBI
+//                     calls.
 void nef_app::ti_delete(
     const std::string& af_id, const std::string& ti_id,
     const std::string& token, response_sink sink) {
@@ -711,7 +714,7 @@ void nef_app::ti_delete(
     if (pcf_it != m_ti_id2pcf_policy_id.end()) pcf_policy_id = pcf_it->second;
   }
 
-  // Resolve BOTH NF endpoints HERE (dispatcher worker).
+  // Look up both NF endpoints now, on the dispatcher worker.
   std::string pcf_ep, udr_ep;
   const bool pcf_ok = pcf_policy_id.empty() ||
                       m_nef_client->discover_nf(nf_type_t::NF_TYPE_PCF, pcf_ep);
@@ -719,22 +722,22 @@ void nef_app::ti_delete(
   clear_request_bearer_token();
 
   if (pcf_policy_id.empty() || !pcf_ok) {
-    // No PCF policy to delete (or PCF undiscoverable) — skip the PCF leg, go
-    // straight to the UDR leg. A PCF discovery failure is warn-only
-    // (best-effort, mirrors the sync PCF-failure-is-warn-only branch).
+    // No PCF policy to delete, or PCF could not be discovered: skip the PCF
+    // call and go straight to the UDR call. A PCF discovery failure only logs
+    // a warning (best-effort, like a failed PCF delete).
     if (!pcf_policy_id.empty() && !pcf_ok) {
       Logger::nef_app().warn(
           "PCF TI delete: PCF discovery failed for ti_id=%s policy_id=%s",
           ti_id.c_str(), pcf_policy_id.c_str());
     }
-    // Inline-finish the PCF leg with a status-0 sentinel (no southbound fire),
-    // then the UDR leg runs from cont_ti_delete_pcf's pass-through.
+    // Finish the PCF step inline with a status-0 placeholder response (nothing
+    // is sent southbound); cont_ti_delete_pcf then runs the UDR call.
     return cont_ti_delete_pcf(
         af_id, ti_id, udr_ok ? udr_ep : std::string{}, oai::nghttp2::response{},
         std::move(sink));
   }
 
-  // PCF app-session DELETE via the discovery-free *_at_async.
+  // Send the PCF app-session DELETE with the discovery-free *_at_async.
   m_nef_client->delete_pcf_policy_auth_at_async(
       pcf_ep, pcf_policy_id,
       [this, af_id, ti_id, ti_policy = pcf_policy_id,
@@ -754,9 +757,9 @@ void nef_app::cont_ti_delete_pcf(
     const std::string& af_id, const std::string& ti_id,
     const std::string& udr_ep, oai::nghttp2::response /*r*/,
     response_sink sink) {
-  // The PCF leg was already logged, or skipped, by the caller. Now fire the
-  // UDR influence DELETE. An empty udr_ep means UDR was undiscoverable: skip
-  // the leg with a warning (best-effort) and go straight to the final step.
+  // The caller has already logged or skipped the PCF call. Now send the UDR
+  // influence DELETE. An empty udr_ep means UDR could not be discovered: skip
+  // the call with a warning (best-effort) and go straight to the final step.
   if (udr_ep.empty()) {
     Logger::nef_app().warn(
         "UDR influence DELETE skipped for ti_id=%s (UDR undiscoverable)",
@@ -776,18 +779,17 @@ void nef_app::cont_ti_delete_pcf(
 void nef_app::cont_ti_delete_udr(
     const std::string& af_id, const std::string& ti_id,
     oai::nghttp2::response r, response_sink sink) {
-  // Best-effort: a UDR failure is warn-only and does not change the 204.
-  // r.status_code == 0 means the UDR leg was skipped, which the caller has
-  // already logged — do not emit a spurious second WARN in that case.
+  // Best-effort: a UDR failure only logs a warning and does not change the
+  // 204. r.status_code == 0 means the UDR call was skipped, which the caller
+  // has already logged, so do not log a second warning in that case.
   if (r.status_code != 0 && !sbi_ok(r)) {
     Logger::nef_app().warn(
         "UDR influence DELETE failed for ti_id=%s (http=%d)", ti_id.c_str(),
         r.status_code);
   }
 
-  // Erase the local state only now, AFTER both SBI calls — that preserves the
-  // sync ordering. Recover the PCF policy id under the same lock so
-  // m_nf2af_sub_id can be cleaned too.
+  // Erase the local state only now, after both SBI calls. Read the PCF policy
+  // id under the same lock so m_nf2af_sub_id can be cleaned up too.
   std::string pcf_policy_id;
   {
     const std::lock_guard<std::shared_mutex> lock(m_ti_mutex);

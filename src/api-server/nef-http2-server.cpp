@@ -101,13 +101,13 @@ static std::string extract_bearer(const http2_request& req) {
 
 //------------------------------------------------------------------------------
 // Synchronous dispatch: hand dispatch_fn a sink that writes into this
-// worker's http2_response, then park on the future until the sink fires.
+// worker's http2_response, then wait on the future until the sink is called.
 //
-// Returns false if the dispatcher refused the work; the 503 has already been
+// Returns false if the dispatcher refused the work. The 503 has already been
 // sent, so the caller can just return.
 //
 // The sink captures this frame's response and promise, so it must not outlive
-// the call — see the blocking-sink contract on response_sink.
+// the call. See the blocking-sink contract on response_sink.
 template<typename DispatchFn>
 static bool dispatch_and_wait(DispatchFn&& dispatch_fn, http2_response& res) {
   std::promise<void> done;
@@ -128,8 +128,9 @@ static bool dispatch_and_wait(DispatchFn&& dispatch_fn, http2_response& res) {
 }
 
 //------------------------------------------------------------------------------
-// Same, for delete-style handlers: the sink delivers an empty body, forwarded
-// unchanged with no content-type and whatever headers the caller passed in.
+// Same as dispatch_and_wait, for delete-style handlers. The adapter delivers
+// an empty body, which is sent with no content-type and whatever headers the
+// caller passed in.
 template<typename DispatchFn>
 static bool dispatch_and_wait_empty(
     DispatchFn&& dispatch_fn, http2_response& res,
@@ -152,12 +153,14 @@ static bool dispatch_and_wait_empty(
 }
 
 //------------------------------------------------------------------------------
-// Same, for handlers whose response headers depend on what the adapter
-// produced — a Location on 201, say, or an x-deprecated marker.
+// Same as dispatch_and_wait, for handlers whose response headers depend on
+// what the adapter produced, such as a Location on 201 or an x-deprecated
+// marker.
 //
-// header_fn sees the status and the parsed body. The body is mutable on
-// purpose: this is where a relative `self` gets rewritten to an absolute URI.
-// It is re-serialized after header_fn returns.
+// header_fn gets the status and the parsed body. The body is passed by mutable
+// reference, so header_fn may change it before it is sent; it is serialized
+// again after header_fn returns. The current callers only read it, for
+// example to copy `self` into a Location header.
 template<typename DispatchFn, typename HeaderFn>
 static bool dispatch_and_wait_headers(
     DispatchFn&& dispatch_fn, http2_response& res, HeaderFn&& header_fn) {
@@ -192,7 +195,7 @@ static bool dispatch_and_wait_headers(
 namespace oai::nef::api {
 
 //------------------------------------------------------------------------------
-// TI GET
+// Traffic Influence: read one subscription
 void nef_http2_server::handle_ti_get(
     const std::string& af_id, const std::string& ti_id,
     const std::string& bearer_token, http2_response& res) {
@@ -205,7 +208,7 @@ void nef_http2_server::handle_ti_get(
 }
 
 //------------------------------------------------------------------------------
-// TI LIST
+// Traffic Influence: list the AF's subscriptions
 void nef_http2_server::handle_ti_list(
     const std::string& af_id, const std::string& bearer_token,
     http2_response& res) {
@@ -218,7 +221,7 @@ void nef_http2_server::handle_ti_list(
 }
 
 //------------------------------------------------------------------------------
-// Monitoring Event UPDATE (PUT)
+// Monitoring Event: update a subscription (PUT)
 void nef_http2_server::handle_monitoring_event_update(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& body, const std::string& bearer_token,
@@ -240,26 +243,26 @@ void nef_http2_server::handle_qos_update(
     http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_qos_update_async(
       af_id, sub_id, json_body, bearer_token, res.make_deferred());
 }
 
 //------------------------------------------------------------------------------
-// BDT PATCH
+// BDT Policy: partial update (PATCH)
 void nef_http2_server::handle_bdt_patch(
     const std::string& af_id, const std::string& bdt_id,
     const std::string& patch_body, const std::string& bearer_token,
     http2_response& res) {
   nlohmann::json json_patch;
   if (!parse_body_or_400_detail(patch_body, json_patch, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_bdt_patch_async(
       af_id, bdt_id, json_patch, bearer_token, res.make_deferred());
 }
 
 //------------------------------------------------------------------------------
-// Analytics /fetch
+// Analytics Exposure: fetch analytics (POST /fetch)
 void nef_http2_server::handle_analytics_fetch(
     const std::string& af_id, const std::string& body,
     const std::string& bearer_token, http2_response& res) {
@@ -346,9 +349,8 @@ void nef_http2_server::handle_nnef_event_exposure_update(
 // Returns true when the route may continue. Returns false once a guard has
 // answered the request, and the caller must then return immediately.
 //
-// Eleven of the twelve routes open with this call; the preamble was
-// byte-identical in all of them. route_health() is the twelfth and
-// deliberately does not use it -- see the note there.
+// Every route except route_health() opens with this call. route_health()
+// deliberately does not use it; see the note there.
 bool nef_http2_server::begin_request(
     const http2_request& req, http2_response& res, std::string& bearer_token) {
   bearer_token = extract_bearer(req);
@@ -357,8 +359,8 @@ bool nef_http2_server::begin_request(
   return true;
 }
 
-// Resolves the nine configured API base paths. Runs once, at the top of
-// start() and before server_.start() admits any request.
+// Builds the API base paths from the configured API version. Runs once, at
+// the top of start() and before server_.start() admits any request.
 //
 // They are read-only for the whole serving lifetime, which is why the route_*
 // members read them without synchronisation.
@@ -394,18 +396,18 @@ void nef_http2_server::start() {
 
   // ------------------------------------------------------------------------
   // One row per registered path prefix, in registration order. Each row's
-  // handler is a route_* member defined immediately below this function.
+  // handler is a route_* member defined below this function.
   //
-  // ORDER IS PART OF THE CONTRACT. http2_server matches by prefix.
-  // http2_server::start() sorts the registered table longest-prefix-first
-  // with a NON-STABLE std::sort, so registration order only decides ties
-  // between prefixes of equal length. Append new rows at the end; do not
-  // reorder these to group services together.
+  // Row order does not affect routing. http2_server matches by prefix, and
+  // http2_server::start() sorts the table longest-prefix-first, so the
+  // longest matching prefix always wins; two different prefixes of the same
+  // length can never both match one path. Append new rows at the end to keep
+  // the table in the same order as the route_* members in the header.
   //
-  // Each route owns its own path parsing, and the twelve do NOT parse alike:
-  // three different prefix-strip strategies, and different segment indices
-  // read out of the split. Nothing beyond begin_request() is shared between
-  // them -- see the comment on each member.
+  // Each route does its own path parsing, and the routes do not all parse
+  // alike: they strip the prefix in different ways and read different
+  // segment indices from the split. Nothing beyond begin_request() is shared
+  // between them; see the comment on each member.
   // ------------------------------------------------------------------------
   using route_handler =
       void (nef_http2_server::*)(const http2_request&, http2_response&);
@@ -457,12 +459,12 @@ void nef_http2_server::start() {
       // Analytics Exposure (TS 29.522)
       //   /3gpp-analyticsexposure/v1/{afId}/[fetch|subscriptions[/{subId}]]
       {m_nef_analytics_base + "/", &nef_http2_server::route_analytics},
-      // Inbound southbound-NF notification sink
+      // Notifications from southbound NFs
       //   /nef-notify/v1/notify/{nf_sub_id}  (AMF/SMF/PCF -> NEF)
       {m_nef_notify_base + nef_sbi_helper::NefNotifyPathNotify,
        &nef_http2_server::route_nf_notify},
       // Health check / readiness probe
-      //   /health  (no bearer, no drain guard, no rate limit -- see below)
+      //   /health  (no bearer token, drain guard or rate limit; see below)
       {nef_sbi_helper::NefHealthPath, &nef_http2_server::route_health},
   };
 
@@ -485,12 +487,12 @@ void nef_http2_server::start() {
 // Builds the dispatch adapter, before serving starts.
 //
 // The dispatcher pool is sized slightly larger than the HTTP worker pool, so
-// that HTTP workers parked on fut.wait() are not the bottleneck. The size is
-// configurable via dispatcher_pool_size; the DEFAULT (override == 0) stays
-// http_workers + 2, byte-identical to prior behavior.
+// that HTTP workers waiting on fut.wait() are not the bottleneck. The size is
+// configurable via dispatcher_pool_size; the default (override == 0) is
+// http_workers + 2.
 //
-// NOTE: until an in-flight cap exists, this pool is the de-facto concurrency
-// limiter. Do not shrink it below the auto default without that cap.
+// NOTE: until an in-flight cap exists, this pool is the de facto concurrency
+// limit. Do not shrink it below the default without adding that cap.
 void nef_http2_server::construct_dispatch_adapter() {
   const auto& srv_cfg            = server_.config();
   const std::size_t http_workers = srv_cfg.num_worker_threads;
@@ -981,7 +983,7 @@ void nef_http2_server::route_analytics(
   }
 }
 
-// Inbound southbound-NF notification sink
+// Notifications from southbound NFs
 //   POST /nef-notify/v1/notify/{nf_sub_id}   (AMF/SMF/PCF -> NEF -> AF)
 void nef_http2_server::route_nf_notify(
     const http2_request& req, http2_response& res) {
@@ -1011,11 +1013,11 @@ void nef_http2_server::route_nf_notify(
 // Health check / readiness probe
 //   GET /health
 //
-// Deliberately does NOT run begin_request(). Two reasons:
+// Deliberately does not call begin_request(), for two reasons:
 //   - it takes no bearer token;
-//   - it reads m_draining and reports it, so drain-guarding it would destroy
-//     the endpoint: it must keep answering precisely while draining.
-// Do not unify this route with the other eleven.
+//   - it reads m_draining and reports it, so a drain guard would defeat its
+//     purpose: it must keep answering while the server is draining.
+// Do not make this route share begin_request() with the others.
 void nef_http2_server::route_health(
     const http2_request& req, http2_response& res) {
   if (req.method != method_e::GET) {
@@ -1038,24 +1040,28 @@ void nef_http2_server::route_health(
 }
 
 void nef_http2_server::stop() {
-  // With async dispatch the default mode, teardown order matters: HTTP intake
-  // must stop BEFORE the dispatcher drains, so that no new work_items or
-  // southbound fires arrive while the dispatcher is draining.
+  // Async dispatch is the default mode, so teardown order matters: HTTP
+  // intake must stop before the dispatcher drains, so that no new work items
+  // or southbound calls arrive while the dispatcher is draining.
+  //
+  // This function does steps 1 and 2. The other two happen later, in order:
   //
   //   1. Stop HTTP intake. server_.stop() schedules GOAWAY and the drain timer
-  //      on the event loop. No new work_items reach the HTTP worker pool, so
-  //      new southbound fires stop arriving.
-  //   2. Drain and join the dispatcher pool. m_adapter->stop() runs all queued
-  //      phase-1 tasks to completion, then joins. Intake is already stopped,
-  //      so the only fires left are continuation-chained ones from requests
-  //      already in flight.
-  //   3. Stop and join the oai-http-io pool. NOT done here: it happens on the
-  //      http_client_impl dtor path (http_client_inst release in main.cpp).
-  //      io_service::stop() ABORTS outstanding handlers there, so orphaned
-  //      deferred handles complete via auto-500-on-drop.
-  //   4. Join the HTTP worker pool last. That happens inside server_.start()
-  //      once the event loop exits (http2_server.cpp pool_.reset()), joined
-  //      via nef_http2_manager.join() in main.cpp.
+  //      on the event loop. No new work items reach the HTTP worker pool, so
+  //      no new southbound calls start.
+  //   2. Drain and join the dispatcher pool. m_adapter->stop() runs every
+  //      queued dispatcher task to completion, then joins. Intake is already
+  //      stopped, so the only southbound calls left are those chained from
+  //      continuations of requests already in flight.
+  //   3. Join the HTTP worker pool. That happens inside server_.start() once
+  //      the event loop exits (pool_.reset() in http2_server.cpp); main.cpp
+  //      waits for it with nef_http2_manager.join() right after stop().
+  //   4. Stop and join the oai-http-io pool. That happens only when the HTTP
+  //      client is destroyed, and main.cpp never resets the global
+  //      http_client_inst, so in practice it happens at process exit.
+  //      io_service::stop() aborts outstanding handlers there. The HTTP
+  //      server and its connections are already gone by then, so a deferred
+  //      response still unanswered at that point never reaches its client.
   server_.stop();                    // step 1: stop intake first
   if (m_adapter) m_adapter->stop();  // step 2: drain + join dispatcher
 }
@@ -1075,7 +1081,7 @@ void nef_http2_server::handle_monitoring_event_subscribe(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_monitoring_event_subscribe_async(
       scs_as_id, json_body, bearer_token, res.make_deferred());
 }
@@ -1084,7 +1090,7 @@ void nef_http2_server::handle_monitoring_event_subscribe(
 void nef_http2_server::handle_monitoring_event_unsubscribe(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_monitoring_event_unsubscribe_async(
       scs_as_id, sub_id, bearer_token, res.make_deferred());
 }
@@ -1107,7 +1113,7 @@ void nef_http2_server::handle_ti_create(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_ti_create_async(
       af_id, json_body, bearer_token, res.make_deferred());
 }
@@ -1118,7 +1124,7 @@ void nef_http2_server::handle_ti_update(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_ti_update_async(
       af_id, ti_id, json_body, bearer_token, res.make_deferred());
 }
@@ -1127,7 +1133,7 @@ void nef_http2_server::handle_ti_update(
 void nef_http2_server::handle_ti_delete(
     const std::string& af_id, const std::string& ti_id,
     const std::string& bearer_token, http2_response& res) {
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_ti_delete_async(
       af_id, ti_id, bearer_token, res.make_deferred());
 }
@@ -1186,7 +1192,7 @@ void nef_http2_server::handle_bdt_create(
     if (deprecated) h["x-deprecated"] = "true";
     return h;
   };
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   (void)
       header_fn;  // header logic lives in the adapter sink for the async path
   m_adapter->dispatch_bdt_create_async(
@@ -1206,7 +1212,7 @@ void nef_http2_server::handle_bdt_update(
     if (deprecated) h["x-deprecated"] = "true";
     return h;
   };
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   (void)
       header_fn;  // header logic lives in the adapter sink for the async path
   m_adapter->dispatch_bdt_update_async(
@@ -1219,7 +1225,7 @@ void nef_http2_server::handle_bdt_delete(
     const std::string& bearer_token, http2_response& res, bool deprecated) {
   std::map<std::string, std::string> h;
   if (deprecated) h["x-deprecated"] = "true";
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   (void) h;
   m_adapter->dispatch_bdt_delete_async(
       af_id, bdt_id, bearer_token, deprecated, res.make_deferred());
@@ -1254,7 +1260,7 @@ void nef_http2_server::handle_qos_create(
   // The adapter's sink prefixes it with the server address to build the
   // absolute Location header and self field.
   const std::string address = m_address;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_qos_create_async(
       af_id, json_body, bearer_token, address, res.make_deferred());
 }
@@ -1263,7 +1269,7 @@ void nef_http2_server::handle_qos_create(
 void nef_http2_server::handle_qos_delete(
     const std::string& af_id, const std::string& sub_id,
     const std::string& bearer_token, http2_response& res) {
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_qos_delete_async(
       af_id, sub_id, bearer_token, res.make_deferred());
 }
@@ -1319,7 +1325,7 @@ void nef_http2_server::handle_analytics_get(
       res);
 }
 
-// TI PATCH
+// Traffic Influence: partial update (PATCH)
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_ti_patch(
     const std::string& af_id, const std::string& ti_id,
@@ -1327,12 +1333,12 @@ void nef_http2_server::handle_ti_patch(
     http2_response& res) {
   nlohmann::json json_patch;
   if (!parse_body_or_400_detail(patch_body, json_patch, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_ti_patch_async(
       af_id, ti_id, json_patch, bearer_token, res.make_deferred());
 }
 
-// QoS PATCH
+// QoS: partial update (PATCH)
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_qos_patch(
     const std::string& af_id, const std::string& sub_id,
@@ -1340,7 +1346,7 @@ void nef_http2_server::handle_qos_patch(
     http2_response& res) {
   nlohmann::json json_patch;
   if (!parse_body_or_400_detail(patch_body, json_patch, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_qos_patch_async(
       af_id, sub_id, json_patch, bearer_token, res.make_deferred());
 }
@@ -1365,7 +1371,7 @@ void nef_http2_server::handle_pfd_transaction_put(
     http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_pfd_transaction_put_async(
       scs_as_id, trans_id, json_body, bearer_token, res.make_deferred());
 }
@@ -1374,7 +1380,7 @@ void nef_http2_server::handle_pfd_transaction_put(
 void nef_http2_server::handle_pfd_transaction_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& bearer_token, http2_response& res) {
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_pfd_transaction_delete_async(
       scs_as_id, trans_id, bearer_token, res.make_deferred());
 }
@@ -1399,7 +1405,7 @@ void nef_http2_server::handle_pfd_app_put(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_pfd_app_put_async(
       scs_as_id, trans_id, app_id, json_body, bearer_token,
       res.make_deferred());
@@ -1412,7 +1418,7 @@ void nef_http2_server::handle_pfd_app_patch(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_patch;
   if (!parse_body_or_400_detail(patch_body, json_patch, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_pfd_app_patch_async(
       scs_as_id, trans_id, app_id, json_patch, bearer_token,
       res.make_deferred());
@@ -1423,7 +1429,7 @@ void nef_http2_server::handle_pfd_app_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const std::string& bearer_token,
     http2_response& res) {
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_pfd_app_delete_async(
       scs_as_id, trans_id, app_id, bearer_token, res.make_deferred());
 }
@@ -1445,7 +1451,7 @@ void nef_http2_server::handle_nnef_pfd_put_transaction(
     const std::string& bearer_token, http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_nnef_pfd_put_transaction_async(
       trans_id, json_body, bearer_token, res.make_deferred());
 }
@@ -1466,7 +1472,7 @@ void nef_http2_server::handle_nnef_pfd_get_transaction(
 void nef_http2_server::handle_nnef_pfd_delete_transaction(
     const std::string& trans_id, const std::string& bearer_token,
     http2_response& res) {
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_nnef_pfd_delete_transaction_async(
       trans_id, bearer_token, res.make_deferred());
 }
@@ -1490,7 +1496,7 @@ void nef_http2_server::handle_nnef_pfd_put_app(
     http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_nnef_pfd_put_app_async(
       trans_id, app_id, json_body, bearer_token, res.make_deferred());
 }
@@ -1499,12 +1505,12 @@ void nef_http2_server::handle_nnef_pfd_put_app(
 void nef_http2_server::handle_nnef_pfd_delete_app(
     const std::string& trans_id, const std::string& app_id,
     const std::string& bearer_token, http2_response& res) {
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_nnef_pfd_delete_app_async(
       trans_id, app_id, bearer_token, res.make_deferred());
 }
 
-// Analytics UPDATE (PUT)
+// Analytics Exposure: update a subscription (PUT)
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_analytics_update(
     const std::string& af_id, const std::string& sub_id,
@@ -1520,7 +1526,7 @@ void nef_http2_server::handle_analytics_update(
       res);
 }
 
-// Nnef_PFDmanagement extra endpoints
+// Nnef_PFDmanagement: application queries and subscriptions
 //------------------------------------------------------------------------------
 void nef_http2_server::handle_nnef_pfd_get_applications(
     const std::vector<std::string>& app_ids_filter,
@@ -1543,7 +1549,7 @@ void nef_http2_server::handle_nnef_pfd_partial_pull(
   } catch (...) {
     json_body = {};
   }
-  // Detached response — return immediately, no fut.wait().
+  // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_nnef_pfd_partial_pull_async(
       json_body, bearer_token, res.make_deferred());
 }
@@ -1554,8 +1560,8 @@ void nef_http2_server::handle_nnef_pfd_subscription_create(
     http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  // On 201 nef_app stamps the new subscription id into resp_body["subId"].
-  // The absolute Location header is derived from it, as it always was.
+  // On 201 nef_app puts the new subscription id in resp_body["subId"], and
+  // header_fn builds the absolute Location header from it.
   const std::string address = m_address;
   const std::string sub_path_base =
       nef_sbi_helper::NnefPfdManagementBase +

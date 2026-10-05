@@ -46,8 +46,8 @@ bool nef_jwt::validate_af_token(
     const std::string& af_id) const {
   try {
     std::string key;
-    // No configured secret means JWT validation is off, so fail closed here
-    // rather than accept an unverifiable token.
+    // With no configured secret the token cannot be verified, so fail closed
+    // here rather than accept it.
     if (!get_secret_key(required_scope, af_id, key)) {
       Logger::nef_app().warn(
           "Failed to validate JWT token: secret key is unavailable");

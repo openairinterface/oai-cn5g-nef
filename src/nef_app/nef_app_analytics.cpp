@@ -262,7 +262,7 @@ void nef_app::handle_analytics_subscription_list(
   http_code = http_status_code::OK;
 }
 
-// Analytics UPDATE (PUT)
+// Analytics update (PUT)
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_update(
     const std::string& scs_as_id, const std::string& sub_id,
