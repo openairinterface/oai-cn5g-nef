@@ -35,15 +35,15 @@ typedef bs2::signal_type<
 
 class nef_app;
 
-// The NEF event bus. It derives from oai::sba::nf_event, so the common
-// signals — the task tick above among them — come with it; the two signals
-// declared below are the NEF-specific additions.
+// The NEF event bus. It derives from oai::sba::nf_event, so it inherits the
+// common signals, including the task tick above. The two signals declared
+// below are the NEF-specific additions.
 //
 // Note the get_instance() singleton below has no caller: main.cpp constructs
 // the instance and hands it to nef_app and task_manager.
 class nef_event : public oai::sba::nf_event {
  public:
-  nef_event() : oai::sba::nf_event(){};
+  nef_event() : oai::sba::nf_event() {};
   nef_event(nef_event const&) = delete;
   virtual ~nef_event();
   void operator=(nef_event const&) = delete;

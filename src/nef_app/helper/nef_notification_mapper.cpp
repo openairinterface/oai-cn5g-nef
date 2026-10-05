@@ -63,13 +63,13 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
       if (r.contains("pduSessionStatusList"))
         t8_report["pduSessionStatus"] = r["pduSessionStatusList"];
     } else {
-      // Unknown type: keep the AMF name as-is (forward-compat) and park any
-      // state under stateInfo rather than guessing a T8 field for it.
+      // Unknown type: keep the AMF name as it is, for forward compatibility,
+      // and put any state under stateInfo rather than guessing a T8 field.
       t8_report["monitoringType"] = amf_type;
       if (r.contains("state")) t8_report["stateInfo"] = r["state"];
     }
 
-    // Fields that ride along on every report type.
+    // Fields copied for every report type.
     if (r.contains("supi")) t8_report["supi"] = r["supi"];
     if (r.contains("timeStamp")) t8_report["timeStamp"] = r["timeStamp"];
     if (r.contains("gpsi")) t8_report["gpsi"] = r["gpsi"];
@@ -89,12 +89,11 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
 // into QOS_GUARANTEED / QOS_NOT_GUARANTEED / QOS_MONITORING according to the
 // QoS-Notification-Control type carried inside the body.
 //
-// The two enums do not line up, and bridging them is the whole job here:
+// The two enums do not match one to one, and this function maps between them:
 //
 //   SmfEvent (TS 29.508): AC_TY_CH, UP_PATH_CH, PDU_SES_REL, PLMN_CH,
 //   UE_IP_CH, RAT_TY_CH, DDDS, COMM_FAIL, PDU_SES_EST, QFI_ALLOC, QOS_MON,
-//   SMCC_EXP, ... — note there is no QOS_GUARANTEED / QOS_NOT_GUARANTEED SMF
-//   event.
+//   SMCC_EXP, ... There is no QOS_GUARANTEED or QOS_NOT_GUARANTEED SMF event.
 //
 //   UserPlaneEvent (TS 29.122): SESSION_TERMINATION, LOSS_OF_BEARER,
 //   RECOVERY_OF_BEARER, RELEASE_OF_BEARER, USAGE_REPORT,
@@ -103,16 +102,17 @@ bool nef_notification_mapper::amf_to_monitoring_notification(
 //   PLMN_CHG.
 //
 // The UserPlaneEventReport is built by hand rather than through the model
-// classes, so the mapper keeps no link dependency on them. The model classes
-// stay the schema / validate() oracle in the tests.
+// classes, so the mapper has no link dependency on them. The tests still use
+// the model classes and their validate() to check the schema.
 static json map_smf_event_to_userplane(
     const std::string& smf_event, const json& event_notif) {
   json report;
 
-  // Folds the SMF delay measurements into a single QosMonitoringReport entry.
-  // A QOS_MON EventNotification carries the delay arrays (ulDelays, dlDelays,
-  // rtDelays) plus a packet-delay-measurement-failure flag (pdmf); all four
-  // map across one for one. Returns an empty array when none are present.
+  // Collects the SMF delay measurements into a single QosMonitoringReport
+  // entry. A QOS_MON EventNotification carries the delay arrays (ulDelays,
+  // dlDelays, rtDelays) plus a packet-delay-measurement-failure flag (pdmf);
+  // all four are copied as they are. Returns an empty array when none are
+  // present.
   auto build_qos_mon_reports = [&event_notif]() -> json {
     json qmr = json::object();
     bool any = false;
@@ -138,17 +138,17 @@ static json map_smf_event_to_userplane(
   };
 
   if (smf_event == "QOS_MON") {
-    // Resolve the QoS-Notification-Control type.
+    // Find the QoS-Notification-Control type.
     //
     // Spec deviation: TS 29.508 gives the SMF EventNotification delay
     // measurements only. The GUARANTEED / NOT_GUARANTEED indication
     // (QosNotifType, TS 29.514) is not a standardized top-level field there,
-    // so probe the placements seen in practice, in order:
-    //   - qosNotifType                          (flat, OAI-SMF specific)
-    //   - notifType                             (flat alias)
+    // so check the places it has been seen in practice, in this order:
+    //   - qosNotifType                          (top level, OAI-SMF specific)
+    //   - notifType                             (top-level alias)
     //   - qosNotificationControlInfo.notifType  (nested, OAI-SMF specific)
     //
-    // None of them present means a pure measurement report -> QOS_MONITORING.
+    // If none is present, this is a measurement-only report -> QOS_MONITORING.
     std::string qos_notif_type;
     if (event_notif.contains("qosNotifType") &&
         event_notif["qosNotifType"].is_string()) {
@@ -199,8 +199,8 @@ static json map_smf_event_to_userplane(
     if (event_notif.contains("ratType"))
       report["ratType"] = event_notif["ratType"];
   } else {
-    // Unknown or unmapped SMF event: pass the string through unchanged
-    // (forward-compat). Optional fields are never fabricated.
+    // Unknown or unmapped SMF event: pass the string through unchanged, for
+    // forward compatibility. Optional fields are never made up.
     Logger::nef_app().debug(
         "map_smf_event_to_userplane: passing through unmapped SMF event '%s'",
         smf_event.c_str());
@@ -208,7 +208,7 @@ static json map_smf_event_to_userplane(
   }
 
   // flowIds applies to every mapped report type. Absent means the report
-  // covers all flows (spec note 9), so never fabricate it.
+  // covers all flows (spec note 9), so never add it when the SMF left it out.
   if (event_notif.contains("flowIds"))
     report["flowIds"] = event_notif["flowIds"];
 
@@ -231,7 +231,7 @@ bool nef_notification_mapper::smf_to_qos_notification(
   //                          "qosMonReports": [ ... ] }, ... ] }
   //
   // "transaction" is the AF subscription's self-URI, i.e. the resource URL
-  // returned in the Location/self of the CREATE response. The caller takes it
+  // returned in the Location/self of the create response. The caller takes it
   // from nef_subscription::get_self().
 
   if (!smf_notif.contains("eventNotifs") ||
@@ -315,7 +315,7 @@ bool nef_notification_mapper::pcf_to_qos_notification(
   // Inbound: PCF EventsNotification (TS 29.514 §5.6.2.6):
   //   { "evSubsUri": "...",
   //     "evNotifs": [ { "event": "QOS_NOTIF", "flows": [ ... ] }, ... ],
-  //     // Careful: detail payloads live at the TOP LEVEL, not in evNotifs:
+  //     // Note: the detail payloads are at the top level, not in evNotifs:
   //     "qncReports": [ { "refQosIndication": ..., "notifType": "GUARANTEED",
   //                       "flows": [...] }, ... ],
   //     "usgRep": { ... },               // AccumulatedUsage
@@ -372,12 +372,12 @@ bool nef_notification_mapper::pcf_to_qos_notification(
     } else if (pcf_event == "PLMN_CHG") {
       report["event"] = "PLMN_CHG";
     } else if (pcf_event == "OUT_OF_CREDIT") {
-      report["event"] = "USAGE_REPORT";  // best effort: no exact T8 peer
+      report["event"] = "USAGE_REPORT";  // best effort: no exact T8 match
     } else {
       report["event"] = pcf_event;  // pass-through
     }
 
-    // Fold in the detail payloads, which sit at the TOP LEVEL of the
+    // Add the detail payloads, which are at the top level of the
     // EventsNotification rather than in the evNotifs entry being mapped.
     if (pcf_notif.contains("qncReports") &&
         pcf_notif["qncReports"].is_array() &&

@@ -99,9 +99,10 @@ old one working.
 
 ## Authentication
 
-NEF has one credential that matters (a JWT bearer token), one optional extra (a per-AF API key),
-and one escape hatch for development (fail-open mode). Which of the three is in force depends on
-`jwt_secret`, `af_whitelist` and `insecure_dev_mode` in `config.yaml`.
+NEF has one credential (a JWT bearer token), one allow-list keyed on the AF ID in the path (the
+AF whitelist), and one escape hatch for development (fail-open mode). Which of these is in force
+depends on `jwt_secret`, `af_whitelist` and `insecure_dev_mode` in `config.yaml`. A per-AF API key
+can be configured but is not enforced (see below).
 
 **Every failure in this section is a `403` with a ProblemDetails body. NEF never emits `401`** —
 there is no `UNAUTHORIZED` status anywhere in its source.
@@ -118,17 +119,21 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | Field | Value |
 |-------|-------|
 | Signing algorithm | HMAC-SHA256 (`HS256`) |
-| `sub` claim | AF/SCS-AS identifier; must match the `af_id` in the AF whitelist, when a whitelist is configured |
+| `sub` claim | Required. AF/SCS-AS identifier; must match the AF ID in the request URL path |
+| `scope` claim | Required. Must equal the internal service name of the route, for example `nnef-eventexposure` (see the [service-name table](../configuration-reference.md#af-whitelist)); so each token works for one service |
 | Expiry (`exp`) | Recommended. A token without `exp` is accepted, but do not rely on that in production |
 
-NEF validates the signature against `nef.security.jwt_secret`. An invalid signature, an expired
-token and a missing `Authorization` header all produce the same `403`.
+NEF validates the signature against `nef.security.jwt_secret`. A request with a valid token is
+allowed without consulting the AF whitelist. An invalid signature, a wrong `scope` or `sub`, an
+expired token and (when `jwt_secret` is set) a missing `Authorization` header all produce the same
+`403`.
 
 A decoded payload looks like this:
 
 ```json
 {
   "sub": "my-af-1",
+  "scope": "nnef-eventexposure",
   "iat": 1745539200,
   "exp": 1745625600
 }
@@ -153,8 +158,8 @@ NEF accepts every request without credentials only when all three of these hold 
 With the first two empty and `insecure_dev_mode` left at `false`, NEF is fail-closed instead and
 denies everything.
 
-> **Warning:** `insecure_dev_mode: true` disables authentication enforcement entirely — any caller
-> can invoke any endpoint. The shipped `etc/config.yaml` has it enabled. Set a non-empty
+> **Warning:** in this mode there is no authentication at all: any caller that sends no bearer
+> token can invoke any endpoint. The shipped `etc/config.yaml` has it enabled. Set a non-empty
 > `jwt_secret` or a non-empty `af_whitelist` for any deployment reachable from an untrusted
 > network.
 
@@ -190,9 +195,9 @@ Most northbound APIs put the calling application's identity in the path, under o
 They mean the same thing: the SCS/AS or AF that owns the subscriptions being managed. The value
 has to agree with the authenticated identity:
 
-- Under JWT authentication, it must match the `sub` claim.
-- Under API key authentication, it must match the `af_id` of the whitelist entry holding the
-  presented key.
+- With a bearer token, it must match the token's `sub` claim.
+- Without a token, it must be listed as an `af_id` in the AF whitelist. Nothing verifies that the
+  caller really is that AF, so configure `jwt_secret` when you need a verified identity.
 
 Reaching for another AF's subscriptions returns `403 Forbidden`.
 

@@ -47,7 +47,7 @@ class nef_http2_server {
       const std::string& scs_as_id, const std::string& sub_id,
       const std::string& bearer_token, http2_response& response);
 
-  // Monitoring Event UPDATE (PUT)
+  // Monitoring Event: update a subscription (PUT)
   void handle_monitoring_event_update(
       const std::string& scs_as_id, const std::string& sub_id,
       const std::string& body, const std::string& bearer_token,
@@ -75,7 +75,7 @@ class nef_http2_server {
       const std::string& af_id, const std::string& body,
       const std::string& bearer_token, http2_response& response);
 
-  // TI GET and LIST
+  // Traffic Influence: read one subscription, or list them all
   void handle_ti_get(
       const std::string& af_id, const std::string& ti_id,
       const std::string& bearer_token, http2_response& response);
@@ -92,7 +92,7 @@ class nef_http2_server {
       const std::string& af_id, const std::string& ti_id,
       const std::string& bearer_token, http2_response& response);
 
-  // TI PATCH
+  // Traffic Influence: partial update (PATCH)
   void handle_ti_patch(
       const std::string& af_id, const std::string& ti_id,
       const std::string& patch_body, const std::string& bearer_token,
@@ -206,7 +206,7 @@ class nef_http2_server {
       const std::string& bearer_token, http2_response& response,
       bool deprecated = false);
 
-  // BDT PATCH
+  // BDT Policy: partial update (PATCH)
   void handle_bdt_patch(
       const std::string& af_id, const std::string& bdt_id,
       const std::string& patch_body, const std::string& bearer_token,
@@ -225,13 +225,13 @@ class nef_http2_server {
       const std::string& af_id, const std::string& sub_id,
       const std::string& bearer_token, http2_response& response);
 
-  // QoS UPDATE (PUT)
+  // QoS: update a subscription (PUT)
   void handle_qos_update(
       const std::string& af_id, const std::string& sub_id,
       const std::string& body, const std::string& bearer_token,
       http2_response& response);
 
-  // QoS PATCH
+  // QoS: partial update (PATCH)
   void handle_qos_patch(
       const std::string& af_id, const std::string& sub_id,
       const std::string& patch_body, const std::string& bearer_token,
@@ -255,7 +255,7 @@ class nef_http2_server {
       const std::string& af_id, const std::string& body,
       const std::string& bearer_token, http2_response& response);
 
-  // Analytics UPDATE (PUT)
+  // Analytics: update a subscription (PUT)
   void handle_analytics_update(
       const std::string& af_id, const std::string& sub_id,
       const std::string& body, const std::string& bearer_token,
@@ -278,15 +278,14 @@ class nef_http2_server {
  private:
   // Routing
   // One member per path prefix registered in start(); start() itself is
-  // nothing but the registration table.
+  // little more than the registration table.
   //
-  // These are listed in registration order, and that order is part of the
-  // contract — see the comment on the table in start().
+  // They are listed in the same order as the routing table in start().
   //
-  // Each member owns its own path parsing. The twelve routes do NOT parse
-  // alike: three different prefix-strip strategies, and different segment
-  // indices read out of the split. No parsing helper is shared between them;
-  // only begin_request() is.
+  // Each member does its own path parsing. The routes do not all parse
+  // alike: they strip the prefix in different ways and read different
+  // segment indices from the split. No parsing helper is shared between
+  // them; only begin_request() is.
   void route_nnef_event_exposure(const http2_request& req, http2_response& res);
   void route_monitoring_event(const http2_request& req, http2_response& res);
   void route_traffic_influence(const http2_request& req, http2_response& res);
@@ -311,7 +310,7 @@ class nef_http2_server {
   bool begin_request(
       const http2_request& req, http2_response& res, std::string& bearer_token);
 
-  /// Fills the nine m_*_base path members from the configured API version.
+  /// Fills the m_*_base path members from the configured API version.
   /// Called once at the top of start(), before any request is admitted.
   void build_api_base_paths();
 

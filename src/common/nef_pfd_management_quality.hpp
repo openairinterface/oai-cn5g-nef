@@ -68,13 +68,13 @@ inline std::string validate_nnef_pfd_subscription(const nlohmann::json& body) {
   return "";
 }
 
-/// The canonical self-link for a PFD-management subscription.
+/// Returns the canonical self-link for a PFD-management subscription.
 inline std::string nnef_pfd_subscription_self_link(const std::string& sub_id) {
   return "/nnef-pfdmanagement/v1/subscriptions/" + sub_id;
 }
 
 /**
- * Full-replace of a PFD subscription: the stored state becomes exactly
+ * Builds the stored state for a full replace of a PFD subscription: exactly
  * @p new_body, with "subscriptionId" and "self" injected.
  *
  * This replaces, it does not merge or patch. Any previously stored field that

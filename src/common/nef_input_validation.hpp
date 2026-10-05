@@ -16,8 +16,9 @@ namespace oai::nef::app {
 //
 // A field that is absent but not required always passes.
 
-/// A string, no longer than max_len. Must also be non-empty when required;
-/// an optional field that is present but empty passes.
+/// Checks that the field is a string no longer than max_len. A required field
+/// must also be non-empty; an optional field that is present but empty
+/// passes.
 inline std::string validate_string_field(
     const nlohmann::json& j, const std::string& field_name, bool required,
     std::size_t max_len = 256) {
@@ -35,7 +36,7 @@ inline std::string validate_string_field(
   return "";
 }
 
-/// A string drawn from a fixed set of allowed values.
+/// Checks that the field is a string from a fixed set of allowed values.
 inline std::string validate_enum_field(
     const nlohmann::json& j, const std::string& field_name,
     const std::unordered_set<std::string>& allowed_values, bool required) {
@@ -53,7 +54,7 @@ inline std::string validate_enum_field(
   return "";
 }
 
-/// An integer within [min_val, max_val].
+/// Checks that the field is an integer within [min_val, max_val].
 inline std::string validate_integer_field(
     const nlohmann::json& j, const std::string& field_name, bool required,
     int64_t min_val = INT64_MIN, int64_t max_val = INT64_MAX) {
@@ -72,7 +73,7 @@ inline std::string validate_integer_field(
   return "";
 }
 
-/// A JSON object.
+/// Checks that the field is a JSON object.
 inline std::string validate_object_field(
     const nlohmann::json& j, const std::string& field_name, bool required) {
   if (!j.contains(field_name)) {
@@ -85,7 +86,8 @@ inline std::string validate_object_field(
   return "";
 }
 
-/// A JSON array holding between min_size and max_size elements.
+/// Checks that the field is a JSON array holding between min_size and
+/// max_size elements.
 inline std::string validate_array_field(
     const nlohmann::json& j, const std::string& field_name, bool required,
     std::size_t min_size = 0, std::size_t max_size = 1000) {
@@ -102,7 +104,8 @@ inline std::string validate_array_field(
   return "";
 }
 
-/// A bare path or query parameter, rather than a field inside a JSON body.
+/// Checks a bare path or query parameter, rather than a field inside a JSON
+/// body.
 inline std::string validate_string_param(
     const std::string& value, const std::string& param_name,
     std::size_t max_len = 256) {
@@ -112,7 +115,8 @@ inline std::string validate_string_param(
   return "";
 }
 
-/// The first non-empty error among the arguments, or "" if they all passed.
+/// Returns the first non-empty error among the arguments, or "" if they all
+/// passed.
 template<typename... Args>
 inline std::string first_error(Args&&... args) {
   for (const std::string& e : {std::string(std::forward<Args>(args))...}) {
@@ -131,8 +135,8 @@ inline bool is_auth_unconfigured(
   return jwt_secret.empty() && whitelist_empty;
 }
 
-/// One NefEventSubs item (TS 29.591 §5.4.2): an object carrying a non-empty
-/// "event" string.
+/// Checks one NefEventSubs item (TS 29.591 §5.4.2): it must be an object with
+/// a non-empty "event" string.
 inline std::string validate_nnef_event_subs_item(
     const nlohmann::json& item, std::size_t index = 0) {
   if (!item.is_object()) {
@@ -146,15 +150,15 @@ inline std::string validate_nnef_event_subs_item(
   return "";
 }
 
-/// A NefEventExposureSubsc body (TS 29.591). eventsSubs must be a non-empty
-/// array of valid items, and both notifUri and notifId must be present.
+/// Checks a NefEventExposureSubsc body (TS 29.591). eventsSubs must be a
+/// non-empty array of valid items, and both notifUri and notifId must be
+/// present.
 ///
 /// Whether notifUri is safe to call back is a separate question, answered in
 /// the application layer.
 ///
-/// No longer on the live path: handle_nnef_event_exposure_subscribe() now
-/// does a typed NefEventExposureSubsc parse and validate() instead. Kept for
-/// callers that only have the raw JSON.
+/// Nothing calls this today: handle_nnef_event_exposure_subscribe() parses a
+/// typed NefEventExposureSubsc and calls its validate() instead.
 inline std::string validate_nnef_event_exposure_subscription_body(
     const nlohmann::json& body) {
   auto err = validate_array_field(

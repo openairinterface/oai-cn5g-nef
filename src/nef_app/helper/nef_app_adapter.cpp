@@ -51,7 +51,7 @@ void nef_app_adapter::execute_with_token(const std::string& token, Fn&& fn) {
     }
     ~bearer_token_scope() { m_app.clear_request_bearer_token(); }
 
-    bearer_token_scope(const bearer_token_scope&) = delete;
+    bearer_token_scope(const bearer_token_scope&)            = delete;
     bearer_token_scope& operator=(const bearer_token_scope&) = delete;
 
    private:
@@ -76,9 +76,9 @@ nlohmann::json make_unprocessable(const std::string& detail) {
 }
 }  // namespace
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Traffic Influence
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
+// Traffic Influence, Monitoring Event, QoS and BDT
+//==============================================================================
 nef_app_adapter::dispatch_status nef_app_adapter::dispatch_ti_get(
     const std::string& af_id, const std::string& ti_id, std::string token,
     response_sink sink) {
@@ -221,9 +221,9 @@ void nef_app_adapter::execute_bdt_get(
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Analytics
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
+// Analytics and PFD Management (T8)
+//==============================================================================
 nef_app_adapter::dispatch_status nef_app_adapter::dispatch_analytics_create(
     const std::string& af_id, const nlohmann::json& body, std::string token,
     response_sink sink) {
@@ -386,9 +386,9 @@ void nef_app_adapter::execute_pfd_app_get(
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
 // Nnef_PFDmanagement
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
 nef_app_adapter::dispatch_status
 nef_app_adapter::dispatch_nnef_pfd_list_transactions(
     std::string token, response_sink sink) {
@@ -565,9 +565,9 @@ void nef_app_adapter::execute_nnef_pfd_subscription_delete(
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
 // Nnef_EventExposure
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
 nef_app_adapter::dispatch_status
 nef_app_adapter::dispatch_nnef_event_exposure_subscribe(
     const nlohmann::json& body, std::string token, response_sink sink) {
@@ -669,9 +669,9 @@ void nef_app_adapter::execute_nnef_event_exposure_update(
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
 // Inbound NF notification (bool return → 204/404)
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
 nef_app_adapter::dispatch_status nef_app_adapter::dispatch_nf_notification(
     const std::string& nf_sub_id, const nlohmann::json& body, std::string token,
     response_sink sink) {
@@ -692,21 +692,22 @@ void nef_app_adapter::execute_nf_notification(
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+//==============================================================================
 // Async dispatch variants
 //
-// Each builds a response_sink around the deferred response handle and hands
-// it to a nef_app entry method, which then runs on a dispatcher worker. By
-// the time the answer arrives, the HTTP worker that called
-// dispatch_*_async() has long since returned.
+// Each one builds a response_sink around the deferred response handle and
+// passes it to a nef_app entry method, which runs on a dispatcher worker. By
+// the time the answer arrives, the HTTP worker that called dispatch_*_async()
+// has already returned.
 //
-// response_sink is a std::function and so must be copyable, while the
-// deferred handle is move-only — hence the shared_ptr wrapper.
+// response_sink is a std::function, so it must be copyable, but the deferred
+// handle is move-only. The sink therefore holds the handle through a
+// shared_ptr.
 //
-// A rejected dispatch returns false, after sending an explicit 503 through
-// the handle on the calling thread. Without that the handle's destructor
-// would post its generic fallback 500 instead.
-// ─────────────────────────────────────────────────────────────────────────────
+// If the dispatcher rejects the task, the method sends an explicit 503 through
+// the handle on the calling thread and returns false. Without that, the
+// handle's destructor would send its generic fallback 500 instead.
+//==============================================================================
 namespace {
 //------------------------------------------------------------------------------
 // Wrap a move-only deferred response in a copyable response_sink that
@@ -725,8 +726,8 @@ response_sink make_deferred_json_sink(
 }
 
 //------------------------------------------------------------------------------
-// Same, for a response with an empty body and no content-type header. Used by
-// the DELETE-style handlers, whose 204 carries no body.
+// Same as make_deferred_json_sink, but sends an empty body and no content-type
+// header. Used by the DELETE-style handlers, whose 204 carries no body.
 //
 // The `body` the continuation supplies is discarded on purpose: a
 // continuation written against the generic sink contract still ends up
@@ -739,11 +740,11 @@ response_sink make_deferred_empty_sink(
 }
 
 //------------------------------------------------------------------------------
-// As make_deferred_empty_sink, but carrying a fixed header map — no
+// Same as make_deferred_empty_sink, but sends a fixed header map. There is no
 // content-type unless the caller put one in `headers`.
 //
-// Mirrors dispatch_and_wait_empty's header-carrying form. Used by BDT delete,
-// to keep the x-deprecated legacy-path header on the 204.
+// Async counterpart of dispatch_and_wait_empty when it is given headers. Used
+// by BDT delete, to keep the x-deprecated legacy-path header on the 204.
 response_sink make_deferred_empty_sink_h(
     std::shared_ptr<http2_deferred_response> dr,
     std::map<std::string, std::string> headers) {
@@ -754,18 +755,19 @@ response_sink make_deferred_empty_sink_h(
 }
 
 //------------------------------------------------------------------------------
-// Same, for handlers whose response headers — INCLUDING the per-branch
-// content-type — depend on the (status, body) produced.
+// Same as make_deferred_json_sink, for handlers whose response headers,
+// including the content-type, depend on the status and body produced.
 //
-// header_fn receives the status code and a MUTABLE parsed JSON body, and
-// returns the COMPLETE header map. Mutable, because header_fn may rewrite
-// fields, such as a relative `self` into an absolute URI; the body is
-// re-serialized after header_fn runs. header_fn OWNS all headers — this
-// wrapper hard-codes none, not even the content-type, so header_fn is also
-// where application/json vs application/problem+json is chosen per branch.
+// header_fn receives the status code and the parsed JSON body, and returns the
+// full header map. The body is passed as a mutable reference because header_fn
+// may rewrite fields, such as turning a relative `self` into an absolute URI;
+// the body is serialized again after header_fn returns. This wrapper adds no
+// headers of its own, not even the content-type, so header_fn must also choose
+// between application/json and application/problem+json for each branch.
 //
-// Used for the BDT create Location header. It is the generic form of the
-// hand-rolled QoS-create header sink in dispatch_qos_create_async.
+// Used by BDT create and update, to set the content-type and the x-deprecated
+// legacy-path header. It is the generic form of the hand-written QoS-create
+// header sink in dispatch_qos_create_async.
 template<typename HeaderFn>
 response_sink make_deferred_header_sink(
     std::shared_ptr<http2_deferred_response> dr, HeaderFn header_fn) {
@@ -788,8 +790,8 @@ response_sink make_deferred_header_sink(
 // Send a 503 ProblemDetails through the deferred handle. Used when the
 // dispatcher rejected the task (queue_full/stopped).
 //
-// Without this the handle destructor would post a generic 500, and 503 is the
-// accurate answer for an overloaded server.
+// Without this, the handle's destructor would send a generic 500, while 503 is
+// the accurate answer for an overloaded server.
 void send_deferred_503(http2_deferred_response& dr) {
   nlohmann::json pd;
   pd["type"]   = "about:blank";
@@ -811,7 +813,8 @@ bool nef_app_adapter::dispatch_monitoring_event_subscribe_async(
   const auto st =
       m_dispatcher.dispatch([this, scs_as_id, body, t = std::move(token),
                              s = std::move(sink)]() mutable {
-        // Fire and return; the continuation completes the deferred.
+        // Start the request and return; the continuation completes the
+        // deferred response.
         m_app->monitoring_event_subscribe(scs_as_id, body, t, std::move(s));
       });
   if (st != dispatch_status::ok) {
@@ -826,9 +829,9 @@ bool nef_app_adapter::dispatch_qos_create_async(
     const std::string& af_id, const nlohmann::json& body, std::string token,
     const std::string& server_address, http2_deferred_response deferred) {
   auto dr = std::make_shared<http2_deferred_response>(std::move(deferred));
-  // QoS create needs a Location header, and an absolute self URI, on 201.
-  // The header logic is repeated from the server shim so that it runs
-  // wherever the response is produced.
+  // QoS create needs a Location header and an absolute self URI on 201. This
+  // sink builds both by prefixing the relative `self` that cont_qos_create
+  // puts in the body with server_address.
   response_sink sink = [dr, server_address](
                            int code, std::string body) mutable {
     nlohmann::json resp_body;
@@ -1015,8 +1018,8 @@ bool nef_app_adapter::dispatch_bdt_create_async(
     const std::string& af_id, const nlohmann::json& body, std::string token,
     bool deprecated, http2_deferred_response deferred) {
   auto dr = std::make_shared<http2_deferred_response>(std::move(deferred));
-  // Always application/json, plus the x-deprecated marker on legacy paths —
-  // matching handle_bdt_create's header sink.
+  // Always application/json, plus the x-deprecated marker on legacy paths.
+  // This matches the header_fn in handle_bdt_create.
   auto sink = make_deferred_header_sink(
       dr, [deprecated](int /*code*/, nlohmann::json& /*resp_body*/) {
         std::map<std::string, std::string> h;

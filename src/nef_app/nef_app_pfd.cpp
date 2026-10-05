@@ -436,7 +436,8 @@ void nef_app::handle_nnef_pfd_subscription_create(
     m_nnef_pfd_subscriptions[sub_id] = sub;
   }
 
-  // Build response: serialize typed, denormalize back to wire key
+  // Build the response from the typed model, renaming notifyUri back to the
+  // wire key notifUri.
   to_json(response_body, sub);
   if (response_body.contains("notifyUri")) {
     response_body["notifUri"] = response_body["notifyUri"];
@@ -462,7 +463,7 @@ void nef_app::handle_nnef_pfd_subscription_get(
         http_status_code::NOT_FOUND, "PFD subscription not found");
     return;
   }
-  // Serialize typed, denormalize wire key
+  // Serialize the typed model and rename notifyUri back to the wire key.
   to_json(response_body, it->second);
   if (response_body.contains("notifyUri")) {
     response_body["notifUri"] = response_body["notifyUri"];
@@ -538,7 +539,7 @@ void nef_app::handle_nnef_pfd_subscription_put(
     it->second = sub;
   }
 
-  // Build response: denormalize wire key
+  // Build the response, renaming notifyUri back to the wire key notifUri.
   to_json(response_body, sub);
   if (response_body.contains("notifyUri")) {
     response_body["notifUri"] = response_body["notifyUri"];
@@ -579,7 +580,7 @@ void nef_app::notify_nnef_pfd_subscribers(
     for (const auto& [sid, sub] : m_nnef_pfd_subscriptions) {
       const std::string& notify_uri = sub.getNotifyUri();
       if (notify_uri.empty()) continue;
-      // Use typed overload: checks applicationIds filter
+      // The typed overload applies the applicationIds filter.
       if (!nnef_pfd_subscription_matches(sub, app_id)) continue;
       targets.emplace_back(sid, notify_uri);
     }
@@ -599,12 +600,12 @@ void nef_app::notify_nnef_pfd_subscribers(
 }
 
 //------------------------------------------------------------------------------
-// pfd_app_put — one southbound call. The not-found, forbidden and parse checks
-// and the local store are unchanged; only the UDR PFD PUT becomes an async
-// fire.
+// pfd_app_put: checks that the transaction exists and belongs to the caller,
+// validates the body, stores the app locally, then sends the PFD PUT to UDR
+// without waiting for it.
 //
-// BEST-EFFORT: cont_pfd_app_put builds the response from the locally-stored
-// app JSON whatever UDR says. A UDR failure is warn-only.
+// The UDR write is best-effort: cont_pfd_app_put answers from the locally
+// stored app data whatever UDR says, and only logs a warning on failure.
 void nef_app::pfd_app_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const nlohmann::json& body,
@@ -671,7 +672,7 @@ void nef_app::pfd_app_put(
   }
   clear_request_bearer_token();
 
-  // Fire the UDR PFD PUT.
+  // Send the PFD PUT to UDR.
   m_nef_client->udr_put_pfd_data_async(
       app_id, new_app_json,
       [this, scs_as_id, app_id, new_app_json, is_create,
@@ -689,8 +690,8 @@ void nef_app::cont_pfd_app_put(
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_app_put app_id=%s status=%d", app_id.c_str(), r.status_code);
-  // Best-effort: UDR failure is warn-only; the response is the locally-stored
-  // app data regardless of the southbound outcome.
+  // Best-effort: a UDR failure only logs a warning. The response is the
+  // locally stored app data, whatever the UDR outcome.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for app: %s", app_id.c_str());
@@ -705,11 +706,12 @@ void nef_app::cont_pfd_app_put(
 }
 
 //------------------------------------------------------------------------------
-// pfd_create. Authorize, check pfdDatas and validate the path params — all
-// unchanged. Only the UDR PFD PUT becomes an async fire.
+// pfd_create: authorizes the request, checks that pfdDatas is present and
+// validates appId and pfdDatas, then sends the PFD PUT to UDR without waiting
+// for it.
 //
-// BEST-EFFORT: cont_pfd_create echoes the request body back as the 201
-// whatever UDR says.
+// The UDR write is best-effort: cont_pfd_create returns the request body with
+// 201 whatever UDR says.
 void nef_app::pfd_create(
     const std::string& app_id, const nlohmann::json& body,
     const std::string& token, response_sink sink) {
@@ -739,7 +741,7 @@ void nef_app::pfd_create(
   }
   clear_request_bearer_token();
 
-  // Fire the UDR PFD PUT (best-effort).
+  // Send the PFD PUT to UDR (best-effort).
   m_nef_client->udr_put_pfd_data_async(
       app_id, body,
       [this, app_id, body,
@@ -754,7 +756,7 @@ void nef_app::cont_pfd_create(
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_create app_id=%s status=%d", app_id.c_str(), r.status_code);
-  // Best-effort: UDR result warn-only.
+  // Best-effort: a UDR failure only logs a warning.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn("UDR PFD push failed for app: %s", app_id.c_str());
   }
@@ -763,10 +765,11 @@ void nef_app::cont_pfd_create(
 }
 
 //------------------------------------------------------------------------------
-// pfd_delete. Authorize — unchanged. Only the UDR PFD delete becomes an async
-// fire, and its result is unchecked.
+// pfd_delete: authorizes the request, then sends the PFD delete to UDR without
+// waiting for it.
 //
-// BEST-EFFORT: cont_pfd_delete answers 204 whatever UDR says.
+// The UDR delete is best-effort: cont_pfd_delete answers 204 whatever UDR
+// says.
 void nef_app::pfd_delete(
     const std::string& app_id, const std::string& token, response_sink sink) {
   set_request_bearer_token(token);
@@ -776,7 +779,7 @@ void nef_app::pfd_delete(
   }
   clear_request_bearer_token();
 
-  // Fire the UDR PFD delete
+  // Send the PFD delete to UDR.
   m_nef_client->udr_delete_pfd_data_async(
       app_id,
       [this, app_id, sink = std::move(sink)](oai::nghttp2::response r) mutable {
@@ -789,7 +792,7 @@ void nef_app::cont_pfd_delete(
     const std::string& app_id, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_delete app_id=%s status=%d", app_id.c_str(), r.status_code);
-  // Best-effort: UDR result ignored.
+  // Best-effort: a UDR failure is logged but does not change the response.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn("UDR PFD delete failed for app: %s", app_id.c_str());
   }
@@ -798,12 +801,13 @@ void nef_app::cont_pfd_delete(
 }
 
 //------------------------------------------------------------------------------
-// pfd_app_patch. Authorize, check the owner, look up the app, merge-patch,
-// typed re-parse and update the local store — all unchanged. Only the UDR PFD
-// PUT becomes an async fire.
+// pfd_app_patch: checks that the transaction exists and belongs to the caller,
+// looks up the app, applies the merge patch, re-parses and validates the
+// result, stores it locally, then sends it to UDR as a PFD PUT without waiting
+// for it.
 //
-// BEST-EFFORT: cont_pfd_app_patch only warns on a UDR failure, and the 200
-// echo body goes back either way.
+// The UDR write is best-effort: cont_pfd_app_patch answers 200 with the
+// patched app data whatever UDR says, and only logs a warning on failure.
 void nef_app::pfd_app_patch(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const nlohmann::json& patch_body,
@@ -864,7 +868,7 @@ void nef_app::pfd_app_patch(
   }
   clear_request_bearer_token();
 
-  // Fire the UDR PFD PUT
+  // Send the PFD PUT to UDR.
   m_nef_client->udr_put_pfd_data_async(
       app_id, patched,
       [this, scs_as_id, app_id, patched,
@@ -881,7 +885,7 @@ void nef_app::cont_pfd_app_patch(
     nlohmann::json patched, oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_app_patch app_id=%s status=%d", app_id.c_str(), r.status_code);
-  // Best-effort: UDR result warn-only.
+  // Best-effort: a UDR failure only logs a warning.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "UDR PFD app PATCH failed for app: %s", app_id.c_str());
@@ -893,11 +897,12 @@ void nef_app::cont_pfd_app_patch(
 }
 
 //------------------------------------------------------------------------------
-// pfd_app_delete. Authorize, check the owner, look up the app and erase it
-// locally — all unchanged. Only the UDR PFD delete becomes an async fire, and
-// its result is unchecked.
+// pfd_app_delete: checks that the transaction exists and belongs to the
+// caller, looks up the app and erases it locally, then sends the PFD delete to
+// UDR without waiting for it.
 //
-// BEST-EFFORT: cont_pfd_app_delete answers 204 whatever UDR says.
+// The UDR delete is best-effort: cont_pfd_app_delete answers 204 whatever UDR
+// says.
 void nef_app::pfd_app_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& app_id, const std::string& token, response_sink sink) {
@@ -926,7 +931,7 @@ void nef_app::pfd_app_delete(
   }
   clear_request_bearer_token();
 
-  // Fire the UDR PFD delete
+  // Send the PFD delete to UDR.
   m_nef_client->udr_delete_pfd_data_async(
       app_id, [this, scs_as_id, app_id,
                sink = std::move(sink)](oai::nghttp2::response r) mutable {
@@ -940,7 +945,7 @@ void nef_app::cont_pfd_app_delete(
     oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_pfd_app_delete app_id=%s status=%d", app_id.c_str(), r.status_code);
-  // Best-effort: UDR result ignored
+  // Best-effort: a UDR failure is logged but does not change the response.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "UDR PFD app delete failed for app: %s", app_id.c_str());
@@ -951,12 +956,13 @@ void nef_app::cont_pfd_app_delete(
 }
 
 //------------------------------------------------------------------------------
-// nnef_pfd_put_app. Authorize, normalize the app data and update the local
-// transaction store — all unchanged. Only the UDR PFD PUT becomes an async
-// fire.
+// nnef_pfd_put_app: authorizes the request, normalizes the app data, stores it
+// in the local transaction (creating the transaction if needed), then sends
+// the PFD PUT to UDR without waiting for it.
 //
-// BEST-EFFORT: cont_nnef_pfd_put_app sends the 201 (create) or 200 (update)
-// echo body and notifies the PFD subscribers whatever UDR says.
+// The UDR write is best-effort: whatever UDR says, cont_nnef_pfd_put_app
+// answers 201 (create) or 200 (update) with the stored app data and notifies
+// the PFD subscribers.
 void nef_app::nnef_pfd_put_app(
     const std::string& transaction_id, const std::string& app_id,
     const nlohmann::json& body, const std::string& token, response_sink sink) {
@@ -996,7 +1002,7 @@ void nef_app::nnef_pfd_put_app(
   }
   clear_request_bearer_token();
 
-  // Fire the UDR PFD PUT
+  // Send the PFD PUT to UDR.
   m_nef_client->udr_put_pfd_data_async(
       app_id, normalized_app,
       [this, app_id, response_app, normalized_app, is_create,
@@ -1015,7 +1021,7 @@ void nef_app::cont_nnef_pfd_put_app(
   Logger::nef_app().debug(
       "cont_nnef_pfd_put_app app_id=%s status=%d", app_id.c_str(),
       r.status_code);
-  // Best-effort: UDR result warn-only
+  // Best-effort: a UDR failure only logs a warning.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "UDR PFD app PUT failed for Nnef_PFDmanagement app: %s",
@@ -1032,12 +1038,12 @@ void nef_app::cont_nnef_pfd_put_app(
 }
 
 //------------------------------------------------------------------------------
-// nnef_pfd_delete_app. Authorize, look up the transaction and erase the app
-// locally — all unchanged. Only the UDR PFD delete becomes an async fire, and
-// a failure is warn-only.
+// nnef_pfd_delete_app: authorizes the request, looks up the transaction and
+// erases the app locally, then sends the PFD delete to UDR without waiting for
+// it.
 //
-// BEST-EFFORT: cont_nnef_pfd_delete_app notifies the PFD subscribers and
-// answers 204 whatever UDR says.
+// The UDR delete is best-effort: whatever UDR says, cont_nnef_pfd_delete_app
+// notifies the PFD subscribers and answers 204. A failure only logs a warning.
 void nef_app::nnef_pfd_delete_app(
     const std::string& transaction_id, const std::string& app_id,
     const std::string& token, response_sink sink) {
@@ -1065,7 +1071,7 @@ void nef_app::nnef_pfd_delete_app(
   }
   clear_request_bearer_token();
 
-  // Fire the UDR PFD delete
+  // Send the PFD delete to UDR.
   m_nef_client->udr_delete_pfd_data_async(
       app_id,
       [this, app_id, sink = std::move(sink)](oai::nghttp2::response r) mutable {
@@ -1079,7 +1085,7 @@ void nef_app::cont_nnef_pfd_delete_app(
   Logger::nef_app().debug(
       "cont_nnef_pfd_delete_app app_id=%s status=%d", app_id.c_str(),
       r.status_code);
-  // Best-effort: UDR result warn-only
+  // Best-effort: a UDR failure only logs a warning.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "UDR PFD app DELETE failed for Nnef_PFDmanagement app: %s",
@@ -1094,33 +1100,33 @@ void nef_app::cont_nnef_pfd_delete_app(
 
 //------------------------------------------------------------------------------
 
-// ═══════════════════════════════════════════════════════════════════════════
+//==============================================================================
 // True-async cursor pattern
 //
-// Every multi-leg chain below has the same shape:
+// Every multi-step chain below has the same shape:
 //
-//   1. The dispatcher worker resolves the UDR endpoint via discover_nf.
-//   2. It builds a shared_ptr cursor carrying that endpoint, the work set and
-//      the response_sink.
-//   3. It kicks the cursor.
-//   4. Each continuation fires exactly ONE discovery-free *_at_async leg, then
-//      advances the cursor, rolls back, or finishes.
+//   1. The dispatcher worker looks up the UDR endpoint with discover_nf.
+//   2. It builds a shared_ptr cursor that holds that endpoint, the work set
+//      and the response_sink.
+//   3. It starts the chain.
+//   4. Each continuation sends exactly one *_at_async call (these do no
+//      discovery), then advances the cursor, rolls back, or finishes.
 //
-// Two properties follow, and they are the whole point of the arrangement:
+// This gives two properties, which are the reason for the design:
 //
-//   * No thread is ever parked waiting on a southbound call.
+//   * No thread ever blocks waiting on a southbound call.
 //   * discover_nf never runs on oai-http-io. If it did, the io pool would
 //     deadlock against itself.
 //
 // Continuations are safe to run inline on the dispatcher worker. Two paths do
-// exactly that: the client's URI/pool sync fast-path, and a wrapper's own
-// discovery-failure callback, which fires inline with status 0.
-//
-// The synchronous handle_* methods are unchanged.
-// ═══════════════════════════════════════════════════════════════════════════
+// exactly that: the HTTP client's immediate error callback when the URI does
+// not parse or the connection pool fails, and a wrapper's own
+// discovery-failure callback, which runs inline with status 0.
+//==============================================================================
 
-// pfd_transaction_delete — one UDR DELETE per app in the transaction, driven
-// by the PfdDeleteChain cursor. BEST-EFFORT: the AF always gets 204.
+// pfd_transaction_delete: erases the transaction locally, then sends one UDR
+// DELETE per app in it, driven by the PfdDeleteChain cursor. The UDR deletes
+// are best-effort: once the local checks pass, the AF always gets 204.
 void nef_app::pfd_transaction_delete(
     const std::string& scs_as_id, const std::string& trans_id,
     const std::string& token, response_sink sink) {
@@ -1151,11 +1157,11 @@ void nef_app::pfd_transaction_delete(
   st->sink = std::move(sink);
   for (const auto& [app_id, _] : trans_body) st->app_ids.push_back(app_id);
 
-  // Resolve UDR HERE, on the dispatcher worker, and thread it down by value.
+  // Look up UDR here, on the dispatcher worker, and pass it down by value.
   if (!m_nef_client->discover_nf(nf_type_t::NF_TYPE_UDR, st->udr_ep)) {
     // Best-effort: the local state is already erased, and a discovery failure
-    // does not change the AF-visible 204. The sync per-app deletes are
-    // unchecked too.
+    // does not change the 204 the AF sees. pfd_app_delete treats its UDR
+    // result the same way.
     Logger::nef_app().warn(
         "PFD_TX delete: UDR discovery failed for trans_id=%s; skipping UDR "
         "deletes",
@@ -1168,10 +1174,9 @@ void nef_app::pfd_transaction_delete(
   }
   clear_request_bearer_token();
 
-  // Audit the 204 now: it is already decided. Then kick the delete cursor,
-  // whose final step sends that 204. The per-app UDR deletes are best-effort
-  // and cannot change the result, matching the sync handler's unconditional
-  // 204.
+  // The result is already decided, so audit the 204 now. Then start the
+  // delete chain, whose final step sends that 204. The per-app UDR deletes
+  // are best-effort and cannot change the result.
   nef_audit::log(
       "DELETE", "PFD_TX", scs_as_id, trans_id, http_status_code::NO_CONTENT);
   pfd_transaction_delete_step(std::move(st));
@@ -1186,9 +1191,8 @@ void nef_app::pfd_transaction_delete_step(std::shared_ptr<PfdDeleteChain> st) {
   const std::string app_id = st->app_ids[st->idx];
   m_nef_client->udr_delete_pfd_data_at_async(
       st->udr_ep, app_id, [this, st, app_id](oai::nghttp2::response r) mutable {
-        // Best-effort and idempotent: failures are ignored, with no
-        // compensation. The sync per-app delete leaves its result unchecked
-        // too.
+        // Best-effort and idempotent: a failure is logged and otherwise
+        // ignored, with no compensation.
         if (!sbi_ok(r)) {
           Logger::nef_app().warn(
               "PFD_TX delete: UDR PFD delete failed for app=%s (http=%d)",
@@ -1200,8 +1204,10 @@ void nef_app::pfd_transaction_delete_step(std::shared_ptr<PfdDeleteChain> st) {
 }
 
 //------------------------------------------------------------------------------
-// nnef_pfd_delete_transaction — the Nnef twin of pfd_transaction_delete: one
-// UDR DELETE per app over the PfdDeleteChain cursor. BEST-EFFORT 204.
+// nnef_pfd_delete_transaction: the Nnef_PFDmanagement counterpart of
+// pfd_transaction_delete. It erases the transaction locally, then sends one
+// UDR DELETE per app through the PfdDeleteChain cursor. The UDR deletes are
+// best-effort: once the transaction is found, the answer is always 204.
 void nef_app::nnef_pfd_delete_transaction(
     const std::string& transaction_id, const std::string& token,
     response_sink sink) {
@@ -1274,20 +1280,20 @@ void nef_app::nnef_pfd_delete_transaction_step(
 }
 
 //------------------------------------------------------------------------------
-// nnef_pfd_partial_pull. The sync handler holds
-// shared_lock(m_nnef_pfd_transactions_mutex) across all N UDR GETs. A lock
-// cannot span async hops, so this version instead:
+// nnef_pfd_partial_pull: reads the requested apps back from UDR. A lock cannot
+// be held across async calls, so this method:
 //
-//   1. SNAPSHOTS the iteration set under the lock, applying the requested_ids
-//      filter and copying {app_id, fallback} per app, where fallback is the
-//      stored app_data.
-//   2. RELEASES the lock.
-//   3. Runs the read cursor. Each step fires udr_get_pfd_data_at_async, and
-//      the continuation pushes the parsed body on a strict 200, else the
-//      fallback, with ["applicationId"] = app_id.
+//   1. Copies the list of apps to read while holding
+//      shared_lock(m_nnef_pfd_transactions_mutex). It applies the
+//      requested_ids filter and stores {app_id, fallback} per app, where
+//      fallback is the stored app_data.
+//   2. Releases the lock.
+//   3. Runs the read cursor. Each step sends udr_get_pfd_data_at_async, and
+//      the continuation adds the parsed body on a strict 200, or the
+//      fallback otherwise, with ["applicationId"] = app_id.
 //   4. Sends 200 with the collected array from the final step.
 //
-// No nef_app lock is held across any async hop.
+// No nef_app lock is held across any async call.
 void nef_app::nnef_pfd_partial_pull(
     const nlohmann::json& body, const std::string& token, response_sink sink) {
   set_request_bearer_token(token);
@@ -1302,7 +1308,8 @@ void nef_app::nnef_pfd_partial_pull(
 
   auto st  = std::make_shared<PfdPullChain>();
   st->sink = std::move(sink);
-  // SNAPSHOT the iteration set under the lock, then RELEASE before any GET.
+  // Copy the list of apps to read under the lock, and release it before any
+  // GET.
   {
     std::shared_lock lock(m_nnef_pfd_transactions_mutex);
     for (const auto& [trans_id, transaction] : m_nnef_pfd_transactions) {
@@ -1333,8 +1340,8 @@ void nef_app::nnef_pfd_partial_pull(
   }
 
   if (!m_nef_client->discover_nf(nf_type_t::NF_TYPE_UDR, st->udr_ep)) {
-    // No UDR to refresh from, so serve every entry out of the stored app_data
-    // instead — exactly what the sync path does when the read fails.
+    // No UDR to refresh from, so serve every entry from the stored app_data
+    // instead, as nnef_pfd_partial_pull_step does when a read fails.
     Logger::nef_app().warn(
         "NNEF_PFD partial-pull: UDR discovery failed; returning cached PFD "
         "data");
@@ -1363,16 +1370,16 @@ void nef_app::nnef_pfd_partial_pull_step(std::shared_ptr<PfdPullChain> st) {
   m_nef_client->udr_get_pfd_data_at_async(
       st->udr_ep, app_id,
       [this, st, app_id, fallback](oai::nghttp2::response r) mutable {
-        // Best-effort per app, reproducing the sync path exactly:
+        // Best-effort per app:
         //
-        //   entry = (udr_code == OK) ? udr_result : app_data
+        //   entry = (status == OK) ? parsed body : fallback
         //
-        // The sync udr_get_pfd_data sets udr_result to the parsed body on a
-        // 200, and to an empty object {} when that body is empty or
-        // unparseable. Note it compares strictly against OK, not 2xx.
+        // On a 200 the entry is the parsed body, or an empty object {} when
+        // that body is empty or unparseable. Any other status, including a
+        // 2xx other than 200, uses the stored fallback.
         nlohmann::json entry;
         if (r.status_code == http_status_code::OK) {
-          entry = nlohmann::json::object();  // matches sync result default
+          entry = nlohmann::json::object();  // kept if the body is empty
           if (!r.body.empty()) {
             try {
               entry = nlohmann::json::parse(r.body);
@@ -1398,18 +1405,19 @@ void nef_app::nnef_pfd_partial_pull_step(std::shared_ptr<PfdPullChain> st) {
 }
 
 //------------------------------------------------------------------------------
-// pfd_transaction_put — FATAL-500 with a southbound-only rollback.
+// pfd_transaction_put: any UDR failure ends the request with 500, after a
+// rollback that touches UDR only.
 //
-// pfd_transaction_put  authorizes, validates and typed-parses pfdDatas,
-//                      decides create-vs-update, and resolves UDR on the
-//                      dispatcher worker.
+// pfd_transaction_put  authorizes, parses and validates pfdDatas, decides
+//                      create or update, and looks up UDR on the dispatcher
+//                      worker.
 // pfd_put_step         the PfdPutChain cursor: PUTs each app to UDR in turn.
-//                      On full success it commits the local state and sends
+//                      When all succeed it commits the local state and sends
 //                      201 (create) or 200 (update).
-// pfd_put_rollback /   on a failure at step k, issue compensating DELETEs over
-// pfd_rollback_step    committed[0..k-1] in REVERSE order, then send 500 from
-//                      the last rollback continuation. This mirrors the
-//                      PfdRollbackTracker.
+// pfd_put_rollback /   on a failure at step k, sends compensating DELETEs for
+// pfd_rollback_step    committed[0..k-1] in reverse order, then sends 500
+//                      from the last rollback continuation. Same idea as
+//                      PfdRollbackTracker, which deletes in commit order.
 void nef_app::pfd_transaction_put(
     const std::string& scs_as_id, const std::string& trans_id,
     const nlohmann::json& body, const std::string& token, response_sink sink) {
@@ -1491,11 +1499,10 @@ void nef_app::pfd_transaction_put(
         (m_pfd_trans_sessions.find(trans_id) == m_pfd_trans_sessions.end());
   }
 
-  // Resolve UDR HERE, on the dispatcher worker.
+  // Look up UDR here, on the dispatcher worker.
   if (!m_nef_client->discover_nf(nf_type_t::NF_TYPE_UDR, st->udr_ep)) {
-    // No UDR write happened yet, so there is nothing to roll back. FATAL-500,
-    // matching the sync path, which aborts the transaction with 500 on a UDR
-    // write failure.
+    // No UDR write has happened yet, so there is nothing to roll back. Fail
+    // with 500, the same status a UDR write failure in pfd_put_step gives.
     Logger::nef_app().error(
         "PFD_TX put: UDR discovery failed for trans_id=%s", trans_id.c_str());
     response_sink s = std::move(st->sink);
@@ -1552,11 +1559,11 @@ void nef_app::pfd_put_step(std::shared_ptr<PfdPutChain> st) {
 //------------------------------------------------------------------------------
 void nef_app::pfd_put_rollback(
     std::shared_ptr<PfdPutChain> st, const std::string& failed_app) {
-  // Async compensating DELETEs over committed[0..k-1] in REVERSE order; the
-  // last rollback continuation sends the 500. Mirrors
-  // PfdRollbackTracker::execute.
+  // Sends async compensating DELETEs for committed[0..k-1] in reverse order;
+  // the last rollback continuation sends the 500. Same idea as
+  // PfdRollbackTracker::execute, which deletes in commit order.
   //
-  // No local state was committed yet, so the rollback is southbound only.
+  // No local state has been committed yet, so only UDR is rolled back.
   pfd_rollback_step(std::move(st), st->committed.size(), failed_app);
 }
 
@@ -1586,19 +1593,20 @@ void nef_app::pfd_rollback_step(
 }
 
 //------------------------------------------------------------------------------
-// nnef_pfd_put_transaction — the Nnef twin of pfd_transaction_put: FATAL-500
-// with a southbound-only rollback, plus a post-commit cleanup phase.
+// nnef_pfd_put_transaction: the Nnef_PFDmanagement counterpart of
+// pfd_transaction_put. Any UDR failure ends the request with 500, after a
+// rollback that touches UDR only. A cleanup step runs after the commit.
 //
 // nnef_pfd_put_transaction  authorizes, extracts and normalizes the
-//                           applications, decides create-vs-update, computes
-//                           the phase-C removed-app set, and resolves UDR on
-//                           the dispatcher worker.
+//                           applications, decides create or update, computes
+//                           the set of removed apps, and looks up UDR on the
+//                           dispatcher worker.
 // nnef_put_step             the NnefPutChain cursor: PUTs each app to UDR.
-// nnef_put_rollback /       on a failure, compensating DELETEs over
-// nnef_rollback_step        committed[0..k-1] in REVERSE order, then 500.
+// nnef_put_rollback /       on a failure, sends compensating DELETEs for
+// nnef_rollback_step        committed[0..k-1] in reverse order, then 500.
 // nnef_put_after_commit     commits the local state, sends the success
-//                           response, notifies the PFD subscribers, and fires
-//                           the best-effort removed-app deletes.
+//                           response, notifies the PFD subscribers, and sends
+//                           best-effort UDR deletes for the removed apps.
 void nef_app::nnef_pfd_put_transaction(
     const std::string& transaction_id, const nlohmann::json& body,
     const std::string& token, response_sink sink) {
@@ -1623,9 +1631,8 @@ void nef_app::nnef_pfd_put_transaction(
   for (const auto& [app_id, _] : applications.items())
     st->app_ids.push_back(app_id);
 
-  // Decide create-vs-update and compute the phase-C removed-app set, both
-  // under the mutex. The removed apps are the ones the prior transaction
-  // carried that are absent from the new set.
+  // Under the mutex, decide create or update and compute the removed apps:
+  // the ones the previous transaction had that are missing from the new set.
   {
     std::shared_lock lock(m_nnef_pfd_transactions_mutex);
     auto it       = m_nnef_pfd_transactions.find(transaction_id);
@@ -1641,9 +1648,10 @@ void nef_app::nnef_pfd_put_transaction(
     }
   }
 
-  // Resolve UDR HERE, on the dispatcher worker.
+  // Look up UDR here, on the dispatcher worker.
   if (!m_nef_client->discover_nf(nf_type_t::NF_TYPE_UDR, st->udr_ep)) {
-    // No UDR write happened yet, so there is nothing to roll back. FATAL-500.
+    // No UDR write has happened yet, so there is nothing to roll back. Fail
+    // with 500.
     Logger::nef_app().error(
         "NNEF_PFD_TX put: UDR discovery failed for trans_id=%s",
         transaction_id.c_str());
@@ -1685,9 +1693,9 @@ void nef_app::nnef_put_step(std::shared_ptr<NnefPutChain> st) {
       });
 }
 
-// Compensating DELETEs over committed[0..k-1] in REVERSE order, ending in
-// FATAL-500. Mirrors PfdRollbackTracker. Southbound only: no local state was
-// committed yet.
+// Sends compensating DELETEs for committed[0..k-1] in reverse order, then
+// fails with 500 (same idea as PfdRollbackTracker, which deletes in commit
+// order). Only UDR is rolled back: no local state has been committed yet.
 void nef_app::nnef_put_rollback(
     std::shared_ptr<NnefPutChain> st, const std::string& failed_app) {
   nnef_rollback_step(std::move(st), st->committed.size(), failed_app);
@@ -1716,8 +1724,8 @@ void nef_app::nnef_rollback_step(
       });
 }
 
-// Commit the local state and SEND the success response, then do the
-// post-commit work that must not be allowed to change it.
+// Commits the local state and sends the success response, then does the
+// post-commit work, which must not be able to change that response.
 void nef_app::nnef_put_after_commit(std::shared_ptr<NnefPutChain> st) {
   // Commit local state.
   {
@@ -1732,8 +1740,8 @@ void nef_app::nnef_put_after_commit(std::shared_ptr<NnefPutChain> st) {
       st->is_create ? "CREATE" : "UPDATE", "NNEF_PFD_TX", "",
       st->transaction_id, code);
 
-  // SEND THE SUCCESS RESPONSE NOW. The sink is exactly-once: after this call
-  // it is spent and must never be touched again.
+  // Send the success response now. The sink may be called exactly once: after
+  // this call it is spent and must never be used again.
   st->sink(code, st->transaction.dump());
 
   // Notify SBI PFD subscribers — non-blocking, enqueued on
@@ -1746,12 +1754,12 @@ void nef_app::nnef_put_after_commit(std::shared_ptr<NnefPutChain> st) {
     }
   }
 
-  // POST-COMMIT best-effort cleanup of the removed apps: fire-and-forget async
-  // DELETEs. Failures are warn-only and ignored, nothing is rolled back, and
+  // Post-commit, best-effort cleanup of the removed apps: fire-and-forget
+  // async DELETEs. A failure only logs a warning, nothing is rolled back, and
   // the response has already gone out.
   //
-  // These continuations capture value copies only — tid and app_id, never st
-  // and never the sink — so the spent deferred handle is never re-touched.
+  // These continuations capture only value copies (tid and app_id), never st
+  // and never the sink, so the spent response handle is never touched again.
   const std::string udr_ep = st->udr_ep;  // copy out before st is released
   const std::string tid    = st->transaction_id;
   for (const std::string& app_id : st->removed_apps) {  // empty on create
@@ -1765,5 +1773,5 @@ void nef_app::nnef_put_after_commit(std::shared_ptr<NnefPutChain> st) {
           }
         });
   }
-  // st (and its now-spent sink) drops when this frame returns.
+  // st (and its spent sink) is released when this function returns.
 }

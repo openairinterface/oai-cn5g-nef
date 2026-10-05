@@ -20,20 +20,21 @@ class nef_app;
 
 namespace oai::nef::app {
 
-// Typed dispatch facade between the HTTP/2 server and nef_app.
+// Typed dispatch layer between the HTTP/2 server and nef_app.
 //
 // This is the only class with direct nef_app access from the request path.
-// nef-http2-server may still keep a nef_app* for non-request health/metadata
-// uses, but route handlers must dispatch through this adapter rather than
-// calling nef_app handlers or token APIs directly.
+// nef-http2-server also holds a shared_ptr to nef_app, for health and
+// metadata uses outside the request path, but route handlers must dispatch
+// through this adapter rather than calling nef_app handlers or token APIs
+// directly.
 //
 // Every dispatch_* call is non-blocking: it enqueues the work on the
 // dispatcher worker pool and returns, possibly with queue_full/stopped. What
-// gets enqueued differs by family:
-//   - dispatch_*       enqueue the matching execute_* method below, which
-//                      runs the bearer-token set/call/clear discipline
-//                      exactly once through execute_with_token(), so token
-//                      state cannot leak across dispatcher tasks.
+// gets enqueued depends on the method family:
+//   - dispatch_*       enqueue the matching execute_* method below. It goes
+//                      through execute_with_token(), which sets the bearer
+//                      token, calls the handler and clears the token exactly
+//                      once, so token state cannot leak between tasks.
 //   - dispatch_*_async enqueue a nef_app entry method directly, passing the
 //                      token to it as a parameter.
 class nef_app_adapter {
@@ -46,15 +47,17 @@ class nef_app_adapter {
       std::size_t http_worker_count, std::size_t max_queue = 10000);
   ~nef_app_adapter() { stop(); }
 
-  nef_app_adapter(const nef_app_adapter&) = delete;
+  nef_app_adapter(const nef_app_adapter&)            = delete;
   nef_app_adapter& operator=(const nef_app_adapter&) = delete;
 
   void stop();
   std::size_t queue_depth() const;
 
-  // ── One dispatch_* method per nef_http2_server::handle_* method ──────────
-  // Each takes only HTTP-derived params + bearer token (by value) + a
-  // response_sink (by value). JSON bodies are passed already-parsed.
+  //============================================================================
+  // One dispatch_* method per nef_http2_server::handle_* method
+  //============================================================================
+  // Each takes only the parameters from the HTTP request, the bearer token (by
+  // value) and a response_sink (by value). JSON bodies arrive already parsed.
 
   // Traffic Influence
   dispatch_status dispatch_ti_get(
@@ -148,13 +151,13 @@ class nef_app_adapter {
   // Async variants. Each enqueues a nef_app entry method on the dispatcher
   // worker pool and delivers the result through the moved-in
   // http2_deferred_response, which posts the response back onto the libevent
-  // loop. The HTTP worker thread returns as soon as the dispatch is accepted
-  // — no fut.wait().
+  // loop. The HTTP worker thread returns as soon as the dispatch is accepted;
+  // it does not wait on a future.
   //
-  // The entry method is split at the southbound hop: it does the pre-hop work
-  // and fires the southbound call asynchronously, then a continuation (cont_*,
-  // or a *_step chain) finishes the response. No dispatcher worker blocks on
-  // the southbound hop.
+  // The entry method is split at the southbound call: it does the work that
+  // comes before the call and sends the southbound request asynchronously,
+  // then a continuation (cont_*, or a chain of *_step methods) finishes the
+  // response. No dispatcher worker blocks waiting for the southbound reply.
   //
   // Returns false if the dispatch was rejected (queue_full/stopped). The
   // adapter then sends an explicit 503 through the deferred handle, so clients
@@ -181,9 +184,9 @@ class nef_app_adapter {
       const std::string& app_id, const nlohmann::json& body, std::string token,
       http2_deferred_response deferred);
 
-  // Same contract as the dispatch_*_async above: build the matching sink,
-  // enqueue the entry method on the dispatcher worker, answer 503 if the
-  // dispatcher refuses the work.
+  // Same contract as the dispatch_*_async methods above: build the matching
+  // sink, enqueue the entry method on a dispatcher worker, and answer 503 if
+  // the dispatcher refuses the work.
   bool dispatch_monitoring_event_unsubscribe_async(
       const std::string& scs_as_id, const std::string& sub_id,
       std::string token, http2_deferred_response deferred);
@@ -198,9 +201,9 @@ class nef_app_adapter {
   bool dispatch_qos_delete_async(
       const std::string& af_id, const std::string& sub_id, std::string token,
       http2_deferred_response deferred);
-  // BDT. `deprecated` reproduces the x-deprecated legacy-path header that the
-  // sync shims emit: via the header sink for create/update, via the
-  // header-carrying empty sink for delete.
+  // BDT. `deprecated` adds the x-deprecated legacy-path header: through the
+  // header sink for create and update, and through the header-carrying empty
+  // sink for delete.
   bool dispatch_bdt_create_async(
       const std::string& af_id, const nlohmann::json& body, std::string token,
       bool deprecated, http2_deferred_response deferred);
@@ -262,14 +265,14 @@ class nef_app_adapter {
   std::shared_ptr<nef_app> m_app;
   nef_request_dispatcher m_dispatcher;
 
-  // Shared token discipline, called by every execute_* method. A local RAII
-  // scope sets the bearer token on m_app, fn(*m_app) runs, and the scope
-  // clears the token on the way out — including when fn throws.
+  // Token handling shared by every execute_* method. A local RAII scope sets
+  // the bearer token on m_app, runs fn(*m_app), and clears the token on the
+  // way out, including when fn throws.
   //
   // Defined in nef_app_adapter.cpp, after nef_app.hpp is included, so the body
   // sees the complete nef_app type. Only the execute_* methods instantiate it
   // and they all live in that .cpp, so an out-of-line template definition is
-  // enough; no other TU instantiates it.
+  // enough; no other translation unit instantiates it.
   template<typename Fn>
   void execute_with_token(const std::string& token, Fn&& fn);
 

@@ -77,13 +77,13 @@ class nef_app {
       const std::string& scs_as_id, const std::string& sub_id,
       nlohmann::json& response_body, int& http_code);
 
-  // Monitoring Event UPDATE (PUT)
+  // Monitoring Event: update (PUT)
   void handle_monitoring_event_subscription_update(
       const std::string& scs_as_id, const std::string& sub_id,
       const nlohmann::json& body, nlohmann::json& response_body,
       int& http_code);
 
-  // TI GET and LIST
+  // Traffic Influence: read one subscription, or list the AF's subscriptions
   void handle_traffic_influence_get(
       const std::string& af_id, const std::string& app_session_id,
       nlohmann::json& response_body, int& http_code);
@@ -99,7 +99,7 @@ class nef_app {
       const std::string& scs_as_id, const std::string& trans_id,
       const std::string& app_id, nlohmann::json& response_body, int& http_code);
 
-  // Monitoring create
+  // Monitoring Event: create
   void monitoring_event_subscribe(
       const std::string& scs_as_id, const nlohmann::json& body,
       const std::string& token, response_sink sink);
@@ -107,8 +107,8 @@ class nef_app {
       const std::string& scs_as_id, const std::string& sub_id,
       const nlohmann::json& body, oai::nghttp2::response r, response_sink sink);
 
-  // Qos create (TS 29.522 §4.4.9). The Location/self
-  // header is produced by the adapter's qos-create header sink.
+  // QoS: create (TS 29.522 §4.4.9). The adapter's qos-create header sink
+  // produces the Location header and the absolute self URI.
   void qos_create(
       const std::string& af_id, const nlohmann::json& body,
       const std::string& token, response_sink sink);
@@ -117,7 +117,7 @@ class nef_app {
       nlohmann::json req_data_json, oai::nghttp2::response r,
       response_sink sink);
 
-  // Traffic-influence create — a PCF call chained into a UDR call
+  // Traffic Influence: create (a PCF call followed by a UDR call)
   void ti_create(
       const std::string& af_id, const nlohmann::json& body,
       const std::string& token, response_sink sink);
@@ -130,7 +130,7 @@ class nef_app {
       const nlohmann::json& body, const std::string& ti_id,
       oai::nghttp2::response r, response_sink sink);
 
-  // Traffic-influence update
+  // Traffic Influence: update
   void ti_update(
       const std::string& af_id, const std::string& ti_id,
       const nlohmann::json& body, const std::string& token, response_sink sink);
@@ -138,7 +138,7 @@ class nef_app {
       const std::string& af_id, const std::string& ti_id,
       const nlohmann::json& body, oai::nghttp2::response r, response_sink sink);
 
-  // Traffic-influence patch
+  // Traffic Influence: patch
   void ti_patch(
       const std::string& af_id, const std::string& ti_id,
       const nlohmann::json& patch_body, const std::string& token,
@@ -148,7 +148,7 @@ class nef_app {
       const std::string& app_session_id, nlohmann::json patched_copy,
       oai::nghttp2::response r, response_sink sink);
 
-  // PFD app put
+  // PFD Management: put one application
   void pfd_app_put(
       const std::string& scs_as_id, const std::string& trans_id,
       const std::string& app_id, const nlohmann::json& body,
@@ -158,8 +158,7 @@ class nef_app {
       nlohmann::json new_app_json, bool is_create, oai::nghttp2::response r,
       response_sink sink);
 
-  // Monitoring + QoS deletes/updates
-  // Monitoring delete
+  // Monitoring Event: delete
   void monitoring_event_unsubscribe(
       const std::string& scs_as_id, const std::string& sub_id,
       const std::string& token, response_sink sink);
@@ -168,7 +167,7 @@ class nef_app {
       const std::string& nf_sub_id, oai::nghttp2::response r,
       response_sink sink);
 
-  // Qos update (PUT)
+  // QoS: update (PUT)
   void qos_update(
       const std::string& scs_as_id, const std::string& sub_id,
       const nlohmann::json& body, const std::string& token, response_sink sink);
@@ -177,7 +176,7 @@ class nef_app {
       nlohmann::json response_data, oai::nghttp2::response r,
       response_sink sink);
 
-  // Qos patch
+  // QoS: patch
   void qos_patch(
       const std::string& scs_as_id, const std::string& sub_id,
       const nlohmann::json& patch_body, const std::string& token,
@@ -186,16 +185,16 @@ class nef_app {
       const std::string& scs_as_id, const std::string& sub_id,
       nlohmann::json patched, oai::nghttp2::response r, response_sink sink);
 
-  // Qos delete
+  // QoS: delete
   void qos_delete(
       const std::string& af_id, const std::string& qos_sub_id,
       const std::string& token, response_sink sink);
   void cont_qos_delete(
       const std::string& af_id, const std::string& qos_sub_id,
-      const std::string& nf_sub_id, oai::nghttp2::response r,
+      const std::string& app_session_id, oai::nghttp2::response r,
       response_sink sink);
 
-  // Bdt create
+  // BDT: create
   void bdt_create(
       const std::string& af_id, const nlohmann::json& body,
       const std::string& token, response_sink sink);
@@ -204,7 +203,7 @@ class nef_app {
       oai::_3gpp::model::BdtPolicy bdt_policy, oai::nghttp2::response r,
       response_sink sink);
 
-  // Bdt update
+  // BDT: update
   void bdt_update(
       const std::string& af_id, const std::string& bdt_id,
       const nlohmann::json& body, const std::string& token, response_sink sink);
@@ -213,7 +212,7 @@ class nef_app {
       oai::_3gpp::model::BdtPolicy bdt_policy, oai::nghttp2::response r,
       response_sink sink);
 
-  // Bdt patch
+  // BDT: patch
   void bdt_patch(
       const std::string& af_id, const std::string& bdt_policy_id,
       const nlohmann::json& patch_body, const std::string& token,
@@ -223,7 +222,7 @@ class nef_app {
       nlohmann::json patched_copy, oai::nghttp2::response r,
       response_sink sink);
 
-  // Bdt delete
+  // BDT: delete
   void bdt_delete(
       const std::string& af_id, const std::string& bdt_id,
       const std::string& token, response_sink sink);
@@ -231,8 +230,8 @@ class nef_app {
       const std::string& af_id, const std::string& bdt_id,
       oai::nghttp2::response r, response_sink sink);
 
-  // PFD T8 single (UDR)
-  // PFD create
+  // PFD Management (T8): requests that make a single UDR call
+  // PFD Management: create
   void pfd_create(
       const std::string& app_id, const nlohmann::json& body,
       const std::string& token, response_sink sink);
@@ -240,13 +239,13 @@ class nef_app {
       const std::string& app_id, nlohmann::json body, oai::nghttp2::response r,
       response_sink sink);
 
-  // PFD delete
+  // PFD Management: delete
   void pfd_delete(
       const std::string& app_id, const std::string& token, response_sink sink);
   void cont_pfd_delete(
       const std::string& app_id, oai::nghttp2::response r, response_sink sink);
 
-  // PFD app patch
+  // PFD Management: patch one application
   void pfd_app_patch(
       const std::string& scs_as_id, const std::string& trans_id,
       const std::string& app_id, const nlohmann::json& patch_body,
@@ -255,7 +254,7 @@ class nef_app {
       const std::string& scs_as_id, const std::string& app_id,
       nlohmann::json patched, oai::nghttp2::response r, response_sink sink);
 
-  // PFD app delete
+  // PFD Management: delete one application
   void pfd_app_delete(
       const std::string& scs_as_id, const std::string& trans_id,
       const std::string& app_id, const std::string& token, response_sink sink);
@@ -263,8 +262,8 @@ class nef_app {
       const std::string& scs_as_id, const std::string& app_id,
       oai::nghttp2::response r, response_sink sink);
 
-  // Nnef-PFD single (UDR)
-  // Nnef PFD put app
+  // Nnef_PFDmanagement: requests that make a single UDR call
+  // Nnef_PFDmanagement: put one application
   void nnef_pfd_put_app(
       const std::string& transaction_id, const std::string& app_id,
       const nlohmann::json& body, const std::string& token, response_sink sink);
@@ -273,7 +272,7 @@ class nef_app {
       nlohmann::json normalized_app, bool is_create, oai::nghttp2::response r,
       response_sink sink);
 
-  // Nnef PFD delete app
+  // Nnef_PFDmanagement: delete one application
 
   void nnef_pfd_delete_app(
       const std::string& transaction_id, const std::string& app_id,
@@ -281,7 +280,7 @@ class nef_app {
   void cont_nnef_pfd_delete_app(
       const std::string& app_id, oai::nghttp2::response r, response_sink sink);
 
-  // PFD transaction delete — UDR DELETE
+  // PFD Management: delete a transaction (one UDR DELETE per application)
   struct PfdDeleteChain {
     std::string udr_ep;
     std::vector<std::string> app_ids;
@@ -293,13 +292,13 @@ class nef_app {
       const std::string& token, response_sink sink);
   void pfd_transaction_delete_step(std::shared_ptr<PfdDeleteChain> st);
 
-  // nnef_pfd_delete_transaction
+  // Nnef_PFDmanagement: delete a transaction (one UDR DELETE per application)
   void nnef_pfd_delete_transaction(
       const std::string& transaction_id, const std::string& token,
       response_sink sink);
   void nnef_pfd_delete_transaction_step(std::shared_ptr<PfdDeleteChain> st);
 
-  // Nnef PFD partial pull- UDR GET
+  // Nnef_PFDmanagement: partial pull (one UDR GET per application)
   struct PfdPullChain {
     std::string udr_ep;
     std::vector<std::pair<std::string, nlohmann::json>>
@@ -312,7 +311,7 @@ class nef_app {
       const nlohmann::json& body, const std::string& token, response_sink sink);
   void nnef_pfd_partial_pull_step(std::shared_ptr<PfdPullChain> st);
 
-  // Pfd_transaction_put
+  // PFD Management: put a transaction (one UDR PUT per application)
   struct PfdPutChain {
     std::string scs_as_id;
     std::string trans_id;
@@ -337,7 +336,7 @@ class nef_app {
       std::shared_ptr<PfdPutChain> st, std::size_t remaining,
       const std::string& failed_app);
 
-  // Traffic influence delete — chained PCF→UDR (both deletes),
+  // Traffic Influence: delete (a PCF delete followed by a UDR delete)
   void ti_delete(
       const std::string& af_id, const std::string& ti_id,
       const std::string& token, response_sink sink);
@@ -348,7 +347,7 @@ class nef_app {
       const std::string& af_id, const std::string& ti_id,
       oai::nghttp2::response r, response_sink sink);
 
-  // Nnef PFD put transaction
+  // Nnef_PFDmanagement: put a transaction (one UDR PUT per application)
   struct NnefPutChain {
     std::string transaction_id;
     bool is_create = false;
@@ -449,13 +448,13 @@ class nef_app {
   void handle_analytics_subscription_list(
       const std::string& af_id, nlohmann::json& response_body, int& http_code);
 
-  // Analytics UPDATE (PUT)
+  // Analytics: update (PUT)
   void handle_analytics_subscription_update(
       const std::string& scs_as_id, const std::string& sub_id,
       const nlohmann::json& body, nlohmann::json& response_body,
       int& http_code);
 
-  // Analytics /fetch endpoint
+  // Analytics: /fetch endpoint
   void handle_analytics_fetch(
       const std::string& scs_as_id, const nlohmann::json& body,
       nlohmann::json& response_body, int& http_code);
@@ -497,65 +496,56 @@ class nef_app {
  private:
   std::string m_nef_instance_id;
 
-  // Concurrency contract for the state below. READ BEFORE REFACTORING.
+  // Concurrency contract for the state below. Read this before refactoring.
   //
-  // All ten mutexes are `mutable std::shared_mutex`. Each guards exactly
-  // the maps declared beside it, and nothing else.
+  // Each mutex here is a `mutable std::shared_mutex` and guards only the
+  // maps declared next to it.
   //
-  // THE INVARIANT: no code path ever holds two of these mutexes at the
-  // same time.
+  // The rule: no code path holds two of these mutexes at the same time.
+  // Every acquisition sits in its own `{ ... }` block and is released before
+  // the next one is taken, and no locked region calls another nef_app member
+  // that locks a different mutex.
   //
-  // Every acquisition sits in its own `{ ... }` block and is released
-  // before the next is taken, and no lock region calls another nef_app
-  // member that locks a different mutex. This was measured over all 79
-  // acquisition sites across the eight nef_app_*.cpp translation units
-  // (39 lock_guard, 36 shared_lock, 4 unique_lock); it is not an
-  // assumption.
-  //
-  // That invariant is the ONLY reason the lock order here is harmless,
-  // because the order is NOT uniform. Four functions take two or more
-  // distinct mutexes:
+  // This rule is the only thing that makes the lock order safe, because the
+  // order is not uniform. Five functions directly take more than one of
+  // these mutexes:
   //
   //   cont_qos_create                   qos -> nf2af
+  //   cont_qos_delete                   qos -> nf2af
   //   cont_ti_create_pcf                ti  -> nf2af
   //   cont_ti_delete_udr                ti  -> nf2af
   //   handle_subscription_expiry_tick   nnef_event -> af_subscriptions
-  //                                     -> nf2af -> ti      <-- REVERSED
+  //                                     -> nf2af -> ti      <-- reversed
   //
-  // handle_subscription_expiry_tick takes m_nf2af_mutex and then
-  // m_ti_mutex. That is the reverse of the three request-path functions
-  // above it, which take m_ti_mutex or m_qos_mutex and then
-  // m_nf2af_mutex. The expiry tick also runs on the task_manager tick
-  // thread, not a request thread, so both orders really do execute
-  // concurrently.
+  // handle_subscription_expiry_tick takes m_nf2af_mutex before m_ti_mutex,
+  // the reverse of the four request-path functions above, which take
+  // m_ti_mutex or m_qos_mutex before m_nf2af_mutex. The expiry tick runs on
+  // the task_manager tick thread, not a request thread, so both orders do
+  // run concurrently.
   //
-  // The ABBA cycle is therefore already fully assembled; only block
-  // scoping keeps the two halves from ever being held at once. In two
-  // places the closing brace of one lock block and the opening of the
-  // next are adjacent -- deleting that pair of braces is a one-character
-  // edit that produces a real deadlock.
+  // Both halves of an ABBA (lock-order inversion) deadlock are therefore
+  // already in the code; only the block scoping keeps them from being held
+  // at once. Each of these edits can turn that into a real deadlock, and
+  // none of them looks dangerous in review:
   //
-  // So treat "never hold two" as a contract to preserve, not an accident
-  // to lean on. Each of the following converts that latent ABBA into a
-  // live deadlock, and none of them looks dangerous in review:
-  //
-  //   1. hoisting a guard out of its block up to function scope;
-  //   2. merging two adjacent lock blocks into one;
+  //   1. moving a guard out of its block up to function scope;
+  //   2. merging two adjacent lock blocks into one. In places one lock block
+  //      closes right where the next opens, so this takes only deleting a
+  //      pair of braces;
   //   3. moving a map behind a helper or service object that locks
-  //      internally, so an outer lock region now calls into it;
-  //   4. letting a sink, callback or continuation re-enter nef_app while
-  //      a store lock is held. 33 sink(...) calls already run under a
-  //      held store mutex across 16 methods; they are safe only because
-  //      every one of them is handed a deferred sink, which hands off to
-  //      the libevent thread and never touches a nef_app mutex.
+  //      internally, so that an outer locked region now calls into it;
+  //   4. letting a sink, callback or continuation re-enter nef_app while a
+  //      store lock is held. Some sink(...) calls already run while a store
+  //      mutex is held. They are safe only because each of them gets a
+  //      deferred sink, which hands the response to the libevent thread and
+  //      never takes a nef_app mutex.
   //
-  // If two mutexes ever genuinely must be held together, stop and define
-  // a documented lock order first, then make the expiry tick conform to
-  // it. Do not add the second acquisition and hope.
+  // If two mutexes really must be held together, first define and document
+  // a lock order, then make the expiry tick follow it.
   //
-  // Unrelated to lock order, but in the same blast radius: nef_subscription
-  // itself has no mutex. shared_ptrs to it are handed out from under
-  // m_af_subscriptions_mutex and then mutated with no lock held.
+  // Related, though not about lock order: nef_subscription itself has no
+  // mutex. shared_ptrs to it are handed out from under
+  // m_af_subscriptions_mutex and then modified with no lock held.
   //
   // AF subscriptions map (af_sub_id → subscription)
   std::map<std::string, std::shared_ptr<nef_subscription>>
@@ -572,9 +562,9 @@ class nef_app {
   std::map<std::string, std::string> m_ti_id2pcf_policy_id;
   mutable std::shared_mutex m_ti_mutex;
 
-  // QoS AF-session → PCF appSessionId. Distinct from TI's m_ti_id2pcf_policy_id
-  // Keyed by the NEF qos_sub_id; value is the PCF-returned appSessionId.
-  // Guarded by m_qos_mutex.
+  // QoS subscription → PCF appSessionId, separate from TI's
+  // m_ti_id2pcf_policy_id. Keyed by the NEF qos_sub_id; the value is the
+  // appSessionId returned by PCF. Guarded by m_qos_mutex.
   std::map<std::string, std::string> m_qos_sub_id2pcf_app_session_id;
   mutable std::shared_mutex m_qos_mutex;
 
@@ -594,7 +584,7 @@ class nef_app {
   std::unordered_map<std::string, nlohmann::json> m_nnef_pfd_transactions;
   mutable std::shared_mutex m_nnef_pfd_transactions_mutex;
 
-  // F3.2: Nnef_PFDmanagement subscriptions (sub_id → typed PfdSubscription)
+  // Nnef_PFDmanagement subscriptions (sub_id → typed PfdSubscription)
   std::unordered_map<std::string, oai::_3gpp::model::PfdSubscription>
       m_nnef_pfd_subscriptions;
   mutable std::shared_mutex m_nnef_pfd_subscriptions_mutex;
@@ -619,18 +609,18 @@ class nef_app {
 
   // Internal helpers
 
-  // The "AF/NF not authorized" rejection, in the four spellings the call
-  // sites need. Each returns true when the caller must stop; false means the
+  // The "AF/NF not authorized" rejection, in the four forms the call sites
+  // need. Each returns true when the caller must stop; false means the
   // request is authorized and nothing was written.
   //
-  // The response_sink overloads clear the bearer token BEFORE they answer.
-  // That ORDERING -- not the mere presence of the clear -- is the invariant
-  // the async path depends on; see the thread_local bearer-token banner at
-  // the top of nef_app_core.cpp. Folding it in here makes it one place to
-  // audit instead of seventeen.
+  // The response_sink overloads clear the bearer token before they answer.
+  // The async path depends on that order, not just on the clear happening;
+  // see the thread_local bearer-token comment at the top of
+  // nef_app_core.cpp. Doing it in these helpers leaves one place to audit
+  // instead of every call site.
   //
-  // AF and NF stay apart on purpose. They are different predicates
-  // (authorize_af_request vs authorize_nnef_request) AND different detail
+  // AF and NF are kept apart on purpose. They use different predicates
+  // (authorize_af_request vs authorize_nnef_request) and different detail
   // strings, so one shared helper would change what the NF responses say.
   bool reject_unauthorized_af(
       const std::string& af_id, const std::string& api_name,

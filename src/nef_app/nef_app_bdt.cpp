@@ -103,26 +103,26 @@ void nef_app::handle_bdt_policy_get(
 }
 
 //------------------------------------------------------------------------------
-// bdt_policy_create. Authorize, typed-parse, validate bdtPolData, check the
-// path params, generate bdt_id and store it locally — all unchanged from the
-// sync handler. Only the PCF BDT create becomes an async fire, and
+// bdt_create: authorizes the AF, parses and validates the body (bdtPolData is
+// required), checks the afId path parameter, generates bdt_id and stores the
+// policy locally, then sends the BDT create to PCF without waiting for it.
 // cont_bdt_create builds the 201 body.
 //
-// SUCCESS-ON-3xx: PCF answers a successful create with 303, so a 303 counts as
-// success here, exactly like the sync `!= SEE_OTHER` guard. A genuine failure
-// rolls back the local state and answers 502.
+// PCF answers a successful create with 303, so a 303 counts as success here.
+// A real failure rolls back the local state and answers 502.
 //
-// The sync handler never parsed the PCF id into the AF response; it only
-// stored pcf_bdt_id in m_bdt_id2pcf_policy_id. cont_bdt_create extracts that
-// id with nef_async_parse_pcf_bdt_policy_id, whose precedence mirrors the sync
-// create_pcf_bdt_policy exactly:
+// The PCF policy id is not returned to the AF; it is only stored in
+// m_bdt_id2pcf_policy_id. cont_bdt_create extracts it with
+// nef_async_parse_pcf_bdt_policy_id, which uses the same order as the
+// synchronous nef_client::create_pcf_bdt_policy:
 //   1. last path segment of the Location header,
 //   2. body bdtPolicyId,
 //   3. body bdtRefId,
 //   4. body bdtPolData.bdtRefId.
-// Location must come first. The appSessionId-first app-session helper is the
-// wrong one here: with it, a PCF response carrying only a body would leave the
-// map unwired and break every later BDT update, patch and delete.
+// Location must come first. Do not use the app-session helper here, which
+// reads appSessionId first: with it, a PCF response carrying only a body would
+// leave m_bdt_id2pcf_policy_id unset and break every later BDT update, patch
+// and delete.
 void nef_app::bdt_create(
     const std::string& af_id, const nlohmann::json& body,
     const std::string& token, response_sink sink) {
@@ -192,7 +192,7 @@ void nef_app::bdt_create(
   }
   clear_request_bearer_token();
 
-  // Fire the PCF BDT create. A 303 counts as success.
+  // Send the BDT create to PCF. A 303 counts as success.
   m_nef_client->create_pcf_bdt_policy_async(
       body, [this, af_id, bdt_id, bdt_policy,
              sink = std::move(sink)](oai::nghttp2::response r) mutable {
@@ -209,8 +209,8 @@ void nef_app::cont_bdt_create(
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_bdt_create bdt_id=%s status=%d", bdt_id.c_str(), r.status_code);
-  // SUCCESS-ON-3xx: 2xx or 303 is success. A genuine failure rolls back the
-  // local state and answers 502.
+  // A 2xx or a 303 counts as success. A real failure rolls back the local
+  // state and answers 502.
   if (!sbi_ok_or_303(r)) {
     Logger::nef_app().warn(
         "PCF BDT create failed for bdt_id=%s (http=%d), rolling back local "
@@ -229,11 +229,11 @@ void nef_app::cont_bdt_create(
             .dump());
   }
 
-  // A concurrent AF delete may have removed bdt_id while PCF was in flight. If
-  // it is gone, do not resurrect it. The 201 still goes out and reflects the
-  // local state we built; the AF delete already cleaned the maps. The PCF BDT
-  // policy is left for PCF/AF cleanup — the sync path has no compensating
-  // delete either.
+  // A concurrent AF delete may have removed bdt_id while the PCF request was
+  // in flight. If it is gone, do not add it back. The 201 still goes out and
+  // reflects the local state built in bdt_create; the AF delete already
+  // cleaned the maps. The PCF BDT policy is left for PCF or the AF to clean
+  // up, since there is no compensating delete.
   const std::string pcf_bdt_id = nef_async_parse_pcf_bdt_policy_id(r);
   {
     const std::lock_guard<std::shared_mutex> lock(m_bdt_mutex);
@@ -254,12 +254,13 @@ void nef_app::cont_bdt_create(
 }
 
 //------------------------------------------------------------------------------
-// bdt_policy_update. Authorize, parse, validate, check the owner and resolve
-// the PCF id — all unchanged. Only the PCF BDT update becomes an async fire.
+// bdt_update: authorizes the AF, parses and validates the body, checks that
+// the policy exists and belongs to the caller, looks up the PCF policy id,
+// then sends the BDT update to PCF without waiting for it.
 //
-// FATAL-502: a PCF failure fails the whole request, sbi_error_http_code
-// mapping it to 502 (504 on a per-request timeout). On success cont_bdt_update
-// overwrites the local store and sends the 200.
+// A PCF failure fails the whole request: sbi_error_http_code maps it to 502,
+// or 504 on a per-request timeout. On success cont_bdt_update overwrites the
+// local store and sends the 200.
 void nef_app::bdt_update(
     const std::string& af_id, const std::string& bdt_id,
     const nlohmann::json& body, const std::string& token, response_sink sink) {
@@ -346,7 +347,7 @@ void nef_app::bdt_update(
   }
   clear_request_bearer_token();
 
-  // Fire the PCF BDT update.
+  // Send the BDT update to PCF.
   m_nef_client->update_pcf_bdt_policy_async(
       pcf_bdt_id, body,
       [this, af_id, bdt_id, bdt_policy,
@@ -364,7 +365,7 @@ void nef_app::cont_bdt_update(
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_bdt_update bdt_id=%s status=%d", bdt_id.c_str(), r.status_code);
-  // FATAL-502: a PCF failure fails the whole request (504 on a timeout).
+  // A PCF failure fails the whole request with 502 (504 on a timeout).
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "PCF BDT update failed for bdt_id=%s (http=%d)", bdt_id.c_str(),
@@ -395,12 +396,14 @@ void nef_app::cont_bdt_update(
 }
 
 //------------------------------------------------------------------------------
-// bdt_policy_patch. Authorize, check the owner, resolve the PCF id and
-// merge-patch into a local copy — all unchanged. Only the PCF BDT update
-// becomes an async fire.
+// bdt_patch: authorizes the AF, checks that the policy exists and belongs to
+// the caller, looks up the PCF policy id and merge-patches a local copy of the
+// stored policy, then sends that copy to PCF as a BDT update without waiting
+// for it.
 //
-// FATAL-502: a PCF failure fails the whole request (504 on a timeout). On
-// success cont_bdt_patch re-parses, validates, stores and sends the 200.
+// A PCF failure fails the whole request with 502 (504 on a timeout). On
+// success cont_bdt_patch re-parses and validates the copy, stores it and sends
+// the 200.
 void nef_app::bdt_patch(
     const std::string& af_id, const std::string& bdt_policy_id,
     const nlohmann::json& patch_body, const std::string& token,
@@ -446,7 +449,7 @@ void nef_app::bdt_patch(
   }
   clear_request_bearer_token();
 
-  // Fire the PCF BDT update with the merged copy.
+  // Send the merged copy to PCF as a BDT update.
   m_nef_client->update_pcf_bdt_policy_async(
       pcf_bdt_id, patched_copy,
       [this, af_id, bdt_policy_id, patched_copy,
@@ -464,7 +467,7 @@ void nef_app::cont_bdt_patch(
   Logger::nef_app().debug(
       "cont_bdt_patch bdt_id=%s status=%d", bdt_policy_id.c_str(),
       r.status_code);
-  // FATAL-502: a PCF failure fails the whole request (504 on a timeout).
+  // A PCF failure fails the whole request with 502 (504 on a timeout).
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "PCF BDT patch failed for bdt_id=%s (http=%d)", bdt_policy_id.c_str(),
@@ -506,11 +509,12 @@ void nef_app::cont_bdt_patch(
 }
 
 //------------------------------------------------------------------------------
-// bdt_policy_delete. Authorize, check the owner and resolve the PCF id — all
-// unchanged. Only the PCF BDT delete becomes an async fire.
+// bdt_delete: authorizes the AF, checks that the policy exists and belongs to
+// the caller, looks up the PCF policy id, then sends the BDT delete to PCF
+// without waiting for it.
 //
-// BEST-EFFORT: cont_bdt_delete erases the local state and answers 204 whatever
-// PCF says.
+// The PCF delete is best-effort: cont_bdt_delete erases the local state and
+// answers 204 whatever PCF says.
 void nef_app::bdt_delete(
     const std::string& af_id, const std::string& bdt_id,
     const std::string& token, response_sink sink) {
@@ -539,12 +543,11 @@ void nef_app::bdt_delete(
   clear_request_bearer_token();
 
   if (pcf_bdt_id.empty()) {
-    // No PCF policy to delete — finish the local cleanup inline (matches the
-    // sync skip of the southbound call).
+    // No PCF policy to delete: skip the PCF call and clean up locally now.
     return cont_bdt_delete(
         af_id, bdt_id, oai::nghttp2::response{}, std::move(sink));
   }
-  // Fire the PCF BDT delete
+  // Send the BDT delete to PCF.
   m_nef_client->delete_pcf_bdt_policy_async(
       pcf_bdt_id, [this, af_id, bdt_id,
                    sink = std::move(sink)](oai::nghttp2::response r) mutable {
@@ -558,7 +561,7 @@ void nef_app::cont_bdt_delete(
     oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_bdt_delete bdt_id=%s status=%d", bdt_id.c_str(), r.status_code);
-  // Best-effort: PCF result warn-only.
+  // Best-effort: a PCF failure is only logged as a warning.
   if (r.status_code != 0 && !sbi_ok(r)) {
     Logger::nef_app().warn(
         "PCF BDT delete failed for bdt_id=%s (http=%d)", bdt_id.c_str(),

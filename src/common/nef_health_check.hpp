@@ -11,7 +11,7 @@
 namespace oai::nef::app::nef_health_check {
 
 /**
- * The health-check response body.
+ * Builds the health-check response body.
  *
  * Sets http_code to 503 while the server is draining for a graceful
  * shutdown, and 200 otherwise. The draining body is deliberately short: just
