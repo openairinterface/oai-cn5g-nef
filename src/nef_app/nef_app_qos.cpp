@@ -82,8 +82,8 @@ bool nef_app::build_pcf_qos_body(
     asc["sponId"]      = sponsor.getSponsorId();
   }
 
-  // NEF inbound endpoint (not the AF notificationDestination)
-  // PCF callback template is "{evSubsc/notifUri}/notify"; set both fields.
+  // notifUri is the NEF inbound endpoint, not the AF notificationDestination.
+  // PCF's callback template is "{evSubsc/notifUri}/notify"; set both fields.
   if (!evsubsc_notif_uri.empty()) asc["notifUri"] = evsubsc_notif_uri;
 
   // Media components from flowInfo[]/qosReference
@@ -116,14 +116,15 @@ bool nef_app::build_pcf_qos_body(
   }
   if (!med_components.empty()) asc["medComponents"] = med_components;
 
-  // Event subscription block
-  // Only when an inbound NEF endpoint is supplied (CREATE/PUT, not PATCH).
+  // Event subscription block, built only when an inbound NEF endpoint is
+  // supplied. Only qos_create passes one; qos_update and qos_patch pass an
+  // empty URI, so the existing subscription is left as it is.
   if (!evsubsc_notif_uri.empty()) {
     nlohmann::json ev_subsc = nlohmann::json::object();
     ev_subsc["notifUri"]    = evsubsc_notif_uri;
 
-    // Translate requested T8 UserPlaneEvent -> PCF AfEvent, de-duplicating.
-    // SUCCESSFUL_/FAILED_RESOURCES_ALLOCATION are always present
+    // Translate the requested T8 UserPlaneEvent -> PCF AfEvent, removing
+    // duplicates. SUCCESSFUL_/FAILED_RESOURCES_ALLOCATION are always present.
     std::set<std::string> af_events;
     af_events.insert("SUCCESSFUL_RESOURCES_ALLOCATION");
     af_events.insert("FAILED_RESOURCES_ALLOCATION");
@@ -244,18 +245,18 @@ void nef_app::handle_qos_subscription_list(
 }
 
 //------------------------------------------------------------------------------
-// qos_subscription_create. The pre-southbound work is unchanged; only the PCF
-// policy-auth create becomes an async fire. cont_qos_create now owns the
-// failure branch, the id wiring, and the success body with its relative `self`
-// URI. Rewriting that `self` into an absolute URI stays in the adapter header
-// sink.
+// qos_subscription_create: authorizes, parses and validates the request,
+// SSRF-checks notificationDestination, adds the subscription and builds the
+// PCF body, then sends the policy-auth create to PCF without waiting for it.
+// cont_qos_create handles a failure, fills in the id maps, and builds the
+// success body with a relative `self` URI. The adapter's header sink turns
+// that `self` into an absolute URI.
 //
-// Parity with the sync handler: cont_qos_create resolves the PCF appSessionId
-// from the raw response — JSON appSessionId first, else the Location header,
-// the same precedence as the sync create_pcf_policy_auth. It then applies the
-// same is_valid_app_session_id() guard the sync handler applies. On a
-// southbound timeout, status 0, 4xx or 5xx the parsed id comes back empty or
-// invalid, which is FATAL-500.
+// cont_qos_create takes the PCF appSessionId from the raw response: the JSON
+// appSessionId first, else the Location header, the same precedence as the
+// synchronous nef_client::create_pcf_policy_auth. It then checks the id with
+// is_valid_app_session_id(). On a southbound timeout, status 0, 4xx or 5xx
+// the id is empty or invalid, and the request fails with 500.
 void nef_app::qos_create(
     const std::string& af_id, const nlohmann::json& body,
     const std::string& token, response_sink sink) {
@@ -372,7 +373,7 @@ void nef_app::qos_create(
   to_json(req_data_json, req_data);
   clear_request_bearer_token();
 
-  // Fire the PCF policy-auth create.
+  // Send the policy-auth create to PCF.
   m_nef_client->create_pcf_policy_auth_async(
       pcf_body, [this, af_id, qos_sub_id, req_data_json,
                  sink = std::move(sink)](oai::nghttp2::response r) mutable {
@@ -392,7 +393,7 @@ void nef_app::cont_qos_create(
       r.status_code);
   const std::string pcf_app_session_id =
       sbi_ok(r) ? nef_async_parse_pcf_app_session_id(r) : "";
-  // FATAL-500, not 502: PCF has to both succeed and hand back a usable
+  // Fail with 500, not 502: PCF has to both succeed and return a usable
   // appSessionId, so a missing or malformed id is as fatal as an error status.
   if (!sbi_ok(r) || !is_valid_app_session_id(pcf_app_session_id)) {
     remove_subscription(qos_sub_id);
@@ -405,11 +406,10 @@ void nef_app::cont_qos_create(
             .dump());
   }
 
-  // A concurrent AF delete may have removed qos_sub_id while PCF was in
-  // flight. If it is gone, do not resurrect it: the AF delete already won, so
-  // this is a benign no-op that answers 204. The freshly-created PCF
-  // app-session is left for PCF/AF cleanup — the sync QoS create has no
-  // compensating southbound delete either.
+  // A concurrent AF delete may have removed qos_sub_id while the PCF call was
+  // in progress. If so, do not recreate it: the AF delete already won, so this
+  // is a harmless no-op that answers 204. The PCF app-session just created is
+  // left for PCF/AF cleanup; no compensating delete is sent to PCF.
   if (!find_subscription(qos_sub_id)) {
     Logger::nef_app().info(
         "QoS sub %s vanished during PCF create (concurrent delete); no-op",
@@ -451,16 +451,16 @@ void nef_app::cont_qos_create(
 }
 
 //------------------------------------------------------------------------------
-// qos_subscription_update (PUT). Authorize, typed-parse, validate, check the
-// owner and the immutable fields, resolve the PCF app-session and update the
-// local store — all unchanged. Only the PCF policy-auth update becomes an
-// async fire.
+// qos_subscription_update (PUT): authorizes, parses and validates the body,
+// checks the owner and the immutable fields, looks up the PCF app-session and
+// updates the local store, then sends the policy-auth update to PCF without
+// waiting for it.
 //
-// BEST-EFFORT: the AF gets the stored subscription data whatever PCF says, and
-// a PCF failure only warns.
+// The PCF update is best-effort: the AF gets the stored subscription data
+// whatever PCF says, and a PCF failure only logs a warning.
 //
-// When the PCF body cannot be translated, the sync path fires no southbound
-// call at all, so the async path matches it by calling cont_qos_update inline.
+// When the PCF body cannot be translated, nothing is sent southbound and
+// cont_qos_update is called inline.
 void nef_app::qos_update(
     const std::string& scs_as_id, const std::string& sub_id,
     const nlohmann::json& body, const std::string& token, response_sink sink) {
@@ -588,8 +588,8 @@ void nef_app::qos_update(
   nlohmann::json response_data = sub->get_subscription_data();
   clear_request_bearer_token();
 
-  // Build the PCF merge body; if it cannot be translated the sync path fires no
-  // southbound call and still returns 200 — finish inline.
+  // Build the PCF merge body. If it cannot be translated, send nothing
+  // southbound and finish inline, still answering 200.
   nlohmann::json pcf_patch;
   std::string pcf_err;
   if (build_pcf_qos_body(
@@ -597,7 +597,7 @@ void nef_app::qos_update(
     nlohmann::json merge =
         pcf_patch.value("ascReqData", nlohmann::json::object());
     merge.erase("evSubsc");  // subscription persists per §4.15.6.6a
-    // Fire the PCF policy-auth update (best-effort).
+    // Send the policy-auth update to PCF (best-effort).
     m_nef_client->update_pcf_policy_auth_async(
         app_session_id, merge,
         [this, scs_as_id, sub_id, response_data,
@@ -624,7 +624,7 @@ void nef_app::cont_qos_update(
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_qos_update sub_id=%s status=%d", sub_id.c_str(), r.status_code);
-  // Best-effort: PCF result is warn-only.
+  // Best-effort: a PCF failure only logs a warning.
   if (!sbi_ok(r)) {
     Logger::nef_app().warn(
         "T8 PUT: PCF update failed for sub=%s (http=%d); in-memory state "
@@ -635,16 +635,16 @@ void nef_app::cont_qos_update(
   sink(http_status_code::OK, response_data.dump());
 }
 
-// qos_subscription_patch. Authorize, check the owner, merge-patch, validate,
-// SSRF-check the callback URI, check the immutable fields, resolve the PCF
-// app-session and update the local store — all unchanged. Only the PCF
-// policy-auth update becomes an async fire.
+// qos_subscription_patch: authorizes, checks the owner, applies the merge patch
+// and validates the result, SSRF-checks the callback URI, checks the immutable
+// fields, looks up the PCF app-session and updates the local store, then sends
+// the policy-auth update to PCF without waiting for it.
 //
-// BEST-EFFORT: the AF gets the patched body whatever PCF says, and a PCF
-// failure only warns.
+// The PCF update is best-effort: the AF gets the patched body whatever PCF
+// says, and a PCF failure only logs a warning.
 //
-// When the PCF body cannot be translated, the sync path fires no southbound
-// call, so the async path matches it by calling cont_qos_patch inline.
+// When the PCF body cannot be translated, nothing is sent southbound and
+// cont_qos_patch is called inline.
 void nef_app::qos_patch(
     const std::string& scs_as_id, const std::string& sub_id,
     const nlohmann::json& patch_body, const std::string& token,
@@ -778,7 +778,7 @@ void nef_app::qos_patch(
     nlohmann::json merge =
         pcf_patch.value("ascReqData", nlohmann::json::object());
     merge.erase("evSubsc");
-    // Fire the PCF policy-auth update (best-effort).
+    // Send the policy-auth update to PCF (best-effort).
     m_nef_client->update_pcf_policy_auth_async(
         app_session_id, merge,
         [this, scs_as_id, sub_id, patched,
@@ -815,12 +815,12 @@ void nef_app::cont_qos_patch(
   sink(http_status_code::OK, patched.dump());
 }
 
-// qos_subscription_delete. Authorize and check the owner — unchanged. Only the
-// SMF event-exposure unsubscribe becomes an async fire, and its result is
-// unchecked.
+// qos_subscription_delete: authorizes and checks the owner, then sends the
+// app-session delete to PCF without waiting for it.
 //
-// BEST-EFFORT: cont_qos_delete does the local cleanup and answers 204 whatever
-// SMF says.
+// The PCF delete is best-effort: cont_qos_delete does the local cleanup and
+// answers 204 whatever PCF says. With no usable appSessionId (the PCF create
+// never completed), nothing is sent and the local cleanup runs inline.
 void nef_app::qos_delete(
     const std::string& af_id, const std::string& qos_sub_id,
     const std::string& token, response_sink sink) {
@@ -839,45 +839,58 @@ void nef_app::qos_delete(
     return sink(http_status_code::FORBIDDEN, "");
   }
 
-  const std::string nf_sub_id = sub->get_nf_subscription_id();
+  std::string app_session_id;
+  {
+    std::shared_lock<std::shared_mutex> l(m_qos_mutex);
+    auto it = m_qos_sub_id2pcf_app_session_id.find(qos_sub_id);
+    if (it != m_qos_sub_id2pcf_app_session_id.end())
+      app_session_id = it->second;
+  }
   clear_request_bearer_token();
 
-  if (nf_sub_id.empty()) {
+  if (app_session_id.empty() || !is_valid_app_session_id(app_session_id)) {
     return cont_qos_delete(
-        af_id, qos_sub_id, nf_sub_id, oai::nghttp2::response{},
-        std::move(sink));
+        af_id, qos_sub_id, "", oai::nghttp2::response{}, std::move(sink));
   }
-  // Fire the SMF unsubscribe; whatever it answers, we return 204.
-  m_nef_client->unsubscribe_smf_event_exposure_async(
-      nf_sub_id, [this, af_id, qos_sub_id, nf_sub_id,
-                  sink = std::move(sink)](oai::nghttp2::response r) mutable {
+  // Still on the dispatcher worker, so the wrapper may do its own PCF
+  // discovery. Whatever PCF answers, we return 204.
+  m_nef_client->delete_pcf_policy_auth_async(
+      app_session_id,
+      [this, af_id, qos_sub_id, app_session_id,
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_qos_delete(
-            af_id, qos_sub_id, nf_sub_id, std::move(r), std::move(sink));
+            af_id, qos_sub_id, app_session_id, std::move(r), std::move(sink));
       });
 }
 
 //------------------------------------------------------------------------------
 void nef_app::cont_qos_delete(
     const std::string& af_id, const std::string& qos_sub_id,
-    const std::string& nf_sub_id, oai::nghttp2::response r,
+    const std::string& app_session_id, oai::nghttp2::response r,
     response_sink sink) {
   Logger::nef_app().debug(
       "cont_qos_delete qos_sub_id=%s status=%d", qos_sub_id.c_str(),
       r.status_code);
-  // Best-effort: SMF result ignored.
-  if (!nf_sub_id.empty() && !sbi_ok(r)) {
+  // Best-effort: a PCF failure is only logged.
+  if (!app_session_id.empty() && !sbi_ok(r)) {
     Logger::nef_app().warn(
-        "SMF event unsubscribe failed for nf_sub_id=%s (http=%d); local "
-        "cleanup proceeds",
-        nf_sub_id.c_str(), r.status_code);
+        "PCF app-session delete failed for app_session_id=%s (http=%d); "
+        "local cleanup proceeds",
+        app_session_id.c_str(), r.status_code);
   }
-  if (!nf_sub_id.empty()) {
+  // Same lock order as cont_qos_create: m_qos_mutex, then m_nf2af_mutex,
+  // each in its own block.
+  {
+    const std::lock_guard<std::shared_mutex> lock(m_qos_mutex);
+    m_qos_sub_id2pcf_app_session_id.erase(qos_sub_id);
+  }
+  {
     const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
     // cont_qos_create inserts two keys pointing at this af mapping: the
-    // notifId (== qos_sub_id) and the PCF appSessionId (== nf_sub_id). Erase
-    // both, or the appSessionId entry leaks for the life of the process.
+    // notifId (== qos_sub_id) and the PCF appSessionId. Erase both, or they
+    // leak for the life of the process.
     m_nf2af_sub_id.erase(qos_sub_id);
-    m_nf2af_sub_id.erase(nf_sub_id);
+    if (!app_session_id.empty()) m_nf2af_sub_id.erase(app_session_id);
   }
   remove_subscription(qos_sub_id);
   release_af_profile_subscription(af_id, qos_sub_id);

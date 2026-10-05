@@ -15,32 +15,34 @@
 
 namespace oai::nef::app {
 
-// Bounded MPSC request dispatcher.
+// Bounded request dispatcher: one task queue served by a pool of worker
+// threads.
 //
 // Producers are the HTTP/2 worker threads; consumers are a fixed pool of
 // dispatcher worker threads. Each task is a self-contained
-// std::function<void()> that has already value-captured the bearer token and
-// the response sink, so no thread-local or stack reference crosses the thread
-// boundary unsafely.
+// std::function<void()> that has already captured the bearer token and the
+// response sink by value, so no thread-local or stack reference crosses
+// threads unsafely.
 //
-// Two rules govern use:
+// Two rules apply:
 //
-//  - No self-enqueue. A dispatcher task must never enqueue onto this same
-//    dispatcher: with every worker blocked on its own nested task, the pool
-//    deadlocks.
+//  - No self-enqueue. A dispatcher task must never enqueue work onto this
+//    same dispatcher: with every worker blocked on its own nested task, the
+//    pool deadlocks.
 //
-//  - Size the dispatcher pool >= the HTTP worker pool. In the synchronous
-//    option an HTTP worker parks on fut.wait() while its task runs, so a
-//    smaller dispatcher pool leaves no spare capacity and requests
-//    head-of-line block behind each other. The constructor warns when the
-//    configured sizes break this.
+//  - Make the dispatcher pool at least as large as the HTTP worker pool. On
+//    the synchronous path an HTTP worker waits on fut.wait() while its task
+//    runs, so a smaller dispatcher pool leaves no spare capacity and requests
+//    queue up behind each other (head-of-line blocking). The constructor logs
+//    a warning when the configured sizes break this rule.
 class nef_request_dispatcher {
  public:
   enum class dispatch_status { ok, queue_full, stopped };
 
   // http_worker_count is used only to check the sizing rule above and warn;
   // it does not affect how many dispatcher threads are started.
-  // max_queue caps the backlog: past it, dispatch() rejects instead of growing.
+  // max_queue caps the backlog: once it is reached, dispatch() rejects new
+  // tasks instead of growing the queue.
   explicit nef_request_dispatcher(
       std::size_t num_threads, std::size_t http_worker_count,
       std::size_t max_queue = 10000)
@@ -60,7 +62,7 @@ class nef_request_dispatcher {
 
   ~nef_request_dispatcher() { stop(); }
 
-  nef_request_dispatcher(const nef_request_dispatcher&) = delete;
+  nef_request_dispatcher(const nef_request_dispatcher&)            = delete;
   nef_request_dispatcher& operator=(const nef_request_dispatcher&) = delete;
 
   // Non-blocking: enqueues and returns, never waits for a worker.
@@ -77,11 +79,12 @@ class nef_request_dispatcher {
     return dispatch_status::ok;
   }
 
-  // Drain the remaining tasks, then join the workers. Idempotent.
+  // Stop accepting tasks, run every task already queued, then join the
+  // workers. Idempotent.
   //
-  // Call it only AFTER HTTP intake has stopped. Otherwise an HTTP worker can
-  // be left parked forever on a future whose task is still sitting in the
-  // queue.
+  // Call it only after HTTP intake has stopped. A request that arrives after
+  // this point is refused: dispatch() returns stopped and the caller answers
+  // 503.
   void stop() {
     {
       std::lock_guard<std::mutex> lk(m_mutex);
@@ -112,12 +115,12 @@ class nef_request_dispatcher {
         task = std::move(m_queue.front());
         m_queue.pop();
       }
-      // Last-resort backstop ONLY. The correct place to handle a request error
-      // is the per-handler try/catch, which invokes the response_sink so the
-      // caller gets a proper HTTP status. If an exception reaches here the sink
-      // was never called, so a blocking caller may hang -- that is a bug, hence
-      // the bug-level log. We still swallow it to keep the worker (and the
-      // process) alive: an uncaught exception escaping task() would call
+      // Last-resort safety net only. Request errors should be handled by the
+      // per-handler try/catch, which calls the response_sink so the caller
+      // gets a proper HTTP status. If an exception reaches here, the sink was
+      // never called and a blocking caller may hang. That is a bug, hence the
+      // "BUG:" error log. The exception is still swallowed to keep the worker
+      // (and the process) alive: an exception escaping task() would call
       // std::terminate and abort the whole NF.
       try {
         task();  // outside the lock: user code must not block the other workers

@@ -15,13 +15,14 @@
 /// fails, execute() deletes those apps back out again.
 ///
 /// Atomicity is best-effort, not guaranteed. A rollback delete that itself
-/// fails is only reported through the optional callback: execute() never
-/// throws and never re-fails, so UDR can be left holding an orphaned app and
-/// deciding how loudly to log that is the caller's call.
+/// fails is not retried: execute() reports it through the optional callback
+/// and the returned failure count, so UDR can be left holding an orphaned app.
+/// The caller decides how loudly to log that. execute() catches nothing, so
+/// delete_fn should signal failure by returning false, not by throwing.
 ///
-/// The live async PFD PUT path does not use this tracker — nef_app's
-/// pfd_put_rollback / pfd_rollback_step run the compensating DELETEs as
-/// continuations, and unwind in reverse commit order.
+/// The live async PFD PUT path does not use this tracker: nef_app's
+/// pfd_put_rollback and pfd_rollback_step run the compensating DELETEs as
+/// continuations, in reverse commit order.
 class PfdRollbackTracker {
  public:
   void mark_committed(const std::string& app_id) {

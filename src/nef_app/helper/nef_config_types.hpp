@@ -31,14 +31,14 @@ namespace oai::config::nef {
  *
  *   af_whitelist:
  *     - af_id: "my-af"
- *       api_key: "secret"          # optional; empty = no key check
+ *       api_key: "secret"          # optional; parsed but not enforced
  *       allowed_apis:              # optional; absent/empty = all APIs allowed
- *         - monitoring_event
- *         - traffic_influence
+ *         - nnef-eventexposure     # service names from nef.h
+ *         - nnef-trafficinfluence
  */
 struct af_whitelist_entry_t {
   std::string af_id;    ///< SCS/AS identifier
-  std::string api_key;  ///< Pre-shared key (empty = unchecked)
+  std::string api_key;  ///< Pre-shared key (parsed, not enforced yet)
   std::vector<std::string>
       allowed_apis;  ///< Allowed service names (empty = all)
 };
@@ -48,9 +48,11 @@ class nef_config_type : public oai::config::nf {
 
  private:
   string_config_value m_support_features;
-  // Structured whitelist, parsed from the YAML sequence. Empty = open access.
+  // Structured whitelist, parsed from the YAML sequence. Empty allows no AF on
+  // its own; see get_af_whitelist().
   std::vector<af_whitelist_entry_t> m_af_whitelist;
-  // JWT HMAC shared secret. Empty disables JWT validation.
+  // JWT HMAC shared secret. Empty means JWT is not used; see
+  // get_jwt_secret_key().
   std::string m_jwt_secret_key;
   // Fail-open switch. When true, requests are allowed even with no JWT secret
   // and no whitelist configured.
@@ -77,11 +79,14 @@ class nef_config_type : public oai::config::nf {
   [[nodiscard]] std::string get_support_features() const;
   void set_support_features(const std::string&);
 
-  // An empty whitelist means open access (development / test).
+  // An empty whitelist allows no AF on its own. If the JWT secret is empty
+  // too, every request is denied unless insecure_dev_mode is set.
   [[nodiscard]] const std::vector<af_whitelist_entry_t>& get_af_whitelist()
       const;
 
-  // An empty secret disables JWT validation (development mode).
+  // An empty secret means JWT is not used: requests without a bearer token
+  // are checked against the whitelist, and any request that carries a token
+  // is rejected, because the token cannot be verified.
   [[nodiscard]] std::string get_jwt_secret_key() const;
 
   [[nodiscard]] bool get_insecure_dev_mode() const {

@@ -7,7 +7,7 @@ before deploying NEF in any environment other than the default Docker Compose se
 
 Every key described here was checked against the code that parses it: `config::read_from_file`
 (`src/common-src/config/config.cpp`) for the common keys, and `nef_config_type::from_yaml`
-(`src/nef_app/nef_config_types.cpp`) for the NEF-specific block. Keys that appear in the file but
+(`src/nef_app/helper/nef_config_types.cpp`) for the NEF-specific block. Keys that appear in the file but
 are not read are called out as such.
 
 For the authentication behaviour these keys drive, see the [Security Guide](security.md) and the
@@ -123,18 +123,21 @@ nef:
     nnef-qosmonitoring,
     nnef-analyticsexposure
 
-  # AF/SCS allow-list. Empty (or omitted) means open access — safe only with
-  # insecure_dev_mode: true. Each entry: af_id (required), api_key (optional,
-  # see note), allowed_apis (optional).
+  # AF/SCS allow-list. Empty (or omitted) allows no AF on its own: with
+  # jwt_secret also empty, every request is denied unless insecure_dev_mode is
+  # true. Each entry: af_id (required), api_key (optional, see note),
+  # allowed_apis (optional).
   af_whitelist: []
 
   security:
     # HMAC-SHA256 secret used to VALIDATE inbound JWTs. NEF never issues
-    # tokens. Empty disables JWT validation.
+    # tokens. Empty means JWT is not used: any request that carries a bearer
+    # token is rejected.
     jwt_secret: ""
     # Fail-open switch. When true AND no jwt_secret AND no af_whitelist are
-    # set, NEF bypasses the allow-list and accepts every request. Default
-    # false (fail-closed: deny everything when nothing is configured).
+    # set, NEF bypasses the allow-list and accepts every request that carries
+    # no bearer token. Default false (fail-closed: deny everything when nothing
+    # is configured).
     insecure_dev_mode: true
 ```
 
@@ -190,7 +193,7 @@ template overrides every port to `8080` and sets `nfs.nef.host` to `oai-nef-test
 | `nfs.nef.sbi.api_version` | string | `v1` | Version prefix in every NEF path |
 | `nfs.nef.sbi.interface_name` | string | `eth0` | Interface NEF binds its listening socket to |
 
-The built-in host defaults come from the `nef_config` constructor (`src/nef_app/nef_config.hpp`):
+The built-in host defaults come from the `nef_config` constructor (`src/nef_app/helper/nef_config.hpp`):
 `oai-nef`, `oai-nrf`, `oai-amf`, `oai-smf`, `oai-pcf`, `oai-udr`. They apply only when the YAML
 does not override them.
 
@@ -213,7 +216,7 @@ does not override them.
 
 | Parameter path | Type | Default | Description |
 |---|---|---|---|
-| `nef.af_whitelist` | list | `[]` | Allow-list of AF entries. Empty means open access. |
+| `nef.af_whitelist` | list | `[]` | Allow-list of AF entries. Empty allows no AF on its own: with `jwt_secret` also empty, every request is denied unless `insecure_dev_mode` is `true`. |
 | `nef.af_whitelist[*].af_id` | string | — | AF identifier. Compared, by exact string match, against the AF ID in the request URL path — or against the JWT `sub` claim when a valid bearer token is presented. Not compared against any header. |
 | `nef.af_whitelist[*].api_key` | string | `""` | Parsed into the entry, but **not enforced**. No code reads an API-key header or calls `validate_api_key()`. See the note below. |
 | `nef.af_whitelist[*].allowed_apis` | list | `[]` | Service names this AF may call. Empty means all services. Values must be the internal service names (see below). |
@@ -240,8 +243,8 @@ Allowed-API values are matched against the service constant passed by each handl
 
 | Parameter path | Type | Default | Description |
 |---|---|---|---|
-| `nef.security.jwt_secret` | string | `""` | HMAC-SHA256 secret used to validate inbound JWTs. NEF never signs or issues tokens. Empty disables JWT validation. |
-| `nef.security.insecure_dev_mode` | bool | `false` | When `true` and no `jwt_secret` and no `af_whitelist` are set, NEF bypasses the allow-list and accepts every request. |
+| `nef.security.jwt_secret` | string | `""` | HMAC-SHA256 secret used to validate inbound JWTs. NEF never signs or issues tokens. Empty means JWT is not used: requests without a token are checked against `af_whitelist`, and any request that carries a bearer token is rejected. |
+| `nef.security.insecure_dev_mode` | bool | `false` | When `true` and no `jwt_secret` and no `af_whitelist` are set, NEF bypasses the allow-list and accepts every request that carries no bearer token. |
 
 `insecure_dev_mode` only matters when nothing else is configured. Its exact effect, and the
 fail-closed default, are described in `authorize_af_request` (`src/nef_app/nef_app_core.cpp`) and

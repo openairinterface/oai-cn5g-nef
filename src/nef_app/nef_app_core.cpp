@@ -50,34 +50,35 @@ extern std::shared_ptr<oai::nghttp2::http_client> http_client_inst;
 
 // Per-request bearer token.
 //
-// The storage is thread_local, so it is implicitly scoped to whichever
-// thread is running the request right now. That is exactly the trap: a
-// request does NOT stay on one thread. A phase-1 method runs on a dispatcher
-// worker and then hands off to the oai-http-io pool mid-request, and the
-// token does not travel with it.
+// The storage is thread_local, so it belongs to whichever thread is running
+// the request at that moment. That is the trap: a request does not stay on
+// one thread. An async entry method runs on a dispatcher worker and then
+// hands the request to the oai-http-io pool, and the token does not travel
+// with it.
 //
-// Sync path: safe and zero-maintenance. nef_app_adapter::execute_with_token
-// wraps every execute_* in a bearer_token_scope whose destructor clears, so
-// it is exception-safe by construction.
+// Sync path: safe with no extra work. nef_app_adapter::execute_with_token
+// wraps every execute_* in a bearer_token_scope whose destructor clears the
+// token, so it is exception-safe by construction.
 //
-// Async path: manual, and the ORDERING is the invariant -- not the mere
-// presence of a clear. The 26 phase-1 methods set the token once and then
-// call clear_request_bearer_token() by hand on every exit path (133 call
-// sites). Each clear must happen BEFORE the southbound fire and BEFORE every
-// sink(...), not merely somewhere in the function. Otherwise a token
+// Async path: manual, and what matters is when the clear happens, not just
+// that there is one. Each async entry method sets the token once and then
+// calls clear_request_bearer_token() by hand on every exit path. Each clear
+// must happen before the southbound request is sent and before every
+// sink(...), not just somewhere in the function. Otherwise the token
 // outlives its request on a worker thread that is then reused by an
-// unrelated one.
+// unrelated request.
 //
-// That is why the obvious cleanup does not work: a naive "just wrap it in a
-// scope guard" moves the clear after sink() and breaks precisely this
-// ordering.
+// That is why a simple scope guard does not work here: it would move the
+// clear after sink() and break this ordering.
 //
-// No cont_* sets or clears the token, by design. The async split banner in
-// nef_app_internal.hpp describes how the two halves divide the work.
+// No cont_* method sets or clears the token, by design. The "Async handler
+// split" comment in nef_app_internal.hpp describes how the two halves divide
+// the work.
 //
-// Open question for the maintainer: continuations mutate stores and do
-// southbound cleanup with no token and therefore no re-authorization.
-// Authorization happens once, in phase 1. One-shot by design, or a gap?
+// Open question for the maintainer: continuations change stores and do
+// southbound cleanup with no token, and therefore with no re-authorization.
+// Authorization happens once, in the entry method. Is that intended, or is
+// it a gap?
 //
 // get_request_bearer_token() currently has no callers.
 namespace {
@@ -129,9 +130,9 @@ nef_app::nef_app(const std::string& config_file, std::shared_ptr<nef_event>& ev)
   }
 
   // nef_client is an oai::sba::nf_service: it takes the event subscriber and
-  // the SBI client the base retains. The heartbeat below stays here rather
-  // than being handed to the base's timer, because NEF advertises a 50 s
-  // heartBeatTimer and the base defaults to 10 s.
+  // the SBI client the base retains. The heartbeat below is scheduled here,
+  // not by the base's timer, because NEF advertises a 50 s heartBeatTimer and
+  // the base defaults to 10 s.
   m_nef_client = std::make_shared<nef_client>(ev, http_client_inst);
 
   // Bounded thread pool for notification forwarding (4 workers, 1000-task
@@ -157,7 +158,7 @@ nef_app::nef_app(const std::string& config_file, std::shared_ptr<nef_event>& ev)
     m_connections.push_back(hb_conn);
   } else {
     Logger::nef_app().error("Failed to register NEF to NRF");
-    // Exist?
+    // Should NEF exit when NRF registration fails?
   }
 
   constexpr uint64_t SUBSCRIPTION_EXPIRY_CHECK_MS = 1000;
@@ -250,7 +251,8 @@ bool nef_app::authorize_af_request(
     }
   }
 
-  // Whitelist configured but empty of matching entries — deny.
+  // Defensive only: an empty whitelist is already handled above (with no token
+  // and no JWT secret), so this branch is not reached.
   if (wl.empty()) {
     Logger::nef_app().warn(
         "AF %s denied: whitelist is configured but empty", scs_as_id.c_str());
@@ -303,14 +305,16 @@ bool nef_app::authorize_nnef_request(const std::string& api_name) const {
 }
 
 // The four "not authorized" rejections. Each returns true when the caller
-// must stop; false leaves response_body / the sink untouched.
+// must stop; false leaves response_body or the sink untouched.
 //
-// The response_sink overloads clear the bearer token BEFORE they answer,
-// because that ordering is the invariant -- see the thread_local banner at
-// the top of this file. It now holds in two places instead of seventeen.
+// The response_sink overloads clear the bearer token before they answer,
+// because that order is required (see the bearer token comment at the top
+// of this file). Callers that use these overloads get the order right
+// without repeating it.
 //
-// AF and NF are deliberately not merged: different predicate, different
-// detail string, and merging them would change what the NF responses say.
+// The AF and NF versions are kept separate on purpose: they use a different
+// check and a different detail string, and merging them would change what
+// the NF responses say.
 //------------------------------------------------------------------------------
 bool nef_app::reject_unauthorized_af(
     const std::string& af_id, const std::string& api_name,

@@ -64,8 +64,7 @@ void nef_app::handle_nnef_event_exposure_subscribe(
 
   std::string error_detail;
 
-  // Typed parse + validate; this replaced the hand-written
-  // validate_nnef_event_exposure_subscription_body().
+  // Parse and validate the body with the typed NefEventExposureSubsc model.
   oai::_3gpp::model::NefEventExposureSubsc subsc;
   try {
     from_json(body, subsc);

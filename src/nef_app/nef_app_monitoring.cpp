@@ -47,7 +47,7 @@ using namespace oai::common::sbi;
 
 extern std::unique_ptr<oai::config::nef::nef_config> nef_config_inst;
 
-// Monitoring Event UPDATE (PUT)
+// Monitoring Event update (PUT)
 //------------------------------------------------------------------------------
 void nef_app::handle_monitoring_event_subscription_update(
     const std::string& scs_as_id, const std::string& sub_id,
@@ -157,9 +157,11 @@ void nef_app::handle_monitoring_event_subscription_get(
 }
 
 //------------------------------------------------------------------------------
-// Phase 1. The pre-southbound work is unchanged from the sync handler. The
-// AMF subscribe becomes an async fire; the rollback and the post-wiring move
-// into cont_monitoring_event_subscribe.
+// monitoring_event_subscribe: authorizes the AF, validates the body and the
+// callback URI, creates and stores the subscription locally, then sends the
+// event exposure subscribe to AMF without waiting for it.
+// cont_monitoring_event_subscribe rolls back the local state if AMF fails, or
+// records the AMF subscription id on success.
 void nef_app::monitoring_event_subscribe(
     const std::string& scs_as_id, const nlohmann::json& body,
     const std::string& token, response_sink sink) {
@@ -258,8 +260,8 @@ void nef_app::monitoring_event_subscribe(
   ensure_af_profile(scs_as_id, sub_id);
   clear_request_bearer_token();
 
-  // Still on the dispatcher worker here, so letting the wrapper do its own
-  // discovery is safe.
+  // This still runs on the dispatcher worker, so it is safe to let
+  // subscribe_amf_event_exposure_async do its own AMF discovery.
   m_nef_client->subscribe_amf_event_exposure_async(
       body, [this, scs_as_id, sub_id, body,
              sink = std::move(sink)](oai::nghttp2::response r) mutable {
@@ -277,7 +279,7 @@ void nef_app::cont_monitoring_event_subscribe(
       sub_id.c_str(), r.status_code);
   const std::string amf_sub_id = sbi_ok(r) ? nef_async_parse_amf_sub_id(r) : "";
   // An AMF failure, or a 2xx carrying no usable id, rolls back the local
-  // state and fails the request with 502 — same as the sync handler.
+  // state and fails the request with 502 (504 on a timeout).
   if (!sbi_ok(r) || amf_sub_id.empty()) {
     Logger::nef_app().warn("Failed to subscribe to AMF event exposure (async)");
     remove_subscription(sub_id);
@@ -305,10 +307,12 @@ void nef_app::cont_monitoring_event_subscribe(
 }
 
 //------------------------------------------------------------------------------
-// Phase 1. The authorize/owner block is unchanged from the sync handler.
-// The AMF unsubscribe becomes an async fire and its result is not checked:
-// cont_monitoring_event_unsubscribe does the local cleanup and answers 204
-// regardless of the southbound outcome (best-effort, 204 unconditionally).
+// monitoring_event_unsubscribe: authorizes the AF, checks that the
+// subscription exists and belongs to the caller, then sends the unsubscribe to
+// AMF without waiting for it.
+//
+// The AMF call is best-effort: cont_monitoring_event_unsubscribe does the
+// local cleanup and answers 204 whatever AMF says.
 void nef_app::monitoring_event_unsubscribe(
     const std::string& scs_as_id, const std::string& sub_id,
     const std::string& token, response_sink sink) {
@@ -333,9 +337,8 @@ void nef_app::monitoring_event_unsubscribe(
   const std::string nf_sub_id = sub->get_nf_subscription_id();
   clear_request_bearer_token();
 
-  // Fire the AMF unsubscribe. With no NF sub id there is nothing to
-  // unsubscribe, so finish the cleanup inline -- the sync path skips the
-  // southbound call too.
+  // Send the unsubscribe to AMF. With no NF subscription id there is nothing
+  // to unsubscribe, so skip the AMF call and do the local cleanup now.
   if (nf_sub_id.empty()) {
     return cont_monitoring_event_unsubscribe(
         scs_as_id, sub_id, nf_sub_id, oai::nghttp2::response{},
@@ -357,7 +360,7 @@ void nef_app::cont_monitoring_event_unsubscribe(
   Logger::nef_app().debug(
       "cont_monitoring_event_unsubscribe sub_id=%s status=%d", sub_id.c_str(),
       r.status_code);
-  // Best-effort: AMF result ignored
+  // Best-effort: an AMF failure is only logged as a warning.
   if (!nf_sub_id.empty() && !sbi_ok(r)) {
     Logger::nef_app().warn(
         "AMF event unsubscribe failed for nf_sub_id=%s (http=%d); local "

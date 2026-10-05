@@ -19,7 +19,7 @@ nef_config_type::nef_config_type(
   m_support_features = string_config_value(
       NEF_CONFIG_SUPPORT_FEATURES_LABEL,
       "nnef-eventexposure,nnef-pfdmanagement");
-  // m_af_whitelist is left default-constructed, i.e. empty: open-access mode.
+  // m_af_whitelist is left default-constructed, i.e. empty: no AF is listed.
 }
 
 //------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ void nef_config_type::from_yaml(const YAML::Node& node) {
       const YAML::Node& wl_node = elem.second;
 
       // A sequence is the only meaningful shape. Null or a scalar means an
-      // empty whitelist, i.e. open access, so there is nothing to parse.
+      // empty whitelist, so there is nothing to parse.
       if (!wl_node.IsSequence()) continue;
 
       for (const auto& entry_node : wl_node) {
@@ -162,7 +162,7 @@ std::string nef_config_type::to_string(const std::string& indent) const {
           BASE_FORMATTER, OUTER_LIST_ELEM, NEF_CONFIG_AF_WHITELIST_LABEL,
           inner_width,
           m_af_whitelist.empty() ?
-              std::string("(open-access / dev mode)") :
+              std::string("(empty)") :
               std::to_string(m_af_whitelist.size()) + " entry/entries"));
 
   return out;

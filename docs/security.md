@@ -5,8 +5,8 @@
 This guide describes how NEF actually authorizes callers, protects its notification callbacks, and
 defends the HTTP/2 transport. Every claim was checked against the code that enforces it —
 principally `authorize_af_request` (`src/nef_app/nef_app_core.cpp`), `nef_jwt`
-(`src/nef_app/nef_jwt.cpp`), `validate_callback_uri` (`src/common/nef_callback_uri_validator.hpp`),
-and the HTTP/2 server (`src/common-src/sba/http2_server.cpp`).
+(`src/nef_app/helper/nef_jwt.cpp`), `validate_callback_uri` (`src/common/nef_callback_uri_validator.hpp`),
+and the HTTP/2 server (`src/common-src/nghttp/http2_server.cpp`).
 
 The [API Overview](api-reference/overview.md#authentication) is the companion summary for AF
 developers; this page is the detailed reference.
@@ -94,12 +94,13 @@ nef:
     insecure_dev_mode: false
 ```
 
-An empty `jwt_secret` disables validation. When it is set, a request with no bearer token is
-rejected with `403`.
+With an empty `jwt_secret`, JWT is not used: a request that carries a bearer token is rejected
+with `403`, because the token cannot be verified. When it is set, a request with no bearer token
+is rejected with `403`.
 
 ### What `validate_af_token` checks
 
-In order (`src/nef_app/nef_jwt.cpp`):
+In order (`src/nef_app/helper/nef_jwt.cpp`):
 
 1. The `jwt_secret` must be configured, or validation fails closed.
 2. The token must split into `header.payload.signature`.
@@ -198,7 +199,7 @@ deny the AF. The mapping is in the
 | `af_whitelist` | `jwt_secret` | `insecure_dev_mode` | Result |
 |----------------|--------------|---------------------|--------|
 | empty | empty | `false` | Fail-closed: every request denied with `403` |
-| empty | empty | `true` | Open access: every request allowed |
+| empty | empty | `true` | Open access: every request without a bearer token allowed (a token is rejected) |
 | empty | set | any | Valid JWT required; otherwise `403` |
 | non-empty | empty | any | Allow-list by path AF ID; unlisted or disallowed API → `403` |
 | non-empty | set | any | Valid JWT allowed immediately; otherwise the allow-list applies |
@@ -268,7 +269,7 @@ is not caught here. In a lab, give the AF a routable address or a hostname rathe
 
 ## 8. Transport hardening
 
-NEF's HTTP/2 server (`src/common-src/sba/http2_server.cpp`, nghttp2 v1.68.1, cleartext h2c) applies
+NEF's HTTP/2 server (`src/common-src/nghttp/http2_server.cpp`, nghttp2 v1.68.1, cleartext h2c) applies
 several limits.
 
 ### Request body limit

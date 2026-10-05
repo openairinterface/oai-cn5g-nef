@@ -119,8 +119,9 @@ ProblemDetails body.
 ### Development mode (default template)
 
 With `jwt_secret` empty, `af_whitelist` empty and `insecure_dev_mode: true` — the shipped
-defaults — NEF accepts every request without credentials. No `Authorization` header is needed. It
-infers the AF identity from the identifier in the URL path. You can skip to
+defaults — NEF accepts every request without credentials. Send no `Authorization` header: with
+`jwt_secret` empty, any bearer token is rejected. NEF takes the AF identity from the identifier in
+the URL path. You can skip to
 [Step 4](#step-4-create-your-first-monitoring-subscription).
 
 ```bash
@@ -132,14 +133,23 @@ TOKEN=""
 
 Once you set a non-empty `jwt_secret`, every request must carry an
 `Authorization: Bearer <JWT>` header. The token is a JWT signed with HMAC-SHA256 (`HS256`) using
-that secret. The `sub` claim is the AF identifier and must match the identifier used in the URL
-path (and the `af_id` in the whitelist, when one is configured). An `exp` claim is recommended.
+that secret. Two claims are required:
+
+- `sub` is the AF identifier and must match the identifier used in the URL path.
+- `scope` must equal the internal name of the service being called, for example
+  `nnef-eventexposure` for Monitoring Event (see the service-name table in the
+  [Configuration Reference](configuration-reference.md#af-whitelist)). Because it must match
+  exactly, each token works for one service.
+
+An `exp` claim is recommended. A request with a valid token is allowed without consulting the
+whitelist.
 
 A decoded payload looks like this:
 
 ```json
 {
   "sub": "my-af",
+  "scope": "nnef-eventexposure",
   "iat": 1745539200,
   "exp": 1745625600
 }
@@ -152,7 +162,7 @@ Export a signed token before the next steps (the header must declare `HS256`; a 
 TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
-If a whitelist entry carries an `api_key`, the caller must also send it in an `X-API-Key` header.
+There is no API-key header to send: a whitelist entry's `api_key` is parsed but not checked.
 For the full rules, see the [API Overview — Authentication](api-reference/overview.md#authentication)
 and the [Security Guide](security.md).
 

@@ -463,8 +463,9 @@ stateDiagram-v2
     LocallyDiverged --> DeletedLocally : DELETE, local resource removed
     DeletedLocally --> [*] : AF receives 204
     note right of DeletedLocally
-      Current implementation attempts SMF Event Exposure DELETE,
-      does not revoke the PCF AppSession, and leaves stale correlations.
+      Sends a best-effort PCF AppSession delete and clears the
+      correlations. A PCF failure is only logged, so the
+      AppSession can survive.
     end note
     note right of OrphanedPcf
       The successful PCF create completed after local deletion.
@@ -478,7 +479,7 @@ stateDiagram-v2
 | `GET` collection/item | Reads in-memory state only. Create stored the request before adding the response `self`, and list adds a non-standard `subId` field. | None; no PCF read. | `200`; missing item `404`; wrong owner `403`. An item response need not reproduce the `201` body. |
 | `PUT` | Fully replaces local state before the PCF result. Changing an existing guarded field or newly adding one is rejected, but omission can remove one. | Best-effort PCF AppSession `PATCH` with a flat, schema-nonconformant fragment. | `200` even if PCF rejects the update; local and PCF state can diverge. |
 | `PATCH` | Applies RFC 7396 merge locally before the PCF result. `notificationDestination` cannot be removed, but `null` can remove a guarded target field. | Best-effort PCF AppSession `PATCH` using the TS-defined `application/merge-patch+json` media type but a flat, schema-nonconformant fragment. | `200` even if PCF rejects the update; local and PCF state can diverge. |
-| `DELETE` | Removes the northbound resource and profile association. | **Current implementation limitation:** best-effort SMF Event Exposure `DELETE` using the stored PCF AppSession ID. | `204` regardless of the southbound result. The PCF AppSession is not revoked, and PCF-ID/QoS-to-PCF correlation entries remain stale. |
+| `DELETE` | Removes the northbound resource, its profile association and the PCF-ID/QoS-to-PCF correlation entries. | Best-effort PCF AppSession delete (`POST .../app-sessions/{appSessionId}/delete`) using the stored AppSession ID; nothing is sent if the create never completed. | `204` regardless of the southbound result. If PCF rejects the delete or cannot be reached, the AppSession survives and must be removed out of band. |
 
 The guarded fields for both update methods are `ueIpv4Addr`, `ueIpv6Addr`,
 `macAddr`, `ipDomain`, `dnn`, `snssai`, and `supportedFeatures`. The current

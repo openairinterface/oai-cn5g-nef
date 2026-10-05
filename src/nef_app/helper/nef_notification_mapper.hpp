@@ -22,8 +22,8 @@ namespace app {
  */
 class nef_notification_mapper {
  public:
-  nef_notification_mapper()                               = delete;
-  nef_notification_mapper(const nef_notification_mapper&) = delete;
+  nef_notification_mapper()                                          = delete;
+  nef_notification_mapper(const nef_notification_mapper&)            = delete;
   nef_notification_mapper& operator=(const nef_notification_mapper&) = delete;
 
   // AMF EventExposure (TS 29.518 §6.3.4.3.3) -> T8 MonitoringEventNotification
@@ -38,8 +38,8 @@ class nef_notification_mapper {
   // UserPlaneNotificationData (TS 29.122): { transaction, eventReports[] }.
   //
   // transaction is the AF subscription's self-URI, i.e. the resource URL
-  // handed back in the CREATE Location header. Returns false when no report
-  // came out of the mapping.
+  // returned in the Location header of the create response. Returns false
+  // when the mapping produced no report.
   static bool smf_to_qos_notification(
       const nlohmann::json& smf_notif, nlohmann::json& t8_notif,
       const std::string& transaction);
@@ -54,11 +54,15 @@ class nef_notification_mapper {
   // UserPlaneNotificationData (TS 29.122), translating AfEvent values to
   // UserPlaneEvent values.
   //
-  // Worth knowing: PCF's "evNotifs" array holds only {event, flows[]}. The
-  // detail payloads sit at the top level of the notification, so this folds
-  // them into each individual report. They are:
-  //   qncReports, usgRep, qosMonReports, plmnId, accessType,
-  //   succResourcAllocReports, failedResourcAllocReports.
+  // Note: PCF's "evNotifs" array holds only {event, flows[]}. The detail
+  // payloads are at the top level of the notification, so this copies them
+  // into each report:
+  //   qncReports[0].refQosIndication -> appliedQosRef
+  //   usgRep                         -> accumulatedUsage
+  //   qosMonReports                  -> qosMonReports
+  //   plmnId                         -> plmnId (PLMN_CHG events only)
+  // Other top-level fields, such as accessType or the resource allocation
+  // reports, are not copied.
   static bool pcf_to_qos_notification(
       const nlohmann::json& pcf_notif, nlohmann::json& t8_notif,
       const std::string& transaction);

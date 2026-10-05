@@ -62,23 +62,25 @@ nef:
     nnef-bdtpolicycontrol,
     nnef-qosmonitoring,
     nnef-analyticsexposure
-  # AF/SCS whitelist.  Leave empty (or omit) to allow ALL AFs (dev mode).
-  # Each entry:  af_id (required), api_key (optional), allowed_apis (optional)
+  # AF/SCS whitelist. An empty (or omitted) whitelist allows no AF on its own:
+  # with jwt_secret also empty, every request is denied unless
+  # insecure_dev_mode is true.
+  # Each entry: af_id (required), allowed_apis (optional, service names from
+  # src/common/nef.h), api_key (optional, but parsed only: it is not checked).
   # Example (uncomment to restrict access):
   # af_whitelist:
   #   - af_id: "my-af-1"
-  #     api_key: "changeme"
   #     allowed_apis:
-  #       - monitoring_event
-  #       - traffic_influence
+  #       - nnef-eventexposure
+  #       - nnef-trafficinfluence
   #   - af_id: "my-af-2"
-  #     # no api_key = key not checked
   #     # no allowed_apis = all APIs allowed for this AF
   af_whitelist: []
   security:
-    # HMAC-SHA256 secret for JWT token signing/validation.
-    # MUST be set to a strong random secret in production.
-    # Empty value disables JWT validation (development mode only).
+    # HMAC-SHA256 secret used to validate AF bearer tokens (JWT). NEF does not
+    # issue tokens. MUST be set to a strong random secret in production.
+    # Empty: JWT is not used. Requests without a token are checked against
+    # af_whitelist, and any request that carries a token is rejected.
     jwt_secret: ""
     # Set to true ONLY for development/testing to allow requests when no JWT
     # secret and no AF whitelist are configured (fail-open).  Default: false

@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: LicenseRef-CSSL-1.0 */
 //
-// Turning a raw southbound response into a northbound decision.
+// Helpers that turn a raw southbound response into a northbound decision.
 //
-// These are primitives the cont_* continuations share, not policy in
-// themselves. Each continuation still picks which one applies — or none at
-// all, when it is best-effort.
+// These are building blocks shared by the cont_* continuations, not policy in
+// themselves. Each continuation picks the one that applies, or none at all
+// when its call is best-effort.
 //
 // They live in their own header, rather than in a nef_app.cpp anonymous
 // namespace, so the unit tests can reach them without linking the whole of
@@ -45,9 +45,9 @@ inline bool sbi_ok_or_303(const oai::nghttp2::response& r) {
 // ProblemDetails title, so a southbound timeout goes out as a 504 titled
 // "Bad Gateway". Pass a title that matches the code you got back.
 //
-// Only for continuations that take this default. The ones that propagate the
-// upstream status, answer 500, or treat 3xx as success reproduce their own
-// synchronous branch instead.
+// Use this only in continuations that take this default. The ones that pass
+// on the upstream status, answer 500, or treat 3xx as success copy the
+// matching branch of their synchronous counterpart instead.
 inline int sbi_error_http_code(const oai::nghttp2::response& r) {
   if (r.status_code == http_status_code::REQUEST_TIMEOUT)
     return http_status_code::GATEWAY_TIMEOUT;  // 408 -> 504

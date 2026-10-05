@@ -81,7 +81,7 @@ curl --http2-prior-knowledge -X DELETE \
 Two things to know before building on this flow. The `repThresh*` members are the only
 `qosMonInfo` members this build preserves — see
 [the model collision](#current-implementation-limitation--qosmoninfo-model-collision). And
-`DELETE` does not revoke the PCF AppSession — see
+`DELETE` revokes the PCF AppSession on a best-effort basis only — see
 [DELETE](#delete--delete-subscription).
 
 ---
@@ -114,7 +114,7 @@ All subscription and PCF-correlation state is in memory and is lost on restart; 
 | `GET` | `/{scsAsId}/subscriptions/{subscriptionId}` | Read one in-memory subscription |
 | `PUT` | `/{scsAsId}/subscriptions/{subscriptionId}` | Replace a local subscription, then attempt a PCF update |
 | `PATCH` | `/{scsAsId}/subscriptions/{subscriptionId}` | JSON Merge Patch a local subscription, then attempt a PCF update |
-| `DELETE` | `/{scsAsId}/subscriptions/{subscriptionId}` | Delete a local subscription after a best-effort southbound call |
+| `DELETE` | `/{scsAsId}/subscriptions/{subscriptionId}` | Delete a local subscription after a best-effort PCF AppSession delete |
 
 Any other method-and-path combination — a `POST` to an item URI, a `PUT` or `DELETE` on the
 collection — is answered `405 Method Not Allowed` with the detail
@@ -458,12 +458,13 @@ curl --http2-prior-knowledge \
 **Response — 204 No Content.** The northbound resource and its SCS/AS profile association
 are removed locally regardless of the southbound result.
 
-**Current implementation limitation — the PCF AppSession is not revoked.** NEF makes a
-best-effort call to SMF Event Exposure `DELETE` using the stored PCF AppSession ID. It does
-not invoke PCF AppSession deletion. The PCF resource therefore survives the `DELETE`, and the
-PCF-ID and QoS-to-PCF correlation entries are left stale. Operators who need the PCF session
-gone must remove it out of band. The per-service lifecycle state machine has not been
-written down.
+**Southbound — best-effort PCF AppSession delete.** NEF sends
+`POST /npcf-policyauthorization/v1/app-sessions/{appSessionId}/delete` with the stored
+AppSession ID, then removes the PCF-ID and QoS-to-PCF correlation entries. A PCF failure is
+only logged as a warning and does not change the `204`, so if PCF rejects the delete or cannot
+be reached, the AppSession survives and must be removed out of band. If the PCF create never
+completed there is no AppSession ID, and nothing is sent. For the lifecycle as a whole, see
+[Call Flows §7.3](../call-flows.md#73-lifecycle-state-machine-and-operation-table).
 
 **Body exception on this method.** After the dispatcher accepts a `DELETE`, its empty-body
 sink discards the application handler's body and emits no content type. An authorization or
@@ -481,7 +482,7 @@ does return a `503` Problem Details body.
 | Create | Conditionally discover PCF, then `POST` `AppSessionContext { ascReqData, evSubsc }` to `/npcf-policyauthorization/v1/app-sessions` | `flowInfo` becomes media components, `qosReference` is copied, and `events` are translated into `evSubsc`; successful and failed resource-allocation events are always requested. The model collision means the example's four non-threshold `qosMonInfo` members are dropped and PCF receives schema-nonconformant `qosMon: null` |
 | `GET` item or list | None | Results come only from in-memory NEF state |
 | `PUT` / `PATCH` | Attempt a PCF AppSession `PATCH` with a flat fragment | Missing `ascReqData` envelope, omitted event-subscription changes and warning-only failure can leave PCF and local state different |
-| `DELETE` | Attempt an SMF Event Exposure `DELETE` using the PCF AppSession ID | The PCF AppSession remains and correlation entries become stale |
+| `DELETE` | Best-effort PCF AppSession delete (`POST .../app-sessions/{appSessionId}/delete`) using the stored AppSession ID | Correlation entries are always removed; a PCF failure is only logged, so the AppSession can survive |
 
 `notificationDestination` is the AF-facing callback. During create, NEF constructs a
 separate PCF-facing `evSubsc.notifUri` under `/nef-notify/v1/notify/{qosSubId}`.

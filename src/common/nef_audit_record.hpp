@@ -14,11 +14,12 @@ namespace oai::nef::app {
 
 class nef_audit_record {
  public:
-  /// One structured JSON audit record, as a single line.
+  /// Builds one structured JSON audit record on a single line.
   ///
-  /// op is "CREATE", "UPDATE", "DELETE" or "PATCH". resource is "TI", "QOS",
-  /// "BDT", "PFD", "EE" or "ME". Both af_id and res_id may be empty — res_id
-  /// for operations on a collection rather than one resource.
+  /// op is "CREATE", "UPDATE", "DELETE" or "PATCH". resource is a short tag
+  /// for the resource type, such as "TI", "QOS", "BDT", "PFD_TX" or
+  /// "NNEF_PFD_SUB". Both af_id and res_id may be empty. res_id is empty for
+  /// operations on a collection rather than one resource.
   static std::string make_record(
       const std::string& op, const std::string& resource,
       const std::string& af_id, const std::string& res_id, int http_code) {

@@ -20,10 +20,15 @@ namespace app {
 /**
  * One registered AF (SCS/AS).
  *
- * A profile lives exactly as long as the AF has subscriptions: nef_app creates
- * it on the first successful subscription and destroys it when the last one is
- * deleted. All accessors are guarded, so profiles are safe to share across the
- * HTTP worker threads.
+ * A profile lives as long as the AF has monitoring, QoS or analytics
+ * subscriptions: nef_app creates it when it stores the first one, and destroys
+ * it when the last one is removed. A subscription whose southbound call fails
+ * is removed again straight away. All accessors are guarded, so profiles are
+ * safe to share across the HTTP worker threads.
+ *
+ * Profiles are not used for authorization, which reads the af_whitelist
+ * config instead. Nothing sets or checks the API key or the allowed APIs
+ * below today.
  */
 class nef_af_profile : public std::enable_shared_from_this<nef_af_profile> {
  public:

@@ -15,7 +15,8 @@
 
 namespace oai::nef::app {
 
-// The _LEVEL suffixes dodge the WARN/ERROR/CRITICAL macros in syslog.h.
+// The _LEVEL suffixes keep these names clear of system macros such as ERROR
+// (defined by <arpa/ftp.h> and <arpa/tftp.h>).
 enum class retry_log_level { WARN_LEVEL, CRIT_LEVEL, ERR_LEVEL };
 
 using retry_log_fn = std::function<void(retry_log_level, const std::string&)>;
@@ -53,7 +54,7 @@ class circuit_breaker_registry {
     return it != m_fails.end() && it->second >= CB_THRESHOLD;
   }
 
-  /// Returns the new count.
+  /// Counts one more failure for the endpoint and returns the new count.
   int record_failure(const std::string& endpoint) {
     std::lock_guard<std::mutex> lk(m_mtx);
     return ++m_fails[endpoint];
@@ -99,8 +100,9 @@ inline std::string cb_endpoint_key(const std::string& uri) {
  *   - a 4xx is not, and fails immediately.
  *   - if the endpoint's breaker is already open, nothing is sent at all.
  *
- * Success clears the breaker. Every other outcome records a failure against
- * it, the immediate 4xx included.
+ * Success clears the breaker. Any other outcome of a sent request records one
+ * failure against it, the immediate 4xx included. An already-open breaker
+ * records nothing.
  *
  * Sleeping and logging are injected rather than called directly, so the tests
  * run instantly and need no Logger singleton.
@@ -160,8 +162,8 @@ inline bool retry_with_backoff(
       return false;
     }
 
-    // Anything else — 5xx, or status 0 for a network error — is transient,
-    // so fall through and try again.
+    // Anything else (5xx, or status 0 for a network error) is transient, so
+    // fall through and try again.
   }
 
   const int fails = cb.record_failure(endpoint);

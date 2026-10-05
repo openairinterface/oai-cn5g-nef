@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
     exit(-EDEADLK);
   }
 
-  // HTTP/2 — nghttp2
+  // HTTP/2 server (nghttp2)
   http2_server_config cfg;
   cfg.num_worker_threads   = std::max(1U, std::thread::hardware_concurrency());
   cfg.dispatcher_pool_size = nef_config_inst->nef()->get_dispatcher_pool_size();
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
 
   Logger::nef_app().info("Initiation done!");
 
-  // Park the main thread until a signal fires the eventfd.
+  // Block the main thread until the signal handler writes to the eventfd.
   uint64_t val = 0;
   ::read(shutdown_efd_g, &val, sizeof(val));
   close(shutdown_efd_g);
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
     nef_app_inst->deregister_from_nrf();
   }
 
-  // Step 3: Brief drain window for in-flight requests and notifications.
+  // Step 3: Wait briefly so in-flight requests and notifications can finish.
   Logger::system().info("Graceful shutdown...");
   std::this_thread::sleep_for(std::chrono::seconds(2));
 

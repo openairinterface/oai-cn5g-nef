@@ -12,11 +12,11 @@ namespace nef {
 namespace app {
 
 // HS256 bearer-token handling for the NEF northbound APIs. The shared secret
-// comes from nef.security.jwt_secret in the YAML config; an empty secret turns
-// JWT validation off.
+// comes from nef.security.jwt_secret in the YAML config. With an empty secret
+// no token can be verified, so every token is rejected.
 class nef_jwt {
  public:
-  // NOT IMPLEMENTED. Always clears token, logs a warning and returns false,
+  // Not implemented. Always clears token, logs a warning and returns false,
   // and nothing calls it today. The signature is kept for the eventual
   // counterpart of nrf_jwt::generate_signature: sign a bearer token for an NF
   // consumer, where scope is a NEF service scope such as
@@ -35,7 +35,7 @@ class nef_jwt {
       const std::string& bearer_token, const std::string& required_scope,
       const std::string& af_id) const;
 
-  // Read the 'sub' claim WITHOUT verifying the signature.
+  // Read the 'sub' claim without verifying the signature.
   //
   // Handlers whose URL path carries no AF identity use this to learn who is
   // claiming to call, then hand that subject to validate_af_token() for the

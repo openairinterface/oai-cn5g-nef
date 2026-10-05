@@ -37,11 +37,11 @@ updated when the code changes.
 |---|---|
 | The ten-mutex concurrency contract | `src/nef_app/nef_app.hpp`, immediately above the private state block |
 | The two `response_sink` contracts | `src/common/nef_request_task.hpp`, above the `using` declaration |
-| The async phase-1 / `cont_*` split | `src/nef_app/nef_app_internal.hpp`, the banner at the end of the file |
+| The async entry-method / `cont_*` split | `src/nef_app/nef_app_internal.hpp`, the "Async handler split" banner at the end of the file |
 | The `thread_local` bearer-token discipline | `src/nef_app/nef_app_core.cpp`, above `g_request_bearer_token` |
 | Route-table ordering | `src/api-server/nef-http2-server.cpp`, inside `nef_http2_server::start()` |
-| Dispatcher pool sizing and the no-self-enqueue rule | `src/nef_app/nef_request_dispatcher.hpp`, above the class |
-| Deferred-sink lifecycle | `src/nef_app/nef_app_adapter.cpp`, above the `make_deferred_*_sink` helpers |
+| Dispatcher pool sizing and the no-self-enqueue rule | `src/nef_app/helper/nef_request_dispatcher.hpp`, above the class |
+| Deferred-sink lifecycle | `src/nef_app/helper/nef_app_adapter.cpp`, above the `make_deferred_*_sink` helpers |
 
 For the northbound REST surface — paths, payloads, status codes — see
 [`docs/api-reference/`](api-reference/overview.md). For the generated 3GPP model layer, see
@@ -69,12 +69,12 @@ main()  ─► nef_config ─► http_client ─► nef_event ─► nef_app ─
 | Entry point, signal handling, PID file | `main()` | `src/oai-nef/main.cpp` |
 | CLI options | `Options` | `src/oai-nef/options.{cpp,hpp}` |
 | HTTP/2 server (nghttp2, h2c) | `oai::nef::api::nef_http2_server` | `src/api-server/nef-http2-server.{h,cpp}`, wrapping `oai::sba::http2_server` from the `src/common-src` submodule |
-| Dispatch facade | `oai::nef::app::nef_app_adapter` | `src/nef_app/nef_app_adapter.{hpp,cpp}` |
-| Bounded request queue + worker pool | `oai::nef::app::nef_request_dispatcher` | `src/nef_app/nef_request_dispatcher.hpp` (header-only) |
+| Dispatch facade | `oai::nef::app::nef_app_adapter` | `src/nef_app/helper/nef_app_adapter.{hpp,cpp}` |
+| Bounded request queue + worker pool | `oai::nef::app::nef_request_dispatcher` | `src/nef_app/helper/nef_request_dispatcher.hpp` (header-only) |
 | Business logic and all in-memory state | `oai::nef::app::nef_app` | `src/nef_app/nef_app.hpp` + eight `nef_app_*.cpp` translation units (§6) |
-| Southbound SBI client | `oai::nef::app::nef_client` | `src/nef_app/nef_client.{hpp,cpp}` — NRF, AMF, SMF, PCF, UDR |
-| Notification fan-out to AFs | `notification_thread_pool` | `src/nef_app/nef_notification_queue.hpp` |
-| Configuration (YAML) | `oai::config::nef::nef_config` | `src/nef_app/nef_config.hpp`, `nef_config_types.cpp`, reading `etc/config.yaml` |
+| Southbound SBI client | `oai::nef::app::nef_client` | `src/nef_app/helper/nef_client.{hpp,cpp}` — NRF, AMF, SMF, PCF, UDR |
+| Notification fan-out to AFs | `notification_thread_pool` | `src/nef_app/helper/nef_notification_queue.hpp` |
+| Configuration (YAML) | `oai::config::nef::nef_config` | `src/nef_app/helper/nef_config.hpp`, `nef_config_types.cpp`, reading `etc/config.yaml` |
 | Cross-cutting helpers | 18 header files, zero `.cpp` (the target is an INTERFACE library) | `src/common/` |
 
 One boundary in that table is enforced rather than merely intended. `nef_app_adapter` is **the only
@@ -378,11 +378,12 @@ mutex is acquired while another is held**. The comment in `nef_app.hpp` cites 12
 figure was measured on the pre-deletion single-file `nef_app.cpp`, before roughly 2,900 lines of
 unreachable code were removed. The invariant is unchanged; only the count moved.
 
-**This matters because the lock order is not uniform.** Only four functions in the tree touch two
-or more distinct mutexes at all. Three of them are request-path continuations —
-`cont_qos_create`, `cont_ti_create_pcf` and `cont_ti_delete_udr` — and each takes `m_qos_mutex` or
-`m_ti_mutex` and then `m_nf2af_mutex`. The fourth, `handle_subscription_expiry_tick`, takes
-`m_nf2af_mutex` before `m_ti_mutex`, in the reverse order, *and runs on a different thread* (#2).
+**This matters because the lock order is not uniform.** Only five functions in the tree touch two
+or more distinct mutexes at all. Four of them are request-path continuations —
+`cont_qos_create`, `cont_qos_delete`, `cont_ti_create_pcf` and `cont_ti_delete_udr` — and each
+takes `m_qos_mutex` or `m_ti_mutex` and then `m_nf2af_mutex`. The fifth,
+`handle_subscription_expiry_tick`, takes `m_nf2af_mutex` before `m_ti_mutex`, in the reverse
+order, *and runs on a different thread* (#2).
 
 So the ABBA cycle is fully assembled — only block scoping keeps the two halves from ever being
 held simultaneously. In two places the closing brace of one lock block abuts the opening of the
@@ -483,7 +484,8 @@ subscribe/unsubscribe/update), **PCF** (policy authorization, BDT policy, event 
 
 Most operations exist in three shapes: a blocking `x()`, an `x_async(cb)` and, for the chained
 flows, an `x_at_async()` variant that targets an already-discovered endpoint. NF discovery results
-are cached in `src/common/nrf_discovery_cache.hpp`.
+are cached by the `oai::sba::nf_service` base class that `nef_client` derives from
+(`discovery_cache_lookup` / `discovery_cache_store` in `src/common-src/sba/nf_service.hpp`).
 
 The mapping from a southbound status code to the northbound answer is centralised in
 `src/common/nef_sbi_response_policy.hpp` (`sbi_ok`, `sbi_ok_or_303`, `sbi_error_http_code`) — a
@@ -519,11 +521,13 @@ the behaviour is wrong — only that it is undocumented elsewhere or unverified.
 
 - **`pfd_create` / `pfd_delete` and their continuations are unreachable** from any route or
   adapter method (§5.1).
-- **19 of `nef_client`'s public methods have no caller** — the blocking twins of wrappers that
-  were converted to async (`create_pcf_policy_auth`, `udr_put_pfd_data`, `udr_get_pfd_data`, …)
-  plus `subscribe_smf_event_exposure*`, `update_smf_event_exposure`, `subscribe_pcf_events` and
-  `discover_nf_async`. Notably, **NEF never subscribes to SMF event exposure**, although it does
-  call `unsubscribe_smf_event_exposure*` during cleanup. Re-derive with a grep for
+- **About twenty of `nef_client`'s public methods have no caller** — the blocking twins of
+  wrappers that were converted to async (`create_pcf_policy_auth`, `udr_put_pfd_data`,
+  `udr_get_pfd_data`, …) plus `subscribe_smf_event_exposure*`,
+  `unsubscribe_smf_event_exposure_async`, `update_smf_event_exposure`, `subscribe_pcf_events`
+  and `discover_nf_async`. Notably, **NEF never subscribes to SMF event exposure**; the only
+  remaining SMF unsubscribe is a branch of the expiry tick for SMF-targeted subscriptions, which
+  never exist. Re-derive with a grep for
   `m_nef_client-><name>(` across `src/nef_app/nef_app_*.cpp` and `src/api-server/`.
 - **Continuations are not re-authorized** (§9). Open question for the maintainer.
 - **`nef_subscription` is mutated without a lock** (§7.4). Whether this is a live race is unknown.
