@@ -674,8 +674,32 @@ void nef_app::handle_subscription_expiry_tick(uint64_t t) {
         m_ti_id2af_id.erase(sub_id);
         m_ti_id2pcf_policy_id.erase(sub_id);
       }
+    } else if (
+        svc_type == nef_service_type_t::NEF_SERVICE_TYPE_QOS_MONITORING) {
+      // QoS subscriptions store the PCF appSessionId in nf_sub_id: delete the
+      // PCF app-session, then drop the QoS map entry and both nf2af keys
+      // (qos_sub_id and the appSessionId), in that lock order. QoS
+      // subscriptions get no expiry time today, so this branch only runs if
+      // they ever do.
+      if (!nf_sub_id.empty()) {
+        uint32_t http_code_pcf = 0;
+        if (!m_nef_client->delete_pcf_policy_auth(nf_sub_id, http_code_pcf)) {
+          Logger::nef_app().warn(
+              "PCF QoS expiry delete failed for sub=%s (http=%u)",
+              sub_id.c_str(), http_code_pcf);
+        }
+      }
+      {
+        const std::lock_guard<std::shared_mutex> lock(m_qos_mutex);
+        m_qos_sub_id2pcf_app_session_id.erase(sub_id);
+      }
+      {
+        const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
+        m_nf2af_sub_id.erase(sub_id);
+        if (!nf_sub_id.empty()) m_nf2af_sub_id.erase(nf_sub_id);
+      }
     } else {
-      // Monitoring and QoS subscriptions: unsubscribe from the target NF.
+      // Monitoring subscriptions: unsubscribe from the target NF.
       if (!nf_sub_id.empty()) {
         if (nf_type == nf_type_t::NF_TYPE_AMF) {
           m_nef_client->unsubscribe_amf_event_exposure(nf_sub_id);

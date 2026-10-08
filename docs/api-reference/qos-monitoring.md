@@ -191,18 +191,19 @@ working session.
 **Response — 201 Created**
 
 The body holds the standardized resource fields plus `self`. It does not add a
-`subscriptionId` property. The shape below is what the current implementation produces when
-the raw bind address is `10.0.0.4`:
+`subscriptionId` property. `self` and `Location` are absolute URIs: NEF's configured
+`http://<host>:<port>` (from `nfs.nef`) followed by the resource path. With host `oai-nef` and
+port `8080`:
 
 ```http
 HTTP/2 201
 Content-Type: application/json
-Location: 10.0.0.4/3gpp-as-session-with-qos/v1/scs-as-1/subscriptions/b7e3a1c2
+Location: http://oai-nef:8080/3gpp-as-session-with-qos/v1/scs-as-1/subscriptions/b7e3a1c2
 ```
 
 ```json
 {
-  "self": "10.0.0.4/3gpp-as-session-with-qos/v1/scs-as-1/subscriptions/b7e3a1c2",
+  "self": "http://oai-nef:8080/3gpp-as-session-with-qos/v1/scs-as-1/subscriptions/b7e3a1c2",
   "ueIpv4Addr": "10.45.0.2",
   "notificationDestination": "http://af.example.com/notify/qos",
   "qosReference": "GBR_ConvVoice",
@@ -254,12 +255,6 @@ The consequences for the complete request shown above:
 **What to do about it:** if you need thresholds to reach PCF, send `repThreshDl`,
 `repThreshUl` and `repThreshRp`. The requested-parameter, frequency, period and wait-time
 information cannot currently be conveyed at all.
-
-### Current implementation limitation — non-absolute `self` and `Location`
-
-`self` and `Location` concatenate the raw bind address with the relative path, omitting the
-URI scheme and port. They are not absolute URIs. Do not copy them as standards-conformant
-examples, and do not feed them to a client that expects to dereference them without repair.
 
 ### TS-defined versus implemented PCF response handling
 
@@ -513,7 +508,8 @@ array.
 
 **Racing a `DELETE` against an in-flight create.** If the `DELETE` wins while the PCF create
 is still outstanding, a later accepted 2xx with a usable ID makes the create continuation
-answer `204` without resurrecting local state — and the PCF AppSession is orphaned. A later
+answer `204` without resurrecting local state, and send a best-effort compensating delete for
+the new PCF AppSession. The AppSession is orphaned only if that delete fails. A later
 PCF failure or unusable ID makes that same continuation answer `500`, because PCF result
 validation runs before the vanished-subscription check.
 

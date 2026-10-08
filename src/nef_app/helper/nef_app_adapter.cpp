@@ -827,30 +827,32 @@ bool nef_app_adapter::dispatch_monitoring_event_subscribe_async(
 //------------------------------------------------------------------------------
 bool nef_app_adapter::dispatch_qos_create_async(
     const std::string& af_id, const nlohmann::json& body, std::string token,
-    const std::string& server_address, http2_deferred_response deferred) {
+    const std::string& api_root, http2_deferred_response deferred) {
   auto dr = std::make_shared<http2_deferred_response>(std::move(deferred));
   // QoS create needs a Location header and an absolute self URI on 201. This
   // sink builds both by prefixing the relative `self` that cont_qos_create
-  // puts in the body with server_address.
-  response_sink sink = [dr, server_address](
-                           int code, std::string body) mutable {
+  // puts in the body with api_root, NEF's "http://<host>:<port>".
+  response_sink sink = [dr, api_root](int code, std::string body) mutable {
+    // An empty body (the 204 when a concurrent delete won the race) goes out
+    // as is, with no content-type: serializing it would send "null".
+    if (body.empty()) {
+      dr->send(code, {}, "");
+      return;
+    }
     nlohmann::json resp_body;
-    if (!body.empty()) {
-      try {
-        resp_body = nlohmann::json::parse(body);
-      } catch (...) {
-        resp_body = nlohmann::json::object();
-      }
+    try {
+      resp_body = nlohmann::json::parse(body);
+    } catch (...) {
+      resp_body = nlohmann::json::object();
     }
     std::map<std::string, std::string> h;
     h["content-type"] = "application/problem+json";
     if (code == http_status_code::CREATED && resp_body.contains("self") &&
         resp_body["self"].is_string()) {
-      const std::string loc =
-          server_address + resp_body["self"].get<std::string>();
-      resp_body["self"] = loc;
-      h["location"]     = loc;
-      h["content-type"] = "application/json";
+      const std::string loc = api_root + resp_body["self"].get<std::string>();
+      resp_body["self"]     = loc;
+      h["location"]         = loc;
+      h["content-type"]     = "application/json";
     }
     dr->send(code, h, resp_body.dump());
   };

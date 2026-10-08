@@ -61,7 +61,8 @@ curl --http2-prior-knowledge \
   }'
 ```
 
-**Response `201 Created`**, with a `Location` header equal to the `self` field:
+**Response `201 Created`**, with a `Location` header holding the absolute URI of the subscription
+(NEF's `http://<host>:<port>` followed by the relative `self` path):
 
 ```json
 {
@@ -139,7 +140,8 @@ that `notifUri` passes the callback URI checks. It then assigns a `subscriptionI
 subscription in memory.
 
 **Response `201 Created`** with the stored subscription plus `subscriptionId` and `self`, and a
-`Location` header carrying the same value as `self`.
+`Location` header carrying the absolute form of `self` (NEF's `http://<host>:<port>` followed by
+the `self` path).
 
 ### GET — read one subscription
 

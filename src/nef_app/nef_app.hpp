@@ -114,8 +114,8 @@ class nef_app {
       const std::string& token, response_sink sink);
   void cont_qos_create(
       const std::string& af_id, const std::string& qos_sub_id,
-      nlohmann::json req_data_json, oai::nghttp2::response r,
-      response_sink sink);
+      const std::string& pcf_ep, nlohmann::json req_data_json,
+      oai::nghttp2::response r, response_sink sink);
 
   // Traffic Influence: create (a PCF call followed by a UDR call)
   void ti_create(
@@ -514,14 +514,16 @@ class nef_app {
   //   cont_qos_delete                   qos -> nf2af
   //   cont_ti_create_pcf                ti  -> nf2af
   //   cont_ti_delete_udr                ti  -> nf2af
-  //   handle_subscription_expiry_tick   nnef_event -> af_subscriptions
-  //                                     -> nf2af -> ti      <-- reversed
+  //   handle_subscription_expiry_tick   nnef_event -> af_subscriptions,
+  //                                     then per expired subscription:
+  //                                     TI:  nf2af -> ti    <-- reversed
+  //                                     QoS: qos -> nf2af
   //
-  // handle_subscription_expiry_tick takes m_nf2af_mutex before m_ti_mutex,
-  // the reverse of the four request-path functions above, which take
-  // m_ti_mutex or m_qos_mutex before m_nf2af_mutex. The expiry tick runs on
-  // the task_manager tick thread, not a request thread, so both orders do
-  // run concurrently.
+  // For TI subscriptions, handle_subscription_expiry_tick takes m_nf2af_mutex
+  // before m_ti_mutex, the reverse of the four request-path functions above,
+  // which take m_ti_mutex or m_qos_mutex before m_nf2af_mutex. The expiry tick
+  // runs on the task_manager tick thread, not a request thread, so both orders
+  // do run concurrently.
   //
   // Both halves of an ABBA (lock-order inversion) deadlock are therefore
   // already in the code; only the block scoping keeps them from being held

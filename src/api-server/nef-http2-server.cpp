@@ -29,6 +29,14 @@ using oai::nef::api::nef_sbi_helper;
 namespace {
 
 //------------------------------------------------------------------------------
+// NEF's {apiRoot}, "http://<host>:<port>" from the local NF config. A Location
+// header must carry an absolute URI, so the relative resource paths nef_app
+// produces are prefixed with this.
+static std::string nef_api_root() {
+  return nef_config_inst->get_local()->get_url();
+}
+
+//------------------------------------------------------------------------------
 static void end_http2_error(
     http2_response& res, int status, const std::string& title,
     const std::string& detail) {
@@ -282,12 +290,15 @@ void nef_http2_server::handle_nnef_event_exposure_subscribe(
     http2_response& res) {
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
-  auto header_fn = [](int http_code, nlohmann::json& resp_body) {
+  // The body's `self` stays a relative path, as GET and PUT return it; the
+  // Location header gets the absolute URI.
+  auto header_fn = [api_root = nef_api_root()](
+                       int http_code, nlohmann::json& resp_body) {
     std::map<std::string, std::string> headers;
     headers["content-type"] = "application/json";
     if (http_code == http_status_code::CREATED && resp_body.contains("self") &&
         resp_body["self"].is_string()) {
-      headers["location"] = resp_body["self"].get<std::string>();
+      headers["location"] = api_root + resp_body["self"].get<std::string>();
     }
     return headers;
   };
@@ -1257,12 +1268,12 @@ void nef_http2_server::handle_qos_create(
   nlohmann::json json_body;
   if (!parse_body_or_400_detail(body, json_body, res)) return;
   // On 201 the app layer stores a relative self-URI in resp_body["self"].
-  // The adapter's sink prefixes it with the server address to build the
-  // absolute Location header and self field.
-  const std::string address = m_address;
+  // The adapter's sink prefixes it with NEF's {apiRoot} to build the absolute
+  // Location header and self field.
+  const std::string api_root = nef_api_root();
   // Deferred response: return at once, without blocking on fut.wait().
   m_adapter->dispatch_qos_create_async(
-      af_id, json_body, bearer_token, address, res.make_deferred());
+      af_id, json_body, bearer_token, api_root, res.make_deferred());
 }
 
 //------------------------------------------------------------------------------
@@ -1562,12 +1573,12 @@ void nef_http2_server::handle_nnef_pfd_subscription_create(
   if (!parse_body_or_400_detail(body, json_body, res)) return;
   // On 201 nef_app puts the new subscription id in resp_body["subId"], and
   // header_fn builds the absolute Location header from it.
-  const std::string address = m_address;
+  const std::string api_root = nef_api_root();
   const std::string sub_path_base =
       nef_sbi_helper::NnefPfdManagementBase +
       nef_config_inst->nef()->get_sbi().get_api_version() +
       nef_sbi_helper::NnefPfdManagementPathSubscriptions + "/";
-  auto header_fn = [address, sub_path_base](
+  auto header_fn = [api_root, sub_path_base](
                        int http_code, nlohmann::json& resp_body) {
     std::map<std::string, std::string> h;
     h["content-type"] = "application/json";
@@ -1575,7 +1586,7 @@ void nef_http2_server::handle_nnef_pfd_subscription_create(
         resp_body["subId"].is_string() &&
         !resp_body["subId"].get<std::string>().empty()) {
       h["location"] =
-          address + sub_path_base + resp_body["subId"].get<std::string>();
+          api_root + sub_path_base + resp_body["subId"].get<std::string>();
     }
     return h;
   };

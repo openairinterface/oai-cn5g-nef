@@ -388,10 +388,9 @@ sequenceDiagram
   accepts any `2xx` response when it can obtain a safe AppSession ID from the
   non-schema body property `appSessionId` or the final `Location` segment. It
   rejects `303`, rolls back provisional state, and returns `500`.
-- **Current implementation limitation:** the northbound create adapter forms
-  `self` and `Location` by concatenating the raw server bind address with the
-  relative resource path. The resulting value lacks a scheme and port and is not
-  an absolute URI.
+- The northbound create adapter forms `self` and `Location` as absolute URIs:
+  NEF's configured `http://<host>:<port>` followed by the relative resource
+  path.
 - `notificationDestination` belongs to the AF / SCS-AS and is the target for the
   northbound notification. The distinct NEF callback in PCF `evSubsc.notifUri`
   is built from `/nef-notify/v1/notify/{qosSubId}`; PCF appends `/notify`. NEF
@@ -436,7 +435,7 @@ generic API status tables do not override these branches.
 | Dispatcher queue full/stopped | `503` |
 | PCF discovery/request failure, non-2xx, missing ID, or unsafe ID | Provisional state removed; `500` |
 | TS 29.514 `303` response | Rejected as non-2xx; provisional state removed; `500` |
-| Concurrent `DELETE` wins while create is in flight; PCF later returns an accepted `2xx` and usable ID | Local state is not resurrected; create continuation returns `204`; the newly created PCF AppSession is orphaned because no compensating delete runs |
+| Concurrent `DELETE` wins while create is in flight; PCF later returns an accepted `2xx` and usable ID | Local state is not resurrected; the create continuation sends a best-effort compensating PCF AppSession delete and returns `204`. If that delete fails (only logged), the AppSession is orphaned |
 | Concurrent `DELETE` wins while create is in flight; PCF later fails or returns an unusable ID | The failure/ID check runs first; local cleanup is a no-op and the create continuation returns `500` |
 
 ### 7.3 Lifecycle state machine and operation table
@@ -451,9 +450,10 @@ stateDiagram-v2
     Provisional --> Active : PCF 2xx + usable AppSession ID
     Provisional --> [*] : create failure, provisional state removed
     Provisional --> DeletedDuringCreate : concurrent DELETE, DELETE receives 204
-    DeletedDuringCreate --> OrphanedPcf : later PCF 2xx + usable ID, create receives 204
+    DeletedDuringCreate --> [*] : later PCF 2xx + usable ID, compensating PCF delete succeeds, create receives 204
+    DeletedDuringCreate --> OrphanedPcf : later PCF 2xx + usable ID, compensating PCF delete fails, create receives 204
     DeletedDuringCreate --> [*] : later PCF failure/unusable ID, create receives 500
-    OrphanedPcf --> [*] : no compensating PCF delete
+    OrphanedPcf --> [*] : removed out of band
     Active --> Active : GET/list, no southbound read
     Active --> Active : PUT/PATCH, local update then PCF PATCH accepted
     Active --> LocallyDiverged : PUT/PATCH local update, PCF PATCH rejected
@@ -468,14 +468,14 @@ stateDiagram-v2
       AppSession can survive.
     end note
     note right of OrphanedPcf
-      The successful PCF create completed after local deletion.
-      The create continuation does not resurrect state or compensate at PCF.
+      The successful PCF create completed after local deletion,
+      and the best-effort compensating delete failed (only logged).
     end note
 ```
 
 | AF operation | Local behavior | Southbound behavior | AF result / caveat |
 |---|---|---|---|
-| Concurrent `DELETE` during create | `DELETE` removes the provisional resource and profile association. | The pending PCF create is not cancelled. | `DELETE` returns `204`. A later accepted `2xx` plus usable ID makes the create return `204` and leaves an orphaned PCF AppSession; a later PCF failure or unusable ID makes the create return `500` because PCF result validation precedes the vanished-subscription check. |
+| Concurrent `DELETE` during create | `DELETE` removes the provisional resource and profile association. | The pending PCF create is not cancelled. If it later succeeds, the create continuation sends a best-effort compensating AppSession delete. | `DELETE` returns `204`. A later accepted `2xx` plus usable ID makes the create return `204`; the AppSession is orphaned only if the compensating delete fails. A later PCF failure or unusable ID makes the create return `500` because PCF result validation precedes the vanished-subscription check. |
 | `GET` collection/item | Reads in-memory state only. Create stored the request before adding the response `self`, and list adds a non-standard `subId` field. | None; no PCF read. | `200`; missing item `404`; wrong owner `403`. An item response need not reproduce the `201` body. |
 | `PUT` | Fully replaces local state before the PCF result. Changing an existing guarded field or newly adding one is rejected, but omission can remove one. | Best-effort PCF AppSession `PATCH` with a flat, schema-nonconformant fragment. | `200` even if PCF rejects the update; local and PCF state can diverge. |
 | `PATCH` | Applies RFC 7396 merge locally before the PCF result. `notificationDestination` cannot be removed, but `null` can remove a guarded target field. | Best-effort PCF AppSession `PATCH` using the TS-defined `application/merge-patch+json` media type but a flat, schema-nonconformant fragment. | `200` even if PCF rejects the update; local and PCF state can diverge. |

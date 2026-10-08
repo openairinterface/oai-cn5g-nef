@@ -382,8 +382,9 @@ unreachable code were removed. The invariant is unchanged; only the count moved.
 or more distinct mutexes at all. Four of them are request-path continuations —
 `cont_qos_create`, `cont_qos_delete`, `cont_ti_create_pcf` and `cont_ti_delete_udr` — and each
 takes `m_qos_mutex` or `m_ti_mutex` and then `m_nf2af_mutex`. The fifth,
-`handle_subscription_expiry_tick`, takes `m_nf2af_mutex` before `m_ti_mutex`, in the reverse
-order, *and runs on a different thread* (#2).
+`handle_subscription_expiry_tick`, takes `m_nf2af_mutex` before `m_ti_mutex` for TI
+subscriptions, in the reverse order, *and runs on a different thread* (#2). Its QoS branch takes
+`m_qos_mutex` before `m_nf2af_mutex`, the same order as the request path.
 
 So the ABBA cycle is fully assembled — only block scoping keeps the two halves from ever being
 held simultaneously. In two places the closing brace of one lock block abuts the opening of the
