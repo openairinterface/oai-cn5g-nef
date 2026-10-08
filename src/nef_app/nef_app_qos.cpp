@@ -247,10 +247,11 @@ void nef_app::handle_qos_subscription_list(
 //------------------------------------------------------------------------------
 // qos_subscription_create: authorizes, parses and validates the request,
 // SSRF-checks notificationDestination, adds the subscription and builds the
-// PCF body, then sends the policy-auth create to PCF without waiting for it.
-// cont_qos_create handles a failure, fills in the id maps, and builds the
-// success body with a relative `self` URI. The adapter's header sink turns
-// that `self` into an absolute URI.
+// PCF body, then looks up PCF and sends the policy-auth create to it without
+// waiting. cont_qos_create handles a failure, sends a compensating PCF delete
+// if a concurrent AF delete removed the subscription meanwhile, fills in the
+// id maps, and builds the success body with a relative `self` URI. The
+// adapter's header sink turns that `self` into an absolute URI.
 //
 // cont_qos_create takes the PCF appSessionId from the raw response: the JSON
 // appSessionId first, else the Location header, the same precedence as the
@@ -373,12 +374,26 @@ void nef_app::qos_create(
   to_json(req_data_json, req_data);
   clear_request_bearer_token();
 
+  // Look up PCF here, on the dispatcher worker, and pass it down by value: if
+  // a concurrent AF delete wins the race, cont_qos_create sends a compensating
+  // delete with the discovery-free *_at_async variant, since discovery must
+  // never run on oai-http-io. A discovery failure takes the same path as a PCF
+  // error: cont_qos_create rolls back and answers 500.
+  std::string pcf_ep;
+  if (!m_nef_client->discover_nf(nf_type_t::NF_TYPE_PCF, pcf_ep)) {
+    Logger::nef_app().warn("PCF not found for QoS create");
+    return cont_qos_create(
+        af_id, qos_sub_id, "", std::move(req_data_json),
+        oai::nghttp2::response{}, std::move(sink));
+  }
+
   // Send the policy-auth create to PCF.
-  m_nef_client->create_pcf_policy_auth_async(
-      pcf_body, [this, af_id, qos_sub_id, req_data_json,
-                 sink = std::move(sink)](oai::nghttp2::response r) mutable {
+  m_nef_client->create_pcf_policy_auth_at_async(
+      pcf_ep, pcf_body,
+      [this, af_id, qos_sub_id, pcf_ep, req_data_json,
+       sink = std::move(sink)](oai::nghttp2::response r) mutable {
         cont_qos_create(
-            af_id, qos_sub_id, std::move(req_data_json), std::move(r),
+            af_id, qos_sub_id, pcf_ep, std::move(req_data_json), std::move(r),
             std::move(sink));
       });
 }
@@ -386,8 +401,8 @@ void nef_app::qos_create(
 //------------------------------------------------------------------------------
 void nef_app::cont_qos_create(
     const std::string& af_id, const std::string& qos_sub_id,
-    nlohmann::json req_data_json, oai::nghttp2::response r,
-    response_sink sink) {
+    const std::string& pcf_ep, nlohmann::json req_data_json,
+    oai::nghttp2::response r, response_sink sink) {
   Logger::nef_app().debug(
       "cont_qos_create qos_sub_id=%s status=%d", qos_sub_id.c_str(),
       r.status_code);
@@ -407,13 +422,25 @@ void nef_app::cont_qos_create(
   }
 
   // A concurrent AF delete may have removed qos_sub_id while the PCF call was
-  // in progress. If so, do not recreate it: the AF delete already won, so this
-  // is a harmless no-op that answers 204. The PCF app-session just created is
-  // left for PCF/AF cleanup; no compensating delete is sent to PCF.
+  // in progress. If so, do not recreate it: the AF delete already won. Send a
+  // best-effort delete for the PCF app-session just created, using the
+  // discovery-free *_at_async variant on the pcf_ep looked up earlier, and
+  // answer 204.
   if (!find_subscription(qos_sub_id)) {
     Logger::nef_app().info(
-        "QoS sub %s vanished during PCF create (concurrent delete); no-op",
+        "QoS sub %s vanished during PCF create (concurrent delete); "
+        "compensating",
         qos_sub_id.c_str());
+    m_nef_client->delete_pcf_policy_auth_at_async(
+        pcf_ep, pcf_app_session_id,
+        [pcf_app_session_id](oai::nghttp2::response dr) {
+          if (!sbi_ok(dr)) {
+            Logger::nef_app().warn(
+                "Compensating PCF app-session delete failed for "
+                "app_session_id=%s (http=%d)",
+                pcf_app_session_id.c_str(), dr.status_code);
+          }
+        });
     return sink(http_status_code::NO_CONTENT, "");
   }
 
