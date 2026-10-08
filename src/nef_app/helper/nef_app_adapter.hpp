@@ -167,7 +167,7 @@ class nef_app_adapter {
       std::string token, http2_deferred_response deferred);
   bool dispatch_qos_create_async(
       const std::string& af_id, const nlohmann::json& body, std::string token,
-      const std::string& server_address, http2_deferred_response deferred);
+      const std::string& api_root, http2_deferred_response deferred);
   bool dispatch_ti_create_async(
       const std::string& af_id, const nlohmann::json& body, std::string token,
       http2_deferred_response deferred);
