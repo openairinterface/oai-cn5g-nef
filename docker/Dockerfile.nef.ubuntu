@@ -5,8 +5,7 @@
 #---------------------------------------------------------------------
 #
 # Dockerfile for the Open-Air-Interface NEF service
-#   Valid for Ubuntu-20.04 (focal),
-#             Ubuntu-22.04 (jammy)
+#   Valid for Ubuntu-24.04 (Noble)
 #
 #---------------------------------------------------------------------
 
@@ -55,13 +54,13 @@ RUN  if [ "$ENABLE_LTTNG" = "true" ]; then DEBIAN_FRONTEND=noninteractive apt-ge
         liblttng-ust-dev \
         lttng-tools && \
         ldconfig && \
-        ./build_amf --clean --Verbose --build-type Release --jobs --lttng; \
+        ./build_nef --clean --Verbose --build-type Release --jobs --lttng; \
     else \
         ldconfig && \
-        ./build_amf --clean --Verbose --build-type Release --jobs; \
+        ./build_nef --clean --Verbose --build-type Release --jobs; \
     fi && \
     ldd /openair-nef/build/nef/build/nef && \
-    mv /openair-nef/build/nef/build/nef /openair-nef/build/nef/build/oai_amf
+    mv /openair-nef/build/nef/build/nef /openair-nef/build/nef/build/oai_nef
 
 
 
@@ -116,7 +115,7 @@ RUN apt-get update && \
 # Copying executable and generated libraries
 WORKDIR /openair-nef/bin
 COPY --from=oai-nef-builder \
-    /openair-nef/build/nef/build/oai_amf \
+    /openair-nef/build/nef/build/oai_nef \
     /openair-nef/scripts/healthcheck.sh \
     ./
 
@@ -140,7 +139,7 @@ COPY --from=oai-nef-builder \
     ./
 
 RUN ldconfig && \
-    ldd /openair-nef/bin/oai_amf
+    ldd /openair-nef/bin/oai_nef
 
 # Copying template configuration files
 WORKDIR /openair-nef/etc
