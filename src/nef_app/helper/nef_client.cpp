@@ -492,14 +492,24 @@ bool nef_client::registration_succeeded(
 }
 
 //------------------------------------------------------------------------------
-// Only logs the outcome. nef_app owns both the 50 s heartbeat task and the
-// re-registration that a heartbeat failure triggers, so neither of the base's
-// timers is started.
+// Records the NRF-assigned heartBeatTimer. nef_app owns both the heartbeat
+// task and the re-registration that a heartbeat failure triggers, so neither
+// of the base's timers is started.
 void nef_client::on_registration_outcome(
     bool success, const oai::nghttp2::response& resp) {
   if (success) {
     Logger::nef_app().info(
         "NEF successfully registered to NRF (status %d)", resp.status_code);
+    try {
+      const auto profile = nlohmann::json::parse(resp.body);
+      if (profile.value("heartBeatTimer", 0) > 0)
+        m_heartbeat_timer_s = profile["heartBeatTimer"].get<uint64_t>();
+    } catch (const std::exception&) {
+      // No usable body: keep the proposed value.
+    }
+    Logger::nef_app().info(
+        "NRF heartbeat interval: %lu s",
+        static_cast<unsigned long>(m_heartbeat_timer_s.load()));
     return;
   }
   Logger::nef_app().warn(
