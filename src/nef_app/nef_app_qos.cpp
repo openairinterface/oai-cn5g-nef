@@ -622,9 +622,15 @@ void nef_app::qos_update(
   std::string pcf_err;
   if (build_pcf_qos_body(
           update_data, /*evsubsc_notif_uri=*/"", pcf_patch, pcf_err)) {
-    nlohmann::json merge =
+    // TS 29.514 §5.6.2.6: the PATCH body is {"ascReqData":
+    // AppSessionContextUpdateData}. Of what NEF builds, only the media
+    // components are updatable; ueIpv4/dnn/sliceInfo/suppFeat are fixed at
+    // creation and evSubsc persists (§4.15.6.6a).
+    const nlohmann::json asc =
         pcf_patch.value("ascReqData", nlohmann::json::object());
-    merge.erase("evSubsc");  // subscription persists per §4.15.6.6a
+    nlohmann::json merge = nlohmann::json::object();
+    if (asc.contains("medComponents"))
+      merge["ascReqData"]["medComponents"] = asc["medComponents"];
     // Send the policy-auth update to PCF (best-effort).
     m_nef_client->update_pcf_policy_auth_async(
         app_session_id, merge,
@@ -803,9 +809,15 @@ void nef_app::qos_patch(
   std::string pcf_err;
   if (build_pcf_qos_body(
           merged_data, /*evsubsc_notif_uri=*/"", pcf_patch, pcf_err)) {
-    nlohmann::json merge =
+    // TS 29.514 §5.6.2.6: the PATCH body is {"ascReqData":
+    // AppSessionContextUpdateData}. Of what NEF builds, only the media
+    // components are updatable; ueIpv4/dnn/sliceInfo/suppFeat are fixed at
+    // creation and evSubsc persists (§4.15.6.6a).
+    const nlohmann::json asc =
         pcf_patch.value("ascReqData", nlohmann::json::object());
-    merge.erase("evSubsc");
+    nlohmann::json merge = nlohmann::json::object();
+    if (asc.contains("medComponents"))
+      merge["ascReqData"]["medComponents"] = asc["medComponents"];
     // Send the policy-auth update to PCF (best-effort).
     m_nef_client->update_pcf_policy_auth_async(
         app_session_id, merge,
