@@ -66,6 +66,16 @@ class nef_notification_mapper {
   static bool pcf_to_qos_notification(
       const nlohmann::json& pcf_notif, nlohmann::json& t8_notif,
       const std::string& transaction);
+
+  // NWDAF notification (TS 29.520 §5.1.6.2.4 NnwdafEventsSubscription-
+  // Notification, or a bare EventNotification as OAI NWDAF sends) -> T8
+  // AnalyticsEventNotification (TS 29.522 §5.6.2.5). NwdafEvent names become
+  // AnalyticsEvent names and the per-event data arrays take their 29.522
+  // names; fields with no 29.522 counterpart are dropped. Returns false when
+  // no notification could be mapped.
+  static bool nwdaf_to_analytics_notification(
+      const nlohmann::json& nwdaf_notif, nlohmann::json& t8_notif,
+      const std::string& notif_id);
 };
 
 }  // namespace app

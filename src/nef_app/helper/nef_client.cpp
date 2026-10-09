@@ -18,6 +18,7 @@
 #include "logger.hpp"
 #include "nef_config.hpp"
 #include "nef_retry_helper.hpp"
+#include "nef_async_parse_helpers.hpp"
 #include "nef_sbi_helper.hpp"
 #include "sbi_resilience.hpp"
 #include "sbi_helper.hpp"
@@ -103,6 +104,8 @@ static std::string nf_type_to_str(nf_type_t t) {
       return "NRF";
     case NF_TYPE_AUSF:
       return "AUSF";
+    case NF_TYPE_NWDAF:
+      return "NWDAF";
     default:
       return "UNKNOWN";
   }
@@ -118,6 +121,7 @@ static std::string nf_type_to_config_name(const std::string& nf_type) {
   if (nf_type == "SMF") return SMF_CONFIG_NAME;
   if (nf_type == "PCF") return PCF_CONFIG_NAME;
   if (nf_type == "UDR") return UDR_CONFIG_NAME;
+  if (nf_type == "NWDAF") return NWDAF_CONFIG_NAME;
   return "";
 }
 
@@ -584,6 +588,9 @@ void nef_client::discover_nf_async(
     case NF_TYPE_UDR:
       cfg_key = UDR_CONFIG_NAME;
       break;
+    case NF_TYPE_NWDAF:
+      cfg_key = NWDAF_CONFIG_NAME;
+      break;
     default:
       cfg_key = "";
   }
@@ -1041,6 +1048,70 @@ void nef_client::create_pcf_policy_auth_at_async(
   oai::nghttp2::request req = http_client_inst->prepare_json_request(url, body);
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
+}
+
+//------------------------------------------------------------------------------
+static const std::string kNwdafEventsSubscriptions =
+    "/nnwdaf-eventssubscription/v1/subscriptions";
+
+bool nef_client::create_nwdaf_events_subscription(
+    const nlohmann::json& request_body, std::string& nwdaf_sub_id,
+    uint32_t& http_code) {
+  http_code = 0;
+  std::string nwdaf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_NWDAF, nwdaf_url)) {
+    Logger::nef_app().warn("NWDAF not found");
+    return false;
+  }
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(
+      nwdaf_url + kNwdafEventsSubscriptions, request_body.dump());
+  const auto resp = http_client_inst->send_http_request(
+      oai::common::sbi::method_e::POST, req);
+  http_code = resp.status_code;
+  if (resp.status_code != http_status_code::CREATED) {
+    Logger::nef_app().warn(
+        "NWDAF events subscription failed (status %d): %s", resp.status_code,
+        resp.body.c_str());
+    return false;
+  }
+  // TS 29.520 §5.1.3.2.3.1: the new resource is in the Location header.
+  nwdaf_sub_id =
+      nef_async_last_path_segment(nef_async_header_ci(resp.headers, "Location"));
+  return !nwdaf_sub_id.empty();
+}
+
+//------------------------------------------------------------------------------
+bool nef_client::update_nwdaf_events_subscription(
+    const std::string& nwdaf_sub_id, const nlohmann::json& request_body,
+    uint32_t& http_code) {
+  http_code = 0;
+  std::string nwdaf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_NWDAF, nwdaf_url)) return false;
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(
+      nwdaf_url + kNwdafEventsSubscriptions + "/" + nwdaf_sub_id,
+      request_body.dump());
+  const auto resp = http_client_inst->send_http_request(
+      oai::common::sbi::method_e::PUT, req);
+  http_code = resp.status_code;
+  return is_2xx_status(resp.status_code);
+}
+
+//------------------------------------------------------------------------------
+bool nef_client::delete_nwdaf_events_subscription(
+    const std::string& nwdaf_sub_id) {
+  std::string nwdaf_url;
+  if (!discover_nf(nf_type_t::NF_TYPE_NWDAF, nwdaf_url)) return false;
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(
+      nwdaf_url + kNwdafEventsSubscriptions + "/" + nwdaf_sub_id, "");
+  const auto resp = http_client_inst->send_http_request(
+      oai::common::sbi::method_e::DELETE, req);
+  if (!is_2xx_status(resp.status_code)) {
+    Logger::nef_app().warn(
+        "NWDAF events unsubscribe failed for %s (status %d)",
+        nwdaf_sub_id.c_str(), resp.status_code);
+    return false;
+  }
+  return true;
 }
 
 //------------------------------------------------------------------------------

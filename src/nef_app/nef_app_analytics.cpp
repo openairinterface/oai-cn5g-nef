@@ -117,6 +117,101 @@ void nef_app::handle_analytics_fetch(
 }
 
 // Analytics Subscription (TS 29.122) API handlers
+
+//------------------------------------------------------------------------------
+// TS 29.522 AnalyticsEvent -> TS 29.520 NwdafEvent. Empty for an event the
+// NWDAF has no counterpart for.
+static std::string analytics_event_to_nwdaf_event(const std::string& ev) {
+  if (ev == "UE_COMM") return "UE_COMMUNICATION";
+  if (ev == "ABNORMAL_BEHAVIOR") return "ABNORMAL_BEHAVIOUR";
+  if (ev == "CONGESTION") return "USER_DATA_CONGESTION";
+  for (const char* same :
+       {"UE_MOBILITY", "NETWORK_PERFORMANCE", "QOS_SUSTAINABILITY",
+        "DISPERSION", "DN_PERFORMANCE", "SERVICE_EXPERIENCE"}) {
+    if (ev == same) return ev;
+  }
+  return "";
+}
+
+//------------------------------------------------------------------------------
+// TS 29.522 AnalyticsExposureSubsc -> TS 29.520 NnwdafEventsSubscription.
+//
+// Each analyEventsSubs[] entry becomes one eventSubscriptions[] entry, its
+// analyEventFilter fields carried under their 29.520 names, and analyRepInfo
+// (ReportingInformation, TS 29.523) becomes each entry's notificationMethod
+// and repetitionPeriod: ON_EVENT_DETECTION -> THRESHOLD, anything else ->
+// PERIODIC.
+//
+// tgtUe: anyUeInd -> anyUe. A GPSI should be translated to a SUPI through the
+// UDM (TS 23.288 §6.1.2.2); OAI NEF does not do that translation yet, so a
+// GPSI given in SUPI form ("imsi-...") is passed through as the SUPI and any
+// other GPSI is forwarded as a gpsi.
+static bool to_nwdaf_events_subscription(
+    const nlohmann::json& af, const std::string& nef_notif_uri,
+    nlohmann::json& out, std::string& err) {
+  std::string method = "PERIODIC";
+  int period         = 10;
+  if (af.contains("analyRepInfo") && af["analyRepInfo"].is_object()) {
+    const auto& rep = af["analyRepInfo"];
+    if (rep.value("notifMethod", "") == "ON_EVENT_DETECTION")
+      method = "THRESHOLD";
+    if (rep.contains("repPeriod") && rep["repPeriod"].is_number_integer() &&
+        rep["repPeriod"].get<int>() > 0)
+      period = rep["repPeriod"].get<int>();
+  }
+
+  // Filter fields whose name is the same in both specs.
+  static const char* kSame[] = {
+      "matchingDir",  "ranUeThrouThds", "qosFlowRetThds", "excepRequs",
+      "appIds",       "dnais",          "exptAnaType",    "exptUeBehav",
+      "reptThlds",    "nsiIdInfos",     "disperReqs",     "listOfAnaSubsets",
+      "dnPerfReqs",   "bwRequs",        "ratFreqs",       "appServerAddrs",
+      "extraReportReq", "maxNumOfTopAppUl", "maxNumOfTopAppDl",
+      "visitedLocAreas"};
+
+  nlohmann::json subs = nlohmann::json::array();
+  for (const auto& ae : af["analyEventsSubs"]) {
+    const std::string ev = ae.value("analyEvent", "");
+    const std::string nwdaf_ev = analytics_event_to_nwdaf_event(ev);
+    if (nwdaf_ev.empty()) {
+      err = "analyEvent '" + ev + "' is not supported";
+      return false;
+    }
+    nlohmann::json es         = nlohmann::json::object();
+    es["event"]               = nwdaf_ev;
+    es["notificationMethod"]  = method;
+    es["repetitionPeriod"]    = period;
+    if (ae.contains("analyEventFilter") && ae["analyEventFilter"].is_object()) {
+      const auto& f = ae["analyEventFilter"];
+      for (const char* k : kSame)
+        if (f.contains(k)) es[k] = f[k];
+      if (f.contains("nwPerfReqs")) es["nwPerfRequs"] = f["nwPerfReqs"];
+      if (f.contains("qosReq")) es["qosRequ"] = f["qosReq"];
+      if (f.contains("snssai")) es["snssaia"] = nlohmann::json::array({f["snssai"]});
+      if (f.contains("dnn")) es["dnns"] = nlohmann::json::array({f["dnn"]});
+      if (f.contains("locArea") && f["locArea"].contains("nwAreaInfo"))
+        es["networkArea"] = f["locArea"]["nwAreaInfo"];
+    }
+    if (ae.contains("tgtUe") && ae["tgtUe"].is_object()) {
+      const auto& t = ae["tgtUe"];
+      nlohmann::json tgt = nlohmann::json::object();
+      if (t.value("anyUeInd", false)) tgt["anyUe"] = true;
+      if (t.contains("gpsi") && t["gpsi"].is_string()) {
+        const std::string g = t["gpsi"];
+        if (g.rfind("imsi-", 0) == 0)
+          tgt["supis"] = nlohmann::json::array({g});
+        else
+          tgt["gpsis"] = nlohmann::json::array({g});
+      }
+      if (!tgt.empty()) es["tgtUe"] = tgt;
+    }
+    subs.push_back(es);
+  }
+  out                       = nlohmann::json::object();
+  out["notificationURI"]    = nef_notif_uri;
+  out["eventSubscriptions"] = subs;
+  return true;
+}
 //------------------------------------------------------------------------------
 void nef_app::handle_analytics_subscription_create(
     const std::string& af_id, const nlohmann::json& body,
@@ -168,14 +263,45 @@ void nef_app::handle_analytics_subscription_create(
   }
 
   generate_af_subscription_id(analytics_sub_id);
+
+  // Relay to the NWDAF (Nnwdaf_EventsSubscription). Its notifications come
+  // back to NEF's own notify endpoint, keyed by this AF subscription id.
+  nlohmann::json nwdaf_body;
+  std::string translate_err;
+  if (!to_nwdaf_events_subscription(
+          body, m_nef_client->get_nef_notify_uri(analytics_sub_id), nwdaf_body,
+          translate_err)) {
+    http_code = http_status_code::BAD_REQUEST;
+    response_body =
+        make_problem_detail(http_status_code::BAD_REQUEST, translate_err);
+    return;
+  }
+  std::string nwdaf_sub_id;
+  uint32_t nwdaf_code = 0;
+  if (!m_nef_client->create_nwdaf_events_subscription(
+          nwdaf_body, nwdaf_sub_id, nwdaf_code)) {
+    http_code     = http_status_code::INTERNAL_SERVER_ERROR;
+    response_body = make_problem_detail(
+        http_status_code::INTERNAL_SERVER_ERROR,
+        "Failed to create analytics subscription in NWDAF");
+    return;
+  }
+
   auto sub = std::make_shared<nef_subscription>(m_event_sub);
   sub->set_af_subscription_id(analytics_sub_id);
+  sub->set_nf_subscription_id(nwdaf_sub_id);
   sub->set_scs_as_id(af_id);
   sub->set_service_type(nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS);
+  sub->set_target_nf_type(nf_type_t::NF_TYPE_NWDAF);
+  sub->set_notification_uri(body["notifUri"].get<std::string>());
   sub->set_subscription_data(body);
 
   add_subscription(analytics_sub_id, sub);
   ensure_af_profile(af_id, analytics_sub_id);
+  {
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
+    m_nf2af_sub_id[analytics_sub_id] = analytics_sub_id;
+  }
   response_body          = body;
   response_body["subId"] = analytics_sub_id;
   http_code              = http_status_code::CREATED;
@@ -200,6 +326,15 @@ void nef_app::handle_analytics_subscription_delete(
   if (!is_subscription_owner(sub, af_id)) {
     http_code = http_status_code::FORBIDDEN;
     return;
+  }
+
+  // Best-effort: a failed NWDAF unsubscribe is logged, local state still goes.
+  const std::string nwdaf_sub_id = sub->get_nf_subscription_id();
+  if (!nwdaf_sub_id.empty())
+    m_nef_client->delete_nwdaf_events_subscription(nwdaf_sub_id);
+  {
+    const std::lock_guard<std::shared_mutex> lock(m_nf2af_mutex);
+    m_nf2af_sub_id.erase(analytics_sub_id);
   }
 
   if (!remove_subscription(analytics_sub_id)) {
@@ -315,6 +450,31 @@ void nef_app::handle_analytics_subscription_update(
       http_code     = http_status_code::BAD_REQUEST;
       response_body = make_problem_detail(
           http_status_code::BAD_REQUEST, "notifUri: " + uri_err);
+      return;
+    }
+  }
+  // Update the NWDAF first, so a rejected change leaves both sides as they
+  // were and the AF is told.
+  {
+    nlohmann::json nwdaf_body;
+    std::string translate_err;
+    if (!to_nwdaf_events_subscription(
+            body, m_nef_client->get_nef_notify_uri(sub_id), nwdaf_body,
+            translate_err)) {
+      http_code = http_status_code::BAD_REQUEST;
+      response_body =
+          make_problem_detail(http_status_code::BAD_REQUEST, translate_err);
+      return;
+    }
+    uint32_t nwdaf_code = 0;
+    const std::string nwdaf_sub_id = sub->get_nf_subscription_id();
+    if (!nwdaf_sub_id.empty() &&
+        !m_nef_client->update_nwdaf_events_subscription(
+            nwdaf_sub_id, nwdaf_body, nwdaf_code)) {
+      http_code     = http_status_code::INTERNAL_SERVER_ERROR;
+      response_body = make_problem_detail(
+          http_status_code::INTERNAL_SERVER_ERROR,
+          "Failed to update analytics subscription in NWDAF");
       return;
     }
   }
