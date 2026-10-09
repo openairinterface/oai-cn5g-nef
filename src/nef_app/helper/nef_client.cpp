@@ -263,12 +263,14 @@ bool nef_client::register_to_nrf() {
     nf_services.push_back(svc);
   };
 
+  // serviceName must be a TS 29.510 ServiceName value or the NRF rejects the
+  // whole profile with 400.
   add_service("nnef-eventexposure", "/3gpp-monitoring-event/v1", "v1.0.0");
-  add_service("nnef-trafficinfluence", "/3gpp-traffic-influence/v1", "v1.0.0");
+  add_service("3gpp-traffic-influence", "/3gpp-traffic-influence/v1", "v1.0.0");
   add_service("nnef-pfdmanagement", "/3gpp-pfd-management/v1", "v1.0.0");
-  add_service("nnef-bdt", "/3gpp-bdt/v1", "v1.0.0");
-  add_service("nnef-qosmonitoring", "/3gpp-as-session-with-qos/v1", "v1.0.0");
-  add_service("nnef-analyticsexposure", "/3gpp-analyticsexposure/v1", "v1.0.0");
+  add_service("3gpp-bdt", "/3gpp-bdt/v1", "v1.0.0");
+  add_service("3gpp-as-session-with-qos", "/3gpp-as-session-with-qos/v1", "v1.0.0");
+  add_service("3gpp-analyticsexposure", "/3gpp-analyticsexposure/v1", "v1.0.0");
 
   profile["nfServices"] = nf_services;
 
