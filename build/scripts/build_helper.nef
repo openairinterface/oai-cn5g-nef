@@ -8,7 +8,7 @@ THIS_SCRIPT_PATH=`dirname $SCRIPT`
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.fmt
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.spdlog
-source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.pistache
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.cpr
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.nlohmann
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.nghttp2
 source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.yamlcpp
@@ -82,6 +82,9 @@ check_install_nef_deps() {
       "ubuntu22.04")
         specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan6"
         ;;
+      "ubuntu24.04")
+        specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan8"
+        ;;
     esac
     # removed libspdlog-dev
     PACKAGE_LIST="\
@@ -134,13 +137,16 @@ check_install_nef_deps() {
   install_spdlog_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
-  install_pistache_from_git $1 $2
-  ret=$?;[[ $ret -ne 0 ]] && return $ret
 
   install_nlohmann_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
   install_nghttp2_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  # cpr 1.10.0 builds with -Werror and uses curl form APIs that curl >= 7.56
+  # deprecates (Ubuntu 24.04 ships 8.5); they still exist, so don't fail on it.
+  CXXFLAGS="${CXXFLAGS} -Wno-deprecated-declarations" install_cpr_from_git $1 $2
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
   if [[ $OS_DISTRO == "ubuntu" ]]; then
@@ -150,6 +156,9 @@ check_install_nef_deps() {
         ;;
       "ubuntu22.04")
         $SUDO $INSTALLER install $OPTION libyaml-cpp0.7 libyaml-cpp-dev
+        ;;
+      "ubuntu24.04")
+        $SUDO $INSTALLER install $OPTION libyaml-cpp0.8 libyaml-cpp-dev
         ;;
     esac
   elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
