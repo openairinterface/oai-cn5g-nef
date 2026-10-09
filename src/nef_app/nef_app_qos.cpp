@@ -100,6 +100,7 @@ bool nef_app::build_pcf_qos_body(
         mc["altSerReqs"] = req.getAltQoSReferences();
       if (fi.flowDescriptionsIsSet()) {
         nlohmann::json sub_comp = nlohmann::json::object();
+        sub_comp["fNum"]        = flow_id;  // mandatory, TS 29.514 §5.6.2.8
         sub_comp["fDescs"]      = fi.getFlowDescriptions();
         mc["medSubComps"][key]  = sub_comp;
       }
