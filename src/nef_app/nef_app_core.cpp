@@ -560,8 +560,12 @@ bool nef_app::handle_nf_notification(
     } else if (svc == nef_service_type_t::NEF_SERVICE_TYPE_TRAFFIC_INFLUENCE) {
       mapped = nef_notification_mapper::pcf_to_ti_notification(
           notif_payload, t8_payload, af_sub_id);
+    } else if (svc == nef_service_type_t::NEF_SERVICE_TYPE_ANALYTICS) {
+      const nlohmann::json data = sub->get_subscription_data();
+      mapped = nef_notification_mapper::nwdaf_to_analytics_notification(
+          notif_payload, t8_payload, data.value("notifId", af_sub_id));
     } else {
-      // Pass-through for other service types (Analytics, PFD, BDT, etc.)
+      // Pass-through for other service types (PFD, BDT, etc.)
       t8_payload = notif_payload;
       mapped     = true;
     }

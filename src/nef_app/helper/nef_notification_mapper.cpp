@@ -5,6 +5,8 @@
 #include "nef_notification_mapper.hpp"
 #include "logger.hpp"
 
+#include <ctime>
+
 using namespace oai::nef::app;
 using json = nlohmann::json;
 
@@ -411,5 +413,91 @@ bool nef_notification_mapper::pcf_to_qos_notification(
   t8_notif                 = json::object();
   t8_notif["transaction"]  = transaction;
   t8_notif["eventReports"] = event_reports;
+  return true;
+}
+
+//------------------------------------------------------------------------------
+// TS 29.520 NwdafEvent -> TS 29.522 AnalyticsEvent. The inverse of the map the
+// analytics create handler uses on the way to the NWDAF.
+static std::string nwdaf_event_to_analytics_event(const std::string& ev) {
+  if (ev == "UE_COMMUNICATION") return "UE_COMM";
+  if (ev == "ABNORMAL_BEHAVIOUR") return "ABNORMAL_BEHAVIOR";
+  if (ev == "USER_DATA_CONGESTION") return "CONGESTION";
+  return ev;  // same name in both specs
+}
+
+// UTC now as an RFC 3339 DateTime, for the mandatory timeStamp.
+static std::string utc_now_rfc3339() {
+  const std::time_t t = std::time(nullptr);
+  char buf[32];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&t));
+  return buf;
+}
+
+// Copies arr into out[to], renaming each element's from_area to locArea
+// (29.520 networkArea / areaInfo vs 29.522 locArea).
+static void copy_infos(
+    const json& en, const char* from, json& out, const char* to,
+    const char* from_area = nullptr) {
+  if (!en.contains(from) || !en[from].is_array() || en[from].empty()) return;
+  json infos = en[from];
+  if (from_area) {
+    for (auto& i : infos) {
+      if (i.is_object() && i.contains(from_area)) {
+        i["locArea"] = {{"nwAreaInfo", i[from_area]}};
+        i.erase(from_area);
+      }
+    }
+  }
+  out[to] = infos;
+}
+
+bool nef_notification_mapper::nwdaf_to_analytics_notification(
+    const json& nwdaf_notif, json& t8_notif, const std::string& notif_id) {
+  // The standard body wraps the notifications; OAI NWDAF posts one bare.
+  json notifs = json::array();
+  if (nwdaf_notif.contains("eventNotifications") &&
+      nwdaf_notif["eventNotifications"].is_array()) {
+    notifs = nwdaf_notif["eventNotifications"];
+  } else if (nwdaf_notif.contains("event")) {
+    notifs.push_back(nwdaf_notif);
+  }
+
+  json analy_notifs = json::array();
+  for (const auto& en : notifs) {
+    if (!en.is_object() || !en.contains("event") || !en["event"].is_string())
+      continue;
+    json n           = json::object();
+    n["analyEvent"]  = nwdaf_event_to_analytics_event(en["event"]);
+    n["timeStamp"]   = (en.contains("timeStampGen") &&
+                      en["timeStampGen"].is_string()) ?
+                           en["timeStampGen"] :
+                           json(utc_now_rfc3339());
+    for (const char* f : {"expiry", "start", "timeStampGen", "rvWaitTime"}) {
+      if (en.contains(f)) n[f] = en[f];
+    }
+    if (en.contains("failNotifyCode") && en["failNotifyCode"].is_string())
+      n["failNotifyCode"] = en["failNotifyCode"];
+    copy_infos(en, "qosSustainInfos", n, "qosSustainInfos", "areaInfo");
+    copy_infos(en, "nwPerfs", n, "nwPerfInfos", "networkArea");
+    copy_infos(en, "ueComms", n, "ueCommInfos");
+    copy_infos(en, "ueMobs", n, "ueMobilityInfos");
+    copy_infos(en, "abnorBehavrs", n, "abnormalInfos");
+    copy_infos(en, "userDataCongInfos", n, "congestInfos");
+    copy_infos(en, "disperInfos", n, "disperInfos");
+    copy_infos(en, "dnPerfInfos", n, "dnPerfInfos");
+    copy_infos(en, "svcExps", n, "svcExps");
+    analy_notifs.push_back(n);
+  }
+
+  if (analy_notifs.empty()) {
+    Logger::nef_app().warn(
+        "nwdaf_to_analytics_notification: no event notification found");
+    t8_notif = make_problem("Bad NWDAF notification", "no event notification");
+    return false;
+  }
+  t8_notif                     = json::object();
+  t8_notif["notifId"]          = notif_id;
+  t8_notif["analyEventNotifs"] = analy_notifs;
   return true;
 }
