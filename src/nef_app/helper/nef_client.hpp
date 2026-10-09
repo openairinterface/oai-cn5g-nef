@@ -5,6 +5,7 @@
 #ifndef FILE_NEF_CLIENT_HPP_SEEN
 #define FILE_NEF_CLIENT_HPP_SEEN
 
+#include <atomic>
 #include <cstdint>
 #include <nlohmann/json.hpp>
 #include <string>
@@ -76,6 +77,11 @@ class nef_client : public oai::sba::nf_service {
   bool register_to_nrf();
   bool deregister_from_nrf();
   bool send_heartbeat_to_nrf();
+  // The heartbeat interval to use: the heartBeatTimer the NRF returned in its
+  // registration response (TS 29.510 §5.2.2.2.2: the NRF may change the value
+  // the NF proposed, and the NF shall use the one returned), else the 50 s
+  // NEF proposes.
+  uint64_t heartbeat_timer_s() const { return m_heartbeat_timer_s; }
 
   // NF discovery
   bool discover_nf(nf_type_t nf_type, std::string& nf_endpoint);
@@ -310,6 +316,8 @@ class nef_client : public oai::sba::nf_service {
   using oai::sba::nf_service::stop_nrf_registration_retry;
   using oai::sba::nf_service::trigger_nf_heartbeat_procedure;
   using oai::sba::nf_service::trigger_nrf_registration_retry_procedure;
+
+  std::atomic<uint64_t> m_heartbeat_timer_s{50};
 };
 
 }  // namespace app

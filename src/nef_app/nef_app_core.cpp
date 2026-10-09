@@ -149,9 +149,8 @@ nef_app::nef_app(const std::string& config_file, std::shared_ptr<nef_event>& ev)
   // Register to NRF
   if (m_nef_client->register_to_nrf()) {
     Logger::nef_app().info("NEF registered to NRF");
-    // Periodic NRF heartbeat every 50 s (50000 ms ticks)
-    // TODO: get heartbeat interval from NRF response
-    constexpr uint64_t HEARTBEAT_MS = 50000;
+    // Periodic NRF heartbeat, at the interval the NRF assigned at registration
+    const uint64_t HEARTBEAT_MS = m_nef_client->heartbeat_timer_s() * 1000;
     auto hb_conn                    = m_event_sub->subscribe_task_nf_heartbeat(
         [this](uint64_t /*t*/) { m_nef_client->send_heartbeat_to_nrf(); },
         HEARTBEAT_MS, now_ms + HEARTBEAT_MS);
