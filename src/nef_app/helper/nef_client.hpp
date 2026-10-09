@@ -138,6 +138,17 @@ class nef_client : public oai::sba::nf_service {
       const nlohmann::json& request_body, std::string& app_session_id,
       uint32_t& http_code);
 
+  // Nnwdaf_EventsSubscription (TS 29.520 §4.2.2), used to relay the
+  // AnalyticsExposure API (TS 29.522 §4.4.17) to the NWDAF. Synchronous: the
+  // analytics handlers run on a dispatcher worker.
+  bool create_nwdaf_events_subscription(
+      const nlohmann::json& request_body, std::string& nwdaf_sub_id,
+      uint32_t& http_code);
+  bool update_nwdaf_events_subscription(
+      const std::string& nwdaf_sub_id, const nlohmann::json& request_body,
+      uint32_t& http_code);
+  bool delete_nwdaf_events_subscription(const std::string& nwdaf_sub_id);
+
   void create_pcf_policy_auth_async(
       const nlohmann::json& request_body, oai::nghttp2::response_cb cb);
 

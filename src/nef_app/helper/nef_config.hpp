@@ -7,6 +7,11 @@
 #include "config.hpp"
 #include "nef_config_types.hpp"
 
+namespace oai::config {
+// common-src defines no NWDAF entry yet; NEF needs one to relay analytics.
+inline const std::string NWDAF_CONFIG_NAME = "nwdaf";
+}  // namespace oai::config
+
 namespace oai::config::nef {
 
 class nef_config : public oai::config::config {
@@ -20,7 +25,8 @@ class nef_config : public oai::config::config {
                             NF_LIST_CONFIG_NAME,   NF_CONFIG_HTTP_NAME,
                             NEF_CONFIG_NAME,       NRF_CONFIG_NAME};
     m_used_sbi_values    = {NEF_CONFIG_NAME, NRF_CONFIG_NAME, AMF_CONFIG_NAME,
-                         SMF_CONFIG_NAME, PCF_CONFIG_NAME, UDR_CONFIG_NAME};
+                         SMF_CONFIG_NAME, PCF_CONFIG_NAME, UDR_CONFIG_NAME,
+                         NWDAF_CONFIG_NAME};
 
     auto m_nef = std::make_shared<nef_config_type>(
         NEF_CONFIG_NAME, "oai-nef",
@@ -51,6 +57,11 @@ class nef_config : public oai::config::config {
         UDR_CONFIG_NAME, "oai-udr",
         sbi_interface("SBI", "oai-udr", 80, "v1", "eth0"));
     add_nf(UDR_CONFIG_NAME, m_udr);
+
+    auto m_nwdaf = std::make_shared<nf>(
+        NWDAF_CONFIG_NAME, "oai-nwdaf-nbi-events",
+        sbi_interface("SBI", "oai-nwdaf-nbi-events", 8080, "v1", "eth0"));
+    add_nf(NWDAF_CONFIG_NAME, m_nwdaf);
   }
 
   std::shared_ptr<nef_config_type> nef() const {
