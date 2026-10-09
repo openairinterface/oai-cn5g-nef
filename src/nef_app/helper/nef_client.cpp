@@ -1110,7 +1110,7 @@ bool nef_client::delete_pcf_policy_auth(
 
   std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
                     "v1/app-sessions/" + app_session_id + "/delete";
-  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "{}");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   auto resp                 = http_client_inst->send_http_request(
       oai::common::sbi::method_e::POST, req);
   http_code = resp.status_code;
@@ -1121,8 +1121,9 @@ bool nef_client::delete_pcf_policy_auth(
 
 //------------------------------------------------------------------------------
 // Async variant of delete_pcf_policy_auth. Note the method: PCF defines this
-// operation as a POST to .../delete with an empty JSON object as the body, not
-// as an HTTP DELETE.
+// operation as a POST to .../delete, not as an HTTP DELETE. The body is
+// optional and, when present, must be EventsSubscReqData with a mandatory
+// "events" field, so "{}" is invalid: send none.
 void nef_client::delete_pcf_policy_auth_async(
     const std::string& app_session_id, oai::nghttp2::response_cb cb) {
   std::string pcf_url;
@@ -1135,7 +1136,7 @@ void nef_client::delete_pcf_policy_auth_async(
   }
   std::string url = pcf_url + nef_sbi_helper::PcfPolicyAuthBase +
                     "v1/app-sessions/" + app_session_id + "/delete";
-  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "{}");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
@@ -1149,7 +1150,7 @@ void nef_client::delete_pcf_policy_auth_at_async(
     oai::nghttp2::response_cb cb) {
   std::string url = pcf_endpoint + nef_sbi_helper::PcfPolicyAuthBase +
                     "v1/app-sessions/" + app_session_id + "/delete";
-  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "{}");
+  oai::nghttp2::request req = http_client_inst->prepare_json_request(url, "");
   http_client_inst->send_http_request_async(
       oai::common::sbi::method_e::POST, req, std::move(cb));
 }
