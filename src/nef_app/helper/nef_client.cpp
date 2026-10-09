@@ -6,6 +6,10 @@
 
 #include <cctype>
 #include <thread>
+#include <optional>
+#include <mutex>
+#include <map>
+#include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
 
 #include "AmfCreatedEventSubscription.h"
@@ -1746,12 +1750,48 @@ bool nef_client::forward_notification_to_af(
   const std::string body     = payload.dump();
   const std::string endpoint = cb_endpoint_key(af_notif_uri);
 
-  auto attempt_fn = [&]() -> int {
+  // TS 29.122 §5.2.2: T8 runs over HTTP/1.1 or HTTP/2, and an AF's
+  // notification URI does not say which. Try h2c first and fall back to
+  // HTTP/1.1 (libcurl through cpr), remembering per endpoint what worked.
+  static std::mutex af_proto_mutex;
+  static std::map<std::string, bool> af_speaks_h2c;
+  // 0 when no HTTP/2 answer came back: the client reports a transport or
+  // protocol failure as a 503 with no response headers.
+  auto post_h2c = [&]() -> int {
     oai::nghttp2::request req =
         http_client_inst->prepare_json_request(af_notif_uri, body);
-    auto resp = http_client_inst->send_http_request(
+    const auto resp = http_client_inst->send_http_request(
         oai::common::sbi::method_e::POST, req);
+    if (resp.status_code == 503 && resp.headers.empty()) return 0;
     return static_cast<int>(resp.status_code);
+  };
+  auto post_http1 = [&]() -> int {
+    return static_cast<int>(
+        cpr::Post(
+            cpr::Url{af_notif_uri}, cpr::Body{body},
+            cpr::Header{{"Content-Type", "application/json"}},
+            cpr::Timeout{3000})
+            .status_code);
+  };
+  auto attempt_fn = [&]() -> int {
+    std::optional<bool> known;
+    {
+      std::lock_guard<std::mutex> lock(af_proto_mutex);
+      auto it = af_speaks_h2c.find(endpoint);
+      if (it != af_speaks_h2c.end()) known = it->second;
+    }
+    if (known.has_value()) return *known ? post_h2c() : post_http1();
+    int code = post_h2c();
+    bool h2c = true;
+    if (code == 0) {  // no HTTP/2 answer at all: an HTTP/1.1-only AF
+      code = post_http1();
+      h2c  = false;
+    }
+    if (code != 0) {
+      std::lock_guard<std::mutex> lock(af_proto_mutex);
+      af_speaks_h2c[endpoint] = h2c;
+    }
+    return code;
   };
 
   auto log_fn = [](retry_log_level level, const std::string& msg) {
