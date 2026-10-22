@@ -14,14 +14,13 @@ For the `/health` and notification endpoints, see
 
 ## 1. Docker image variants
 
-Three Dockerfiles are provided, one per base OS. All three build the same `oai_nef` binary and
+Two Dockerfiles are provided, one per base OS. Both build the same `oai_nef` binary and
 accept the same configuration.
 
 | Dockerfile | Base image | Notes |
 |------------|-----------|-------|
-| `docker/Dockerfile.nef.ubuntu` | `ubuntu:focal` (also builds on 22.04 jammy) | The actively tested default for CI |
-| `docker/Dockerfile.nef.rhel9` | `registry.access.redhat.com/ubi9/ubi-minimal` | RHEL / OpenShift environments |
-| `docker/Dockerfile.nef.rocky8` | `rockylinux:8` | Open-source RHEL-compatible alternative |
+| `docker/Dockerfile.nef.ubuntu` | `ubuntu:noble` (24.04) | The actively tested default for CI |
+| `docker/Dockerfile.nef.centos` | `quay.io/centos/centos:stream10-minimal` | RPM-based (EL 10) environments |
 
 Each image runs the same entrypoint and command:
 

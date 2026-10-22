@@ -92,9 +92,6 @@ RUN apt-get update && \
       openssl \
       libbrotli1 \
       netbase \
-# Ubuntu 20 --> libasan5
-# Ubuntu 22 --> libasan6
-#      libasan? \
       libgssapi-krb5-2 \
       libldap2 \
       libsctp1 \

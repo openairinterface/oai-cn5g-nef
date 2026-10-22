@@ -12,14 +12,12 @@ The authoritative list is `check_supported_distribution()` in the shared build h
 
 | Operating System | Versions |
 |------------------|----------|
-| Ubuntu | 20.04, 22.04, 24.04 |
-| RHEL | 9.3 – 9.8 |
-| Rocky Linux | 9.3 – 9.6 |
+| Ubuntu | 24.04 |
+| CentOS Stream | 10 |
 
-RHEL 8 support was dropped in v2.2.1 (see [CHANGELOG.md](../CHANGELOG.md)); RHEL 9 was added in the
-same release. Container images are built for Ubuntu (`docker/Dockerfile.nef.ubuntu`) and RHEL 9
-(`docker/Dockerfile.nef.rhel9`). A Rocky 8 Dockerfile (`docker/Dockerfile.nef.rocky8`) is also
-present, but Rocky 8 is not in the supported-distribution list above.
+CentOS Stream 10 replaces RHEL 9 and Rocky Linux 9, and Ubuntu 20.04 and 22.04 are no longer
+supported. Container images are built for Ubuntu 24.04 (`docker/Dockerfile.nef.ubuntu`) and
+CentOS Stream 10 (`docker/Dockerfile.nef.centos`).
 
 ## 2. Prerequisites
 
@@ -142,30 +140,28 @@ A healthy NEF answers `200` with `{"status":"ok", ...}`. See
 ## 8. Build with Docker
 
 Each Dockerfile is a three-stage build (base → builder → runtime) that keeps the final image
-small. Three variants are provided:
+small. Two variants are provided:
 
 | Dockerfile | Target Platform |
 |------------|-----------------|
-| `docker/Dockerfile.nef.ubuntu` | Ubuntu (`ubuntu:focal` by default; override with `BASE_IMAGE`) |
-| `docker/Dockerfile.nef.rhel9` | Red Hat Enterprise Linux 9 |
-| `docker/Dockerfile.nef.rocky8` | Rocky Linux 8 |
+| `docker/Dockerfile.nef.ubuntu` | Ubuntu 24.04 (`ubuntu:noble`) |
+| `docker/Dockerfile.nef.centos` | CentOS Stream 10 |
 
-### Build the Ubuntu Image
+### Build the Image
 
 ```bash
-# Default base: ubuntu:focal (20.04)
+# Ubuntu 24.04
 docker build \
   --target oai-nef \
   --file docker/Dockerfile.nef.ubuntu \
   --tag oai-nef:develop \
   .
 
-# Override to Ubuntu 22.04 (jammy)
+# CentOS Stream 10
 docker build \
   --target oai-nef \
-  --file docker/Dockerfile.nef.ubuntu \
-  --build-arg BASE_IMAGE=ubuntu:jammy \
-  --tag oai-nef:jammy \
+  --file docker/Dockerfile.nef.centos \
+  --tag oai-nef:develop-centos \
   .
 ```
 
@@ -173,7 +169,7 @@ docker build \
 
 **Stage 1 — `oai-nef-base`**
 
-Starts from the base OS image (`ubuntu:focal` by default). Copies only the build scripts,
+Starts from the base OS image (`ubuntu:noble`). Copies only the build scripts,
 `build/common-build`, and the top-level `build/nef/CMakeLists.txt`, then runs
 `./build_nef --install-deps --force`. This stage caches dependency installation, so rebuilding
 source does not invalidate it unless the build scripts or that `CMakeLists.txt` change.
