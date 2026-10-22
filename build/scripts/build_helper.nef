@@ -75,17 +75,7 @@ check_install_nef_deps() {
 
   # Libraries
   if [[ $OS_DISTRO == "ubuntu" ]]; then
-    case "$(get_distribution_release)" in
-      "ubuntu20.04")
-        specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan5"
-        ;;
-      "ubuntu22.04")
-        specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan6"
-        ;;
-      "ubuntu24.04")
-        specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan8"
-        ;;
-    esac
+    specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan8"
     # removed libspdlog-dev
     PACKAGE_LIST="\
       $specific_packages \
@@ -119,7 +109,7 @@ check_install_nef_deps() {
       nettle-devel \
       libcurl-devel \
       python3 \
-      pkgconfig \
+      pkgconf-pkg-config \
       ninja-build \
       boost-devel \
       libasan"
@@ -152,17 +142,7 @@ check_install_nef_deps() {
   ret=$?;[[ $ret -ne 0 ]] && return $ret
 
   if [[ $OS_DISTRO == "ubuntu" ]]; then
-    case "$(get_distribution_release)" in
-      "ubuntu20.04")
-        $SUDO $INSTALLER install $OPTION libyaml-cpp0.6 libyaml-cpp-dev
-        ;;
-      "ubuntu22.04")
-        $SUDO $INSTALLER install $OPTION libyaml-cpp0.7 libyaml-cpp-dev
-        ;;
-      "ubuntu24.04")
-        $SUDO $INSTALLER install $OPTION libyaml-cpp0.8 libyaml-cpp-dev
-        ;;
-    esac
+    $SUDO $INSTALLER install $OPTION libyaml-cpp0.8 libyaml-cpp-dev
   elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
     $SUDO $INSTALLER install $OPTION yaml-cpp yaml-cpp-devel
   fi
@@ -243,8 +223,7 @@ check_install_nef_min_deps() {
       ethtool \
       iperf \
       iproute \
-      iptables \
-      vconfig"
+      iptables"
   else
     echo_fatal "$OS_DISTRO is not a supported distribution."
   fi

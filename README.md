@@ -38,8 +38,7 @@ Details on third-party software can be found in the [NOTICE](NOTICE) file.
 
 # Where to start
 
-The Openair-CN-5G NEF code is written, executed, and tested on UBUNTU server bionic version.
-Other Linux distributions support will be added later on.
+The Openair-CN-5G NEF code is written, executed, and tested on Ubuntu 24.04 and CentOS Stream 10.
 
 More details on the supported feature set is available on this [page](docs/FEATURE_SET.md).
 
@@ -138,13 +137,11 @@ Three submodules are used:
 The authoritative list is `check_supported_distribution()` in
 `build/common-build/installation/build_helper`:
 
-* Ubuntu 20.04, 22.04, 24.04
-* RHEL 9.3 – 9.8
-* Rocky Linux 9.3 – 9.6
+* Ubuntu 24.04
+* CentOS Stream 10
 
-CI builds container images for Ubuntu (`docker/Dockerfile.nef.ubuntu`) and RHEL 9
-(`docker/Dockerfile.nef.rhel9`). A Rocky 8 Dockerfile is also present, but Rocky 8 is not in the
-supported-distribution list above.
+CI builds container images for Ubuntu (`docker/Dockerfile.nef.ubuntu`) and CentOS Stream 10
+(`docker/Dockerfile.nef.centos`).
 
 ## Building natively
 
@@ -323,7 +320,7 @@ oai-cn5g-nef
 │   └── scripts/      build_nef (entry point) and build_helper.nef (dependency lists)
 ├── ci-scripts/       Jenkins pipeline, image flattening, deployment sanity checks
 │   └── common/       submodule: shared CI helpers
-├── docker/           Dockerfile.nef.{ubuntu,rhel9,rocky8} -- three-stage image builds
+├── docker/           Dockerfile.nef.{ubuntu,centos} -- three-stage image builds
 ├── docs/             this documentation set (see the table above)
 │   ├── api-reference/  one page per northbound service
 │   └── images/

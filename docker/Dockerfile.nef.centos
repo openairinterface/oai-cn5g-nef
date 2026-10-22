@@ -4,85 +4,79 @@
 
 #---------------------------------------------------------------------
 #
-# Dockerfile for the Open-Air-Interface NEF service
-#   Valid for Rocky Linux 9.+
+# Dockerfile for the OpenAirInterface NEF service
+#   Valid for CentOS Stream 10
 #
 #---------------------------------------------------------------------
 
 #---------------------------------------------------------------------
 # BUILDER IMAGE
 #---------------------------------------------------------------------
-FROM docker.io/rockylinux:9 AS oai-nef-builder
+
+FROM quay.io/centos/centos:stream10 AS oai-nef-builder
 
 ENV IS_DOCKERFILE=1
 
-RUN dnf install 'dnf-command(config-manager)' -y && \
-    dnf install epel-release -y && crb enable && \
+# ninja-build comes from CRB; EPEL is enabled for the packages
+# build_helper.nef pulls from it. The rest are in BaseOS/AppStream.
+RUN dnf config-manager --set-enabled crb && \
+    dnf install epel-release -y && \
     dnf update -y && \
-    # here just to display the current version
+    # Log the exact OS release used for the build.
     cat /etc/os-release && \
     dnf install -y \
         psmisc \
         git \
         diffutils \
-        file \
-        gcc-c++ \
-        ninja-build \
-        boost-devel \
-        openssl-devel \
-        openssl \
+        libasan \
         wget \
-        libasan && \
+        file && \
+    # Libraries built from source are installed under /usr/local, which is not
+    # on the default loader path on EL. This is also needed for the ldd check.
     echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
     echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf
 
-# Some GIT configuration command quite useful
+# Git configuration
 RUN git config --global https.postBuffer 123289600 && \
     git config --global http.sslverify false
 
-# Copying source code
-WORKDIR /openair-nef/
+# Copy source code
+WORKDIR /openair-nef
 COPY . /openair-nef
 
-# Installing all the needed libraries/packages to build and run NEF
+# Install and Build NEF
 WORKDIR /openair-nef/build/scripts
 RUN ./build_nef --install-deps --force
+RUN ./build_nef --clean --Verbose --build-type Release --jobs && \
+    ldd /openair-nef/build/nef/build/oai_nef
 
-# Building NEF
-WORKDIR /openair-nef/build/scripts
-RUN ldconfig && \
-    ./build_nef --clean --Verbose --build-type Release --jobs && \
-    ldd /openair-nef/build/nef/build/nef && \
-    mv /openair-nef/build/nef/build/nef /openair-nef/build/nef/build/oai_nef
-
-FROM mikefarah/yq:latest as yq-source
+FROM mikefarah/yq:latest AS yq-source
 
 #---------------------------------------------------------------------
 # TARGET IMAGE
 #---------------------------------------------------------------------
-FROM docker.io/rockylinux:9-minimal as oai-nef
+FROM quay.io/centos/centos:stream10-minimal AS oai-nef
 ENV TZ=Europe/Paris
-# We install some debug tools for the moment in addition of mandatory libraries
 
 RUN microdnf update -y && \
     microdnf install -y \
-# Debug Tools that are not mandatory
+# Timezone data, and debugging/networking utilities
       tzdata \
       procps-ng \
       psmisc \
       net-tools \
       iputils \
       tcpdump \
-# Mandatory packages for the NF to run
-      lksctp-tools \
+# Runtime dependencies of oai_nef
       libicu \
       boost \
       libevent \
+      nettle \
       findutils && \
     microdnf clean all -y && \
     rm -rf /var/cache/yum /var/cache/dnf
 
-# Copying executable and generated libraries
+# Copy executable and generated libraries
 WORKDIR /openair-nef/bin
 COPY --from=oai-nef-builder \
     /openair-nef/build/nef/build/oai_nef \
@@ -90,27 +84,33 @@ COPY --from=oai-nef-builder \
     ./
 COPY --from=yq-source /usr/bin/yq /usr/bin
 
+# Only the libraries built from source, plus yaml-cpp, which EL 10 ships in
+# EPEL only; the rest come from the packages above. nghttp2 (autotools)
+# installs into lib, the CMake-built spdlog, fmt and cpr into lib64.
 COPY --from=oai-nef-builder \
-    /usr/local/lib64/libpistache.so.0 \
-    /usr/local/lib/libnghttp2_asio.so.1 \
-    /usr/local/lib64/libspdlog.so \
-    /usr/local/lib64/libfmt.so \
-    /usr/local/lib64/libyaml-cpp.so.0.* \
+    /usr/local/lib/libnghttp2.so.14* \
+    /usr/local/lib64/libspdlog.so* \
+    /usr/local/lib64/libfmt.so* \
+    /usr/local/lib64/libcpr.so.1* \
+    /usr/lib64/libyaml-cpp.so.0.* \
     /usr/lib64/
 
 RUN ldconfig && \
-    ldd /openair-nef/bin/oai_nef
+    ldd /openair-nef/bin/oai_nef && \
+    # ldd exits 0 even when a library is missing, so check its output
+    ! ldd /openair-nef/bin/oai_nef | grep -q 'not found'
 
-# Copying template configuration files
+# Copy template configuration files
 WORKDIR /openair-nef/etc
 COPY --from=oai-nef-builder \
     /openair-nef/etc/config.yaml ./
 
 WORKDIR /openair-nef
 
-# expose ports
+# Expose ports
 EXPOSE 80/tcp 9090/tcp
-# healthcheck
+
+# Configure healthcheck
 HEALTHCHECK --interval=10s \
             --timeout=15s \
             --retries=6 \
