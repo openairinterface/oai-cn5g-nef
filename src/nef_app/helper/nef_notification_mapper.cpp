@@ -467,12 +467,12 @@ bool nef_notification_mapper::nwdaf_to_analytics_notification(
   for (const auto& en : notifs) {
     if (!en.is_object() || !en.contains("event") || !en["event"].is_string())
       continue;
-    json n           = json::object();
-    n["analyEvent"]  = nwdaf_event_to_analytics_event(en["event"]);
-    n["timeStamp"]   = (en.contains("timeStampGen") &&
-                      en["timeStampGen"].is_string()) ?
-                           en["timeStampGen"] :
-                           json(utc_now_rfc3339());
+    json n          = json::object();
+    n["analyEvent"] = nwdaf_event_to_analytics_event(en["event"]);
+    n["timeStamp"] =
+        (en.contains("timeStampGen") && en["timeStampGen"].is_string()) ?
+            en["timeStampGen"] :
+            json(utc_now_rfc3339());
     for (const char* f : {"expiry", "start", "timeStampGen", "rvWaitTime"}) {
       if (en.contains(f)) n[f] = en[f];
     }

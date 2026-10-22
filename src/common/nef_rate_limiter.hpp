@@ -22,7 +22,7 @@ class nef_rate_limiter {
       double tokens_per_second = 100.0, double max_tokens = 200.0)
       : m_tps(tokens_per_second), m_max(max_tokens) {}
 
-  nef_rate_limiter(const nef_rate_limiter&) = delete;
+  nef_rate_limiter(const nef_rate_limiter&)            = delete;
   nef_rate_limiter& operator=(const nef_rate_limiter&) = delete;
 
   static nef_rate_limiter& instance() {

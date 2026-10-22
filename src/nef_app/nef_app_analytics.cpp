@@ -162,38 +162,40 @@ static bool to_nwdaf_events_subscription(
 
   // Filter fields whose name is the same in both specs.
   static const char* kSame[] = {
-      "matchingDir",  "ranUeThrouThds", "qosFlowRetThds", "excepRequs",
-      "appIds",       "dnais",          "exptAnaType",    "exptUeBehav",
-      "reptThlds",    "nsiIdInfos",     "disperReqs",     "listOfAnaSubsets",
-      "dnPerfReqs",   "bwRequs",        "ratFreqs",       "appServerAddrs",
-      "extraReportReq", "maxNumOfTopAppUl", "maxNumOfTopAppDl",
-      "visitedLocAreas"};
+      "matchingDir",      "ranUeThrouThds", "qosFlowRetThds",
+      "excepRequs",       "appIds",         "dnais",
+      "exptAnaType",      "exptUeBehav",    "reptThlds",
+      "nsiIdInfos",       "disperReqs",     "listOfAnaSubsets",
+      "dnPerfReqs",       "bwRequs",        "ratFreqs",
+      "appServerAddrs",   "extraReportReq", "maxNumOfTopAppUl",
+      "maxNumOfTopAppDl", "visitedLocAreas"};
 
   nlohmann::json subs = nlohmann::json::array();
   for (const auto& ae : af["analyEventsSubs"]) {
-    const std::string ev = ae.value("analyEvent", "");
+    const std::string ev       = ae.value("analyEvent", "");
     const std::string nwdaf_ev = analytics_event_to_nwdaf_event(ev);
     if (nwdaf_ev.empty()) {
       err = "analyEvent '" + ev + "' is not supported";
       return false;
     }
-    nlohmann::json es         = nlohmann::json::object();
-    es["event"]               = nwdaf_ev;
-    es["notificationMethod"]  = method;
-    es["repetitionPeriod"]    = period;
+    nlohmann::json es        = nlohmann::json::object();
+    es["event"]              = nwdaf_ev;
+    es["notificationMethod"] = method;
+    es["repetitionPeriod"]   = period;
     if (ae.contains("analyEventFilter") && ae["analyEventFilter"].is_object()) {
       const auto& f = ae["analyEventFilter"];
       for (const char* k : kSame)
         if (f.contains(k)) es[k] = f[k];
       if (f.contains("nwPerfReqs")) es["nwPerfRequs"] = f["nwPerfReqs"];
       if (f.contains("qosReq")) es["qosRequ"] = f["qosReq"];
-      if (f.contains("snssai")) es["snssaia"] = nlohmann::json::array({f["snssai"]});
+      if (f.contains("snssai"))
+        es["snssaia"] = nlohmann::json::array({f["snssai"]});
       if (f.contains("dnn")) es["dnns"] = nlohmann::json::array({f["dnn"]});
       if (f.contains("locArea") && f["locArea"].contains("nwAreaInfo"))
         es["networkArea"] = f["locArea"]["nwAreaInfo"];
     }
     if (ae.contains("tgtUe") && ae["tgtUe"].is_object()) {
-      const auto& t = ae["tgtUe"];
+      const auto& t      = ae["tgtUe"];
       nlohmann::json tgt = nlohmann::json::object();
       if (t.value("anyUeInd", false)) tgt["anyUe"] = true;
       if (t.contains("gpsi") && t["gpsi"].is_string()) {
@@ -466,7 +468,7 @@ void nef_app::handle_analytics_subscription_update(
           make_problem_detail(http_status_code::BAD_REQUEST, translate_err);
       return;
     }
-    uint32_t nwdaf_code = 0;
+    uint32_t nwdaf_code            = 0;
     const std::string nwdaf_sub_id = sub->get_nf_subscription_id();
     if (!nwdaf_sub_id.empty() &&
         !m_nef_client->update_nwdaf_events_subscription(

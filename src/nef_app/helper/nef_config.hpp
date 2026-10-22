@@ -24,9 +24,9 @@ class nef_config : public oai::config::config {
     m_used_config_values = {LOG_LEVEL_CONFIG_NAME, REGISTER_NF_CONFIG_NAME,
                             NF_LIST_CONFIG_NAME,   NF_CONFIG_HTTP_NAME,
                             NEF_CONFIG_NAME,       NRF_CONFIG_NAME};
-    m_used_sbi_values    = {NEF_CONFIG_NAME, NRF_CONFIG_NAME, AMF_CONFIG_NAME,
-                         SMF_CONFIG_NAME, PCF_CONFIG_NAME, UDR_CONFIG_NAME,
-                         NWDAF_CONFIG_NAME};
+    m_used_sbi_values    = {NEF_CONFIG_NAME,  NRF_CONFIG_NAME, AMF_CONFIG_NAME,
+                            SMF_CONFIG_NAME,  PCF_CONFIG_NAME, UDR_CONFIG_NAME,
+                            NWDAF_CONFIG_NAME};
 
     auto m_nef = std::make_shared<nef_config_type>(
         NEF_CONFIG_NAME, "oai-nef",
