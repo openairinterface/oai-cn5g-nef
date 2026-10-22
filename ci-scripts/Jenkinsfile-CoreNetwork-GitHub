@@ -184,9 +184,10 @@ pipeline {
       post {
         failure {
           script {
-            preBuildFailureMessage = "Git operation failure or internal CI error"
-            if (isPullRequest)
-               preBuildFailureMessage += ", likely conflicts with ${targetBranch}; please resolve it."
+            // Keep the merge failure message set by checkoutSource(), if any.
+            if (!preBuildFailureMessage) {
+              preBuildFailureMessage = "Git operation failure or internal CI error"
+            }
             echo preBuildFailureMessage
             recordFailure()
           }
@@ -754,25 +755,42 @@ pipeline {
   }
 }
 
-// Check out GitHub's precomputed PR-merge ref (refs/pull/<N>/merge) so we build
-// exactly what GitHub considers mergeable; a missing ref means a conflict
+// refs/pull/<N>/merge is computed asynchronously and can be stale, so check out
+// the target branch and merge the PR head into it locally.
 def checkoutSource() {
   if (isPullRequest) {
-    echo "PR triggered - checking out merge ref for PR #${env.GITHUB_PR_NUMBER}"
+    echo "PR triggered - merging PR #${env.GITHUB_PR_NUMBER} into ${targetBranch}"
     try {
       checkout([
         $class: 'GitSCM',
-        branches: [[name: "refs/remotes/origin/pr/${env.GITHUB_PR_NUMBER}/merge"]],
+        branches: [[name: "refs/remotes/origin/${targetBranch}"]],
         userRemoteConfigs: [[
           url: env.GIT_URL,
-          refspec: "+refs/pull/${env.GITHUB_PR_NUMBER}/merge:refs/remotes/origin/pr/${env.GITHUB_PR_NUMBER}/merge",
+          refspec: "+refs/heads/${targetBranch}:refs/remotes/origin/${targetBranch} " +
+                   "+refs/pull/${env.GITHUB_PR_NUMBER}/head:refs/remotes/origin/pr/${env.GITHUB_PR_NUMBER}/head",
           credentialsId: githubCredentialsId
         ]]
       ])
+    } catch (InterruptedException interrupt) {
+      throw interrupt // Build aborted or timed out -- not a checkout problem.
     } catch (e) {
-      error("Checkout failed for PR #${env.GITHUB_PR_NUMBER} -- merge ref not found. " +
-            "The PR likely has a conflict with ${targetBranch} that must be resolved before CI can run. (${e.message})")
+      error("Checkout of ${targetBranch} failed for PR #${env.GITHUB_PR_NUMBER}. (${e.message})")
     }
+    echo "PR head commit: ${env.GITHUB_PR_HEAD_SHA}"
+    echo "Target commit : ${sh(returnStdout: true, script: 'git rev-parse HEAD').trim()}"
+    // The merge commit needs an identity; the workspace git config is only written after checkout.
+    def mergeStatus = sh(
+      script: "git -c user.email=oaicicdteam@openairinterface.org -c user.name='OAI Jenkins' merge --no-ff --no-edit ${env.GITHUB_PR_HEAD_SHA}",
+      returnStatus: true
+    )
+    if (mergeStatus != 0) {
+      sh 'git merge --abort || true'
+      preBuildFailureMessage = "**Build failed:** PR #${env.GITHUB_PR_NUMBER} could not be merged into" +
+                               " `${targetBranch}`. Either it conflicts, or it was force-pushed after this" +
+                               " build started -- in which case a newer build should already be running."
+      error("PR #${env.GITHUB_PR_NUMBER} could not be merged into ${targetBranch} (conflict, or force-pushed since the webhook fired).")
+    }
+    sh 'echo "Merge commit  : $(git rev-parse HEAD)"'
   } else {
     echo "Push triggered - checking out ${env.GIT_COMMIT} on branch ${nf_branch}"
     try {
@@ -784,6 +802,8 @@ def checkoutSource() {
           credentialsId: githubCredentialsId
         ]]
       ])
+    } catch (InterruptedException interrupt) {
+      throw interrupt
     } catch (e) {
       error("Checkout failed for commit ${env.GIT_COMMIT} on branch ${nf_branch} from ${env.GIT_URL}. (${e.message})")
     }
