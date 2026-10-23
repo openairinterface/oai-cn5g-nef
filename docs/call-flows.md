@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Call Flows
 
 This document traces the interactions between OAI NEF and the entities around it

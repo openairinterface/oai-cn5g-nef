@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Building OAI NEF from Source
 
 This page covers native and Docker builds of the NEF binary. The [README](../README.md) is the
