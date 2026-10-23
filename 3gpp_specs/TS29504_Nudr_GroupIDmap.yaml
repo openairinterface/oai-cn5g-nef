@@ -1,18 +1,16 @@
-# SPDX-License-Identifier: LicenseRef-CSSL-1.0
-
 openapi: 3.0.0
 
 info:
-  version: 1.0.0
+  version: 1.1.0
   title: 'Nudr_GroupIDmap'
   description: |
-    Unified Data Repository Service for NF-Group ID retrieval.
-    © 2020, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    Unified Data Repository Service for NF-Group ID retrieval.  
+    © 2022, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).  
     All rights reserved.
 
 externalDocs:
-  description: 3GPP TS 29.504 V16.4.0; 5G System; Unified Data Repository Services; Stage 3
-  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.504/'
+  description: 3GPP TS 29.504 V17.7.0; 5G System; Unified Data Repository Services; Stage 3
+  url: 'https://www.3gpp.org/ftp/Specs/archive/29_series/29.504/'
 
 servers:
   - description: API root
@@ -42,10 +40,11 @@ paths:
           explode: false
           schema:
             type: array
-            items: 
+            items:
               $ref: 'TS29510_Nnrf_NFManagement.yaml#/components/schemas/NFType'
             minItems: 1
         - name: subscriberId
+# The name of this query parameter is left not following the naming convention as defined in 3GPP TS 29.501 due to backward compatibility consideration.
           in: query
           description: Identifier of the subscriber
           required: true
@@ -81,15 +80,16 @@ components:
 # COMPLEX TYPES:
 
     NfGroupIdMapResult:
+      description: Contains the NFGroupIds for the requested NF types. The NFType is the key of the map.
       type: object
       additionalProperties:
         $ref: 'TS29571_CommonData.yaml#/components/schemas/NfGroupId'
       minProperties: 1
 
-
 # SIMPLE TYPES:
 
     SubscriberId:
+      description: Represents the Subscription Identifier SUPI or GPSI or IMPI or IMPU.
       type: string
       pattern: '^(imsi-[0-9]{5,15}|nai-.+|msisdn-[0-9]{5,15}|extid-[^@]+@[^@]+|impi-.+|impu-.+|.+)$'
 

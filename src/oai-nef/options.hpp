@@ -17,8 +17,6 @@
 #ifndef __OPTIONS_H
 #define __OPTIONS_H
 
-#include <stdint.h>
-
 #include <string>
 
 class Options {
@@ -34,7 +32,7 @@ class Options {
 
  private:
   enum OptionsSelected {
-    libconfigcfg     = 0x01,
+    config           = 0x01,
     log_stdout       = 0x02,
     log_rot_file_log = 0x04
   };
@@ -42,10 +40,9 @@ class Options {
   static void help();
 
   static int options;
-
   static bool m_log_rot_file_log;
   static bool m_log_stdout;
   static std::string m_libconfigcfg;
 };
 
-#endif  // #define __OPTIONS_H
+#endif  // __OPTIONS_H
