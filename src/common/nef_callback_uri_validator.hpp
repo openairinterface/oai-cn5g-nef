@@ -112,7 +112,7 @@ inline std::string validate_callback_uri(const std::string& uri) {
   }
 
   // 4. Check IPv4 blocked ranges
-  struct in_addr addr4 {};
+  struct in_addr addr4{};
   if (inet_pton(AF_INET, host.c_str(), &addr4) == 1) {
     const uint32_t ip = ntohl(addr4.s_addr);
 
@@ -145,7 +145,7 @@ inline std::string validate_callback_uri(const std::string& uri) {
   }
 
   // 5. Check IPv6 blocked ranges
-  struct in6_addr addr6 {};
+  struct in6_addr addr6{};
   if (inet_pton(AF_INET6, host.c_str(), &addr6) == 1) {
     // ::1  (loopback)
     static const uint8_t kLoopback6[16] = {0, 0, 0, 0, 0, 0, 0, 0,

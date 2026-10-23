@@ -277,7 +277,8 @@ bool nef_client::register_to_nrf() {
   add_service("3gpp-traffic-influence", "/3gpp-traffic-influence/v1", "v1.0.0");
   add_service("nnef-pfdmanagement", "/3gpp-pfd-management/v1", "v1.0.0");
   add_service("3gpp-bdt", "/3gpp-bdt/v1", "v1.0.0");
-  add_service("3gpp-as-session-with-qos", "/3gpp-as-session-with-qos/v1", "v1.0.0");
+  add_service(
+      "3gpp-as-session-with-qos", "/3gpp-as-session-with-qos/v1", "v1.0.0");
   add_service("3gpp-analyticsexposure", "/3gpp-analyticsexposure/v1", "v1.0.0");
 
   profile["nfServices"] = nf_services;
@@ -1079,8 +1080,8 @@ bool nef_client::create_nwdaf_events_subscription(
     return false;
   }
   // TS 29.520 §5.1.3.2.3.1: the new resource is in the Location header.
-  nwdaf_sub_id =
-      nef_async_last_path_segment(nef_async_header_ci(resp.headers, "Location"));
+  nwdaf_sub_id = nef_async_last_path_segment(
+      nef_async_header_ci(resp.headers, "Location"));
   return !nwdaf_sub_id.empty();
 }
 
@@ -1094,8 +1095,8 @@ bool nef_client::update_nwdaf_events_subscription(
   oai::nghttp2::request req = http_client_inst->prepare_json_request(
       nwdaf_url + kNwdafEventsSubscriptions + "/" + nwdaf_sub_id,
       request_body.dump());
-  const auto resp = http_client_inst->send_http_request(
-      oai::common::sbi::method_e::PUT, req);
+  const auto resp =
+      http_client_inst->send_http_request(oai::common::sbi::method_e::PUT, req);
   http_code = resp.status_code;
   return is_2xx_status(resp.status_code);
 }
