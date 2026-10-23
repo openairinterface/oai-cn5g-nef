@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # OAI Network Exposure Function (NEF) — User Guide
 
 This guide covers the OpenAirInterface implementation of the 5G Core Network Exposure Function (NEF). It describes the REST APIs exposed to external applications, deployment and configuration procedures, security model, and operational constraints.

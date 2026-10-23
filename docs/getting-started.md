@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Getting Started with OAI NEF
 
 This guide takes you from zero to your first NEF API call. It runs a single NEF
