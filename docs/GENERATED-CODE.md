@@ -122,15 +122,13 @@ grep -cE '^\s+\$\{NEF_MODEL_DIR\}/' src/common-src/model/nef_model.cmake
 
 ## 4. The generator inputs: `3gpp_specs/`
 
-The specs the models were generated from are committed at the repository root, along with the
-generator jar itself. What is *not* committed is how they were combined — see §5.
+The specs the models were generated from are committed at the repository root. What is *not* committed is how they were combined — see §5.
 
 135 entries:
 
 | | |
 |---|---|
 | 133 `.yaml` | 3GPP OpenAPI documents; the largest groups are `TS29522_*` (25), `TS26512_*` (17), `TS29122_*` (16) and `TS29222_*` (11) |
-| `openapi-generator-cli-7.11.0.jar` | the OpenAPI Generator CLI, version 7.11.0 |
 | `config.json` | two keys: `{"modelPackage": "oai::model", "apiPackage": "oai::api"}` |
 
 That is the whole directory. There is **no `.openapi-generator-ignore`**, no template directory,
@@ -145,7 +143,7 @@ guessing would be worse than saying nothing. **The original generator invocation
 
 **What is established:**
 
-* The generator was **OpenAPI Generator CLI 7.11.0** (the jar is committed).
+* The generator was [OpenAPI Generator CLI 7.11.0](https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.11.0/openapi-generator-cli-7.11.0.jar).
 * The configuration was, at minimum, `modelPackage = oai::model` and `apiPackage = oai::api`.
 * The inputs were the 3GPP OpenAPI YAMLs now sitting in `3gpp_specs/`.
 * The output is committed to the `src/common-src` submodule, not to this repository.
