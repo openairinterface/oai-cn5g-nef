@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------
+#
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "nef-build-cfg"
+  namespace: oaicicd-core
+spec:
+    runPolicy: "Serial"
+    source:
+        type: "Binary"
+    strategy:
+        dockerStrategy:
+            dockerfilePath: "docker/Dockerfile.nef.centos"
+    output:
+        to:
+            kind: "ImageStreamTag"
+            name: "oai-nef:latest"
